@@ -655,9 +655,9 @@ export default class phemex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'priceScale': this.safeNumber (market, 'priceScale'),
-            'valueScale': this.safeNumber (market, 'valueScale'),
-            'ratioScale': this.safeNumber (market, 'ratioScale'),
+            'priceScale': this.safeInteger (market, 'priceScale'),
+            'valueScale': this.safeInteger (market, 'valueScale'),
+            'ratioScale': this.safeInteger (market, 'ratioScale'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
