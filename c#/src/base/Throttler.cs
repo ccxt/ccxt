@@ -40,7 +40,7 @@ public class Throttler
                 this.running = false;
                 continue;
             }
-            var first = this.queue.Dequeue();
+            var first = this.queue.Peek();
             var task = first.Item1;
             var cost = first.Item2;
             var floatTokens = float.Parse(this.config["tokens"].ToString(), CultureInfo.InvariantCulture);
@@ -48,6 +48,7 @@ public class Throttler
             {
                 this.config["tokens"] = floatTokens - cost;
                 task.Start();
+                this.queue.Dequeue();
 
                 if (this.queue.Count == 0)
                 {

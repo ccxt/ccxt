@@ -70,7 +70,7 @@ public partial class Exchange
                 var exponent = Math.Pow((double)baseNumber, distance);
                 numerator = this.integer * exponent;
             }
-            var result = (int)numerator / (int)other.integer;
+            var result = (double)numerator / (double)other.integer;
             return new Precise(result.ToString(), precision);
         }
 
