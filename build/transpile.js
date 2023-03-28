@@ -240,6 +240,7 @@ class Transpiler {
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
+            [ /\.handleRequestTif\s/g, '.handle_request_tif'],
             [ /\.fetchBorrowRates\s/g, '.fetch_borrow_rates'],
             [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
