@@ -600,8 +600,11 @@ class phemex(Exchange):
         #
         #     {
         #         "symbol":"sBTCUSDT",
+        #         "code":1001,
         #         "displaySymbol":"BTC / USDT",
         #         "quoteCurrency":"USDT",
+        #         "priceScale":8,
+        #         "ratioScale":8,
         #         "pricePrecision":2,
         #         "type":"Spot",
         #         "baseCurrency":"BTC",
@@ -622,8 +625,11 @@ class phemex(Exchange):
         #         "baseQtyPrecision":6,
         #         "quoteQtyPrecision":2,
         #         "status":"Listed",
-        #         "tipOrderQty":20
-        #     }
+        #         "tipOrderQty":2,
+        #         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        #         "leverage":5
+        #         "valueScale":8,
+        #     },
         #
         type = self.safe_string_lower(market, 'type')
         id = self.safe_string(market, 'symbol')
@@ -660,9 +666,9 @@ class phemex(Exchange):
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
-            'priceScale': 8,
-            'valueScale': 8,
-            'ratioScale': 8,
+            'priceScale': self.safe_integer(market, 'priceScale'),
+            'valueScale': self.safe_integer(market, 'valueScale'),
+            'ratioScale': self.safe_integer(market, 'ratioScale'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -702,9 +708,9 @@ class phemex(Exchange):
         #         "data":{
         #             "ratioScale":8,
         #             "currencies":[
-        #                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        #                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        #                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        #                 {"code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        #                 {"code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        #                 {"code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
         #             ],
         #             "products":[
         #                 {
@@ -730,8 +736,11 @@ class phemex(Exchange):
         #                 },
         #                 {
         #                     "symbol":"sBTCUSDT",
+        #                     "code":1001,
         #                     "displaySymbol":"BTC / USDT",
         #                     "quoteCurrency":"USDT",
+        #                     "priceScale":8,
+        #                     "ratioScale":8,
         #                     "pricePrecision":2,
         #                     "type":"Spot",
         #                     "baseCurrency":"BTC",
@@ -750,7 +759,11 @@ class phemex(Exchange):
         #                     "defaultMakerFee":"0.001",
         #                     "defaultMakerFeeEr":100000,
         #                     "baseQtyPrecision":6,
-        #                     "quoteQtyPrecision":2
+        #                     "quoteQtyPrecision":2,
+        #                     "status":"Listed",
+        #                     "tipOrderQty":2,
+        #                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        #                     "leverage":5
         #                 },
         #             ],
         #             "riskLimits":[
@@ -812,8 +825,10 @@ class phemex(Exchange):
         v2ProductsData = self.safe_value(v2Products, 'data', {})
         products = self.safe_value(v2ProductsData, 'products', [])
         riskLimits = self.safe_value(v2ProductsData, 'riskLimits', [])
+        currencies = self.safe_value(v2ProductsData, 'currencies', [])
         riskLimitsById = self.index_by(riskLimits, 'symbol')
         v1ProductsById = self.index_by(v1ProductsData, 'symbol')
+        currenciesByCode = self.index_by(currencies, 'currency')
         result = []
         for i in range(0, len(products)):
             market = products[i]
@@ -826,6 +841,10 @@ class phemex(Exchange):
                 market = self.extend(market, v1ProductsValues)
                 market = self.parse_swap_market(market)
             else:
+                baseCurrency = self.safe_string(market, 'baseCurrency')
+                currencyValues = self.safe_value(currenciesByCode, baseCurrency, {})
+                valueScale = self.safe_string(currencyValues, 'valueScale', '8')
+                market = self.extend(market, {'valueScale': valueScale})
                 market = self.parse_spot_market(market)
             result.append(market)
         return result
@@ -981,10 +1000,8 @@ class phemex(Exchange):
         precise = Precise(stringN)
         precise.decimals = precise.decimals - scale
         precise.reduce()
-        stringValue = str(precise)
-        floatValue = float(stringValue)
-        floatString = str(floatValue)
-        return int(floatString)
+        preciseString = str(precise)
+        return self.parse_to_int(preciseString)
 
     def to_ev(self, amount, market=None):
         if (amount is None) or (market is None):
@@ -1852,7 +1869,7 @@ class phemex(Exchange):
         amount = self.from_ev(self.safe_string(order, 'baseQtyEv'), market)
         remaining = self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), market))
         filled = self.from_ev(self.safe_string_2(order, 'cumBaseQtyEv', 'cumBaseValueEv'), market)
-        cost = self.from_ev(self.safe_string_2(order, 'cumQuoteValueEv', 'quoteQtyEv'), market)
+        cost = self.from_er(self.safe_string_2(order, 'cumQuoteValueEv', 'quoteQtyEv'), market)
         average = self.from_ep(self.safe_string(order, 'avgPriceEp'), market)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
@@ -2586,13 +2603,14 @@ class phemex(Exchange):
             if market['settle'] == 'USDT':
                 method = 'privateGetExchangeOrderV2TradingList'
         request = {}
+        if limit is not None:
+            limit = min(200, limit)
+            request['limit'] = limit
         if market['settle'] == 'USDT':
             request['currency'] = 'USDT'
             request['offset'] = 0
-            limit = 200
-            if limit is not None:
-                limit = min(200, limit)
-            request['limit'] = limit
+            if limit is None:
+                request['limit'] = 200
         else:
             request['symbol'] = market['id']
         if since is not None:
