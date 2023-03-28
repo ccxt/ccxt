@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class mexc3 extends mexc3$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -458,6 +457,7 @@ class mexc3 extends mexc3$1 {
                     '30005': errors.InvalidOrder,
                     '2003': errors.InvalidOrder,
                     '2005': errors.InsufficientFunds,
+                    '400': errors.BadRequest,
                     '600': errors.BadRequest,
                     '70011': errors.PermissionDenied,
                     '88004': errors.InsufficientFunds,
@@ -468,7 +468,7 @@ class mexc3 extends mexc3$1 {
                     '26': errors.ExchangeError,
                     '602': errors.AuthenticationError,
                     '10001': errors.AuthenticationError,
-                    '10007': errors.BadRequest,
+                    '10007': errors.BadSymbol,
                     '10015': errors.BadRequest,
                     '10072': errors.BadRequest,
                     '10073': errors.BadRequest,
@@ -3925,9 +3925,6 @@ class mexc3 extends mexc3$1 {
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (code === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a currency code argument');
-        }
         await this.loadMarkets();
         const request = {
         // 'coin': currency['id'] + network example: USDT-TRX,
@@ -3937,15 +3934,17 @@ class mexc3 extends mexc3$1 {
         // 'limit': limit, // default 1000, maximum 1000
         };
         let currency = undefined;
-        const rawNetwork = this.safeString(params, 'network');
-        params = this.omit(params, 'network');
-        if (rawNetwork === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a network parameter when the currency is specified');
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['coin'] = currency['id'];
+            // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
+            // due to that I'm applying the network parameter directly so the user can control it on its side
+            const rawNetwork = this.safeString(params, 'network');
+            if (rawNetwork !== undefined) {
+                params = this.omit(params, 'network');
+                request['coin'] += '-' + rawNetwork;
+            }
         }
-        // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
-        // due to that I'm applying the network parameter directly so the user can control it on its side
-        currency = this.currency(code);
-        request['coin'] = currency['id'] + '-' + rawNetwork;
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -3964,11 +3963,11 @@ class mexc3 extends mexc3$1 {
         //         network: 'TRX',
         //         status: '5',
         //         address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //         addressTag: null,
         //         txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         //         insertTime: '1664805021000',
         //         unlockConfirm: '200',
-        //         confirmTimes: '203'
+        //         confirmTimes: '203',
+        //         memo: 'xxyy1122'
         //     }
         // ]
         //
@@ -3986,9 +3985,6 @@ class mexc3 extends mexc3$1 {
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (code === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a currency code argument');
-        }
         await this.loadMarkets();
         const request = {
         // 'coin': currency['id'],
@@ -3997,8 +3993,11 @@ class mexc3 extends mexc3$1 {
         // 'endTime': this.milliseconds (),
         // 'limit': limit, // default 1000, maximum 1000
         };
-        const currency = this.currency(code);
-        request['coin'] = currency['id'];
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['coin'] = currency['id'];
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -4023,7 +4022,8 @@ class mexc3 extends mexc3$1 {
         //       transactionFee: '1',
         //       confirmNo: null,
         //       applyTime: '1664882739000',
-        //       remark: ''
+        //       remark: '',
+        //       memo: null
         //     }
         // ]
         //
@@ -4039,11 +4039,11 @@ class mexc3 extends mexc3$1 {
         //     network: 'TRX',
         //     status: '5',
         //     address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //     addressTag: null,
         //     txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         //     insertTime: '1664805021000',
         //     unlockConfirm: '200',
-        //     confirmTimes: '203'
+        //     confirmTimes: '203',
+        //     memo: 'xxyy1122'
         // }
         //
         // fetchWithdrawals
@@ -4060,7 +4060,8 @@ class mexc3 extends mexc3$1 {
         //     transactionFee: '1',
         //     confirmNo: null,
         //     applyTime: '1664882739000',
-        //     remark: ''
+        //     remark: '',
+        //     memo: null
         //   }
         //
         // withdraw
@@ -4072,10 +4073,11 @@ class mexc3 extends mexc3$1 {
         const id = this.safeString(transaction, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.safeInteger2(transaction, 'insertTime', 'applyTime');
-        const currencyId = this.safeString(transaction, 'currency');
-        const network = this.safeString(transaction, 'network');
+        const currencyWithNetwork = this.safeString(transaction, 'coin');
+        const currencyId = currencyWithNetwork.split('-')[0];
+        const rawNetwork = this.safeString(transaction, 'network');
         const code = this.safeCurrencyCode(currencyId, currency);
-        const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
+        const status = this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type);
         let amountString = this.safeString(transaction, 'amount');
         const address = this.safeString(transaction, 'address');
         const txid = this.safeString(transaction, 'txId');
@@ -4097,7 +4099,7 @@ class mexc3 extends mexc3$1 {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': network,
+            'network': this.safeNetwork(rawNetwork),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -4112,12 +4114,31 @@ class mexc3 extends mexc3$1 {
             'fee': fee,
         };
     }
-    parseTransactionStatus(status) {
-        const statuses = {
-            'WAIT': 'pending',
-            'WAIT_PACKAGING': 'pending',
-            'SUCCESS': 'ok',
+    parseTransactionStatusByType(status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '1': 'failed',
+                '2': 'pending',
+                '3': 'pending',
+                '4': 'pending',
+                '5': 'ok',
+                '6': 'pending',
+                '7': 'failed', // REJECTED
+            },
+            'withdrawal': {
+                '1': 'pending',
+                '2': 'pending',
+                '3': 'pending',
+                '4': 'pending',
+                '5': 'pending',
+                '6': 'pending',
+                '7': 'ok',
+                '8': 'failed',
+                '9': 'canceled',
+                '10': 'pending', // MANUAL
+            },
         };
+        const statuses = this.safeValue(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     async fetchPosition(symbol, params = {}) {

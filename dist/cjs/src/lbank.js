@@ -9,7 +9,6 @@ var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class lbank extends lbank$1 {
     describe() {
         return this.deepExtend(super.describe(), {

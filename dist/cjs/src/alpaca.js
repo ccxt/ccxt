@@ -6,7 +6,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------xs
-// @ts-expect-error
 class alpaca extends alpaca$1 {
     describe() {
         return this.deepExtend(super.describe(), {

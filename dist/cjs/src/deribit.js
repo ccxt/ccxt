@@ -9,7 +9,6 @@ var totp = require('./base/functions/totp.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class deribit extends deribit$1 {
     describe() {
         return this.deepExtend(super.describe(), {

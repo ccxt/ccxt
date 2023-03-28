@@ -10,7 +10,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class kucoinfutures extends kucoin {
     describe() {
         return this.deepExtend(super.describe(), {

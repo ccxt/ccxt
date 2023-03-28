@@ -470,6 +470,7 @@ class mexc3(Exchange):
                     '30005': InvalidOrder,
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
+                    '400': BadRequest,  # {"msg":"The start time cannot be earlier than 90 days","code":400}
                     '600': BadRequest,
                     '70011': PermissionDenied,  # {"code":70011,"msg":"Pair user ban trade apikey."}
                     '88004': InsufficientFunds,  # {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
@@ -480,7 +481,7 @@ class mexc3(Exchange):
                     '26': ExchangeError,  # operation not allowed
                     '602': AuthenticationError,  # Signature verification failed
                     '10001': AuthenticationError,  # user does not exist
-                    '10007': BadRequest,  # bad symbol
+                    '10007': BadSymbol,  # {"code":10007,"msg":"bad symbol"}
                     '10015': BadRequest,  # user id cannot be null
                     '10072': BadRequest,  # invalid access key
                     '10073': BadRequest,  # invalid Request-Time
@@ -3685,8 +3686,6 @@ class mexc3(Exchange):
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         self.load_markets()
         request = {
             # 'coin': currency['id'] + network example: USDT-TRX,
@@ -3696,14 +3695,15 @@ class mexc3(Exchange):
             # 'limit': limit,  # default 1000, maximum 1000
         }
         currency = None
-        rawNetwork = self.safe_string(params, 'network')
-        params = self.omit(params, 'network')
-        if rawNetwork is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a network parameter when the currency is specified')
-        # currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
-        # due to that I'm applying the network parameter directly so the user can control it on its side
-        currency = self.currency(code)
-        request['coin'] = currency['id'] + '-' + rawNetwork
+        if code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
+            # currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
+            # due to that I'm applying the network parameter directly so the user can control it on its side
+            rawNetwork = self.safe_string(params, 'network')
+            if rawNetwork is not None:
+                params = self.omit(params, 'network')
+                request['coin'] += '-' + rawNetwork
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -3719,11 +3719,11 @@ class mexc3(Exchange):
         #         network: 'TRX',
         #         status: '5',
         #         address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        #         addressTag: null,
         #         txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         #         insertTime: '1664805021000',
         #         unlockConfirm: '200',
-        #         confirmTimes: '203'
+        #         confirmTimes: '203',
+        #         memo: 'xxyy1122'
         #     }
         # ]
         #
@@ -3739,8 +3739,6 @@ class mexc3(Exchange):
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         self.load_markets()
         request = {
             # 'coin': currency['id'],
@@ -3749,8 +3747,10 @@ class mexc3(Exchange):
             # 'endTime': self.milliseconds(),
             # 'limit': limit,  # default 1000, maximum 1000
         }
-        currency = self.currency(code)
-        request['coin'] = currency['id']
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -3772,7 +3772,8 @@ class mexc3(Exchange):
         #       transactionFee: '1',
         #       confirmNo: null,
         #       applyTime: '1664882739000',
-        #       remark: ''
+        #       remark: '',
+        #       memo: null
         #     }
         # ]
         #
@@ -3788,11 +3789,11 @@ class mexc3(Exchange):
         #     network: 'TRX',
         #     status: '5',
         #     address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        #     addressTag: null,
         #     txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         #     insertTime: '1664805021000',
         #     unlockConfirm: '200',
-        #     confirmTimes: '203'
+        #     confirmTimes: '203',
+        #     memo: 'xxyy1122'
         # }
         #
         # fetchWithdrawals
@@ -3809,7 +3810,8 @@ class mexc3(Exchange):
         #     transactionFee: '1',
         #     confirmNo: null,
         #     applyTime: '1664882739000',
-        #     remark: ''
+        #     remark: '',
+        #     memo: null
         #   }
         #
         # withdraw
@@ -3821,10 +3823,11 @@ class mexc3(Exchange):
         id = self.safe_string(transaction, 'id')
         type = 'deposit' if (id is None) else 'withdrawal'
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
-        currencyId = self.safe_string(transaction, 'currency')
-        network = self.safe_string(transaction, 'network')
+        currencyWithNetwork = self.safe_string(transaction, 'coin')
+        currencyId = currencyWithNetwork.split('-')[0]
+        rawNetwork = self.safe_string(transaction, 'network')
         code = self.safe_currency_code(currencyId, currency)
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'txId')
@@ -3844,7 +3847,7 @@ class mexc3(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': network,
+            'network': self.safe_network(rawNetwork),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -3859,12 +3862,31 @@ class mexc3(Exchange):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
-        statuses = {
-            'WAIT': 'pending',
-            'WAIT_PACKAGING': 'pending',
-            'SUCCESS': 'ok',
+    def parse_transaction_status_by_type(self, status, type=None):
+        statusesByType = {
+            'deposit': {
+                '1': 'failed',  # SMALL
+                '2': 'pending',  # TIME_DELAY
+                '3': 'pending',  # LARGE_DELAY
+                '4': 'pending',  # PENDING
+                '5': 'ok',  # SUCCESS
+                '6': 'pending',  # AUDITING
+                '7': 'failed',  # REJECTED
+            },
+            'withdrawal': {
+                '1': 'pending',  # APPLY
+                '2': 'pending',  # AUDITING
+                '3': 'pending',  # WAIT
+                '4': 'pending',  # PROCESSING
+                '5': 'pending',  # WAIT_PACKAGING
+                '6': 'pending',  # WAIT_CONFIRM
+                '7': 'ok',  # SUCCESS
+                '8': 'failed',  # FAILED
+                '9': 'canceled',  # CANCEL
+                '10': 'pending',  # MANUAL
+            },
         }
+        statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
     def fetch_position(self, symbol, params={}):

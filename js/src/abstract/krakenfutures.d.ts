@@ -1,32 +1,35 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetInstruments(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOrderbook(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickers(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetHistory(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetHistoricalfundingrates(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOpenpositions(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetNotifications(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccounts(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOpenorders(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetRecentorders(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFills(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTransfers(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostSendorder(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostEditorder(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelorder(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTransfer(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostBatchorder(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelallorders(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelallordersafter(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawal(params?: {}): Promise<implicitReturnType>;
-    abstract chartsGetPriceTypeSymbolInterval(params?: {}): Promise<implicitReturnType>;
-    abstract historyGetOrders(params?: {}): Promise<implicitReturnType>;
-    abstract historyGetExecutions(params?: {}): Promise<implicitReturnType>;
-    abstract historyGetTriggers(params?: {}): Promise<implicitReturnType>;
-    abstract historyGetAccountlogcsv(params?: {}): Promise<implicitReturnType>;
-    abstract historyGetMarketSymbolOrders(params?: {}): Promise<implicitReturnType>;
-    abstract historyGetMarketSymbolExecutions(params?: {}): Promise<implicitReturnType>;
-    abstract feeschedulesGetVolumes(params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetInstruments(params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbook(params?: {}): Promise<implicitReturnType>;
+    publicGetTickers(params?: {}): Promise<implicitReturnType>;
+    publicGetHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetHistoricalfundingrates(params?: {}): Promise<implicitReturnType>;
+    privateGetOpenpositions(params?: {}): Promise<implicitReturnType>;
+    privateGetNotifications(params?: {}): Promise<implicitReturnType>;
+    privateGetAccounts(params?: {}): Promise<implicitReturnType>;
+    privateGetOpenorders(params?: {}): Promise<implicitReturnType>;
+    privateGetRecentorders(params?: {}): Promise<implicitReturnType>;
+    privateGetFills(params?: {}): Promise<implicitReturnType>;
+    privateGetTransfers(params?: {}): Promise<implicitReturnType>;
+    privatePostSendorder(params?: {}): Promise<implicitReturnType>;
+    privatePostEditorder(params?: {}): Promise<implicitReturnType>;
+    privatePostCancelorder(params?: {}): Promise<implicitReturnType>;
+    privatePostTransfer(params?: {}): Promise<implicitReturnType>;
+    privatePostBatchorder(params?: {}): Promise<implicitReturnType>;
+    privatePostCancelallorders(params?: {}): Promise<implicitReturnType>;
+    privatePostCancelallordersafter(params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawal(params?: {}): Promise<implicitReturnType>;
+    chartsGetPriceTypeSymbolInterval(params?: {}): Promise<implicitReturnType>;
+    historyGetOrders(params?: {}): Promise<implicitReturnType>;
+    historyGetExecutions(params?: {}): Promise<implicitReturnType>;
+    historyGetTriggers(params?: {}): Promise<implicitReturnType>;
+    historyGetAccountlogcsv(params?: {}): Promise<implicitReturnType>;
+    historyGetMarketSymbolOrders(params?: {}): Promise<implicitReturnType>;
+    historyGetMarketSymbolExecutions(params?: {}): Promise<implicitReturnType>;
+    feeschedulesGetVolumes(params?: {}): Promise<implicitReturnType>;
 }
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

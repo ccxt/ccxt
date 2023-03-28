@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _gate from '../gate.js';
-export default class gate extends _gate {
+class gate extends _gate {
 }
+export default gate;

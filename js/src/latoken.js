@@ -10,7 +10,6 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, Ba
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class latoken extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

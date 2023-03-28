@@ -5,7 +5,6 @@ import coinbasepro from './coinbasepro.js';
 
 // ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class coinbaseprime extends coinbasepro {
     describe () {
         return this.deepExtend (super.describe (), {

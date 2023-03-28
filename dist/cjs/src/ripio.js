@@ -6,7 +6,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class ripio extends ripio$1 {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -744,6 +744,7 @@ export default class bybit extends Exchange {
                     '131097': ExchangeError,
                     '131098': ExchangeError,
                     '131099': ExchangeError,
+                    '140001': OrderNotFound,
                     '140003': InvalidOrder,
                     '140004': InsufficientFunds,
                     '140005': InvalidOrder,

@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _fmfwio from '../fmfwio.js';
-export default class fmfwio extends _fmfwio {
+class fmfwio extends _fmfwio {
 }
+export default fmfwio;

@@ -172,6 +172,7 @@ var okcoin$1 = require('./src/pro/okcoin.js');
 var okex$1 = require('./src/pro/okex.js');
 var okx$1 = require('./src/pro/okx.js');
 var phemex$1 = require('./src/pro/phemex.js');
+var probit$1 = require('./src/pro/probit.js');
 var ripio$1 = require('./src/pro/ripio.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
@@ -181,7 +182,7 @@ var zb$1 = require('./src/pro/zb.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.37';
+const version = '3.0.40';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -346,6 +347,7 @@ const pro = {
     'okex': okex$1,
     'okx': okx$1,
     'phemex': phemex$1,
+    'probit': probit$1,
     'ripio': ripio$1,
     'upbit': upbit$1,
     'wazirx': wazirx$1,
