@@ -14,12 +14,13 @@ public partial class Exchange
     {
         public object decimals = null;
 
-        public object integer = null;
+        public long integer = 0;
 
-        public object baseNumber = null;
+        public long baseNumber = 10;
 
-        public Precise(string number, int decimals = -1)
+        public Precise(object number2, int decimals = -1)
         {
+            var number = number2.ToString();
             if (decimals == -1)
             {
                 var modified = 0;
@@ -38,7 +39,7 @@ public partial class Exchange
             }
             else
             {
-                this.integer = number;
+                this.integer = long.Parse(number);
                 this.decimals = decimals;
             }
 
@@ -62,12 +63,12 @@ public partial class Exchange
             else if (distance < 0)
             {
                 var exponent = Math.Pow((double)baseNumber, -distance);
-                numerator = (int)this.integer / exponent;
+                numerator = this.integer / exponent;
             }
             else
             {
                 var exponent = Math.Pow((double)baseNumber, distance);
-                numerator = (int)this.integer * exponent;
+                numerator = this.integer * exponent;
             }
             var result = (int)numerator / (int)other.integer;
             return new Precise(result.ToString(), precision);
@@ -104,7 +105,7 @@ public partial class Exchange
         public Precise mod(Precise other)
         {
             var rationizerNumerator = Math.Max(-(int)this.decimals + (int)other.decimals, 0);
-            var numerator = (int)this.integer * Math.Pow((double)this.baseNumber, rationizerNumerator);
+            var numerator = this.integer * Math.Pow((double)this.baseNumber, rationizerNumerator);
             var rationizerDenominator = Math.Max(-(int)this.decimals + (int)other.decimals, 0);
             var denominator = (int)other.integer * Math.Pow((double)this.baseNumber, rationizerDenominator);
             var result = numerator % denominator;
@@ -119,7 +120,7 @@ public partial class Exchange
 
         public Precise neg()
         {
-            return new Precise((-(int)this.integer).ToString(), (int)this.decimals);
+            return new Precise((-this.integer).ToString(), (int)this.decimals);
         }
 
         public Precise min(Precise other)
@@ -156,7 +157,7 @@ public partial class Exchange
 
         public Precise abs()
         {
-            var result = (int)this.integer < 0 ? (int)this.integer * -1 : this.integer;
+            var result = this.integer < 0 ? this.integer * -1 : this.integer;
             return new Precise(result.ToString(), (int)this.decimals);
         }
 
@@ -202,15 +203,15 @@ public partial class Exchange
         {
             this.reduce();
             var sign = "";
-            int abs = 0;
-            if ((int)this.integer < 0)
+            long abs = 0;
+            if (this.integer < 0)
             {
                 sign = "-";
-                abs = -(int)this.integer;
+                abs = -this.integer;
             }
             else
             {
-                abs = (int)this.integer;
+                abs = this.integer;
             }
             var integerArray = abs.ToString().PadLeft((int)this.decimals, '0').ToString().ToList().Select(x => x.ToString()).ToList();
             var index = integerArray.Count - (int)this.decimals;
