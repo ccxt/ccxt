@@ -1,4 +1,8 @@
+using System.Globalization;
+
 namespace Tests;
+
+using dict = System.Collections.Generic.Dictionary<string, object>;
 
 public class Helper
 {
@@ -168,11 +172,6 @@ public partial class BaseTest
             return null;
         }
         return a;
-    }
-
-    public dict parseJson(object json)
-    {
-        return JsonSerializer.Deserialize<Dictionary<string, object>>((string)json);
     }
 
     public bool isTrue(object value)

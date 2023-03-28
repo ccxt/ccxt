@@ -303,7 +303,7 @@ class NewTranspiler {
         // custom transformations needed for c#
         baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
         baseClass = baseClass.replace("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
-        baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
+        // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(exact, str)(((string)message));", "this.throwDynamicException(exact, str, message);"); // tmp fix for c#
@@ -343,12 +343,14 @@ class NewTranspiler {
             createFolderRecursively (csharpFolder)
         }
 
-        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
-        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
         }
+
+        // encapsulate inside transpileTests
+        this.transpilePrecisionTestsToCSharp();
 
         this.transpileBaseMethods (exchangeBase)
 
@@ -604,6 +606,45 @@ class NewTranspiler {
 
         return []
     }
+
+    transpilePrecisionTestsToCSharp () {
+
+        const jsFile = './ts/src/test/base/functions/test.number.ts';
+        const csharpFile = './c#/Tests/Generated/Precision.cs';
+
+        log.magenta ('Transpiling from', (jsFile as any).yellow)
+
+        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
+        let content = csharp.content;
+        content = this.regexAll (content, [
+            [ /object  = functions;/g, '' ], // tmp fix
+            [/assert/g, 'Assert.True'],
+        ]).trim ()
+
+        const contentLines = content.split ('\n');
+        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+
+        const file = [
+            'using Main;',
+            'namespace Tests;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            'public class PrecisionTests : BaseTest',
+            '{',
+            '    [Fact]',
+            '    public void TestPrecision()',
+            '    {',
+            contentIdented,
+            '    }',
+            '}',
+        ].join('\n')
+
+        log.magenta ('→', (csharpFile as any).yellow)
+
+        overwriteFile (csharpFile, file);
+        // overwriteFile (phpFile, php)
+    }
+
 
 }
 

@@ -156,8 +156,13 @@ public partial class Exchange
     public virtual string numberToString(object number)
 
     {
+        if (number == null)
+            return null;
+        if (number.GetType() == typeof(Int32) || number.GetType() == typeof(Int64))
+            return number.ToString();
         var doubleValue = (double)number;
-        return doubleValue.ToString("F99").TrimEnd('0'); // check this out
+        var decimalValue = (decimal)doubleValue;
+        return decimalValue.ToString(CultureInfo.InvariantCulture); // https://stackoverflow.com/questions/1546113/double-to-string-conversion-without-scientific-notation
     }
 
 }
