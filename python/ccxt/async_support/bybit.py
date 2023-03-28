@@ -7732,7 +7732,12 @@ class bybit(Exchange):
                 else:
                     authFull = auth_base + queryEncoded
                     url += '?' + self.rawencode(query)
-                headers['X-BAPI-SIGN'] = self.hmac(self.encode(authFull), self.encode(self.secret), hashlib.sha256)
+                signature = None
+                if self.secret.find('PRIVATE KEY') > -1:
+                    signature = self.rsa(authFull, self.secret, 'sha256')
+                else:
+                    signature = self.hmac(self.encode(authFull), self.encode(self.secret), hashlib.sha256)
+                headers['X-BAPI-SIGN'] = signature
             else:
                 query = self.extend(params, {
                     'api_key': self.apiKey,
@@ -7741,7 +7746,11 @@ class bybit(Exchange):
                 })
                 sortedQuery = self.keysort(query)
                 auth = self.rawencode(sortedQuery)
-                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                signature = None
+                if self.secret.find('PRIVATE KEY') > -1:
+                    signature = self.rsa(auth, self.secret, 'sha256')
+                else:
+                    signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 if method == 'POST':
                     isSpot = url.find('spot') >= 0
                     extendedQuery = self.extend(query, {
