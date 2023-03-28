@@ -68,7 +68,7 @@ public partial class Exchange
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
     public object timeframes { get; set; } = new dict();
-    public object rateLimit { get; set; } = new dict();
+    public float rateLimit { get; set; }
     public object exceptions { get; set; } = new dict();
     public object urls { get; set; } = new dict();
     public object precision { get; set; } = new dict();
@@ -98,6 +98,9 @@ public partial class Exchange
     public object headers { get; set; } = new dict();
 
     public dict httpExceptions { get; set; } = new dict();
+
+    public dict tokenBucket { get; set; } = new dict();
+    public Throttler throttler { get; set; }
 
     public virtual object describe()
     {
@@ -328,5 +331,6 @@ public partial class Exchange
         this.has = this.safeValue(properties, "has") as dict;
         this.httpExceptions = this.safeValue(properties, "httpExceptions") as dict;
         this.exceptions = this.safeValue(properties, "exceptions") as dict;
+        this.rateLimit = (float)this.safeFloat(properties, "rateLimit", -1);
     }
 }

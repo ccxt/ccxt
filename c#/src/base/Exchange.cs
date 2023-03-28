@@ -23,6 +23,13 @@ public partial class Exchange
         this.initializeProperties();
         var empty = new List<string>();
         transformApiNew(this.api);
+
+        this.initRestLimiter();
+
+        if (this.markets != null)
+        {
+            this.setMarkets(this.markets);
+        }
     }
 
     private void transformApiNew(dict api, List<string> paths = null)
@@ -190,7 +197,7 @@ public partial class Exchange
         if (this.enableRateLimit)
         {
             var cost = config["cost"]; // protect this call
-            // await this.throttle();
+            await this.throttler.throttle(cost);
         }
         this.lastRestRequestTimestamp = this.milliseconds();
         var request = this.sign(path, api, method, parameters, headers, body);
@@ -351,9 +358,30 @@ public partial class Exchange
         return ""; // stub
     }
 
+    // public async Task throttle(object cost)
+    // {
+    //     return;
+    // }
+
     public async Task throttle(object cost)
     {
-        return;
+        await this.throttler.throttle(cost);
+    }
+
+    public void initRestLimiter()
+    {
+        if (this.rateLimit == -1)
+        {
+            throw new Exception(this.id + ".rateLimit property is not configured'");
+        }
+        this.tokenBucket = this.extend(new dict() {
+            {"delay" , 0.001},
+            {"capacity" , 1},
+            {"cost" , 1},
+            {"maxCapacity", 1000},
+            {"refillRate", (this.rateLimit > 0) ? 1 / this.rateLimit : float.MaxValue},
+        }, this.tokenBucket);
+        this.throttler = new Throttler(this.tokenBucket);
     }
 
     public virtual void setSandboxMode(object enable2)
