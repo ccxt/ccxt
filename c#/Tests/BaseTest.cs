@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Tests;
 
-public class BaseTest
+public partial class BaseTest
 {
     public string exchangesPath = "../../../../../exchanges.json";
     public Exchange exchange = new Exchange();
