@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitbns.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -110,7 +111,6 @@ export default class bitbns extends Exchange {
                         'placeBuyOrder/{symbol}',
                         'buyStopLoss/{symbol}',
                         'sellStopLoss/{symbol}',
-                        'placeSellOrder/{symbol}',
                         'cancelOrder/{symbol}',
                         'cancelStopLossOrder/{symbol}',
                         'listExecutedOrders/{symbol}',
@@ -155,9 +155,9 @@ export default class bitbns extends Exchange {
          * @name bitbns#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).v1GetPlatformStatus (params);
+        const response = await this.v1GetPlatformStatus (params);
         //
         //     {
         //         "data":{
@@ -188,7 +188,7 @@ export default class bitbns extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).wwwGetOrderFetchMarkets (params);
+        const response = await this.wwwGetOrderFetchMarkets (params);
         //
         //     [
         //         {
@@ -289,7 +289,7 @@ export default class bitbns extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -299,7 +299,7 @@ export default class bitbns extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        const response = await (this as any).wwwGetOrderFetchOrderbook (this.extend (request, params));
+        const response = await this.wwwGetOrderFetchOrderbook (this.extend (request, params));
         //
         //     {
         //         "bids":[
@@ -387,10 +387,10 @@ export default class bitbns extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).wwwGetOrderFetchTickers (params);
+        const response = await this.wwwGetOrderFetchTickers (params);
         //
         //     {
         //         "BTC/INR":{
@@ -464,7 +464,7 @@ export default class bitbns extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1PostCurrentCoinBalanceEVERYTHING (params);
+        const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
         //
         //     {
         //         "data":{
@@ -602,7 +602,7 @@ export default class bitbns extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (type !== 'limit' && type !== 'market') {
             throw new ExchangeError (this.id + ' allows limit and market orders only');
@@ -650,7 +650,7 @@ export default class bitbns extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -663,7 +663,7 @@ export default class bitbns extends Exchange {
             'symbol': market['uppercaseId'],
             'side': quoteSide,
         };
-        const response = await (this as any).v2PostCancel (this.extend (request, params));
+        const response = await this.v2PostCancel (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -674,7 +674,7 @@ export default class bitbns extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -685,7 +685,7 @@ export default class bitbns extends Exchange {
             'symbol': market['id'],
             'entry_id': id,
         };
-        const response = await (this as any).v1PostOrderStatusSymbol (this.extend (request, params));
+        const response = await this.v1PostOrderStatusSymbol (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -725,7 +725,7 @@ export default class bitbns extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -738,7 +738,7 @@ export default class bitbns extends Exchange {
             'side': quoteSide,
             'page': 0,
         };
-        const response = await (this as any).v2PostGetordersnew (this.extend (request, params));
+        const response = await this.v2PostGetordersnew (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -850,7 +850,7 @@ export default class bitbns extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -864,7 +864,7 @@ export default class bitbns extends Exchange {
         if (since !== undefined) {
             request['since'] = this.iso8601 (since);
         }
-        const response = await (this as any).v1PostListExecutedOrdersSymbol (this.extend (request, params));
+        const response = await this.v1PostListExecutedOrdersSymbol (this.extend (request, params));
         //
         //     {
         //         "data": [
@@ -930,7 +930,7 @@ export default class bitbns extends Exchange {
             'coin': market['baseId'],
             'market': market['quoteId'],
         };
-        const response = await (this as any).wwwGetExchangeDataTradedetails (this.extend (request, params));
+        const response = await this.wwwGetExchangeDataTradedetails (this.extend (request, params));
         //
         //     [
         //         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
@@ -950,7 +950,7 @@ export default class bitbns extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
@@ -961,7 +961,7 @@ export default class bitbns extends Exchange {
             'symbol': currency['id'],
             'page': 0,
         };
-        const response = await (this as any).v1PostDepositHistorySymbol (this.extend (request, params));
+        const response = await this.v1PostDepositHistorySymbol (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -998,7 +998,7 @@ export default class bitbns extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
@@ -1009,7 +1009,7 @@ export default class bitbns extends Exchange {
             'symbol': currency['id'],
             'page': 0,
         };
-        const response = await (this as any).v1PostWithdrawHistorySymbol (this.extend (request, params));
+        const response = await this.v1PostWithdrawHistorySymbol (this.extend (request, params));
         //
         //     ...
         //
@@ -1111,14 +1111,14 @@ export default class bitbns extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitbns api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'symbol': currency['id'],
         };
-        const response = await (this as any).v1PostGetCoinAddressSymbol (this.extend (request, params));
+        const response = await this.v1PostGetCoinAddressSymbol (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -1146,8 +1146,9 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'www', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api'])) {
+    sign (path, api = 'www', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        const urls = this.urls as any;
+        if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
         if (api !== 'www') {
@@ -1175,8 +1176,8 @@ export default class bitbns extends Exchange {
                 'body': body,
             };
             const payload = this.stringToBase64 (this.json (auth));
-            const signature = this.hmac (payload, this.encode (this.secret), 'sha512');
-            headers['X-BITBNS-PAYLOAD'] = this.decode (payload);
+            const signature = this.hmac (payload, this.encode (this.secret), sha512);
+            headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }

@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitstamp1.js';
 export default class bitstamp1 extends Exchange {
     describe(): any;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
@@ -13,7 +13,7 @@ export default class bitstamp1 extends Exchange {
     parseOrderStatus(status: any): string;
     fetchOrderStatus(id: any, symbol?: string, params?: {}): Promise<string>;
     fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

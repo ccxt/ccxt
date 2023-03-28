@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/currencycom.js';
 export default class currencycom extends Exchange {
     describe(): any;
     nonce(): number;
@@ -92,7 +92,7 @@ export default class currencycom extends Exchange {
         network: any;
         info: any;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

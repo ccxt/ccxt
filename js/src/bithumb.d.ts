@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bithumb.js';
 export default class bithumb extends Exchange {
     describe(): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
@@ -65,7 +65,7 @@ export default class bithumb extends Exchange {
     };
     fixCommaNumber(numberStr: any): any;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

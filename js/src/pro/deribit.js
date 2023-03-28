@@ -8,6 +8,7 @@
 import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class deribit extends deribitRest {
     describe() {
@@ -148,7 +149,7 @@ export default class deribit extends deribitRest {
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @param {str|undefined} params.interval specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
@@ -381,7 +382,7 @@ export default class deribit extends deribitRest {
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @param {string} params.interval Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -511,7 +512,7 @@ export default class deribit extends deribitRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the deribit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -803,7 +804,7 @@ export default class deribit extends deribitRest {
         if (authenticated === undefined) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
-            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,

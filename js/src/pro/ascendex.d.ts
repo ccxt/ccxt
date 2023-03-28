@@ -25,6 +25,6 @@ export default class ascendex extends ascendexRest {
     handleSubscriptionStatus(client: any, message: any): any;
     handleOrderBookSubscription(client: any, message: any): void;
     pong(client: any, message: any): Promise<void>;
-    handlePing(client: any, message: any): Promise<void>;
+    handlePing(client: any, message: any): void;
     authenticate(url: any, params?: {}): any;
 }

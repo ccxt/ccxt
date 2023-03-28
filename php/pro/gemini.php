@@ -292,7 +292,7 @@ class gemini extends \ccxt\async\gemini {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -391,7 +391,7 @@ class gemini extends \ccxt\async\gemini {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
             Async\await($this->load_markets());
@@ -644,7 +644,7 @@ class gemini extends \ccxt\async\gemini {
             'request' => $request,
             'nonce' => $this->nonce(),
         );
-        $b64 = base64_encode($this->encode($this->json($payload)));
+        $b64 = base64_encode($this->json($payload));
         $signature = $this->hmac($b64, $this->encode($this->secret), 'sha384', 'hex');
         $defaultOptions = array(
             'ws' => array(
@@ -657,7 +657,7 @@ class gemini extends \ccxt\async\gemini {
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
-            'X-GEMINI-PAYLOAD' => $this->decode($b64),
+            'X-GEMINI-PAYLOAD' => $b64,
             'X-GEMINI-SIGNATURE' => $signature,
         );
         $this->options['ws']['options']['headers'] = $headers;

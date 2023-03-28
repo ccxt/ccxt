@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/kraken.js';
 import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -349,7 +351,7 @@ export default class kraken extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetAssetPairs (params);
+        const response = await this.publicGetAssetPairs (params);
         //
         //     {
         //         "error": [],
@@ -535,7 +537,7 @@ export default class kraken extends Exchange {
          * @param {object} params extra parameters specific to the kraken api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetAssets (params);
+        const response = await this.publicGetAssets (params);
         //
         //     {
         //         "error": [],
@@ -592,7 +594,7 @@ export default class kraken extends Exchange {
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -600,7 +602,7 @@ export default class kraken extends Exchange {
             'pair': market['id'],
             'fee-info': true,
         };
-        const response = await (this as any).privatePostTradeVolume (this.extend (request, params));
+        const response = await this.privatePostTradeVolume (this.extend (request, params));
         //
         //     {
         //        error: [],
@@ -664,7 +666,7 @@ export default class kraken extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -677,7 +679,7 @@ export default class kraken extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // 100
         }
-        const response = await (this as any).publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetDepth (this.extend (request, params));
         //
         //     {
         //         "error":[],
@@ -767,7 +769,7 @@ export default class kraken extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -783,7 +785,7 @@ export default class kraken extends Exchange {
             }
             request['pair'] = marketIds.join (',');
         }
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         const tickers = response['result'];
         const ids = Object.keys (tickers);
         const result = {};
@@ -804,7 +806,7 @@ export default class kraken extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const darkpool = symbol.indexOf ('.d') >= 0;
@@ -815,7 +817,7 @@ export default class kraken extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         const ticker = response['result'][market['id']];
         return this.parseTicker (ticker, market);
     }
@@ -869,7 +871,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['since'] = this.parseToInt ((since - 1) / 1000);
         }
-        const response = await (this as any).publicGetOHLC (this.extend (request, params));
+        const response = await this.publicGetOHLC (this.extend (request, params));
         //
         //     {
         //         "error":[],
@@ -965,7 +967,7 @@ export default class kraken extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets ();
@@ -978,7 +980,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        const response = await (this as any).privatePostLedgers (this.extend (request, params));
+        const response = await this.privatePostLedgers (this.extend (request, params));
         // {  error: [],
         //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
         //                                                   time:  1520103488.314,
@@ -1008,7 +1010,7 @@ export default class kraken extends Exchange {
         const request = this.extend ({
             'id': ids,
         }, params);
-        const response = await (this as any).privatePostQueryLedgers (request);
+        const response = await this.privatePostQueryLedgers (request);
         // {  error: [],
         //   result: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
         //                                         time:  1520103488.314,
@@ -1167,7 +1169,7 @@ export default class kraken extends Exchange {
                 throw new ExchangeError (this.id + ' fetchTrades() cannot serve ' + limit.toString () + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
             }
         }
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     {
         //         "error": [],
@@ -1219,7 +1221,7 @@ export default class kraken extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostBalance (params);
+        const response = await this.privatePostBalance (params);
         //
         //     {
         //         "error":[],
@@ -1244,7 +1246,7 @@ export default class kraken extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1255,7 +1257,7 @@ export default class kraken extends Exchange {
             'volume': this.amountToPrecision (symbol, amount),
         };
         const orderRequest = this.orderRequest ('createOrder()', symbol, type, request, price, params);
-        const response = await (this as any).privatePostAddOrder (this.extend (orderRequest[0], orderRequest[1]));
+        const response = await this.privatePostAddOrder (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
         //         error: [],
@@ -1538,7 +1540,7 @@ export default class kraken extends Exchange {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1553,7 +1555,7 @@ export default class kraken extends Exchange {
             request['volume'] = this.amountToPrecision (symbol, amount);
         }
         const orderRequest = this.orderRequest ('editOrder()', symbol, type, request, price, params);
-        const response = await (this as any).privatePostEditOrder (this.extend (orderRequest[0], orderRequest[1]));
+        const response = await this.privatePostEditOrder (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
         //         "error": [],
@@ -1581,7 +1583,7 @@ export default class kraken extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol not used by kraken fetchOrder
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
@@ -1597,7 +1599,7 @@ export default class kraken extends Exchange {
         } else {
             request['txid'] = id;
         }
-        const response = await (this as any).privatePostQueryOrders (this.extend (request, query));
+        const response = await this.privatePostQueryOrders (this.extend (request, query));
         //
         //     {
         //         "error":[],
@@ -1653,7 +1655,7 @@ export default class kraken extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const orderTrades = this.safeValue (params, 'trades');
         const tradeIds = [];
@@ -1690,7 +1692,7 @@ export default class kraken extends Exchange {
             const request = {
                 'txid': requestIds.join (','),
             };
-            const response = await (this as any).privatePostQueryTrades (request);
+            const response = await this.privatePostQueryTrades (request);
             //
             //     {
             //         error: [],
@@ -1726,7 +1728,7 @@ export default class kraken extends Exchange {
 
     async fetchOrdersByIds (ids, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).privatePostQueryOrders (this.extend ({
+        const response = await this.privatePostQueryOrders (this.extend ({
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join (','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
@@ -1751,7 +1753,7 @@ export default class kraken extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1764,7 +1766,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        const response = await (this as any).privatePostTradesHistory (this.extend (request, params));
+        const response = await this.privatePostTradesHistory (this.extend (request, params));
         //
         //     {
         //         "error": [],
@@ -1810,7 +1812,7 @@ export default class kraken extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let response = undefined;
@@ -1820,7 +1822,7 @@ export default class kraken extends Exchange {
         };
         params = this.omit (params, [ 'userref', 'clientOrderId' ]);
         try {
-            response = await (this as any).privatePostCancelOrder (this.extend (request, params));
+            response = await this.privatePostCancelOrder (this.extend (request, params));
         } catch (e) {
             if (this.last_http_response) {
                 if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0) {
@@ -1840,12 +1842,12 @@ export default class kraken extends Exchange {
          * @param {[string]} ids open orders transaction ID (txid) or user reference (userref)
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'orders': ids,
         };
-        const response = await (this as any).privatePostCancelOrderBatch (this.extend (request, params));
+        const response = await this.privatePostCancelOrderBatch (this.extend (request, params));
         //
         //     {
         //         "error": [],
@@ -1864,10 +1866,10 @@ export default class kraken extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        return await (this as any).privatePostCancelAll (params);
+        return await this.privatePostCancelAll (params);
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
@@ -1879,7 +1881,7 @@ export default class kraken extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1892,7 +1894,7 @@ export default class kraken extends Exchange {
             request['userref'] = clientOrderId;
             query = this.omit (params, [ 'userref', 'clientOrderId' ]);
         }
-        const response = await (this as any).privatePostOpenOrders (this.extend (request, query));
+        const response = await this.privatePostOpenOrders (this.extend (request, query));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1911,7 +1913,7 @@ export default class kraken extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1924,7 +1926,7 @@ export default class kraken extends Exchange {
             request['userref'] = clientOrderId;
             query = this.omit (params, [ 'userref', 'clientOrderId' ]);
         }
-        const response = await (this as any).privatePostClosedOrders (this.extend (request, query));
+        const response = await this.privatePostClosedOrders (this.extend (request, query));
         //
         //     {
         //         "error":[],
@@ -2112,7 +2114,7 @@ export default class kraken extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
         if (code === undefined) {
@@ -2123,7 +2125,7 @@ export default class kraken extends Exchange {
         const request = {
             'asset': currency['id'],
         };
-        const response = await (this as any).privatePostDepositStatus (this.extend (request, params));
+        const response = await this.privatePostDepositStatus (this.extend (request, params));
         //
         //     {  error: [],
         //       result: [ { method: "Ether (Hex)",
@@ -2149,7 +2151,7 @@ export default class kraken extends Exchange {
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         // https://www.kraken.com/en-us/features/api#get-server-time
-        const response = await (this as any).publicGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //    {
         //        "error": [],
@@ -2172,7 +2174,7 @@ export default class kraken extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if (code === undefined) {
@@ -2183,7 +2185,7 @@ export default class kraken extends Exchange {
         const request = {
             'asset': currency['id'],
         };
-        const response = await (this as any).privatePostWithdrawStatus (this.extend (request, params));
+        const response = await this.privatePostWithdrawStatus (this.extend (request, params));
         //
         //     {  error: [],
         //       result: [ { method: "Ether",
@@ -2207,7 +2209,7 @@ export default class kraken extends Exchange {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const request = {
             'new': 'true',
@@ -2221,7 +2223,7 @@ export default class kraken extends Exchange {
         const request = {
             'asset': currency['id'],
         };
-        const response = await (this as any).privatePostDepositMethods (this.extend (request, params));
+        const response = await this.privatePostDepositMethods (this.extend (request, params));
         //
         //     {
         //         "error":[],
@@ -2255,7 +2257,7 @@ export default class kraken extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2293,7 +2295,7 @@ export default class kraken extends Exchange {
             'asset': currency['id'],
             'method': depositMethod,
         };
-        const response = await (this as any).privatePostDepositAddresses (this.extend (request, params));
+        const response = await this.privatePostDepositAddresses (this.extend (request, params));
         //
         //     {
         //         "error":[],
@@ -2341,7 +2343,7 @@ export default class kraken extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -2353,7 +2355,7 @@ export default class kraken extends Exchange {
                 'amount': amount,
                 // 'address': address, // they don't allow withdrawals to direct addresses
             };
-            const response = await (this as any).privatePostWithdraw (this.extend (request, params));
+            const response = await this.privatePostWithdraw (this.extend (request, params));
             //
             //     {
             //         "error": [],
@@ -2375,7 +2377,7 @@ export default class kraken extends Exchange {
          * @description fetch all open positions
          * @param {[string]|undefined} symbols not used by kraken fetchPositions ()
          * @param {object} params extra parameters specific to the kraken api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -2383,7 +2385,7 @@ export default class kraken extends Exchange {
             // 'docalcs': false, // whether or not to include profit/loss calculations
             // 'consolidation': 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
         };
-        const response = await (this as any).privatePostOpenPositions (this.extend (request, params));
+        const response = await this.privatePostOpenPositions (this.extend (request, params));
         //
         // no consolidation
         //
@@ -2434,7 +2436,7 @@ export default class kraken extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -2452,11 +2454,11 @@ export default class kraken extends Exchange {
                 body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
             }
             const auth = this.encode (nonce + body);
-            const hash = this.hash (auth, 'sha256', 'binary');
-            const binary = this.stringToBinary (this.encode (url));
+            const hash = this.hash (auth, sha256, 'binary');
+            const binary = this.encode (url);
             const binhash = this.binaryConcat (binary, hash);
             const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (binhash, secret, 'sha512', 'base64');
+            const signature = this.hmac (binhash, secret, sha512, 'base64');
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,

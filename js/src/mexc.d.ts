@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/mexc.js';
 export default class mexc extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -167,7 +167,7 @@ export default class mexc extends Exchange {
         info: any;
         id: string;
     }>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
@@ -215,7 +215,7 @@ export default class mexc extends Exchange {
     }>;
     fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(info: any, market: any): any[];
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
     fetchPositionMode(symbol?: string, params?: {}): Promise<{
         info: any;

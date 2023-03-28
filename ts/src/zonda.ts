@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/zonda.js';
 import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -291,7 +292,7 @@ export default class zonda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).v1_01PublicGetTradingTicker (params);
+        const response = await this.v1_01PublicGetTradingTicker (params);
         const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
         //     {
@@ -394,11 +395,11 @@ export default class zonda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await (this as any).v1_01PrivateGetTradingOffer (this.extend (request, params));
+        const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
         const items = this.safeValue (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
@@ -463,7 +464,7 @@ export default class zonda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -473,7 +474,7 @@ export default class zonda extends Exchange {
             request['markets'] = markets;
         }
         const query = { 'query': this.json (this.extend (request, params)) };
-        const response = await (this as any).v1_01PrivateGetTradingHistoryTransactions (query);
+        const response = await this.v1_01PrivateGetTradingHistoryTransactions (query);
         //
         //     {
         //         status: 'Ok',
@@ -529,7 +530,7 @@ export default class zonda extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1_01PrivateGetBalancesBITBAYBalance (params);
+        const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
         return this.parseBalance (response);
     }
 
@@ -541,14 +542,14 @@ export default class zonda extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
+        const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
         //
         //     {
         //         "status":"Ok",
@@ -627,14 +628,14 @@ export default class zonda extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1_01PublicGetTradingStatsSymbol (this.extend (request, params));
+        const response = await this.v1_01PublicGetTradingStatsSymbol (this.extend (request, params));
         //
         //     {
         //       status: 'Ok',
@@ -658,10 +659,10 @@ export default class zonda extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1_01PublicGetTradingStats (params);
+        const response = await this.v1_01PublicGetTradingStats (params);
         //
         //     {
         //         status: 'Ok',
@@ -689,7 +690,7 @@ export default class zonda extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         const balanceCurrencies = [];
         if (code !== undefined) {
@@ -706,7 +707,7 @@ export default class zonda extends Exchange {
             request['limit'] = limit;
         }
         request = this.extend (request, params);
-        const response = await (this as any).v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
+        const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
         const items = response['items'];
         return this.parseLedger (items, undefined, since, limit);
     }
@@ -1090,7 +1091,7 @@ export default class zonda extends Exchange {
             request['from'] = parseInt (since);
             request['to'] = this.sum (request['from'], timerange);
         }
-        const response = await (this as any).v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
+        const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
         //
         //     {
         //         "status":"Ok",
@@ -1206,7 +1207,7 @@ export default class zonda extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default - 10, max - 300
         }
-        const response = await (this as any).v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
+        const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
         const items = this.safeValue (response, 'items');
         return this.parseTrades (items, market, since, limit);
     }
@@ -1222,7 +1223,7 @@ export default class zonda extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1256,7 +1257,7 @@ export default class zonda extends Exchange {
             request['stopRate'] = this.priceToPrecision (symbol, stopLossPrice);
         }
         params = this.omit (params, [ 'stopPrice', 'stopLossPrice' ]);
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // unfilled (open order)
         //
@@ -1345,7 +1346,7 @@ export default class zonda extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const side = this.safeString (params, 'side');
         if (side === undefined) {
@@ -1366,7 +1367,7 @@ export default class zonda extends Exchange {
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
-        return await (this as any).v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
+        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {
@@ -1408,14 +1409,14 @@ export default class zonda extends Exchange {
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the zonda api endpoint
          * @param {string|undefined} params.walletId Wallet id to filter deposit adresses.
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (this.extend (request, params));
+        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",
@@ -1434,17 +1435,17 @@ export default class zonda extends Exchange {
         return this.parseDepositAddress (first, currency);
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
          * @param {[string]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (params);
+        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (params);
         //
         //     {
         //         "status": "Ok",
@@ -1472,7 +1473,7 @@ export default class zonda extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1482,7 +1483,7 @@ export default class zonda extends Exchange {
             'currency': code,
             'funds': this.currencyToPrecision (code, amount),
         };
-        const response = await (this as any).v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
+        const response = await this.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",
@@ -1586,7 +1587,7 @@ export default class zonda extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1609,7 +1610,7 @@ export default class zonda extends Exchange {
             }
             request['address'] = address;
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",
@@ -1654,7 +1655,7 @@ export default class zonda extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
@@ -1687,7 +1688,7 @@ export default class zonda extends Exchange {
                 'Request-Timestamp': nonce,
                 'Operation-Id': this.uuid (),
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (payload), this.encode (this.secret), 'sha512'),
+                'API-Hash': this.hmac (this.encode (payload), this.encode (this.secret), sha512),
                 'Content-Type': 'application/json',
             };
         } else {
@@ -1699,7 +1700,7 @@ export default class zonda extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

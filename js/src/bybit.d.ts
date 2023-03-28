@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bybit.js';
 export default class bybit extends Exchange {
     describe(): any;
     nonce(): number;
@@ -243,7 +243,7 @@ export default class bybit extends Exchange {
         info: any;
     };
     fetchBorrowInterest(code?: string, symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market: any): {
+    parseBorrowInterest(info: any, market?: any): {
         symbol: any;
         marginMode: string;
         currency: any;
@@ -281,7 +281,7 @@ export default class bybit extends Exchange {
     };
     fetchDerivativesMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
     fetchMarketLeverageTiers(symbol: any, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market: any): any[];
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     parseTradingFee(fee: any, market?: any): {
         info: any;
         symbol: any;
@@ -295,7 +295,7 @@ export default class bybit extends Exchange {
         taker: number;
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

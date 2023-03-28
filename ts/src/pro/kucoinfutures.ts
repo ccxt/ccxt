@@ -67,7 +67,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
         if (privateChannel) {
-            response = await (this as any).futuresPrivatePostBulletPrivate (params);
+            response = await this.futuresPrivatePostBulletPrivate (params);
             //
             //     {
             //         code: "200000",
@@ -86,7 +86,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             //     }
             //
         } else {
-            response = await (this as any).futuresPublicPostBulletPublic (params);
+            response = await this.futuresPublicPostBulletPublic (params);
         }
         const data = this.safeValue (response, 'data', {});
         const instanceServers = this.safeValue (data, 'instanceServers', []);
@@ -138,7 +138,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -256,7 +256,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
             if ((limit !== 20) && (limit !== 100)) {
@@ -416,7 +416,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const url = await this.negotiate (true);

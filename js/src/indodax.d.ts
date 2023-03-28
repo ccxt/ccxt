@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/indodax.js';
 export default class indodax extends Exchange {
     describe(): any;
     nonce(): number;
@@ -68,7 +68,7 @@ export default class indodax extends Exchange {
         info: any;
     };
     parseTransactionStatus(status: any): string;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

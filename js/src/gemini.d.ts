@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/gemini.js';
 export default class gemini extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any>;
@@ -123,7 +123,7 @@ export default class gemini extends Exchange {
         info: any;
     };
     fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<{}>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
