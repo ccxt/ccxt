@@ -10,7 +10,6 @@ import { rsa } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class lbank2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

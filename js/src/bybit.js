@@ -11,7 +11,6 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bybit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -745,6 +744,7 @@ export default class bybit extends Exchange {
                     '131097': ExchangeError,
                     '131098': ExchangeError,
                     '131099': ExchangeError,
+                    '140001': OrderNotFound,
                     '140003': InvalidOrder,
                     '140004': InsufficientFunds,
                     '140005': InvalidOrder,

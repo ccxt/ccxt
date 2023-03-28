@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _huobi from '../huobi.js';
-export default class huobi extends _huobi {
+class huobi extends _huobi {
 }
+export default huobi;

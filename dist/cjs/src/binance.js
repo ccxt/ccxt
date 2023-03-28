@@ -9,7 +9,6 @@ var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class binance extends binance$1 {
     describe() {
         return this.deepExtend(super.describe(), {

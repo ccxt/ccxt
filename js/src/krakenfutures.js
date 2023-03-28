@@ -12,7 +12,6 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class krakenfutures extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

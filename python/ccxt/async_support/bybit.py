@@ -756,6 +756,7 @@ class bybit(Exchange):
                     '131097': ExchangeError,  # Withdrawal of self currency has been closed
                     '131098': ExchangeError,  # Withdrawal currently is not availble from new address
                     '131099': ExchangeError,  # Hot wallet status can cancel the withdraw
+                    '140001': OrderNotFound,  # Order does not exist
                     '140003': InvalidOrder,  # Order price is out of permissible range
                     '140004': InsufficientFunds,  # Insufficient wallet balance
                     '140005': InvalidOrder,  # position status

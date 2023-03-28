@@ -4,7 +4,6 @@ var ndax = require('./ndax.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class flowbtc extends ndax {
     describe() {
         return this.deepExtend(super.describe(), {

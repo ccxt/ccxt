@@ -8,7 +8,6 @@ var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class oceanex extends oceanex$1 {
     describe() {
         return this.deepExtend(super.describe(), {

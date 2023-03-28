@@ -7,7 +7,6 @@ var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class kucoinfutures extends kucoinfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {

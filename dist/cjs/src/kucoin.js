@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class kucoin extends kucoin$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -442,7 +441,7 @@ class kucoin extends kucoin$1 {
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
-                            'accounts': 'v2',
+                            'accounts': 'v1',
                         },
                     },
                     'futuresPrivate': {

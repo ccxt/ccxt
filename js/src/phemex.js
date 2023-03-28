@@ -11,14 +11,13 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
-// @ts-expect-error
 export default class phemex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'phemex',
             'name': 'Phemex',
             'countries': ['CN'],
-            'rateLimit': 100,
+            'rateLimit': 120.5,
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -124,128 +123,128 @@ export default class phemex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'cfg/v2/products',
-                        'cfg/fundingRates',
-                        'products',
-                        'nomics/trades',
-                        'md/kline',
-                        'md/v2/kline/list',
-                        'md/v2/kline',
-                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                    ],
+                    'get': {
+                        'cfg/v2/products': 5,
+                        'cfg/fundingRates': 5,
+                        'products': 5,
+                        'nomics/trades': 5,
+                        'md/kline': 5,
+                        'md/v2/kline/list': 5,
+                        'md/v2/kline': 5,
+                        'md/v2/kline/last': 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'md/orderbook',
-                        'md/trade',
-                        'md/ticker/24hr',
-                        'md/ticker/24hr/all',
-                        'md/spot/ticker/24hr',
-                        'md/spot/ticker/24hr/all',
-                        'exchange/public/products', // contracts only
-                    ],
+                    'get': {
+                        'md/orderbook': 5,
+                        'md/trade': 5,
+                        'md/ticker/24hr': 5,
+                        'md/ticker/24hr/all': 5,
+                        'md/spot/ticker/24hr': 5,
+                        'md/spot/ticker/24hr/all': 5,
+                        'exchange/public/products': 5, // contracts only
+                    },
                 },
                 'v2': {
-                    'get': [
-                        'md/v2/orderbook',
-                        'md/v2/trade',
-                        'md/v2/ticker/24hr',
-                        'md/v2/ticker/24hr/all', // ?id=<id>
-                    ],
+                    'get': {
+                        'md/v2/orderbook': 5,
+                        'md/v2/trade': 5,
+                        'md/v2/ticker/24hr': 5,
+                        'md/v2/ticker/24hr/all': 5, // ?id=<id>
+                    },
                 },
                 'private': {
-                    'get': [
+                    'get': {
                         // spot
-                        'spot/orders/active',
-                        // 'spot/orders/active', // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders',
-                        'spot/wallets',
-                        'exchange/spot/order',
-                        'exchange/spot/order/trades',
-                        'exchange/order/v2/orderList',
-                        'exchange/order/v2/tradingList',
+                        'spot/orders/active': 1,
+                        // 'spot/orders/active': 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
+                        'spot/orders': 1,
+                        'spot/wallets': 5,
+                        'exchange/spot/order': 5,
+                        'exchange/spot/order/trades': 5,
+                        'exchange/order/v2/orderList': 5,
+                        'exchange/order/v2/tradingList': 5,
                         // swap
-                        'accounts/accountPositions',
-                        'g-accounts/accountPositions',
-                        'accounts/positions',
-                        'api-data/futures/funding-fees',
-                        'api-data/g-futures/funding-fees',
-                        'api-data/futures/orders',
-                        'api-data/g-futures/orders',
-                        'api-data/futures/orders/by-order-id',
-                        'api-data/g-futures/orders/by-order-id',
-                        'api-data/futures/trades',
-                        'api-data/g-futures/trades',
-                        'api-data/futures/trading-fees',
-                        'api-data/g-futures/trading-fees',
-                        'g-orders/activeList',
-                        'orders/activeList',
-                        'exchange/order/list',
-                        'exchange/order',
-                        // 'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
-                        'exchange/order/trade',
-                        'phemex-user/users/children',
-                        'phemex-user/wallets/v2/depositAddress',
-                        'phemex-user/wallets/tradeAccountDetail',
-                        'phemex-user/order/closedPositionList',
-                        'exchange/margins/transfer',
-                        'exchange/wallets/confirm/withdraw',
-                        'exchange/wallets/withdrawList',
-                        'exchange/wallets/depositList',
-                        'exchange/wallets/v2/depositAddress',
-                        'api-data/spots/funds',
-                        'assets/convert',
+                        'accounts/accountPositions': 1,
+                        'g-accounts/accountPositions': 5,
+                        'accounts/positions': 26,
+                        'api-data/futures/funding-fees': 5,
+                        'api-data/g-futures/funding-fees': 5,
+                        'api-data/futures/orders': 5,
+                        'api-data/g-futures/orders': 5,
+                        'api-data/futures/orders/by-order-id': 5,
+                        'api-data/g-futures/orders/by-order-id': 5,
+                        'api-data/futures/trades': 5,
+                        'api-data/g-futures/trades': 5,
+                        'api-data/futures/trading-fees': 5,
+                        'api-data/g-futures/trading-fees': 5,
+                        'g-orders/activeList': 5,
+                        'orders/activeList': 1,
+                        'exchange/order/list': 5,
+                        'exchange/order': 5,
+                        // 'exchange/order': 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
+                        'exchange/order/trade': 5,
+                        'phemex-user/users/children': 5,
+                        'phemex-user/wallets/v2/depositAddress': 5,
+                        'phemex-user/wallets/tradeAccountDetail': 5,
+                        'phemex-user/order/closedPositionList': 5,
+                        'exchange/margins/transfer': 5,
+                        'exchange/wallets/confirm/withdraw': 5,
+                        'exchange/wallets/withdrawList': 5,
+                        'exchange/wallets/depositList': 5,
+                        'exchange/wallets/v2/depositAddress': 5,
+                        'api-data/spots/funds': 5,
+                        'assets/convert': 5,
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/futures/sub-accounts/transfer',
-                        'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                    ],
-                    'post': [
+                        'assets/transfer': 5,
+                        'assets/spots/sub-accounts/transfer': 5,
+                        'assets/futures/sub-accounts/transfer': 5,
+                        'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                    },
+                    'post': {
                         // spot
-                        'spot/orders',
+                        'spot/orders': 1,
                         // swap
-                        'orders',
-                        'g-orders',
-                        'positions/assign',
-                        'exchange/wallets/transferOut',
-                        'exchange/wallets/transferIn',
-                        'exchange/margins',
-                        'exchange/wallets/createWithdraw',
-                        'exchange/wallets/cancelWithdraw',
-                        'exchange/wallets/createWithdrawAddress',
+                        'orders': 1,
+                        'g-orders': 5,
+                        'positions/assign': 5,
+                        'exchange/wallets/transferOut': 5,
+                        'exchange/wallets/transferIn': 5,
+                        'exchange/margins': 5,
+                        'exchange/wallets/createWithdraw': 5,
+                        'exchange/wallets/cancelWithdraw': 5,
+                        'exchange/wallets/createWithdrawAddress': 5,
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/futures/sub-accounts/transfer',
-                        'assets/universal-transfer',
-                        'assets/convert',
-                    ],
-                    'put': [
+                        'assets/transfer': 5,
+                        'assets/spots/sub-accounts/transfer': 5,
+                        'assets/futures/sub-accounts/transfer': 5,
+                        'assets/universal-transfer': 5,
+                        'assets/convert': 5,
+                    },
+                    'put': {
                         // spot
-                        'spot/orders',
+                        'spot/orders': 1,
                         // swap
-                        'orders/replace',
-                        'g-orders/replace',
-                        'positions/leverage',
-                        'g-positions/leverage',
-                        'g-positions/switch-pos-mode-sync',
-                        'positions/riskLimit', // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
-                    ],
-                    'delete': [
+                        'orders/replace': 1,
+                        'g-orders/replace': 5,
+                        'positions/leverage': 5,
+                        'g-positions/leverage': 5,
+                        'g-positions/switch-pos-mode-sync': 5,
+                        'positions/riskLimit': 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                    },
+                    'delete': {
                         // spot
-                        'spot/orders',
-                        'spot/orders/all',
-                        // 'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
+                        'spot/orders': 2,
+                        'spot/orders/all': 2,
+                        // 'spot/orders': 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel',
-                        'orders',
-                        'orders/all',
-                        'g-orders/cancel',
-                        'g-orders',
-                        'g-orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                    ],
+                        'orders/cancel': 1,
+                        'orders': 1,
+                        'orders/all': 1,
+                        'g-orders/cancel': 5,
+                        'g-orders': 5,
+                        'g-orders/all': 5, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,

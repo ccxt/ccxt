@@ -7,7 +7,6 @@ var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class gate extends gate$1 {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -1,28 +1,31 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetTickers(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickersSymbol(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetSymbols(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetSymbolsSymbol(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetL2Symbol(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetL3Symbol(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFees(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrders(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersOrderId(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetTrades(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetFills(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDeposits(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetDepositsDepositId(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccounts(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountsAccountCurrency(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWhitelist(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWhitelistCurrency(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawals(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWithdrawalsWithdrawalId(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrders(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostDepositsCurrency(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawals(params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrders(params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetTickers(params?: {}): Promise<implicitReturnType>;
+    publicGetTickersSymbol(params?: {}): Promise<implicitReturnType>;
+    publicGetSymbols(params?: {}): Promise<implicitReturnType>;
+    publicGetSymbolsSymbol(params?: {}): Promise<implicitReturnType>;
+    publicGetL2Symbol(params?: {}): Promise<implicitReturnType>;
+    publicGetL3Symbol(params?: {}): Promise<implicitReturnType>;
+    privateGetFees(params?: {}): Promise<implicitReturnType>;
+    privateGetOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    privateGetTrades(params?: {}): Promise<implicitReturnType>;
+    privateGetFills(params?: {}): Promise<implicitReturnType>;
+    privateGetDeposits(params?: {}): Promise<implicitReturnType>;
+    privateGetDepositsDepositId(params?: {}): Promise<implicitReturnType>;
+    privateGetAccounts(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountsAccountCurrency(params?: {}): Promise<implicitReturnType>;
+    privateGetWhitelist(params?: {}): Promise<implicitReturnType>;
+    privateGetWhitelistCurrency(params?: {}): Promise<implicitReturnType>;
+    privateGetWithdrawals(params?: {}): Promise<implicitReturnType>;
+    privateGetWithdrawalsWithdrawalId(params?: {}): Promise<implicitReturnType>;
+    privatePostOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostDepositsCurrency(params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawals(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrders(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
 }
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

@@ -9,7 +9,6 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bybit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -743,6 +742,7 @@ export default class bybit extends Exchange {
                     '131097': ExchangeError, // Withdrawal of this currency has been closed
                     '131098': ExchangeError, // Withdrawal currently is not availble from new address
                     '131099': ExchangeError, // Hot wallet status can cancel the withdraw
+                    '140001': OrderNotFound, // Order does not exist
                     '140003': InvalidOrder, // Order price is out of permissible range
                     '140004': InsufficientFunds, // Insufficient wallet balance
                     '140005': InvalidOrder, // position status

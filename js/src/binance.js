@@ -12,7 +12,6 @@ import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class binance extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

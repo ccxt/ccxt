@@ -4,7 +4,6 @@ var hitbtc = require('./hitbtc.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class fmfwio extends hitbtc {
     describe() {
         return this.deepExtend(super.describe(), {

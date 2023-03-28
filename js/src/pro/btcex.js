@@ -9,7 +9,6 @@ import btcexRest from '../btcex.js';
 import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class btcex extends btcexRest {
     describe() {
         return this.deepExtend(super.describe(), {

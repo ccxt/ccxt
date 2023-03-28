@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bybit extends bybit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -742,6 +741,7 @@ class bybit extends bybit$1 {
                     '131097': errors.ExchangeError,
                     '131098': errors.ExchangeError,
                     '131099': errors.ExchangeError,
+                    '140001': errors.OrderNotFound,
                     '140003': errors.InvalidOrder,
                     '140004': errors.InsufficientFunds,
                     '140005': errors.InvalidOrder,
