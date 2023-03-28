@@ -320,7 +320,9 @@ class btcex extends btcex$1 {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'ALT': 'ArchLoot',
+            },
         });
     }
     async fetchMarkets(params = {}) {
