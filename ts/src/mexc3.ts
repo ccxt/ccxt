@@ -1775,7 +1775,6 @@ export default class mexc3 extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': orderSide,
-            'type': type.toUpperCase (),
         };
         if (orderSide === 'BUY' && type === 'market') {
             const quoteOrderQty = this.safeNumber (params, 'quoteOrderQty');
@@ -1810,6 +1809,23 @@ export default class mexc3 extends Exchange {
             }
             method = 'spotPrivatePostMarginOrder';
         }
+        let orderType = type.toUpperCase ();
+        const isMarket = (orderType === 'MARKET');
+        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
+        const timeInForce = this.safeString (params, 'timeInForce', exchangeSpecificParam);
+        const isTifPo = this.inArray (timeInForce, [ 'PO', 'LIMIT_MAKER' ]);
+        const postOnly = this.isPostOnly (isMarket, isTifPo, params);
+        if (postOnly) {
+            orderType = 'LIMIT_MAKER';
+        } else if (timeInForce === 'GTC') {
+            orderType = 'GTC';
+        } else if (timeInForce === 'FOK') {
+            orderType = 'FILL_OR_KILL';
+        } else if (timeInForce === 'IOC') {
+            orderType = 'IMMEDIATE_OR_CANCEL';
+        }
+        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'postOnly' ]);
+        request['type'] = orderType;
         const response = await this[method] (this.extend (request, params));
         //
         // spot
