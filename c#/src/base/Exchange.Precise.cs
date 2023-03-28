@@ -14,7 +14,7 @@ public partial class Exchange
     {
         public object decimals = null;
 
-        public long integer = 0;
+        public float integer = 0;
 
         public long baseNumber = 10;
 
@@ -39,7 +39,7 @@ public partial class Exchange
             }
             else
             {
-                this.integer = long.Parse(number);
+                this.integer = float.Parse(number);
                 this.decimals = decimals;
             }
 
@@ -164,7 +164,8 @@ public partial class Exchange
         public Precise reduce()
         {
 
-            var str = this.integer.ToString();
+            // var str = this.integer.ToString(); // converting to scientific notation which is a problem
+            var str = this.integer.ToString("F99").TrimEnd('0').TrimEnd(','); // is this valid?
             var start = str.Length - 1;
             if (start == 0)
             {
@@ -203,7 +204,7 @@ public partial class Exchange
         {
             this.reduce();
             var sign = "";
-            long abs = 0;
+            float abs = 0;
             if (this.integer < 0)
             {
                 sign = "-";
@@ -213,7 +214,8 @@ public partial class Exchange
             {
                 abs = this.integer;
             }
-            var integerArray = abs.ToString().PadLeft((int)this.decimals, '0').ToString().ToList().Select(x => x.ToString()).ToList();
+            var absParsed = abs.ToString("F99").TrimEnd('0').TrimEnd(',');
+            var integerArray = absParsed.PadLeft((int)this.decimals, '0').ToString().ToList().Select(x => x.ToString()).ToList();
             var index = integerArray.Count - (int)this.decimals;
             var item = "";
             if (index == 0)
@@ -254,7 +256,8 @@ public partial class Exchange
             {
                 return null;
             }
-            return (new Precise(string1.ToString())).div(string2Precise).ToString();
+            var stringDiv = (new Precise(string1.ToString())).div(string2Precise);
+            return stringDiv.ToString();
         }
 
         static public string stringSub(object string1, object string2)
