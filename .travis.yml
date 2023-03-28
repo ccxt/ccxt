@@ -55,6 +55,8 @@ script:
       env COMMIT_MESSAGE="${TRAVIS_COMMIT_MESSAGE}" GITHUB_TOKEN=${GITHUB_TOKEN} SHOULD_TAG=${SHOULD_DEPLOY} ./build/push.sh;
     fi;
   fi
+after_failure:
+- sleep 10
 before_deploy:
 - echo $SHOULD_DEPLOY
 deploy:
