@@ -27,7 +27,6 @@ export default class mexc3 extends mexc3Rest {
                 },
             },
             'options': {
-                'subscriptionsLimit': 30,
                 'listenKeyRefreshRate': 1200000,
                 // TODO add reset connection after #16754 is merged
                 'connectionsPerListenKey': 5,
@@ -57,23 +56,6 @@ export default class mexc3 extends mexc3Rest {
         });
     }
 
-    checkSubscriptionLimit (url, subscriptionHash) {
-        const client = this.safeValue (this.clients, url);
-        if (client === undefined) {
-            return;
-        }
-        const subscription = this.safeValue (client.subscriptions, subscriptionHash);
-        if (subscription !== undefined) {
-            return;
-        }
-        const subscriptionKeys = Object.keys (client.subscriptions);
-        const numberOfSubscriptions = subscriptionKeys.length;
-        const subscriptionsLimit = this.safeInteger (this.options, 'subscriptionsLimit', 30);
-        if (numberOfSubscriptions >= subscriptionsLimit) {
-            throw new BadRequest (this.id + ' has reached its subscription limit of ' + subscriptionsLimit.toString () + ' subscriptions');
-        }
-    }
-
     async watchTicker (symbol, params = {}) {
         /**
          * @method
@@ -86,7 +68,8 @@ export default class mexc3 extends mexc3Rest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const channel = 'spot@public.bookTicker.v3.api@' + market['id'];
-        return await this.watchPublicChannel (channel, params);
+        const messageHash = 'ticker:' + market['symbol'];
+        return await this.watchPublicChannel (channel, messageHash, params);
     }
 
     handleTicker (client, message) {
@@ -103,7 +86,6 @@ export default class mexc3 extends mexc3Rest {
         //        t: 1678643605721
         //    }
         //
-        const messageHash = this.safeString (message, 'c');
         const rawTicker = this.safeValue (message, 'd', {});
         const marketId = this.safeString (message, 's');
         const timestamp = this.safeInteger (message, 't');
@@ -113,6 +95,7 @@ export default class mexc3 extends mexc3Rest {
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
         this.tickers[symbol] = ticker;
+        const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
     }
 
@@ -148,14 +131,13 @@ export default class mexc3 extends mexc3Rest {
         }, market);
     }
 
-    async watchPublicChannel (channel, subscription, params = {}) {
+    async watchPublicChannel (channel, messageHash,  params = {}) {
         const url = this.urls['api']['ws'];
         const request = {
             'method': 'SUBSCRIPTION',
             'params': [ channel ],
         };
-        this.checkSubscriptionLimit (url, channel);
-        return await this.watch (url, channel, this.extend (request, params), channel, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -177,7 +159,8 @@ export default class mexc3 extends mexc3Rest {
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe);
         const channel = 'spot@public.kline.v3.api@' + market['id'] + '@' + timeframeId;
-        const ohlcv = await this.watchPublicChannel (channel, undefined, params);
+        const messageHash = 'candles:' + symbol + ':' + timeframe;
+        const ohlcv = await this.watchPublicChannel (channel, messageHash, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -213,8 +196,8 @@ export default class mexc3 extends mexc3Rest {
         const timeframe = this.findTimeframe (timeframeId, timeframes);
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId, market);
-        const messageHash = this.safeString (message, 'c');
+        const symbol = market['symbol'];
+        const messageHash = 'candles:' + symbol + ':' + timeframe;
         const parsed = this.parseWsOHLCV (rawOhlcv, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -225,7 +208,6 @@ export default class mexc3 extends mexc3Rest {
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
-        return message;
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
@@ -391,7 +373,8 @@ export default class mexc3 extends mexc3Rest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const channel = 'spot@public.deals.v3.api@' + market['id'];
-        const trades = await this.watchPublicChannel (channel, undefined, params);
+        const messageHash = 'trades:' + symbol;
+        const trades = await this.watchPublicChannel (channel, messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -415,10 +398,10 @@ export default class mexc3 extends mexc3Rest {
         //        t: 1678593222460,
         //    }
         //
-        const messageHash = this.safeString (message, 'c');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -872,7 +855,7 @@ export default class mexc3 extends mexc3Rest {
             throw new ExchangeError (this.id + ' has reached the maximum number of listen keys (' + listenKeysLimit.toString () + ')');
         }
         const time = this.milliseconds ();
-        const response = await (this as any).spotPrivatePostUserDataStream (params);
+        const response = await this.spotPrivatePostUserDataStream (params);
         //
         //    {
         //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -895,7 +878,7 @@ export default class mexc3 extends mexc3Rest {
         };
         const time = this.milliseconds ();
         try {
-            await (this as any).spotPrivatePutUserDataStream (this.extend (request, params));
+            await this.spotPrivatePutUserDataStream (this.extend (request, params));
             this.options['listenKeys'][listenKey] = time;
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
@@ -941,21 +924,20 @@ export default class mexc3 extends mexc3Rest {
             return this.handleSubscriptionStatus (client, message);
         }
         const c = this.safeString (message, 'c', '');
+        const parts = c.split ('@');
+        const channelName = this.safeString (parts, 1);
         const methods = {
-            'public.deals': this.handleTrades,
-            'kline': this.handleOHLCV,
-            'bookTicker': this.handleTicker,
-            'depth': this.handleOrderBook,
-            'orders': this.handleOrder,
-            'account': this.handleBalance,
-            'private.deals': this.handleMyTrade,
+            'public.deals.v3.api': this.handleTrades,
+            'public.kline.v3.api': this.handleOHLCV,
+            'public.bookTicker.v3.api': this.handleTicker,
+            'public.increase.depth.v3.api': this.handleOrderBook,
+            'private.orders.v3.api': this.handleOrder,
+            'private.account.v3.api': this.handleBalance,
+            'private.deals.v3.api': this.handleMyTrade,
         };
-        const keys = Object.keys (methods);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (c.indexOf (key) >= 0) {
-                return methods[key].call (this, client, message);
-            }
+        if (channelName in methods) {
+            const method = methods[channelName];
+            method.call (this, client, message);
         }
     }
 
