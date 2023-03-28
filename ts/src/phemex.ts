@@ -2771,14 +2771,16 @@ export default class phemex extends Exchange {
             }
         }
         const request = {};
+        if (limit !== undefined) {
+            limit = Math.min (200, limit);
+            request['limit'] = limit;
+        }
         if (market['settle'] === 'USDT') {
             request['currency'] = 'USDT';
             request['offset'] = 0;
-            limit = 200;
-            if (limit !== undefined) {
-                limit = Math.min (200, limit);
+            if (limit === undefined) {
+                request['limit'] = 200;
             }
-            request['limit'] = limit;
         } else {
             request['symbol'] = market['id'];
         }
