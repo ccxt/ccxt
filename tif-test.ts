@@ -6,7 +6,7 @@ async function test(){
     for (const exName of exNames) { 
         const e = await exchangeInit(exName, false) as any; 
         const g = 'v5unified'; //groupName
-        const exPoKey = 'tim_in_foo'; // exchange specific PO tif string
+        const exPoKey = 'tim_in_foo'; // exchange specific TIF prop name
         const exPoStr = 'PostOnly'; // exchange specific PO tif string
         let o = 'market'; // market order (change this to 'limit' too)
         // mixed exchange-specific and unified key&value
