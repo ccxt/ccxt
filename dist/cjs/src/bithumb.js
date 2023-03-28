@@ -160,6 +160,7 @@ class bithumb extends bithumb$1 {
                 },
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
