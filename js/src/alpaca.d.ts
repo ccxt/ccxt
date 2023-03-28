@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/alpaca.js';
 export default class alpaca extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -14,7 +14,7 @@ export default class alpaca extends Exchange {
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

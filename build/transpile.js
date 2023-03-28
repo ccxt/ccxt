@@ -41,6 +41,7 @@ class Transpiler {
     getCommonRegexes () {
         return [
 
+            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /\.deepExtend\s/g, '.deep_extend'],
             [ /\.safeFloat2\s/g, '.safe_float_2'],
             [ /\.safeInteger2\s/g, '.safe_integer_2'],
@@ -246,6 +247,8 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
+            [ /\s(md5|secp256k1|ed25519)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
         ].concat(this.getTypescriptRemovalRegexes())
     }
@@ -1778,10 +1781,13 @@ class Transpiler {
         const pythonHeader = [
             "",
             "import ccxt  # noqa: F402",
+            "import hashlib  # noqa: F402",
             "",
             "Exchange = ccxt.Exchange",
             "hash = Exchange.hash",
+            "hmac = Exchange.hmac",
             "ecdsa = Exchange.ecdsa",
+            "eddsa = Exchange.eddsa",
             "jwt = Exchange.jwt",
             "crc32 = Exchange.crc32",
             "rsa = Exchange.rsa",
@@ -1799,12 +1805,20 @@ class Transpiler {
             "    return Exchange::hash(...$args);",
             "}",
             "",
+            "function hmac(...$args) {",
+            "    return Exchange::hmac(...$args);",
+            "}",
+            "",
             "function encode(...$args) {",
             "    return Exchange::encode(...$args);",
             "}",
             "",
             "function ecdsa(...$args) {",
             "    return Exchange::ecdsa(...$args);",
+            "}",
+            "",
+            "function eddsa(...$args) {",
+            "    return Exchange::eddsa(...$args);",
             "}",
             "",
             "function jwt(...$args) {",

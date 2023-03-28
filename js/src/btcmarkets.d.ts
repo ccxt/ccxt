@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcmarkets.js';
 export default class btcmarkets extends Exchange {
     describe(): any;
     fetchTransactionsWithMethod(method: any, code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
@@ -86,7 +86,7 @@ export default class btcmarkets extends Exchange {
         info: any;
     }>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

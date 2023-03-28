@@ -166,7 +166,7 @@ class wazirx(ccxt.async_support.wazirx):
         see https://docs.wazirx.com/#all-market-tickers-stream
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -187,7 +187,7 @@ class wazirx(ccxt.async_support.wazirx):
         see https://docs.wazirx.com/#all-market-tickers-stream
         :param [str] symbols: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -456,7 +456,7 @@ class wazirx(ccxt.async_support.wazirx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)

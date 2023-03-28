@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitflyer.js';
 export default class bitflyer extends Exchange {
     describe(): any;
     parseExpiryDate(expiry: any): number;
@@ -73,7 +73,7 @@ export default class bitflyer extends Exchange {
         internal: any;
         fee: any;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

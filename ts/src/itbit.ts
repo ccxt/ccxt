@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/itbit.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -142,14 +144,14 @@ export default class itbit extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const orderbook = await (this as any).publicGetMarketsSymbolOrderBook (this.extend (request, params));
+        const orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol']);
     }
 
@@ -216,14 +218,14 @@ export default class itbit extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await (this as any).publicGetMarketsSymbolTicker (this.extend (request, params));
+        const ticker = await this.publicGetMarketsSymbolTicker (this.extend (request, params));
         //
         // {
         //     "pair":"XBTUSD",
@@ -364,7 +366,7 @@ export default class itbit extends Exchange {
          * @param {int|undefined} since not used by itbit fetchTransactions ()
          * @param {int|undefined} limit max number of transactions to return, default is undefined
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
@@ -377,7 +379,7 @@ export default class itbit extends Exchange {
         if (limit !== undefined) {
             request['perPage'] = limit; // default 50, max 50
         }
-        const response = await (this as any).privateGetWalletsWalletIdFundingHistory (this.extend (request, params));
+        const response = await this.privateGetWalletsWalletIdFundingHistory (this.extend (request, params));
         //     { bankName: 'USBC (usd)',
         //         withdrawalId: 94740,
         //         holdingPeriodCompletionDate: '2018-04-16T07:57:05.9606869',
@@ -443,7 +445,7 @@ export default class itbit extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
@@ -459,7 +461,7 @@ export default class itbit extends Exchange {
         if (limit !== undefined) {
             request['perPage'] = limit; // default 50, max 50
         }
-        const response = await (this as any).privateGetWalletsWalletIdTrades (this.extend (request, params));
+        const response = await this.privateGetWalletsWalletIdTrades (this.extend (request, params));
         //
         //     {
         //         "totalNumberOfRecords": "2",
@@ -510,7 +512,7 @@ export default class itbit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetMarketsSymbolTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
         //
         //     {
         //         count: 3,
@@ -552,7 +554,7 @@ export default class itbit extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).fetchWallets (params);
+        const response = await this.fetchWallets (params);
         return this.parseBalance (response);
     }
 
@@ -564,7 +566,7 @@ export default class itbit extends Exchange {
         const request = {
             'userId': this.uid,
         };
-        return await (this as any).privateGetWallets (this.extend (request, params));
+        return await this.privateGetWallets (this.extend (request, params));
     }
 
     async fetchWallet (walletId, params = {}) {
@@ -572,7 +574,7 @@ export default class itbit extends Exchange {
         const request = {
             'walletId': walletId,
         };
-        return await (this as any).privateGetWalletsWalletId (this.extend (request, params));
+        return await this.privateGetWalletsWalletId (this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
@@ -584,7 +586,7 @@ export default class itbit extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'status': 'open',
@@ -601,7 +603,7 @@ export default class itbit extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'status': 'filled',
@@ -618,7 +620,7 @@ export default class itbit extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -633,7 +635,7 @@ export default class itbit extends Exchange {
         const request = {
             'walletId': walletId,
         };
-        const response = await (this as any).privateGetWalletsWalletIdOrders (this.extend (request, params));
+        const response = await this.privateGetWalletsWalletIdOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -728,7 +730,7 @@ export default class itbit extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         if (type === 'market') {
@@ -750,7 +752,7 @@ export default class itbit extends Exchange {
             'price': price,
             'instrument': market['id'],
         };
-        const response = await (this as any).privatePostWalletsWalletIdOrders (this.extend (request, params));
+        const response = await this.privatePostWalletsWalletIdOrders (this.extend (request, params));
         return this.safeOrder ({
             'info': response,
             'id': response['id'],
@@ -764,7 +766,7 @@ export default class itbit extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol not used by itbit fetchOrder
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const walletIdInParams = ('walletId' in params);
@@ -774,7 +776,7 @@ export default class itbit extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetWalletsWalletIdOrdersId (this.extend (request, params));
+        const response = await this.privateGetWalletsWalletIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -786,7 +788,7 @@ export default class itbit extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the itbit api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
@@ -795,10 +797,10 @@ export default class itbit extends Exchange {
         const request = {
             'id': id,
         };
-        return await (this as any).privateDeleteWalletsWalletIdOrdersId (this.extend (request, params));
+        return await this.privateDeleteWalletsWalletIdOrdersId (this.extend (request, params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET' && Object.keys (query).length) {
@@ -814,10 +816,10 @@ export default class itbit extends Exchange {
             const authBody = (method === 'POST') ? body : '';
             const auth = [ method, url, authBody, nonce, timestamp ];
             const message = nonce + this.json (auth).replace ('\\/', '/');
-            const hash = this.hash (this.encode (message), 'sha256', 'binary');
-            const binaryUrl = this.stringToBinary (this.encode (url));
+            const hash = this.hash (this.encode (message), sha256, 'binary');
+            const binaryUrl = this.encode (url);
             const binhash = this.binaryConcat (binaryUrl, hash);
-            const signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
+            const signature = this.hmac (binhash, this.encode (this.secret), sha512, 'base64');
             headers = {
                 'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',

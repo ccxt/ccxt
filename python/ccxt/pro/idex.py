@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class idex(ccxt.async_support.idex):
@@ -67,7 +68,7 @@ class idex(ccxt.async_support.idex):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the idex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -102,33 +103,33 @@ class idex(ccxt.async_support.idex):
         symbol = self.safe_symbol(marketId)
         messageHash = type + ':' + marketId
         timestamp = self.safe_integer(data, 't')
-        close = self.safe_float(data, 'c')
-        percentage = self.safe_float(data, 'P')
+        close = self.safe_string(data, 'c')
+        percentage = self.safe_string(data, 'P')
         change = None
         if (percentage is not None) and (close is not None):
-            change = close * percentage
-        ticker = {
+            change = Precise.string_mul(close, percentage)
+        ticker = self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(data, 'h'),
-            'low': self.safe_float(data, 'l'),
-            'bid': self.safe_float(data, 'b'),
+            'high': self.safe_string(data, 'h'),
+            'low': self.safe_string(data, 'l'),
+            'bid': self.safe_string(data, 'b'),
             'bidVolume': None,
-            'ask': self.safe_float(data, 'a'),
+            'ask': self.safe_string(data, 'a'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(data, 'o'),
+            'open': self.safe_string(data, 'o'),
             'close': close,
             'last': close,
             'previousClose': None,
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(data, 'v'),
-            'quoteVolume': self.safe_float(data, 'q'),
+            'baseVolume': self.safe_string(data, 'v'),
+            'quoteVolume': self.safe_string(data, 'q'),
             'info': message,
-        }
+        })
         client.resolve(ticker, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
@@ -379,7 +380,7 @@ class idex(ccxt.async_support.idex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the idex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -475,7 +476,7 @@ class idex(ccxt.async_support.idex):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the idex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         name = 'orders'

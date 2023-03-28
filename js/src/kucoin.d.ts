@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/kucoin.js';
 export default class kucoin extends Exchange {
     describe(): any;
     nonce(): number;
@@ -213,7 +213,7 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinbase.js';
 export default class coinbase extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

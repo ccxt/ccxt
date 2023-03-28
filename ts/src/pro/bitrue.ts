@@ -178,7 +178,7 @@ export default class bitrue extends bitrueRest {
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum amount of orders to return
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         if (symbol !== undefined) {
@@ -425,7 +425,7 @@ export default class bitrue extends bitrueRest {
         if (listenKey === undefined) {
             let response = undefined;
             try {
-                response = await (this as any).openPrivatePostPoseidonApiV1ListenKey (params);
+                response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
             } catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
@@ -456,7 +456,7 @@ export default class bitrue extends bitrueRest {
             'listenKey': listenKey,
         };
         try {
-            await (this as any).openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
             //
             // ಠ_ಠ
             //     {

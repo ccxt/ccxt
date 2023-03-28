@@ -379,7 +379,7 @@ class poloniexfutures(Exchange):
         see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -413,7 +413,7 @@ class poloniexfutures(Exchange):
         see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTickers(params)
@@ -427,7 +427,7 @@ class poloniexfutures(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the poloniexfuturesfutures api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         level = self.safe_number(params, 'level')
@@ -506,7 +506,7 @@ class poloniexfutures(Exchange):
         :param str symbol: unified market symbol
         :param int|None limit: max number of orders to return, default is None
         :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -766,7 +766,7 @@ class poloniexfutures(Exchange):
         :param str params['stopPriceType']:  TP, IP or MP, defaults to TP
         :param bool params['closeOrder']: set to True to close position
         :param bool params['forceHold']: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -849,7 +849,7 @@ class poloniexfutures(Exchange):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -885,7 +885,7 @@ class poloniexfutures(Exchange):
         see https://futures-docs.poloniex.com/#get-position-list
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         response = self.privateGetPositions(params)
@@ -1035,7 +1035,7 @@ class poloniexfutures(Exchange):
         :param int|None since: the earliest time in ms to fetch funding history for
         :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
@@ -1100,7 +1100,7 @@ class poloniexfutures(Exchange):
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
         :param dict params['stop']: When True, all the trigger orders will be cancelled
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1164,7 +1164,7 @@ class poloniexfutures(Exchange):
         :param int|None params['until']: End time in ms
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit or market
-        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')
@@ -1257,7 +1257,7 @@ class poloniexfutures(Exchange):
         :param int|None params['till']: end time in ms
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit, or market
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
@@ -1273,7 +1273,7 @@ class poloniexfutures(Exchange):
         :param int|None params['till']: end time in ms
         :param str|None params['side']: buy or sell
         :param str|None params['type']: limit, or market
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
@@ -1284,7 +1284,7 @@ class poloniexfutures(Exchange):
         see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1474,7 +1474,7 @@ class poloniexfutures(Exchange):
         see https://futures-docs.poloniex.com/#get-premium-index
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1526,7 +1526,7 @@ class poloniexfutures(Exchange):
         :param str|None side: buy or sell
         :param str|None type:  limit, market, limit_stop or market_stop
         :param int|None endAt: end time(milisecond)
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {

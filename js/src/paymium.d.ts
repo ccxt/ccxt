@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/paymium.js';
 export default class paymium extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;
@@ -6,7 +6,7 @@ export default class paymium extends Exchange {
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    parseTrade(trade: any, market: any): import("./base/types.js").Trade;
+    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     createDepositAddress(code: any, params?: {}): Promise<{
         info: any;
@@ -22,7 +22,7 @@ export default class paymium extends Exchange {
         tag: any;
         network: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         info: any;
         currency: any;
@@ -55,7 +55,7 @@ export default class paymium extends Exchange {
         status: string;
     };
     parseTransferStatus(status: any): string;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

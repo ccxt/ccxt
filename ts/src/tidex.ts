@@ -1,8 +1,8 @@
-
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/tidex.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 export default class tidex extends Exchange {
     describe () {
@@ -167,7 +167,7 @@ export default class tidex extends Exchange {
          * @param {object} params extra parameters specific to the tidex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).webGetCurrency (params);
+        const response = await this.webGetCurrency (params);
         //
         //     [
         //         {
@@ -253,7 +253,7 @@ export default class tidex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetInfo (params);
+        const response = await this.publicGetInfo (params);
         //
         //     {
         //         "server_time":1615861869,
@@ -367,7 +367,7 @@ export default class tidex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetInfoExt (params);
+        const response = await this.privatePostGetInfoExt (params);
         //
         //     {
         //         "success":1,
@@ -405,7 +405,7 @@ export default class tidex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -415,7 +415,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
         }
-        const response = await (this as any).publicGetDepthPair (this.extend (request, params));
+        const response = await this.publicGetDepthPair (this.extend (request, params));
         const market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse) {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
@@ -432,7 +432,7 @@ export default class tidex extends Exchange {
          * @param {[string]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int|undefined} limit max number of entries per orderbook to return, default is undefined
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
+         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
          */
         await this.loadMarkets ();
         let ids = undefined;
@@ -453,7 +453,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
         }
-        const response = await (this as any).publicGetDepthPair (this.extend (request, params));
+        const response = await this.publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
@@ -512,27 +512,27 @@ export default class tidex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let ids = this.ids;
+        let ids = undefined;
         if (symbols === undefined) {
-            const numIds = ids.length;
-            ids = ids.join ('-');
+            const numIds = this.ids.length;
+            ids = this.ids.join ('-');
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if (ids.length > this.options['fetchTickersMaxLength']) {
                 const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
                 throw new ArgumentsRequired (this.id + ' fetchTickers() has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
+            const newIds = this.marketIds (symbols);
+            ids = newIds.join ('-');
         }
         const request = {
             'pair': ids,
         };
-        const response = await (this as any).publicGetTickerPair (this.extend (request, params));
+        const response = await this.publicGetTickerPair (this.extend (request, params));
         const result = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
@@ -551,7 +551,7 @@ export default class tidex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
@@ -632,7 +632,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetTradesPair (this.extend (request, params));
+        const response = await this.publicGetTradesPair (this.extend (request, params));
         if (Array.isArray (response)) {
             const numElements = response.length;
             if (numElements === 0) {
@@ -653,7 +653,7 @@ export default class tidex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
@@ -668,7 +668,7 @@ export default class tidex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        const response = await (this as any).privatePostTrade (this.extend (request, params));
+        const response = await this.privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';
         let filledString = '0.0';
@@ -715,13 +715,13 @@ export default class tidex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by tidex cancelOrder ()
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': parseInt (id),
         };
-        return await (this as any).privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
@@ -783,13 +783,13 @@ export default class tidex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol not used by tidex fetchOrder
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await (this as any).privatePostOrderInfo (this.extend (request, params));
+        const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
         const result = this.safeValue (response, 'return', {});
         const order = this.safeValue (result, id);
@@ -805,7 +805,7 @@ export default class tidex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -814,7 +814,7 @@ export default class tidex extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privatePostActiveOrders (this.extend (request, params));
+        const response = await this.privatePostActiveOrders (this.extend (request, params));
         //
         //     {
         //         "success":1,
@@ -850,7 +850,7 @@ export default class tidex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -875,7 +875,7 @@ export default class tidex extends Exchange {
         if (since !== undefined) {
             request['since'] = this.parseToInt (since / 1000);
         }
-        const response = await (this as any).privatePostTradeHistory (this.extend (request, params));
+        const response = await this.privatePostTradeHistory (this.extend (request, params));
         const trades = this.safeValue (response, 'return', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -890,7 +890,7 @@ export default class tidex extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the tidex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -904,7 +904,7 @@ export default class tidex extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const response = await (this as any).privatePostCreateWithdraw (this.extend (request, params));
+        const response = await this.privatePostCreateWithdraw (this.extend (request, params));
         //
         //     {
         //         "success":1,
@@ -977,7 +977,7 @@ export default class tidex extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api];
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
@@ -987,7 +987,7 @@ export default class tidex extends Exchange {
                 'nonce': nonce,
                 'method': path,
             }, query));
-            const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
+            const signature = this.hmac (this.encode (body), this.encode (this.secret), sha512);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,

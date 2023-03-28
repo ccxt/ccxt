@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitfinex2.js';
 export default class bitfinex2 extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;
@@ -107,7 +107,7 @@ export default class bitfinex2 extends Exchange {
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

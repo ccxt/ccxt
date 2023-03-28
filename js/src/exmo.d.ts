@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/exmo.js';
 export default class exmo extends Exchange {
     describe(): any;
     modifyMarginHelper(symbol: any, amount: any, type: any, params?: {}): Promise<{
@@ -41,8 +41,8 @@ export default class exmo extends Exchange {
     fetchPrivateTradingFees(params?: {}): Promise<{}>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     parseFixedFloatValue(input: any): number;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -196,7 +196,7 @@ export default class exmo extends Exchange {
         };
     }>;
     fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

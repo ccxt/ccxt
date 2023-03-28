@@ -1,10 +1,11 @@
 
 // ----------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/phemex.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ----------------------------------------------------------------------------
 
@@ -14,7 +15,7 @@ export default class phemex extends Exchange {
             'id': 'phemex',
             'name': 'Phemex',
             'countries': [ 'CN' ], // China
-            'rateLimit': 100,
+            'rateLimit': 120.5,
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -120,129 +121,128 @@ export default class phemex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'cfg/v2/products', // spot + contracts
-                        'cfg/fundingRates',
-                        'products', // contracts only
-                        'nomics/trades', // ?market=<symbol>&since=<since>
-                        'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
-                        'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
-                        'md/v2/kline', // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                    ],
+                    'get': {
+                        'cfg/v2/products': 5, // spot + contracts
+                        'cfg/fundingRates': 5,
+                        'products': 5, // contracts only
+                        'nomics/trades': 5, // ?market=<symbol>&since=<since>
+                        'md/kline': 5, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list': 5, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline': 5, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last': 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/trade', // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr/all', // ?id=<id>
-                        'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
-                        'exchange/public/products', // contracts only
-                    ],
+                    'get': {
+                        'md/orderbook': 5, // ?symbol=<symbol>&id=<id>
+                        'md/trade': 5, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all': 5, // ?id=<id>
+                        'md/spot/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all': 5, // ?symbol=<symbol>&id=<id>
+                        'exchange/public/products': 5, // contracts only
+                    },
                 },
                 'v2': {
-                    'get': [
-                        'md/v2/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/v2/trade', // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr/all', // ?id=<id>
-                    ],
+                    'get': {
+                        'md/v2/orderbook': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all': 5, // ?id=<id>
+                    },
                 },
                 'private': {
-                    'get': [
+                    'get': {
                         // spot
-                        'spot/orders/active', // ?symbol=<symbol>&orderID=<orderID>
-                        // 'spot/orders/active', // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders', // ?symbol=<symbol>
-                        'spot/wallets', // ?currency=<currency>
-                        'exchange/spot/order', // ?symbol=<symbol>&ordStatus=<ordStatus1,orderStatus2>ordType=<ordType1,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/order/v2/orderList', // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
-                        'exchange/order/v2/tradingList', // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'spot/orders/active': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        // 'spot/orders/active': 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
+                        'spot/orders': 1, // ?symbol=<symbol>
+                        'spot/wallets': 5, // ?currency=<currency>
+                        'exchange/spot/order': 5, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades': 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList': 5, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList': 5, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
-                        'accounts/accountPositions', // ?currency=<currency>
-                        'g-accounts/accountPositions', // ?currency=<currency>
-                        'accounts/positions', // ?currency=<currency>
-                        'api-data/futures/funding-fees', // ?symbol=<symbol>
-                        'api-data/g-futures/funding-fees', // ?symbol=<symbol>
-                        'api-data/futures/orders', // ?symbol=<symbol>
-                        'api-data/g-futures/orders', // ?symbol=<symbol>
-                        'api-data/futures/orders/by-order-id', // ?symbol=<symbol>
-                        'api-data/g-futures/orders/by-order-id', // ?symbol=<symbol>
-                        'api-data/futures/trades', // ?symbol=<symbol>
-                        'api-data/g-futures/trades', // ?symbol=<symbol>
-                        'api-data/futures/trading-fees', // ?symbol=<symbol>
-                        'api-data/g-futures/trading-fees', // ?symbol=<symbol>
-                        'g-orders/activeList', // ?symbol=<symbol>
-                        'orders/activeList', // ?symbol=<symbol>
-                        'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
-                        'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
-                        // 'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
-                        'exchange/order/trade', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'phemex-user/users/children', // ?offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-user/wallets/v2/depositAddress', // ?_t=1592722635531&currency=USDT
-                        'phemex-user/wallets/tradeAccountDetail', // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
-                        'phemex-user/order/closedPositionList', // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
-                        'exchange/margins/transfer', // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'exchange/wallets/confirm/withdraw', // ?code=<withdrawConfirmCode>
-                        'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'exchange/wallets/depositList', // ?currency=<currency>&offset=<offset>&limit=<limit>
-                        'exchange/wallets/v2/depositAddress', // ?currency=<currency>
-                        'api-data/spots/funds', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/convert', // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'accounts/accountPositions': 1, // ?currency=<currency>
+                        'g-accounts/accountPositions': 5, // ?currency=<currency>
+                        'accounts/positions': 26, // ?currency=<currency>
+                        'api-data/futures/funding-fees': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees': 5, // ?symbol=<symbol>
+                        'api-data/futures/orders': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/orders': 5, // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id': 5, // ?symbol=<symbol>
+                        'api-data/futures/trades': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/trades': 5, // ?symbol=<symbol>
+                        'api-data/futures/trading-fees': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees': 5, // ?symbol=<symbol>
+                        'g-orders/activeList': 5, // ?symbol=<symbol>
+                        'orders/activeList': 1, // ?symbol=<symbol>
+                        'exchange/order/list': 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order': 5, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
+                        // 'exchange/order': 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
+                        'exchange/order/trade': 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children': 5, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress': 5, // ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail': 5, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-user/order/closedPositionList': 5, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
+                        'exchange/margins/transfer': 5, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw': 5, // ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList': 5, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList': 5, // ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress': 5, // ?currency=<currency>
+                        'api-data/spots/funds': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/convert': 5, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/spots/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/futures/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                        'assets/convert', // ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
-                    ],
-                    'post': [
+                        'assets/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                    },
+                    'post': {
                         // spot
-                        'spot/orders',
+                        'spot/orders': 1,
                         // swap
-                        'orders',
-                        'g-orders',
-                        'positions/assign', // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
-                        'exchange/wallets/transferOut',
-                        'exchange/wallets/transferIn',
-                        'exchange/margins',
-                        'exchange/wallets/createWithdraw', // ?otpCode=<otpCode>
-                        'exchange/wallets/cancelWithdraw',
-                        'exchange/wallets/createWithdrawAddress', // ?otpCode={optCode}
+                        'orders': 1,
+                        'g-orders': 5,
+                        'positions/assign': 5, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
+                        'exchange/wallets/transferOut': 5,
+                        'exchange/wallets/transferIn': 5,
+                        'exchange/margins': 5,
+                        'exchange/wallets/createWithdraw': 5, // ?otpCode=<otpCode>
+                        'exchange/wallets/cancelWithdraw': 5,
+                        'exchange/wallets/createWithdrawAddress': 5, // ?otpCode={optCode}
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer', // for sub-account only
-                        'assets/futures/sub-accounts/transfer', // for sub-account only
-                        'assets/universal-transfer', // for Main account only
-                        'assets/convert',
-                    ],
-                    'put': [
+                        'assets/transfer': 5,
+                        'assets/spots/sub-accounts/transfer': 5, // for sub-account only
+                        'assets/futures/sub-accounts/transfer': 5, // for sub-account only
+                        'assets/universal-transfer': 5, // for Main account only
+                        'assets/convert': 5,
+                    },
+                    'put': {
                         // spot
-                        'spot/orders', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
+                        'spot/orders': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
-                        'orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/switch-pos-mode-sync', // ?symbol=<symbol>&targetPosMode=<targetPosMode>
-                        'positions/riskLimit', // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
-                    ],
-                    'delete': [
+                        'orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace': 5, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync': 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
+                        'positions/riskLimit': 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                    },
+                    'delete': {
                         // spot
-                        'spot/orders', // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/all', // ?symbol=<symbol>&untriggered=<untriggered>
-                        // 'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
+                        'spot/orders': 2, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all': 2, // ?symbol=<symbol>&untriggered=<untriggered>
+                        // 'spot/orders': 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
-                        'orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                    ],
+                        'orders/cancel': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all': 1, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel': 5, // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders': 5, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all': 5, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -686,7 +686,7 @@ export default class phemex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const v2Products = await (this as any).publicGetCfgV2Products (params);
+        const v2Products = await this.publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -764,7 +764,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const v1Products = await (this as any).v1GetExchangePublicProducts (params);
+        const v1Products = await this.v1GetExchangePublicProducts (params);
         const v1ProductsData = this.safeValue (v1Products, 'data', []);
         //
         //     {
@@ -833,7 +833,7 @@ export default class phemex extends Exchange {
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCfgV2Products (params);
+        const response = await this.publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -940,7 +940,7 @@ export default class phemex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1235,7 +1235,7 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2156,7 +2156,7 @@ export default class phemex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2386,7 +2386,7 @@ export default class phemex extends Exchange {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @param {string|undefined} params.posSide either 'Hedged' or 'OneWay' or 'Merged'
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
@@ -2457,7 +2457,7 @@ export default class phemex extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @param {string|undefined} params.posSide either 'Hedged' or 'OneWay' or 'Merged'
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -2497,7 +2497,7 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -2526,7 +2526,7 @@ export default class phemex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2574,7 +2574,7 @@ export default class phemex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -2613,7 +2613,7 @@ export default class phemex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -2657,7 +2657,7 @@ export default class phemex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -2737,7 +2737,7 @@ export default class phemex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -2889,7 +2889,7 @@ export default class phemex extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2907,7 +2907,7 @@ export default class phemex extends Exchange {
             request['chainName'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
+        const response = await this.privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
         //     {
         //         "code":0,
         //         "msg":"OK",
@@ -2939,14 +2939,14 @@ export default class phemex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await (this as any).privateGetExchangeWalletsDepositList (params);
+        const response = await this.privateGetExchangeWalletsDepositList (params);
         //
         //     {
         //         "code":0,
@@ -2980,14 +2980,14 @@ export default class phemex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await (this as any).privateGetExchangeWalletsWithdrawList (params);
+        const response = await this.privateGetExchangeWalletsWithdrawList (params);
         //
         //     {
         //         "code":0,
@@ -3107,7 +3107,7 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -3373,7 +3373,7 @@ export default class phemex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -3444,7 +3444,7 @@ export default class phemex extends Exchange {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3456,9 +3456,9 @@ export default class phemex extends Exchange {
         };
         let response = {};
         if (!market['linear']) {
-            response = await (this as any).v1GetMdTicker24hr (this.extend (request, params));
+            response = await this.v1GetMdTicker24hr (this.extend (request, params));
         } else {
-            response = await (this as any).v2GetMdV2Ticker24hr (this.extend (request, params));
+            response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
         }
         //
         //     {
@@ -3558,7 +3558,7 @@ export default class phemex extends Exchange {
          * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
          * @param {object} params parameters specific to the phemex api endpoint
-         * @returns {object} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3566,7 +3566,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'posBalanceEv': this.toEv (amount, market),
         };
-        const response = await (this as any).privatePostPositionsAssign (this.extend (request, params));
+        const response = await this.privatePostPositionsAssign (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3639,7 +3639,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
+        return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async setPositionMode (hedged, symbol: string = undefined, params = {}) {
@@ -3666,7 +3666,7 @@ export default class phemex extends Exchange {
         } else {
             request['targetPosMode'] = 'OneWay';
         }
-        return await (this as any).privatePutGPositionsSwitchPosModeSync (this.extend (request, params));
+        return await this.privatePutGPositionsSwitchPosModeSync (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
@@ -3676,10 +3676,10 @@ export default class phemex extends Exchange {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetCfgV2Products (params);
+        const response = await this.publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -3800,7 +3800,7 @@ export default class phemex extends Exchange {
         return tiers;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;
@@ -3828,7 +3828,7 @@ export default class phemex extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
             const auth = requestPath + queryString + expiryString + payload;
-            headers['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
+            headers['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         }
         url = this.implodeHostname (this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -3879,7 +3879,7 @@ export default class phemex extends Exchange {
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @param {string|undefined} params.bizType for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3900,7 +3900,7 @@ export default class phemex extends Exchange {
                 'moveOp': direction,
                 'amountEv': scaledAmmount,
             };
-            const response = await (this as any).privatePostAssetsTransfer (this.extend (request, params));
+            const response = await this.privatePostAssetsTransfer (this.extend (request, params));
             //
             //     {
             //         code: '0',
@@ -3925,7 +3925,7 @@ export default class phemex extends Exchange {
                 'currency': currency['id'],
                 'bizType': this.safeString (params, 'bizType', 'SPOT'),
             };
-            const response = await (this as any).privatePostAssetsUniversalTransfer (this.extend (request, params));
+            const response = await this.privatePostAssetsUniversalTransfer (this.extend (request, params));
             //
             //     {
             //         code: '0',
@@ -3963,7 +3963,7 @@ export default class phemex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
          * @param {object} params extra parameters specific to the phemex api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         if (code === undefined) {
@@ -3979,7 +3979,7 @@ export default class phemex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetAssetsTransfer (this.extend (request, params));
+        const response = await this.privateGetAssetsTransfer (this.extend (request, params));
         //
         //     {
         //         "code": 0,

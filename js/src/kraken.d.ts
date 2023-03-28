@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/kraken.js';
 export default class kraken extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;
@@ -147,7 +147,7 @@ export default class kraken extends Exchange {
         };
     }>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

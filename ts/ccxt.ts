@@ -33,12 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances } from './src/base/types.js'
+import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax } from './src/base/types.js'
+import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending }  from './src/base/errors.js'
+
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.17';
+const version = '3.0.42';
 
 (Exchange as any).ccxtVersion = version
 
@@ -207,6 +209,7 @@ import okcoinPro from  './src/pro/okcoin.js'
 import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
+import probitPro from  './src/pro/probit.js'
 import ripioPro from  './src/pro/ripio.js'
 import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
@@ -378,6 +381,7 @@ const pro = {
     'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
+    'probit':                 probitPro,
     'ripio':                  ripioPro,
     'upbit':                  upbitPro,
     'wazirx':                 wazirxPro,
@@ -409,6 +413,36 @@ export {
     Precise,
     functions,
     errors,
+    BaseError,
+    ExchangeError,
+    PermissionDenied,
+    AccountNotEnabled,
+    AccountSuspended,
+    ArgumentsRequired,
+    BadRequest,
+    BadSymbol,
+    MarginModeAlreadySet,
+    BadResponse,
+    NullResponse,
+    InsufficientFunds,
+    InvalidAddress,
+    InvalidOrder,
+    OrderNotFound,
+    OrderNotCached,
+    CancelPending,
+    OrderImmediatelyFillable,
+    OrderNotFillable,
+    DuplicateOrderId,
+    NotSupported,
+    NetworkError,
+    DDoSProtection,
+    RateLimitExceeded,
+    ExchangeNotAvailable,
+    OnMaintenance,
+    InvalidNonce,
+    RequestTimeout,
+    AuthenticationError,
+    AddressPending,
     Market,
     Trade,
     Fee,
@@ -425,6 +459,8 @@ export {
     OHLCV,
     Balances,
     PartialBalances,
+    Dictionary,
+    MinMax,
     ace,
     alpaca,
     ascendex,

@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,6 +44,8 @@ export default class bitrue extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -241,6 +244,10 @@ export default class bitrue extends Exchange {
                     'TRC20': 'TRX',
                     'TRON': 'TRX',
                 },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
             },
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
@@ -344,9 +351,9 @@ export default class bitrue extends Exchange {
          * @name bitrue#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
-        const response = await (this as any).v1PublicGetPing (params);
+        const response = await this.v1PublicGetPing (params);
         //
         // empty means working status.
         //
@@ -372,7 +379,7 @@ export default class bitrue extends Exchange {
          * @param {object} params extra parameters specific to the bitrue api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).v1PublicGetTime (params);
+        const response = await this.v1PublicGetTime (params);
         //
         //     {
         //         "serverTime":1635467280514
@@ -461,7 +468,7 @@ export default class bitrue extends Exchange {
          * @param {object} params extra parameters specific to the bitrue api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).v1PublicGetExchangeInfo (params);
+        const response = await this.v1PublicGetExchangeInfo (params);
         //
         //     {
         //         "timezone":"CTT",
@@ -569,7 +576,7 @@ export default class bitrue extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).v1PublicGetExchangeInfo (params);
+        const response = await this.v1PublicGetExchangeInfo (params);
         //
         //     {
         //         "timezone":"CTT",
@@ -718,7 +725,7 @@ export default class bitrue extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1PrivateGetAccount (params);
+        const response = await this.v1PrivateGetAccount (params);
         //
         //     {
         //         "makerCommission":0,
@@ -747,7 +754,7 @@ export default class bitrue extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -757,7 +764,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
         }
-        const response = await (this as any).v1PublicGetDepth (this.extend (request, params));
+        const response = await this.v1PublicGetDepth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId":1635474910177,
@@ -828,7 +835,7 @@ export default class bitrue extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -838,7 +845,7 @@ export default class bitrue extends Exchange {
             'currency': uppercaseQuoteId,
             'command': 'returnTicker',
         };
-        const response = await (this as any).klinePublicGetPublicCurrencyJson (this.extend (request, params));
+        const response = await this.klinePublicGetPublicCurrencyJson (this.extend (request, params));
         //
         //     {
         //         "code":"200",
@@ -889,7 +896,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).v1PublicGetMarketKline (this.extend (request, params));
+        const response = await this.v1PublicGetMarketKline (this.extend (request, params));
         //
         //       {
         //           "symbol":"BTCUSDT",
@@ -940,7 +947,7 @@ export default class bitrue extends Exchange {
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
@@ -965,13 +972,13 @@ export default class bitrue extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const request = {
             'command': 'returnTicker',
         };
-        const response = await (this as any).klinePublicGetPublicJson (this.extend (request, params));
+        const response = await this.klinePublicGetPublicJson (this.extend (request, params));
         //
         //     {
         //         "code":"200",
@@ -1282,7 +1289,7 @@ export default class bitrue extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1318,7 +1325,7 @@ export default class bitrue extends Exchange {
             params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const response = await (this as any).v1PrivatePostOrder (this.extend (request, params));
+        const response = await this.v1PrivatePostOrder (this.extend (request, params));
         //
         //     {
         //         "symbol":"USDCUSDT",
@@ -1337,7 +1344,7 @@ export default class bitrue extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -1354,7 +1361,7 @@ export default class bitrue extends Exchange {
             request['orderId'] = id;
         }
         const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        const response = await (this as any).v1PrivateGetOrder (this.extend (request, query));
+        const response = await this.v1PrivateGetOrder (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1367,7 +1374,7 @@ export default class bitrue extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -1387,7 +1394,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        const response = await (this as any).v1PrivateGetAllOrders (this.extend (request, params));
+        const response = await this.v1PrivateGetAllOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1422,7 +1429,7 @@ export default class bitrue extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -1432,7 +1439,7 @@ export default class bitrue extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1PrivateGetOpenOrders (this.extend (request, params));
+        const response = await this.v1PrivateGetOpenOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1466,7 +1473,7 @@ export default class bitrue extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -1486,7 +1493,7 @@ export default class bitrue extends Exchange {
             request['origClientOrderId'] = origClientOrderId;
         }
         const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
-        const response = await (this as any).v1PrivateDeleteOrder (this.extend (request, query));
+        const response = await this.v1PrivateDeleteOrder (this.extend (request, query));
         //
         //     {
         //         "symbol": "LTCBTC",
@@ -1507,7 +1514,7 @@ export default class bitrue extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const method = this.safeString (this.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
         if ((symbol === undefined) && (method === 'v2PrivateGetMyTrades')) {
@@ -1563,7 +1570,7 @@ export default class bitrue extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
@@ -1585,7 +1592,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).v1PrivateGetDepositHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetDepositHistory (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1635,7 +1642,7 @@ export default class bitrue extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
@@ -1657,7 +1664,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).v1PrivateGetWithdrawHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetWithdrawHistory (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -1828,7 +1835,7 @@ export default class bitrue extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1859,7 +1866,7 @@ export default class bitrue extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await (this as any).v1PrivatePostWithdrawCommit (this.extend (request, params));
+        const response = await this.v1PrivatePostWithdrawCommit (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -1879,7 +1886,65 @@ export default class bitrue extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //   {
+        //       coin: 'adx',
+        //       coinFulName: 'Ambire AdEx',
+        //       chains: [ 'BSC' ],
+        //       chainDetail: [ [Object] ]
+        //   }
+        //
+        const chainDetails = this.safeValue (fee, 'chainDetail', []);
+        const chainDetailLength = chainDetails.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        if (chainDetailLength !== 0) {
+            for (let i = 0; i < chainDetailLength; i++) {
+                const chainDetail = chainDetails[i];
+                const networkId = this.safeString (chainDetail, 'chain');
+                const currencyCode = this.safeString (currency, 'code');
+                const networkCode = this.networkIdToCode (networkId, currencyCode);
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber (chainDetail, 'withdrawFee'), 'percentage': false },
+                };
+                if (chainDetailLength === 1) {
+                    result['withdraw']['fee'] = this.safeNumber (chainDetail, 'withdrawFee');
+                    result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitrue api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PublicGetExchangeInfo (params);
+        const coins = this.safeValue (response, 'coins');
+        return this.parseDepositWithdrawFees (coins, codes, 'coin');
+    }
+
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const [ version, access ] = api;
         let url = this.urls['api'][version] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
@@ -1890,7 +1955,7 @@ export default class bitrue extends Exchange {
                 'timestamp': this.nonce (),
                 'recvWindow': recvWindow,
             }, params));
-            const signature = this.hmac (this.encode (query), this.encode (this.secret));
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/blockchaincom.js';
 export default class blockchaincom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -120,7 +120,7 @@ export default class blockchaincom extends Exchange {
     }>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

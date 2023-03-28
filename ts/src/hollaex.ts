@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, OrderImmediatelyFillable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -205,7 +206,7 @@ export default class hollaex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetConstants (params);
+        const response = await this.publicGetConstants (params);
         //
         //     {
         //         coins: {
@@ -320,7 +321,7 @@ export default class hollaex extends Exchange {
          * @param {object} params extra parameters specific to the hollaex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetConstants (params);
+        const response = await this.publicGetConstants (params);
         //
         //     {
         //         "coins":{
@@ -406,10 +407,10 @@ export default class hollaex extends Exchange {
          * @param {[string]|undefined} symbols not used by hollaex fetchOrderBooks ()
          * @param {int|undefined} limit not used by hollaex fetchOrderBooks ()
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
+         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetOrderbooks (params);
+        const response = await this.publicGetOrderbooks (params);
         const result = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
@@ -430,14 +431,14 @@ export default class hollaex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetOrderbooks (this.extend (request, params));
+        const response = await this.publicGetOrderbooks (this.extend (request, params));
         //
         //     {
         //         "btc-usdt": {
@@ -469,14 +470,14 @@ export default class hollaex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
         //     {
         //         open: 8615.55,
@@ -498,11 +499,11 @@ export default class hollaex extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetTickers (this.extend (params));
+        const response = await this.publicGetTickers (this.extend (params));
         //
         //     {
         //         "bch-usdt": {
@@ -607,7 +608,7 @@ export default class hollaex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     {
         //         "btc-usdt": [
@@ -687,10 +688,10 @@ export default class hollaex extends Exchange {
          * @name hollaex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTiers (params);
+        const response = await this.publicGetTiers (params);
         //
         //     {
         //         '1': {
@@ -778,7 +779,7 @@ export default class hollaex extends Exchange {
                 request['to'] = this.sum (start, duration * limit);
             }
         }
-        const response = await (this as any).publicGetChart (this.extend (request, params));
+        const response = await this.publicGetChart (this.extend (request, params));
         //
         //     [
         //         {
@@ -845,7 +846,7 @@ export default class hollaex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUserBalance (params);
+        const response = await this.privateGetUserBalance (params);
         //
         //     {
         //         "updated_at": "2020-03-02T22:27:38.428Z",
@@ -869,13 +870,13 @@ export default class hollaex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by hollaex fetchOpenOrder ()
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetOrder (this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
         //         "id": "string",
@@ -912,7 +913,7 @@ export default class hollaex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'open': true,
@@ -929,7 +930,7 @@ export default class hollaex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'open': false,
@@ -944,13 +945,13 @@ export default class hollaex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetOrder (this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -989,7 +990,7 @@ export default class hollaex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1015,7 +1016,7 @@ export default class hollaex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
-        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1138,7 +1139,7 @@ export default class hollaex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1167,7 +1168,7 @@ export default class hollaex extends Exchange {
             request['meta'] = { 'post_only': true };
         }
         params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ]);
-        const response = await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
         //         "fee": 0,
@@ -1202,13 +1203,13 @@ export default class hollaex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateDeleteOrder (this.extend (request, params));
+        const response = await this.privateDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "title": "string",
@@ -1232,7 +1233,7 @@ export default class hollaex extends Exchange {
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + " cancelAllOrders() requires a 'symbol' argument");
@@ -1242,7 +1243,7 @@ export default class hollaex extends Exchange {
         let market = undefined;
         market = this.market (symbol);
         request['symbol'] = market['id'];
-        const response = await (this as any).privateDeleteOrderAll (this.extend (request, params));
+        const response = await this.privateDeleteOrderAll (this.extend (request, params));
         //
         //     [
         //         {
@@ -1270,7 +1271,7 @@ export default class hollaex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1293,7 +1294,7 @@ export default class hollaex extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetUserTrades (this.extend (request, params));
+        const response = await this.privateGetUserTrades (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1344,19 +1345,19 @@ export default class hollaex extends Exchange {
         };
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchDepositAddresses
          * @description fetch deposit addresses for multiple currencies and chain types
          * @param {[string]|undefined} codes list of unified currency codes, default is undefined
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
         params = this.omit (params, 'network');
-        const response = await (this as any).privateGetUser (params);
+        const response = await this.privateGetUser (params);
         //
         //     {
         //         "id":620,
@@ -1416,7 +1417,7 @@ export default class hollaex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1439,7 +1440,7 @@ export default class hollaex extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetUserDeposits (this.extend (request, params));
+        const response = await this.privateGetUserDeposits (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1475,7 +1476,7 @@ export default class hollaex extends Exchange {
          * @param {string} id withdrawal id
          * @param {string|undefined} code unified currency code of the currency withdrawn, default is undefined
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1486,7 +1487,7 @@ export default class hollaex extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await (this as any).privateGetUserWithdrawals (this.extend (request, params));
+        const response = await this.privateGetUserWithdrawals (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1524,7 +1525,7 @@ export default class hollaex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1547,7 +1548,7 @@ export default class hollaex extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetUserWithdrawals (this.extend (request, params));
+        const response = await this.privateGetUserWithdrawals (this.extend (request, params));
         //
         //     {
         //         "count": 1,
@@ -1682,7 +1683,7 @@ export default class hollaex extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the hollaex api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1704,7 +1705,7 @@ export default class hollaex extends Exchange {
             'address': address,
             'network': networkId,
         };
-        const response = await (this as any).privatePostUserWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserWithdrawal (this.extend (request, params));
         //
         //     {
         //         message: 'Withdrawal request is in the queue and will be processed.',
@@ -1725,7 +1726,7 @@ export default class hollaex extends Exchange {
         return number;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
@@ -1751,7 +1752,7 @@ export default class hollaex extends Exchange {
                     auth += body;
                 }
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             headers['api-signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

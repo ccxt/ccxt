@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/wavesexchange.js';
 export default class wavesexchange extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
@@ -14,7 +14,7 @@ export default class wavesexchange extends Exchange {
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: any): any[];
     checkRequiredKeys(): void;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
@@ -36,7 +36,7 @@ export default class wavesexchange extends Exchange {
         info: any;
     }>;
     getMatcherPublicKey(): Promise<any>;
-    getAssetBytes(currencyId: any): any;
+    getAssetBytes(currencyId: any): Uint8Array;
     getAssetId(currencyId: any): any;
     customPriceToPrecision(symbol: any, price: any): number;
     customAmountToPrecision(symbol: any, amount: any): number;

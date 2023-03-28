@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/upbit.js';
 export default class upbit extends Exchange {
     describe(): any;
     fetchCurrency(code: any, params?: {}): Promise<{
@@ -278,7 +278,7 @@ export default class upbit extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
         address: string;
@@ -324,7 +324,7 @@ export default class upbit extends Exchange {
         };
     }>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

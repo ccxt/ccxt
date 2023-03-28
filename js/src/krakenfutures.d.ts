@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/krakenfutures.js';
 export default class krakenfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -64,7 +64,7 @@ export default class krakenfutures extends Exchange {
     transferOut(code: any, amount: any, params?: {}): Promise<any>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

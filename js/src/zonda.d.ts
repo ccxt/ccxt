@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/zonda.js';
 export default class zonda extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -51,7 +51,7 @@ export default class zonda extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: any;
@@ -117,7 +117,7 @@ export default class zonda extends Exchange {
         fee: any;
         info: any;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

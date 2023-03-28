@@ -22,7 +22,7 @@ class phemex extends Exchange {
             'id' => 'phemex',
             'name' => 'Phemex',
             'countries' => array( 'CN' ), // China
-            'rateLimit' => 100,
+            'rateLimit' => 120.5,
             'version' => 'v1',
             'certified' => false,
             'pro' => true,
@@ -129,127 +129,126 @@ class phemex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'cfg/v2/products', // spot . contracts
-                        'cfg/fundingRates',
-                        'products', // contracts only
-                        'nomics/trades', // ?market=<symbol>&since=<since>
-                        'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
-                        'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
-                        'md/v2/kline', // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'cfg/v2/products' => 5, // spot . contracts
+                        'cfg/fundingRates' => 5,
+                        'products' => 5, // contracts only
+                        'nomics/trades' => 5, // ?market=<symbol>&since=<since>
+                        'md/kline' => 5, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list' => 5, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline' => 5, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last' => 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ),
                 ),
                 'v1' => array(
                     'get' => array(
-                        'md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/trade', // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr/all', // ?id=<id>
-                        'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
-                        'exchange/public/products', // contracts only
+                        'md/orderbook' => 5, // ?symbol=<symbol>&id=<id>
+                        'md/trade' => 5, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all' => 5, // ?id=<id>
+                        'md/spot/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all' => 5, // ?symbol=<symbol>&id=<id>
+                        'exchange/public/products' => 5, // contracts only
                     ),
                 ),
                 'v2' => array(
                     'get' => array(
-                        'md/v2/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/v2/trade', // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr/all', // ?id=<id>
+                        'md/v2/orderbook' => 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade' => 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all' => 5, // ?id=<id>
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // spot
-                        'spot/orders/active', // ?symbol=<symbol>&orderID=<orderID>
-                        // 'spot/orders/active', // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders', // ?symbol=<symbol>
-                        'spot/wallets', // ?currency=<currency>
-                        'exchange/spot/order', // ?symbol=<symbol>&ordStatus=<ordStatus1,orderStatus2>ordType=<ordType1,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/order/v2/orderList', // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
-                        'exchange/order/v2/tradingList', // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'spot/orders/active' => 1, // ?symbol=<symbol>&orderID=<orderID>
+                        // 'spot/orders/active' => 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
+                        'spot/orders' => 1, // ?symbol=<symbol>
+                        'spot/wallets' => 5, // ?currency=<currency>
+                        'exchange/spot/order' => 5, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList' => 5, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList' => 5, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
-                        'accounts/accountPositions', // ?currency=<currency>
-                        'g-accounts/accountPositions', // ?currency=<currency>
-                        'accounts/positions', // ?currency=<currency>
-                        'api-data/futures/funding-fees', // ?symbol=<symbol>
-                        'api-data/g-futures/funding-fees', // ?symbol=<symbol>
-                        'api-data/futures/orders', // ?symbol=<symbol>
-                        'api-data/g-futures/orders', // ?symbol=<symbol>
-                        'api-data/futures/orders/by-order-id', // ?symbol=<symbol>
-                        'api-data/g-futures/orders/by-order-id', // ?symbol=<symbol>
-                        'api-data/futures/trades', // ?symbol=<symbol>
-                        'api-data/g-futures/trades', // ?symbol=<symbol>
-                        'api-data/futures/trading-fees', // ?symbol=<symbol>
-                        'api-data/g-futures/trading-fees', // ?symbol=<symbol>
-                        'g-orders/activeList', // ?symbol=<symbol>
-                        'orders/activeList', // ?symbol=<symbol>
-                        'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
-                        'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
-                        // 'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
-                        'exchange/order/trade', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'phemex-user/users/children', // ?offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-user/wallets/v2/depositAddress', // ?_t=1592722635531&currency=USDT
-                        'phemex-user/wallets/tradeAccountDetail', // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
-                        'phemex-user/order/closedPositionList', // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
-                        'exchange/margins/transfer', // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'exchange/wallets/confirm/withdraw', // ?code=<withdrawConfirmCode>
-                        'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'exchange/wallets/depositList', // ?currency=<currency>&offset=<offset>&limit=<limit>
-                        'exchange/wallets/v2/depositAddress', // ?currency=<currency>
-                        'api-data/spots/funds', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/convert', // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'accounts/accountPositions' => 1, // ?currency=<currency>
+                        'g-accounts/accountPositions' => 5, // ?currency=<currency>
+                        'accounts/positions' => 26, // ?currency=<currency>
+                        'api-data/futures/funding-fees' => 5, // ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees' => 5, // ?symbol=<symbol>
+                        'api-data/futures/orders' => 5, // ?symbol=<symbol>
+                        'api-data/g-futures/orders' => 5, // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id' => 5, // ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id' => 5, // ?symbol=<symbol>
+                        'api-data/futures/trades' => 5, // ?symbol=<symbol>
+                        'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
+                        'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
+                        'g-orders/activeList' => 5, // ?symbol=<symbol>
+                        'orders/activeList' => 1, // ?symbol=<symbol>
+                        'exchange/order/list' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order' => 5, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
+                        // 'exchange/order' => 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
+                        'exchange/order/trade' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children' => 5, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress' => 5, // ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail' => 5, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-user/order/closedPositionList' => 5, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
+                        'exchange/margins/transfer' => 5, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw' => 5, // ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList' => 5, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList' => 5, // ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress' => 5, // ?currency=<currency>
+                        'api-data/spots/funds' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/convert' => 5, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/spots/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/futures/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                        'assets/convert', // ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
+                        'assets/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer' => 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote' => 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                     ),
                     'post' => array(
                         // spot
-                        'spot/orders',
+                        'spot/orders' => 1,
                         // swap
-                        'orders',
-                        'g-orders',
-                        'positions/assign', // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
-                        'exchange/wallets/transferOut',
-                        'exchange/wallets/transferIn',
-                        'exchange/margins',
-                        'exchange/wallets/createWithdraw', // ?otpCode=<otpCode>
-                        'exchange/wallets/cancelWithdraw',
-                        'exchange/wallets/createWithdrawAddress', // ?otpCode={optCode}
+                        'orders' => 1,
+                        'g-orders' => 5,
+                        'positions/assign' => 5, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
+                        'exchange/wallets/transferOut' => 5,
+                        'exchange/wallets/transferIn' => 5,
+                        'exchange/margins' => 5,
+                        'exchange/wallets/createWithdraw' => 5, // ?otpCode=<otpCode>
+                        'exchange/wallets/cancelWithdraw' => 5,
+                        'exchange/wallets/createWithdrawAddress' => 5, // ?otpCode={optCode}
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer', // for sub-account only
-                        'assets/futures/sub-accounts/transfer', // for sub-account only
-                        'assets/universal-transfer', // for Main account only
-                        'assets/convert',
+                        'assets/transfer' => 5,
+                        'assets/spots/sub-accounts/transfer' => 5, // for sub-account only
+                        'assets/futures/sub-accounts/transfer' => 5, // for sub-account only
+                        'assets/universal-transfer' => 5, // for Main account only
+                        'assets/convert' => 5,
                     ),
                     'put' => array(
                         // spot
-                        'spot/orders', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
+                        'spot/orders' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
-                        'orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/switch-pos-mode-sync', // ?symbol=<symbol>&targetPosMode=<targetPosMode>
-                        'positions/riskLimit', // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                        'orders/replace' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace' => 5, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'positions/leverage' => 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage' => 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync' => 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
+                        'positions/riskLimit' => 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
                     ),
                     'delete' => array(
                         // spot
-                        'spot/orders', // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/all', // ?symbol=<symbol>&untriggered=<untriggered>
-                        // 'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
+                        'spot/orders' => 2, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all' => 2, // ?symbol=<symbol>&untriggered=<untriggered>
+                        // 'spot/orders' => 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
-                        'orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'orders/cancel' => 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'orders' => 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all' => 1, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel' => 5, // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders' => 5, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all' => 5, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     ),
                 ),
             ),
@@ -947,7 +946,7 @@ class phemex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order $book for
              * @param {int|null} $limit the maximum amount of order $book entries to return
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-$book-structure order $book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-$book-structure order $book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1242,7 +1241,7 @@ class phemex extends Exchange {
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2163,7 +2162,7 @@ class phemex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2393,7 +2392,7 @@ class phemex extends Exchange {
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the phemex api endpoint
              * @param {string|null} $params->posSide either 'Hedged' or 'OneWay' or 'Merged'
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
@@ -2464,7 +2463,7 @@ class phemex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the phemex api endpoint
              * @param {string|null} $params->posSide either 'Hedged' or 'OneWay' or 'Merged'
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -2504,7 +2503,7 @@ class phemex extends Exchange {
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -2533,7 +2532,7 @@ class phemex extends Exchange {
              * fetches information on an $order made by the user
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -2581,7 +2580,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -2620,7 +2619,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -2664,7 +2663,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -2744,7 +2743,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -2896,7 +2895,7 @@ class phemex extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2946,7 +2945,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2987,7 +2986,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -3114,7 +3113,7 @@ class phemex extends Exchange {
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-$positions
              * @param {[string]|null} $symbols list of unified $market $symbols
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -3380,7 +3379,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch funding history for
              * @param {int|null} $limit the maximum number of funding history structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -3451,7 +3450,7 @@ class phemex extends Exchange {
              * fetch the current funding rate
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3565,7 +3564,7 @@ class phemex extends Exchange {
              * @param {string} $symbol unified $market $symbol of the $market to set margin in
              * @param {float} $amount the $amount to set the margin to
              * @param {array} $params parameters specific to the phemex api endpoint
-             * @return {array} A {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+             * @return {array} A ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3683,7 +3682,7 @@ class phemex extends Exchange {
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
              * @param {[string]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetCfgV2Products ($params));
@@ -3836,7 +3835,7 @@ class phemex extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
             $auth = $requestPath . $queryString . $expiryString . $payload;
-            $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
         $url = $this->implode_hostname($this->urls['api'][$api]) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -3886,7 +3885,7 @@ class phemex extends Exchange {
              * @param {string} $toAccount account to $transfer to
              * @param {array} $params extra parameters specific to the phemex api endpoint
              * @param {string|null} $params->bizType for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -3970,7 +3969,7 @@ class phemex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $transfers for
              * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
              * @param {array} $params extra parameters specific to the phemex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
             if ($code === null) {

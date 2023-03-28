@@ -1,9 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitforex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -153,7 +154,7 @@ export default class bitforex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetApiV1MarketSymbols (params);
+        const response = await this.publicGetApiV1MarketSymbols (params);
         //
         //    {
         //        "data": [
@@ -293,7 +294,7 @@ export default class bitforex extends Exchange {
             request['size'] = limit;
         }
         const market = this.market (symbol);
-        const response = await (this as any).publicGetApiV1MarketTrades (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
         //
         // {
         //  "data":
@@ -338,7 +339,7 @@ export default class bitforex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostApiV1FundAllAccount (params);
+        const response = await this.privatePostApiV1FundAllAccount (params);
         return this.parseBalance (response);
     }
 
@@ -387,14 +388,14 @@ export default class bitforex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.markets[symbol];
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetApiV1MarketTickerAll (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketTickerAll (this.extend (request, params));
         const ticker = this.safeValue (response, 'data');
         //
         //     {
@@ -457,7 +458,7 @@ export default class bitforex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default 1, max 600
         }
-        const response = await (this as any).publicGetApiV1MarketKline (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketKline (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -481,7 +482,7 @@ export default class bitforex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -491,7 +492,7 @@ export default class bitforex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).publicGetApiV1MarketDepthAll (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketDepthAll (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'time');
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
@@ -570,7 +571,7 @@ export default class bitforex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -578,7 +579,7 @@ export default class bitforex extends Exchange {
             'symbol': this.marketId (symbol),
             'orderId': id,
         };
-        const response = await (this as any).privatePostApiV1TradeOrderInfo (this.extend (request, params));
+        const response = await this.privatePostApiV1TradeOrderInfo (this.extend (request, params));
         const order = this.parseOrder (response['data'], market);
         return order;
     }
@@ -592,7 +593,7 @@ export default class bitforex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -603,7 +604,7 @@ export default class bitforex extends Exchange {
             'symbol': this.marketId (symbol),
             'state': 0,
         };
-        const response = await (this as any).privatePostApiV1TradeOrderInfos (this.extend (request, params));
+        const response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -616,7 +617,7 @@ export default class bitforex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -627,7 +628,7 @@ export default class bitforex extends Exchange {
             'symbol': this.marketId (symbol),
             'state': 1,
         };
-        const response = await (this as any).privatePostApiV1TradeOrderInfos (this.extend (request, params));
+        const response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -642,7 +643,7 @@ export default class bitforex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let sideId = undefined;
@@ -658,7 +659,7 @@ export default class bitforex extends Exchange {
             'amount': amount,
             'tradeType': sideId,
         };
-        const response = await (this as any).privatePostApiV1TradePlaceOrder (this.extend (request, params));
+        const response = await this.privatePostApiV1TradePlaceOrder (this.extend (request, params));
         const data = response['data'];
         return this.safeOrder ({
             'info': response,
@@ -674,7 +675,7 @@ export default class bitforex extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the bitforex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -683,13 +684,13 @@ export default class bitforex extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const results = await (this as any).privatePostApiV1TradeCancelOrder (this.extend (request, params));
+        const results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
         const success = results['success'];
         const returnVal = { 'info': results, 'success': success };
         return returnVal;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
@@ -705,7 +706,7 @@ export default class bitforex extends Exchange {
             }
             // let message = '/' + 'api/' + this.version + '/' + path + '?' + payload;
             const message = '/' + path + '?' + payload;
-            const signature = this.hmac (this.encode (message), this.encode (this.secret));
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
             body = payload + '&signData=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

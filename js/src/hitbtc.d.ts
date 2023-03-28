@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/hitbtc.js';
 export default class hitbtc extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;
@@ -133,7 +133,7 @@ export default class hitbtc extends Exchange {
         };
     }>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

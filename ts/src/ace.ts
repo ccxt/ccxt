@@ -1,9 +1,10 @@
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/ace.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -168,7 +169,7 @@ export default class ace extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetOapiV2ListMarketPair ();
+        const response = await this.publicGetOapiV2ListMarketPair ();
         //
         //     [
         //         {
@@ -287,11 +288,11 @@ export default class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the ace api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await (this as any).publicGetOapiV2ListTradePrice (params);
+        const response = await this.publicGetOapiV2ListTradePrice (params);
         const marketId = market['id'];
         const ticker = this.safeValue (response, marketId, {});
         //
@@ -314,10 +315,10 @@ export default class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the ace api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetOapiV2ListTradePrice ();
+        const response = await this.publicGetOapiV2ListTradePrice ();
         //
         //     {
         //         "BTC/USDT":{
@@ -348,7 +349,7 @@ export default class ace extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the ace api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -359,7 +360,7 @@ export default class ace extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetOpenV2PublicGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetOpenV2PublicGetOrderBook (this.extend (request, params));
         //
         //     {
         //         "attachment": {
@@ -457,7 +458,7 @@ export default class ace extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await (this as any).privatePostV2KlineGetKline (this.extend (request, params));
+        const response = await this.privatePostV2KlineGetKline (this.extend (request, params));
         const data = this.safeValue (response, 'attachment', []);
         //
         //     {
@@ -598,7 +599,7 @@ export default class ace extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the ace api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -614,7 +615,7 @@ export default class ace extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privatePostV2OrderOrder (this.extend (request, params), params);
+        const response = await this.privatePostV2OrderOrder (this.extend (request, params));
         //
         //     {
         //         "attachment": "15697850529570392100421100482693",
@@ -636,13 +637,13 @@ export default class ace extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the ace api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'orderNo': id,
         };
-        const response = await (this as any).privatePostV2OrderCancel (this.extend (request, params));
+        const response = await this.privatePostV2OrderCancel (this.extend (request, params));
         //
         //     {
         //         "attachment": 200,
@@ -662,13 +663,13 @@ export default class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the ace api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'orderNo': id,
         };
-        const response = await (this as any).privatePostV2OrderShowOrderStatus (this.extend (request, params));
+        const response = await this.privatePostV2OrderShowOrderStatus (this.extend (request, params));
         //
         //     {
         //         "attachment": {
@@ -705,7 +706,7 @@ export default class ace extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the ace api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires the symbol argument');
@@ -720,7 +721,7 @@ export default class ace extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).privatePostV2OrderGetOrderList (this.extend (request, params), params);
+        const response = await this.privatePostV2OrderGetOrderList (this.extend (request, params));
         const orders = this.safeValue (response, 'attachment');
         //
         //     {
@@ -845,14 +846,14 @@ export default class ace extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the ace api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
             'orderNo': id,
         };
-        const response = await (this as any).privatePostV2OrderShowOrderHistory (this.extend (request, params));
+        const response = await this.privatePostV2OrderShowOrderHistory (this.extend (request, params));
         //
         //     {
         //         "attachment": {
@@ -919,7 +920,7 @@ export default class ace extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default 10, max 500
         }
-        const response = await (this as any).privatePostV2OrderGetTradeList (this.extend (request, params));
+        const response = await this.privatePostV2OrderGetTradeList (this.extend (request, params));
         //
         //     {
         //         "attachment": [
@@ -994,7 +995,7 @@ export default class ace extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostV2CoinCustomerAccount (params);
+        const response = await this.privatePostV2CoinCustomerAccount (params);
         const balances = this.safeValue (response, 'attachment', []);
         //
         //     {
@@ -1015,7 +1016,7 @@ export default class ace extends Exchange {
         return this.parseBalance (balances);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (headers === undefined) {
@@ -1035,7 +1036,7 @@ export default class ace extends Exchange {
                 const key = sortedDataKeys[i];
                 auth += this.safeString (data, key);
             }
-            const signature = this.hash (this.encode (auth), 'sha256', 'hex');
+            const signature = this.hash (this.encode (auth), sha256, 'hex');
             data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/poloniex.js';
 export default class poloniex extends Exchange {
     describe(): any;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -93,20 +93,9 @@ export default class poloniex extends Exchange {
     fetchTransactionsHelper(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchTransactions(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
-    parseDepositWithdrawFee(fee: any, currency?: any): {
-        info: any;
-        withdraw: {
-            fee: any;
-            percentage: any;
-        };
-        deposit: {
-            fee: any;
-            percentage: any;
-        };
-        networks: {};
-    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): {};
+    parseDepositWithdrawFee(fee: any, currency?: any): any;
     fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
@@ -133,7 +122,7 @@ export default class poloniex extends Exchange {
         };
     };
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
         body: any;

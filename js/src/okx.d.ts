@@ -1,4 +1,4 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/okx.js';
 export default class okx extends Exchange {
     describe(): any;
     handleMarketTypeAndParams(methodName: any, market?: any, params?: {}): any;
@@ -45,6 +45,7 @@ export default class okx extends Exchange {
     }>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     parseIds(ids: any): any;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -240,7 +241,7 @@ export default class okx extends Exchange {
         toAccount: string;
         status: string;
     }>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;
@@ -307,7 +308,7 @@ export default class okx extends Exchange {
     };
     parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): {};
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
-    fetchBorrowRateHistories(codes?: any, since?: any, limit?: any, params?: {}): Promise<{}>;
+    fetchBorrowRateHistories(codes?: string[], since?: any, limit?: any, params?: {}): Promise<{}>;
     fetchBorrowRateHistory(code: any, since?: any, limit?: any, params?: {}): Promise<any>;
     modifyMarginHelper(symbol: any, amount: any, type: any, params?: {}): Promise<{
         info: any;
@@ -388,7 +389,7 @@ export default class okx extends Exchange {
         info: any;
     };
     setSandboxMode(enable: any): void;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): {};
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
 }

@@ -17,7 +17,6 @@ export default class coinex extends coinexRest {
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: any, message: any): void;
-    checkOrderBookChecksum(orderBook: any): void;
     watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any): void;
     parseWSOrder(order: any): any;

@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+import hashlib
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
@@ -60,7 +61,7 @@ class hollaex(ccxt.async_support.hollaex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the hollaex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -166,7 +167,7 @@ class hollaex(ccxt.async_support.hollaex):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hollaex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         messageHash = 'usertrade'
@@ -238,7 +239,7 @@ class hollaex(ccxt.async_support.hollaex):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hollaex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'order'
@@ -409,7 +410,7 @@ class hollaex(ccxt.async_support.hollaex):
             self.options['ws-expires'] = expires
         url = self.urls['api']['ws']
         auth = 'CONNECT' + '/stream' + expires
-        signature = self.hmac(self.encode(auth), self.encode(self.secret))
+        signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         authParams = {
             'api-key': self.apiKey,
             'api-signature': signature,

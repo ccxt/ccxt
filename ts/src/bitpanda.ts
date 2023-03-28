@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bitpanda.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -296,7 +296,7 @@ export default class bitpanda extends Exchange {
          * @param {object} params extra parameters specific to the bitpanda api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         iso: '2020-07-10T05:17:26.716Z',
@@ -314,7 +314,7 @@ export default class bitpanda extends Exchange {
          * @param {object} params extra parameters specific to the bitpanda api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -355,7 +355,7 @@ export default class bitpanda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetInstruments (params);
+        const response = await this.publicGetInstruments (params);
         //
         //     [
         //         {
@@ -437,7 +437,7 @@ export default class bitpanda extends Exchange {
          * @name bitpanda#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
@@ -450,7 +450,7 @@ export default class bitpanda extends Exchange {
 
     async fetchPublicTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).publicGetFees (params);
+        const response = await this.publicGetFees (params);
         //
         //     [
         //         {
@@ -492,7 +492,7 @@ export default class bitpanda extends Exchange {
 
     async fetchPrivateTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountFees (params);
+        const response = await this.privateGetAccountFees (params);
         //
         //     {
         //         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
@@ -616,14 +616,14 @@ export default class bitpanda extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_code': market['id'],
         };
-        const response = await (this as any).publicGetMarketTickerInstrumentCode (this.extend (request, params));
+        const response = await this.publicGetMarketTickerInstrumentCode (this.extend (request, params));
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -652,11 +652,11 @@ export default class bitpanda extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetMarketTicker (params);
+        const response = await this.publicGetMarketTicker (params);
         //
         //     [
         //         {
@@ -694,7 +694,7 @@ export default class bitpanda extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -710,7 +710,7 @@ export default class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetOrderBookInstrumentCode (this.extend (request, params));
+        const response = await this.publicGetOrderBookInstrumentCode (this.extend (request, params));
         //
         // level 1
         //
@@ -849,7 +849,7 @@ export default class bitpanda extends Exchange {
             request['from'] = this.iso8601 (since);
             request['to'] = this.iso8601 (this.sum (since, limit * duration));
         }
-        const response = await (this as any).publicGetCandlesticksInstrumentCode (this.extend (request, params));
+        const response = await this.publicGetCandlesticksInstrumentCode (this.extend (request, params));
         //
         //     [
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123},
@@ -966,7 +966,7 @@ export default class bitpanda extends Exchange {
             request['from'] = this.iso8601 (since);
             request['to'] = this.iso8601 (this.sum (since, 14400000));
         }
-        const response = await (this as any).publicGetPriceTicksInstrumentCode (this.extend (request, params));
+        const response = await this.publicGetPriceTicksInstrumentCode (this.extend (request, params));
         //
         //     [
         //         {
@@ -1008,7 +1008,7 @@ export default class bitpanda extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountBalances (params);
+        const response = await this.privateGetAccountBalances (params);
         //
         //     {
         //         "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
@@ -1052,14 +1052,14 @@ export default class bitpanda extends Exchange {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostAccountDepositCrypto (this.extend (request, params));
+        const response = await this.privatePostAccountDepositCrypto (this.extend (request, params));
         //
         //     {
         //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
@@ -1078,14 +1078,14 @@ export default class bitpanda extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency_code': currency['id'],
         };
-        const response = await (this as any).privateGetAccountDepositCryptoCurrencyCode (this.extend (request, params));
+        const response = await this.privateGetAccountDepositCryptoCurrencyCode (this.extend (request, params));
         //
         //     {
         //         "address":"rBnNhk95FrdNisZtXcStzriFS8vEzz53DM",
@@ -1107,7 +1107,7 @@ export default class bitpanda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1128,7 +1128,7 @@ export default class bitpanda extends Exchange {
             }
             request['from'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetAccountDeposits (this.extend (request, params));
+        const response = await this.privateGetAccountDeposits (this.extend (request, params));
         //
         //     {
         //         "deposit_history": [
@@ -1172,7 +1172,7 @@ export default class bitpanda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1193,7 +1193,7 @@ export default class bitpanda extends Exchange {
             }
             request['from'] = this.iso8601 (since);
         }
-        const response = await (this as any).privateGetAccountWithdrawals (this.extend (request, params));
+        const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
         //
         //     {
         //         "withdrawal_history": [
@@ -1239,7 +1239,7 @@ export default class bitpanda extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1513,7 +1513,7 @@ export default class bitpanda extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1550,7 +1550,7 @@ export default class bitpanda extends Exchange {
             request['client_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         }
-        const response = await (this as any).privatePostAccountOrders (this.extend (request, params));
+        const response = await this.privatePostAccountOrders (this.extend (request, params));
         //
         //     {
         //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1577,7 +1577,7 @@ export default class bitpanda extends Exchange {
          * @param {string} id order id
          * @param {string|undefined} symbol not used by bitmex cancelOrder ()
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
@@ -1604,7 +1604,7 @@ export default class bitpanda extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1612,7 +1612,7 @@ export default class bitpanda extends Exchange {
             const market = this.market (symbol);
             request['instrument_code'] = market['id'];
         }
-        const response = await (this as any).privateDeleteAccountOrders (this.extend (request, params));
+        const response = await this.privateDeleteAccountOrders (this.extend (request, params));
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1629,13 +1629,13 @@ export default class bitpanda extends Exchange {
          * @param {[string]} ids order ids
          * @param {string|undefined} symbol unified market symbol, default is undefined
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'ids': ids.join (','),
         };
-        const response = await (this as any).privateDeleteAccountOrders (this.extend (request, params));
+        const response = await this.privateDeleteAccountOrders (this.extend (request, params));
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1651,13 +1651,13 @@ export default class bitpanda extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string|undefined} symbol not used by bitpanda fetchOrder
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetAccountOrdersOrderId (this.extend (request, params));
+        const response = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "order": {
@@ -1711,7 +1711,7 @@ export default class bitpanda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1739,7 +1739,7 @@ export default class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await (this as any).privateGetAccountOrders (this.extend (request, params));
+        const response = await this.privateGetAccountOrders (this.extend (request, params));
         //
         //     {
         //         "order_history": [
@@ -1832,7 +1832,7 @@ export default class bitpanda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'with_cancelled_and_rejected': true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
@@ -1850,7 +1850,7 @@ export default class bitpanda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1861,7 +1861,7 @@ export default class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await (this as any).privateGetAccountOrdersOrderIdTrades (this.extend (request, params));
+        const response = await this.privateGetAccountOrdersOrderIdTrades (this.extend (request, params));
         //
         //     {
         //         "trade_history": [
@@ -1909,7 +1909,7 @@ export default class bitpanda extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the bitpanda api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1934,7 +1934,7 @@ export default class bitpanda extends Exchange {
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
-        const response = await (this as any).privateGetAccountTrades (this.extend (request, params));
+        const response = await this.privateGetAccountTrades (this.extend (request, params));
         //
         //     {
         //         "trade_history": [
@@ -1969,7 +1969,7 @@ export default class bitpanda extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
