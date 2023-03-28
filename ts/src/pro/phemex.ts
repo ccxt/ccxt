@@ -1101,8 +1101,8 @@ export default class phemex extends phemexRest {
                 'id': time,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+            this.watch (url, messageHash, request, messageHash, subscription);
         }
-        return await future;
+        return future;
     }
 }
