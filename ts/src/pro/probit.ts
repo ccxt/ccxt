@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const probitRest = require ('../probit');
-const { NotSupported, ExchangeError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+import probitRest from '../probit.js';
+import { NotSupported, ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class probit extends probitRest {
+export default class probit extends probitRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -32,8 +32,18 @@ module.exports = class probit extends probitRest {
             },
             'options': {
                 'watchOrderBook': {
-                    'level': 'order_books',
+                    'filter': 'order_books_l2',
+                    'interval': 100, // or 500
                 },
+                'watchTrades': {
+                    'filter': 'recent_trades',
+                },
+                'watchTicker': {
+                    'filter': 'ticker',
+                },
+                'watchOrders': {
+                    'channel': 'open_order',
+                }
             },
             'streaming': {
             },
@@ -58,7 +68,7 @@ module.exports = class probit extends probitRest {
             'type': 'subscribe',
             'channel': 'balance',
         };
-        const request = this.deepExtend (subscribe, params);
+        const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
     }
 
@@ -101,10 +111,11 @@ module.exports = class probit extends probitRest {
         }
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
+            const entry = data[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (data[currencyId], 'available');
-            account['total'] = this.safeNumber (data[currencyId], 'total');
+            account['free'] = this.safeString (entry,'available');
+            account['total'] = this.safeString (entry, 'total');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
@@ -121,21 +132,9 @@ module.exports = class probit extends probitRest {
          * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const interval = this.safeNumber (params, 'interval', 100);
-        const url = this.urls['api']['ws'];
-        const messageHash = 'ticker:' + symbol;
-        const subscriptionHash = 'marketdata:' + symbol;
-        const message = {
-            'type': 'subscribe',
-            'channel': 'marketdata',
-            'market_id': market['id'],
-            'interval': interval,
-        };
-        const request = this.deepExtend (message, params);
-        return await this.watch (url, messageHash, request, subscriptionHash, request);
+        let filter = undefined;
+        [ filter, params ] = this.handleOptionAndParams (params, 'watchTicker', 'filter', 'ticker');
+        return await this.subscribeOrderBook (symbol, 'ticker', filter, params);
     }
 
     handleTicker (client, message) {
@@ -180,25 +179,13 @@ module.exports = class probit extends probitRest {
          * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const url = this.urls['api']['ws'];
-        const messageHash = 'trades:' + symbol;
-        const interval = this.safeNumber (params, 'interval', 100);
-        const subscriptionHash = 'marketdata:' + symbol;
-        const message = {
-            'channel': 'marketdata',
-            'interval': interval,
-            'market_id': market['id'],
-            'type': 'subscribe',
-        };
-        const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, subscriptionHash, request);
+        let filter = undefined;
+        [ filter, params ] = this.handleOptionAndParams (params, 'watchTrades', 'filter', 'recent_trades');
+        const trades = await this.subscribeOrderBook (symbol, 'trades', filter, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleTrades (client, message) {
@@ -256,18 +243,20 @@ module.exports = class probit extends probitRest {
          */
         await this.loadMarkets ();
         await this.authenticate (params);
+        let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
+            messageHash = messageHash + ':' + symbol;
         }
         const url = this.urls['api']['ws'];
-        const messageHash = 'myTrades';
+        const channel = 'trade_history';
         const message = {
             'type': 'subscribe',
-            'channel': 'trade_history',
+            'channel': channel,
         };
-        const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, messageHash, request);
+        const request = this.extend (message, params);
+        const trades = await this.watch (url, messageHash, request, channel);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -295,19 +284,31 @@ module.exports = class probit extends probitRest {
         //     }
         //
         const rawTrades = this.safeValue (message, 'data', []);
+        if (rawTrades.length === 0) {
+            return;
+        }
         const reset = this.safeValue (message, 'reset', false);
         const messageHash = 'myTrades';
-        if (this.myTrades === undefined || reset) {
+        let stored = this.myTrades;
+        if ((stored === undefined) || reset) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            stored = new ArrayCacheBySymbolById (limit);
+            this.myTrades = stored;
         }
-        const stored = this.myTrades;
         const trades = this.parseTrades (rawTrades);
+        const tradeSymbols = {};
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
+            tradeSymbols[trade['symbol']] = true;
             stored.append (trade);
         }
-        client.resolve (this.myTrades, messageHash);
+        const unique = Object.keys (tradeSymbols);
+        for (let i = 0; i < unique.length; i++) {
+            const symbol = unique[i];
+            const symbolSpecificMessageHash = messageHash + ':' + symbol;
+            client.resolve (stored, symbolSpecificMessageHash);
+        }
+        client.resolve (stored, messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -325,18 +326,20 @@ module.exports = class probit extends probitRest {
          */
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
-        const messageHash = 'orders';
+        let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
+            messageHash = messageHash + ':' + symbol;
         }
-        const channel = this.safeString (params, 'channel', 'open_order');
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrders', 'channel', 'open_order');
         const subscribe = {
             'type': 'subscribe',
             'channel': channel,
         };
-        const request = this.deepExtend (subscribe, params);
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const request = this.extend (subscribe, params);
+        const orders = await this.watch (url, messageHash, request, channel);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -368,20 +371,32 @@ module.exports = class probit extends probitRest {
         //         ]
         //     }
         //
-        const messageHash = 'orders';
         const rawOrders = this.safeValue (message, 'data', []);
-        const reset = this.safeValue (message, 'reset', false);
-        if (this.orders === undefined || reset) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
+        if (rawOrders.length === 0) {
+            return;
         }
-        const stored = this.orders;
+        const messageHash = 'orders';
+        const reset = this.safeValue (message, 'reset', false);
+        let stored = this.orders;
+        if (stored === undefined || reset) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            stored = new ArrayCacheBySymbolById (limit);
+            this.orders = stored;
+        }
+        const orderSymbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const rawOrder = rawOrders[i];
             const order = this.parseOrder (rawOrder);
+            orderSymbols[order['symbol']] = true;
             stored.append (order);
         }
-        client.resolve (this.orders, messageHash);
+        const unique = Object.keys (orderSymbols);
+        for (let i = 0; i < unique.length; i++) {
+            const symbol = unique[i];
+            const symbolSpecificMessageHash = messageHash + ':' + symbol;
+            client.resolve (stored, symbolSpecificMessageHash);
+        }
+        client.resolve (stored, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -395,25 +410,45 @@ module.exports = class probit extends probitRest {
          * @param {object} params extra parameters specific to the probit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
+        let filter = undefined;
+        [ filter, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'filter', 'order_books');
+        const orderbook = await this.subscribeOrderBook (symbol, 'orderbook', filter, params);
+        return orderbook.limit ();
+    }
+
+    async subscribeOrderBook (symbol, messageHash, filter, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
-        const messageHash = 'orderbook:' + symbol;
-        const interval = this.safeNumber (params, 'interval', 100);
+        const client = this.client (url);
+        let interval = undefined;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 100);
         const subscriptionHash = 'marketdata:' + symbol;
+        messageHash = messageHash + ':' +  symbol;
+        let filters = {};
+        if (subscriptionHash in client.subscriptions) {
+            // already subscribed
+            filters = client.subscriptions[subscriptionHash];
+            if (!(filter in filters)) {
+                // resubscribe
+                delete client.subscriptions[subscriptionHash];
+            }
+        }
+        filters[filter] = true;
+        const keys = Object.keys (filters);
         const message = {
             'channel': 'marketdata',
             'interval': interval,
             'market_id': market['id'],
             'type': 'subscribe',
+            'filter': keys,
         };
-        const request = this.deepExtend (message, params);
-        const orderbook = await this.watch (url, messageHash, request, subscriptionHash, request);
-        return orderbook.limit ();
+        const request = this.extend (message, params);
+        return await this.watch (url, messageHash, request, messageHash, filters);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client, message, orderBook) {
         //
         //     {
         //         channel: 'marketdata',
@@ -427,9 +462,6 @@ module.exports = class probit extends probitRest {
         //         reset: true
         //     }
         //
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const level = this.safeString (options, 'level', 'order_books');
-        const orderBook = this.safeValue (message, level, []);
         const marketId = this.safeString (message, 'market_id');
         const symbol = this.safeSymbol (marketId);
         const dataBySide = this.groupBy (orderBook, 'side');
@@ -444,23 +476,26 @@ module.exports = class probit extends probitRest {
             const snapshot = this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
             storedOrderBook.reset (snapshot);
         } else {
-            const asks = this.safeValue (dataBySide, 'sell', []);
-            const bids = this.safeValue (dataBySide, 'buy', []);
-            this.handleDeltas (storedOrderBook['asks'], asks);
-            this.handleDeltas (storedOrderBook['bids'], bids);
+            this.handleDelta (storedOrderBook, dataBySide);
         }
         client.resolve (storedOrderBook, messageHash);
     }
 
-    handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 'price', 'quantity');
-        bookside.storeArray (bidAsk);
+    handleBidAsks (bookSide, bidAsks) {
+        for (let i = 0; i < bidAsks.length; i++) {
+            const bidAsk = bidAsks[i];
+            const parsed = this.parseBidAsk (bidAsk, 'price', 'quantity');
+            bookSide.storeArray (parsed);
+        }
     }
 
-    handleDeltas (bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
+    handleDelta (orderbook, delta) {
+        const storedBids = orderbook['bids'];
+        const storedAsks = orderbook['asks'];
+        const asks = this.safeValue (delta, 'sell', []);
+        const bids = this.safeValue (delta, 'buy', []);
+        this.handleBidAsks (storedBids, bids);
+        this.handleBidAsks (storedAsks, asks);
     }
 
     handleErrorMessage (client, message) {
@@ -476,6 +511,7 @@ module.exports = class probit extends probitRest {
         const code = this.safeString (message, 'errorCode');
         const errMessage = this.safeString (message, 'message', '');
         const details = this.safeValue (message, 'details');
+        // todo - throw properly here
         throw new ExchangeError (this.id + ' ' + code + ' ' + errMessage + ' ' + this.json (details));
     }
 
@@ -483,9 +519,14 @@ module.exports = class probit extends probitRest {
         //
         //     { type: 'authorization', result: 'ok' }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        return message;
+        const result = this.safeString (message, 'result');
+        const future = client.subscriptions['authenticated'];
+        if (result === 'ok') {
+            future.resolve (true);
+        } else {
+            future.reject (message);
+            delete client.subscriptions['authenticated'];
+        }
     }
 
     handleMarketData (client, message) {
@@ -493,13 +534,13 @@ module.exports = class probit extends probitRest {
         if (ticker !== undefined) {
             this.handleTicker (client, message);
         }
-        const trades = this.safeValue (message, 'recent_trades');
-        if (trades !== undefined) {
+        const trades = this.safeValue (message, 'recent_trades', []);
+        if (trades.length > 0) {
             this.handleTrades (client, message);
         }
         const orderBook = this.safeValueN (message, [ 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ], []);
-        if (orderBook !== undefined) {
-            this.handleOrderBook (client, message);
+        if (orderBook.length > 0) {
+            this.handleOrderBook (client, message, orderBook);
         }
     }
 
@@ -533,17 +574,17 @@ module.exports = class probit extends probitRest {
         if (handler !== undefined) {
             return handler.call (this, client, message);
         }
-        throw new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
+        const error = new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
+        client.reject (error);
     }
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future ('authenticated');
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        const expires = this.safeNumber (this.options, 'expires', 0);
-        if (authenticated === undefined || this.milliseconds () > expires) {
+        const expires = this.safeInteger (this.options, 'expires', 0);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if ((future === undefined) || (this.milliseconds () > expires)) {
             const response = await this.signIn ();
             //
             //     {
@@ -557,7 +598,8 @@ module.exports = class probit extends probitRest {
                 'type': 'authorization',
                 'token': accessToken,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
+            future = this.watch (url, messageHash, this.extend (request, params));
+            client.subscriptions[messageHash] = future;
         }
         return await future;
     }
