@@ -750,6 +750,7 @@ class bybit extends Exchange {
                     '131097' => '\\ccxt\\ExchangeError', // Withdrawal of this currency has been closed
                     '131098' => '\\ccxt\\ExchangeError', // Withdrawal currently is not availble from new address
                     '131099' => '\\ccxt\\ExchangeError', // Hot wallet status can cancel the withdraw
+                    '140001' => '\\ccxt\\OrderNotFound', // Order does not exist
                     '140003' => '\\ccxt\\InvalidOrder', // Order price is out of permissible range
                     '140004' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '140005' => '\\ccxt\\InvalidOrder', // position status
@@ -8367,7 +8368,13 @@ class bybit extends Exchange {
                     $authFull = $auth_base . $queryEncoded;
                     $url .= '?' . $this->rawencode($query);
                 }
-                $headers['X-BAPI-SIGN'] = $this->hmac($this->encode($authFull), $this->encode($this->secret), 'sha256');
+                $signature = null;
+                if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
+                    $signature = $this->rsa($authFull, $this->secret, 'sha256');
+                } else {
+                    $signature = $this->hmac($this->encode($authFull), $this->encode($this->secret), 'sha256');
+                }
+                $headers['X-BAPI-SIGN'] = $signature;
             } else {
                 $query = array_merge($params, array(
                     'api_key' => $this->apiKey,
@@ -8376,7 +8383,12 @@ class bybit extends Exchange {
                 ));
                 $sortedQuery = $this->keysort($query);
                 $auth = $this->rawencode($sortedQuery);
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                $signature = null;
+                if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
+                    $signature = $this->rsa($auth, $this->secret, 'sha256');
+                } else {
+                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                }
                 if ($method === 'POST') {
                     $isSpot = mb_strpos($url, 'spot') !== false;
                     $extendedQuery = array_merge($query, array(

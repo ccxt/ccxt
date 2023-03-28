@@ -6,6 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { rsa } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -742,6 +743,7 @@ export default class bybit extends Exchange {
                     '131097': ExchangeError, // Withdrawal of this currency has been closed
                     '131098': ExchangeError, // Withdrawal currently is not availble from new address
                     '131099': ExchangeError, // Hot wallet status can cancel the withdraw
+                    '140001': OrderNotFound, // Order does not exist
                     '140003': InvalidOrder, // Order price is out of permissible range
                     '140004': InsufficientFunds, // Insufficient wallet balance
                     '140005': InvalidOrder, // position status
@@ -8265,7 +8267,13 @@ export default class bybit extends Exchange {
                     authFull = auth_base + queryEncoded;
                     url += '?' + this.rawencode (query);
                 }
-                headers['X-BAPI-SIGN'] = this.hmac (this.encode (authFull), this.encode (this.secret), sha256);
+                let signature = undefined;
+                if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+                    signature = rsa (authFull, this.secret, sha256);
+                } else {
+                    signature = this.hmac (this.encode (authFull), this.encode (this.secret), sha256);
+                }
+                headers['X-BAPI-SIGN'] = signature;
             } else {
                 const query = this.extend (params, {
                     'api_key': this.apiKey,
@@ -8274,7 +8282,12 @@ export default class bybit extends Exchange {
                 });
                 const sortedQuery = this.keysort (query);
                 const auth = this.rawencode (sortedQuery);
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+                let signature = undefined;
+                if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+                    signature = rsa (auth, this.secret, sha256);
+                } else {
+                    signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+                }
                 if (method === 'POST') {
                     const isSpot = url.indexOf ('spot') >= 0;
                     const extendedQuery = this.extend (query, {

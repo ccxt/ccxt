@@ -30,6 +30,7 @@ class probit(Exchange):
             'name': 'ProBit',
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 50,  # ms
+            'pro': True,
             'has': {
                 'CORS': True,
                 'spot': True,

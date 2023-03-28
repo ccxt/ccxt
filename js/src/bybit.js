@@ -10,6 +10,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { rsa } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 export default class bybit extends Exchange {
     describe() {
@@ -744,6 +745,7 @@ export default class bybit extends Exchange {
                     '131097': ExchangeError,
                     '131098': ExchangeError,
                     '131099': ExchangeError,
+                    '140001': OrderNotFound,
                     '140003': InvalidOrder,
                     '140004': InsufficientFunds,
                     '140005': InvalidOrder,
@@ -8317,7 +8319,14 @@ export default class bybit extends Exchange {
                     authFull = auth_base + queryEncoded;
                     url += '?' + this.rawencode(query);
                 }
-                headers['X-BAPI-SIGN'] = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
+                let signature = undefined;
+                if (this.secret.indexOf('PRIVATE KEY') > -1) {
+                    signature = rsa(authFull, this.secret, sha256);
+                }
+                else {
+                    signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
+                }
+                headers['X-BAPI-SIGN'] = signature;
             }
             else {
                 const query = this.extend(params, {
@@ -8327,7 +8336,13 @@ export default class bybit extends Exchange {
                 });
                 const sortedQuery = this.keysort(query);
                 const auth = this.rawencode(sortedQuery);
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                let signature = undefined;
+                if (this.secret.indexOf('PRIVATE KEY') > -1) {
+                    signature = rsa(auth, this.secret, sha256);
+                }
+                else {
+                    signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                }
                 if (method === 'POST') {
                     const isSpot = url.indexOf('spot') >= 0;
                     const extendedQuery = this.extend(query, {

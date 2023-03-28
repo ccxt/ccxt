@@ -324,6 +324,7 @@ class btcex extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
             ),
             'commonCurrencies' => array(
+                'ALT' => 'ArchLoot',
             ),
         ));
     }

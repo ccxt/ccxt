@@ -15,7 +15,7 @@ export default class phemex extends Exchange {
             'id': 'phemex',
             'name': 'Phemex',
             'countries': [ 'CN' ], // China
-            'rateLimit': 100,
+            'rateLimit': 120.5,
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -121,128 +121,128 @@ export default class phemex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'cfg/v2/products', // spot + contracts
-                        'cfg/fundingRates',
-                        'products', // contracts only
-                        'nomics/trades', // ?market=<symbol>&since=<since>
-                        'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
-                        'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
-                        'md/v2/kline', // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                    ],
+                    'get': {
+                        'cfg/v2/products': 5, // spot + contracts
+                        'cfg/fundingRates': 5,
+                        'products': 5, // contracts only
+                        'nomics/trades': 5, // ?market=<symbol>&since=<since>
+                        'md/kline': 5, // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list': 5, // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline': 5, // ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last': 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'md/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/trade', // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr/all', // ?id=<id>
-                        'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
-                        'exchange/public/products', // contracts only
-                    ],
+                    'get': {
+                        'md/orderbook': 5, // ?symbol=<symbol>&id=<id>
+                        'md/trade': 5, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all': 5, // ?id=<id>
+                        'md/spot/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all': 5, // ?symbol=<symbol>&id=<id>
+                        'exchange/public/products': 5, // contracts only
+                    },
                 },
                 'v2': {
-                    'get': [
-                        'md/v2/orderbook', // ?symbol=<symbol>&id=<id>
-                        'md/v2/trade', // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr/all', // ?id=<id>
-                    ],
+                    'get': {
+                        'md/v2/orderbook': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all': 5, // ?id=<id>
+                    },
                 },
                 'private': {
-                    'get': [
+                    'get': {
                         // spot
-                        'spot/orders/active', // ?symbol=<symbol>&orderID=<orderID>
-                        // 'spot/orders/active', // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders', // ?symbol=<symbol>
-                        'spot/wallets', // ?currency=<currency>
-                        'exchange/spot/order', // ?symbol=<symbol>&ordStatus=<ordStatus1,orderStatus2>ordType=<ordType1,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/order/v2/orderList', // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
-                        'exchange/order/v2/tradingList', // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'spot/orders/active': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        // 'spot/orders/active': 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
+                        'spot/orders': 1, // ?symbol=<symbol>
+                        'spot/wallets': 5, // ?currency=<currency>
+                        'exchange/spot/order': 5, // ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades': 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList': 5, // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList': 5, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
-                        'accounts/accountPositions', // ?currency=<currency>
-                        'g-accounts/accountPositions', // ?currency=<currency>
-                        'accounts/positions', // ?currency=<currency>
-                        'api-data/futures/funding-fees', // ?symbol=<symbol>
-                        'api-data/g-futures/funding-fees', // ?symbol=<symbol>
-                        'api-data/futures/orders', // ?symbol=<symbol>
-                        'api-data/g-futures/orders', // ?symbol=<symbol>
-                        'api-data/futures/orders/by-order-id', // ?symbol=<symbol>
-                        'api-data/g-futures/orders/by-order-id', // ?symbol=<symbol>
-                        'api-data/futures/trades', // ?symbol=<symbol>
-                        'api-data/g-futures/trades', // ?symbol=<symbol>
-                        'api-data/futures/trading-fees', // ?symbol=<symbol>
-                        'api-data/g-futures/trading-fees', // ?symbol=<symbol>
-                        'g-orders/activeList', // ?symbol=<symbol>
-                        'orders/activeList', // ?symbol=<symbol>
-                        'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
-                        'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
-                        // 'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
-                        'exchange/order/trade', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'phemex-user/users/children', // ?offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-user/wallets/v2/depositAddress', // ?_t=1592722635531&currency=USDT
-                        'phemex-user/wallets/tradeAccountDetail', // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
-                        'phemex-user/order/closedPositionList', // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
-                        'exchange/margins/transfer', // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'exchange/wallets/confirm/withdraw', // ?code=<withdrawConfirmCode>
-                        'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'exchange/wallets/depositList', // ?currency=<currency>&offset=<offset>&limit=<limit>
-                        'exchange/wallets/v2/depositAddress', // ?currency=<currency>
-                        'api-data/spots/funds', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/convert', // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'accounts/accountPositions': 1, // ?currency=<currency>
+                        'g-accounts/accountPositions': 5, // ?currency=<currency>
+                        'accounts/positions': 26, // ?currency=<currency>
+                        'api-data/futures/funding-fees': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees': 5, // ?symbol=<symbol>
+                        'api-data/futures/orders': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/orders': 5, // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id': 5, // ?symbol=<symbol>
+                        'api-data/futures/trades': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/trades': 5, // ?symbol=<symbol>
+                        'api-data/futures/trading-fees': 5, // ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees': 5, // ?symbol=<symbol>
+                        'g-orders/activeList': 5, // ?symbol=<symbol>
+                        'orders/activeList': 1, // ?symbol=<symbol>
+                        'exchange/order/list': 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order': 5, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
+                        // 'exchange/order': 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
+                        'exchange/order/trade': 5, // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children': 5, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress': 5, // ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail': 5, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-user/order/closedPositionList': 5, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
+                        'exchange/margins/transfer': 5, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw': 5, // ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList': 5, // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList': 5, // ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress': 5, // ?currency=<currency>
+                        'api-data/spots/funds': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/convert': 5, // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         // transfer
-                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/spots/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/futures/sub-accounts/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                    ],
-                    'post': [
+                        'assets/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer': 5, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                    },
+                    'post': {
                         // spot
-                        'spot/orders',
+                        'spot/orders': 1,
                         // swap
-                        'orders',
-                        'g-orders',
-                        'positions/assign', // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
-                        'exchange/wallets/transferOut',
-                        'exchange/wallets/transferIn',
-                        'exchange/margins',
-                        'exchange/wallets/createWithdraw', // ?otpCode=<otpCode>
-                        'exchange/wallets/cancelWithdraw',
-                        'exchange/wallets/createWithdrawAddress', // ?otpCode={optCode}
+                        'orders': 1,
+                        'g-orders': 5,
+                        'positions/assign': 5, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
+                        'exchange/wallets/transferOut': 5,
+                        'exchange/wallets/transferIn': 5,
+                        'exchange/margins': 5,
+                        'exchange/wallets/createWithdraw': 5, // ?otpCode=<otpCode>
+                        'exchange/wallets/cancelWithdraw': 5,
+                        'exchange/wallets/createWithdrawAddress': 5, // ?otpCode={optCode}
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer', // for sub-account only
-                        'assets/futures/sub-accounts/transfer', // for sub-account only
-                        'assets/universal-transfer', // for Main account only
-                        'assets/convert',
-                    ],
-                    'put': [
+                        'assets/transfer': 5,
+                        'assets/spots/sub-accounts/transfer': 5, // for sub-account only
+                        'assets/futures/sub-accounts/transfer': 5, // for sub-account only
+                        'assets/universal-transfer': 5, // for Main account only
+                        'assets/convert': 5,
+                    },
+                    'put': {
                         // spot
-                        'spot/orders', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
+                        'spot/orders': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
-                        'orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/switch-pos-mode-sync', // ?symbol=<symbol>&targetPosMode=<targetPosMode>
-                        'positions/riskLimit', // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
-                    ],
-                    'delete': [
+                        'orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace': 5, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync': 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
+                        'positions/riskLimit': 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                    },
+                    'delete': {
                         // spot
-                        'spot/orders', // ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/all', // ?symbol=<symbol>&untriggered=<untriggered>
-                        // 'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
+                        'spot/orders': 2, // ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all': 2, // ?symbol=<symbol>&untriggered=<untriggered>
+                        // 'spot/orders': 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
-                        'orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                    ],
+                        'orders/cancel': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all': 1, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel': 5, // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders': 5, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all': 5, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -589,8 +589,11 @@ export default class phemex extends Exchange {
         //
         //     {
         //         "symbol":"sBTCUSDT",
+        //         "code":1001,
         //         "displaySymbol":"BTC / USDT",
         //         "quoteCurrency":"USDT",
+        //         "priceScale":8,
+        //         "ratioScale":8,
         //         "pricePrecision":2,
         //         "type":"Spot",
         //         "baseCurrency":"BTC",
@@ -611,8 +614,11 @@ export default class phemex extends Exchange {
         //         "baseQtyPrecision":6,
         //         "quoteQtyPrecision":2,
         //         "status":"Listed",
-        //         "tipOrderQty":20
-        //     }
+        //         "tipOrderQty":2,
+        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //         "leverage":5
+        //         "valueScale":8,
+        //     },
         //
         const type = this.safeStringLower (market, 'type');
         const id = this.safeString (market, 'symbol');
@@ -649,9 +655,9 @@ export default class phemex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'priceScale': 8,
-            'valueScale': 8,
-            'ratioScale': 8,
+            'priceScale': this.safeInteger (market, 'priceScale'),
+            'valueScale': this.safeInteger (market, 'valueScale'),
+            'ratioScale': this.safeInteger (market, 'ratioScale'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -694,9 +700,9 @@ export default class phemex extends Exchange {
         //         "data":{
         //             "ratioScale":8,
         //             "currencies":[
-        //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        //                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //                 {"code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        //                 {"code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        //                 {"code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
         //             ],
         //             "products":[
         //                 {
@@ -722,8 +728,11 @@ export default class phemex extends Exchange {
         //                 },
         //                 {
         //                     "symbol":"sBTCUSDT",
+        //                     "code":1001,
         //                     "displaySymbol":"BTC / USDT",
         //                     "quoteCurrency":"USDT",
+        //                     "priceScale":8,
+        //                     "ratioScale":8,
         //                     "pricePrecision":2,
         //                     "type":"Spot",
         //                     "baseCurrency":"BTC",
@@ -742,7 +751,11 @@ export default class phemex extends Exchange {
         //                     "defaultMakerFee":"0.001",
         //                     "defaultMakerFeeEr":100000,
         //                     "baseQtyPrecision":6,
-        //                     "quoteQtyPrecision":2
+        //                     "quoteQtyPrecision":2,
+        //                     "status":"Listed",
+        //                     "tipOrderQty":2,
+        //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //                     "leverage":5
         //                 },
         //             ],
         //             "riskLimits":[
@@ -804,8 +817,10 @@ export default class phemex extends Exchange {
         const v2ProductsData = this.safeValue (v2Products, 'data', {});
         const products = this.safeValue (v2ProductsData, 'products', []);
         const riskLimits = this.safeValue (v2ProductsData, 'riskLimits', []);
+        const currencies = this.safeValue (v2ProductsData, 'currencies', []);
         const riskLimitsById = this.indexBy (riskLimits, 'symbol');
         const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');
+        const currenciesByCode = this.indexBy (currencies, 'currency');
         const result = [];
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
@@ -818,6 +833,10 @@ export default class phemex extends Exchange {
                 market = this.extend (market, v1ProductsValues);
                 market = this.parseSwapMarket (market);
             } else {
+                const baseCurrency = this.safeString (market, 'baseCurrency');
+                const currencyValues = this.safeValue (currenciesByCode, baseCurrency, {});
+                const valueScale = this.safeString (currencyValues, 'valueScale', '8');
+                market = this.extend (market, { 'valueScale': valueScale });
                 market = this.parseSpotMarket (market);
             }
             result.push (market);
@@ -991,10 +1010,8 @@ export default class phemex extends Exchange {
         const precise = new Precise (stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
-        const stringValue = precise.toString ();
-        const floatValue = parseFloat (stringValue);
-        const floatString = floatValue.toString ();
-        return parseInt (floatString);
+        const preciseString = precise.toString ();
+        return this.parseToInt (preciseString);
     }
 
     toEv (amount, market = undefined) {
@@ -1921,7 +1938,7 @@ export default class phemex extends Exchange {
         const amount = this.fromEv (this.safeString (order, 'baseQtyEv'), market);
         const remaining = this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
         const filled = this.fromEv (this.safeString2 (order, 'cumBaseQtyEv', 'cumBaseValueEv'), market);
-        const cost = this.fromEv (this.safeString2 (order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
+        const cost = this.fromEr (this.safeString2 (order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
         const average = this.fromEp (this.safeString (order, 'avgPriceEp'), market);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
@@ -2752,14 +2769,16 @@ export default class phemex extends Exchange {
             }
         }
         const request = {};
+        if (limit !== undefined) {
+            limit = Math.min (200, limit);
+            request['limit'] = limit;
+        }
         if (market['settle'] === 'USDT') {
             request['currency'] = 'USDT';
             request['offset'] = 0;
-            limit = 200;
-            if (limit !== undefined) {
-                limit = Math.min (200, limit);
+            if (limit === undefined) {
+                request['limit'] = 200;
             }
-            request['limit'] = limit;
         } else {
             request['symbol'] = market['id'];
         }

@@ -442,7 +442,7 @@ export default class kucoin extends Exchange {
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
-                            'accounts': 'v2',
+                            'accounts': 'v1',
                         },
                     },
                     'futuresPrivate': {

@@ -755,6 +755,7 @@ class bybit(Exchange):
                     '131097': ExchangeError,  # Withdrawal of self currency has been closed
                     '131098': ExchangeError,  # Withdrawal currently is not availble from new address
                     '131099': ExchangeError,  # Hot wallet status can cancel the withdraw
+                    '140001': OrderNotFound,  # Order does not exist
                     '140003': InvalidOrder,  # Order price is out of permissible range
                     '140004': InsufficientFunds,  # Insufficient wallet balance
                     '140005': InvalidOrder,  # position status
@@ -7730,7 +7731,12 @@ class bybit(Exchange):
                 else:
                     authFull = auth_base + queryEncoded
                     url += '?' + self.rawencode(query)
-                headers['X-BAPI-SIGN'] = self.hmac(self.encode(authFull), self.encode(self.secret), hashlib.sha256)
+                signature = None
+                if self.secret.find('PRIVATE KEY') > -1:
+                    signature = self.rsa(authFull, self.secret, 'sha256')
+                else:
+                    signature = self.hmac(self.encode(authFull), self.encode(self.secret), hashlib.sha256)
+                headers['X-BAPI-SIGN'] = signature
             else:
                 query = self.extend(params, {
                     'api_key': self.apiKey,
@@ -7739,7 +7745,11 @@ class bybit(Exchange):
                 })
                 sortedQuery = self.keysort(query)
                 auth = self.rawencode(sortedQuery)
-                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                signature = None
+                if self.secret.find('PRIVATE KEY') > -1:
+                    signature = self.rsa(auth, self.secret, 'sha256')
+                else:
+                    signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 if method == 'POST':
                     isSpot = url.find('spot') >= 0
                     extendedQuery = self.extend(query, {
