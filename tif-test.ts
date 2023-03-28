@@ -6,18 +6,16 @@ async function test(){
     for (const exName of exNames) { 
         const e = await exchangeInit(exName, false) as any; 
         const g = 'v5unified'; //groupName
+        const exPoKey = 'tim_in_foo'; // exchange specific PO tif string
         const exPoStr = 'PostOnly'; // exchange specific PO tif string
-        let o = 'market'; // market order (change this to test !)
-        // you can comment below two lines to test without simulating exchange-specific tif key
-        const simulatedTifKey = 'tiim_in_foo'; // simulate any exchange-specific tif key
-        e.options.timeInForceMap[g].exchangeSpecificTifKey = simulatedTifKey;
+        let o = 'market'; // market order (change this to 'limit' too)
         // mixed exchange-specific and unified key&value
         exec(()=>e.handleRequestTif (g, o, {'postOnly': true }));
         exec(()=>e.handleRequestTif (g, o, {'postOnly': false }));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO'}));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': exPoStr}));
-        exec(()=>e.handleRequestTif (g, o, {[simulatedTifKey]: 'PO'}));
-        exec(()=>e.handleRequestTif (g, o, {[simulatedTifKey]: exPoStr}));
+        exec(()=>e.handleRequestTif (g, o, {[exPoKey]: 'PO'}));
+        exec(()=>e.handleRequestTif (g, o, {[exPoKey]: exPoStr}));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': false }));
         exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': true }));
         // others

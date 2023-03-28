@@ -1104,7 +1104,7 @@ export default class bybit extends Exchange {
                 },
                 'timeInForceMap': {
                     'v5unified': {
-                        'exchangeSpecificTifKey': 'timeInForce',
+                        'exchangeSpecificTifKey': 'tim_in_foo', // note, actual value for bybit is (by coincidence) same as our unified 'timeInForce', however, just for demonstraional purposes to test in "tif-test.ts" file, we can simulately assume that bybit's TIF key is "tim_in_foo", so that test results give more clear picture
                         'unifiedToExchange': {
                             'GTC': 'GTC',
                             'IOC': 'IOC',
