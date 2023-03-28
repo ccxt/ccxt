@@ -1,5 +1,7 @@
 using System.Text;
 using System.Security.Cryptography;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Main;
 
@@ -41,64 +43,120 @@ public partial class Exchange
 
     };
 
-    public virtual string decimalToPrecision(object value, object roundingMode, object digits, object countmode, object decimal_places = null)
+    public virtual string decimalToPrecision(object x, object roundingMode2, object numPrecisionDigits2, object countmode2 = null, object paddingMode = null)
     {
-        return "0";
-    }
-
-    public virtual float precisionFromString(object value)
-    {
-        return 0;
-    }
-
-    public virtual object sum(params object[] args)
-    {
-        object res = 0;
-        foreach (var arg in args)
+        countmode2 = countmode2 ?? DECIMAL_PLACES;
+        paddingMode = paddingMode ?? NO_PADDING;
+        var countMode = (int)countmode2;
+        var roundingMode = (int)roundingMode2;
+        Trace.Assert(precision != null);
+        var numPrecisionDigits = float.Parse(numPrecisionDigits2.ToString());
+        if (countMode == TICK_SIZE)
         {
-            res = sum(res, arg);
-        }
-        return res;
-    }
-
-    public virtual object sum(object a, object b)
-    {
-        return (float)a + (float)b;
-    }
-
-    public virtual object parseNumber(object value, object number = null)
-    {
-        if (value == null)
-            return null;
-        // tmp to do
-        // return (float)value;
-        if (value.GetType() == typeof(float))
-        {
-            return (float)value;
-        }
-        else if (value.GetType() == typeof(Int64))
-        {
-            return (Int64)value;
-        }
-        else if (value.GetType() == typeof(string))
-        {
-            var stringValue = (string)value;
-            if (stringValue == null || stringValue == "")
+            if (numPrecisionDigits2.GetType() == typeof(string))
             {
-                return null;
+                numPrecisionDigits = float.Parse(numPrecisionDigits2.ToString());
             }
-            return parseFloat((string)value);
+            if ((float)numPrecisionDigits < 0)
+            {
+                throw new Exception("TICK_SIZE cant be used with negative or zero numPrecisionDigits'");
+            }
         }
-        else
+
+
+        var parsedX = float.Parse(x.ToString());
+        if ((float)numPrecisionDigits < 0)
         {
-            return 0;
+            var toNearest = Math.Pow(10, Math.Abs(-(float)numPrecisionDigits));
+            if (roundingMode == ROUND)
+            {
+                var res = decimalToPrecision((double)x / toNearest, roundingMode, 0, countmode2, paddingMode);
+                return (toNearest * float.Parse(res)).ToString();
+            }
+            if (roundingMode == TRUNCATE)
+            {
+                return (parsedX - (parsedX % toNearest)).ToString();
+            }
         }
+        /*handle tick size */
+        if (countMode == TICK_SIZE)
+        {
+            var precisionDigitsString = decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+            var newNumPrecisionDigits = precisionFromString(precisionDigitsString);
+            var missing = parsedX % float.Parse(newNumPrecisionDigits);
+            // See: https://github.com/ccxt/ccxt/pull/6486
+            // missing = Number(decimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
+            var fpError = decimalToPrecision(missing / float.Parse(numPrecisionDigits.ToString()), ROUND, Math.Max(float.Parse(newNumPrecisionDigits), 8), DECIMAL_PLACES, NO_PADDING);
+            var fpErrorResult = float.Parse(precisionFromString(fpError));
+            if (fpErrorResult != 0)
+            {
+                if (roundingMode == ROUND)
+                {
+                    if (parsedX > 0)
+                    {
+                        if (missing >= numPrecisionDigits / 2)
+                        {
+                            parsedX = parsedX - missing + numPrecisionDigits;
+                        }
+                        else
+                        {
+                            parsedX = parsedX - missing;
+                        }
+                    }
+                    else
+                    {
+                        if (missing >= numPrecisionDigits / 2)
+                        {
+                            parsedX = parsedX - missing;
+                        }
+                        else
+                        {
+                            parsedX = parsedX - missing - numPrecisionDigits;
+                        }
+                    }
+                }
+                else if (roundingMode == TRUNCATE)
+                {
+                    parsedX = parsedX - missing;
+                }
+            }
+            return decimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, NO_PADDING);
+        }
+
+
+        object precise = null;
+        if (roundingMode == ROUND)
+        {
+            if (countMode == DECIMAL_PLACES)
+            {
+
+            }
+        }
+
+        return "0";
+
     }
+
+    public virtual string precisionFromString(object value2)
+    {
+        if (value2 == null)
+            return null;
+        var value = (string)value2;
+        if (value.IndexOf('e') > -1)
+        {
+            var numStr = Regex.Replace(value, @"/\de/", "");
+            return (Int64.Parse(numStr) * -1).ToString();
+        }
+        var split = Regex.Replace(value, @"/0+$/g", "").Split('.');
+        return split.Length > 1 ? split[1].Length.ToString() : "0";
+    }
+
 
     public virtual string numberToString(object number)
 
     {
-        return number.ToString();
+        var doubleValue = (double)number;
+        return doubleValue.ToString("F99").TrimEnd('0'); // check this out
     }
 
 }

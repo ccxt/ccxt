@@ -48,7 +48,7 @@ public partial class Exchange
 
     public object limits { get; set; } = new dict();
 
-    public string precisionMode { get; set; } = "SIGNIFICANT_DIGITS";
+    public object precisionMode { get; set; } = SIGNIFICANT_DIGITS;
 
     public object currencies_by_id { get; set; } = new dict();
 
@@ -60,7 +60,7 @@ public partial class Exchange
 
     public int paddingMode { get; set; } = 0;
 
-    public object number { get; set; }
+    public object number { get; set; } = typeof(float);
     public object has { get; set; } = new dict();
     public object options { get; set; } = new dict();
     public object markets { get; set; } = null;

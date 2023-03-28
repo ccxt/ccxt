@@ -215,4 +215,19 @@ public partial class Exchange
         return value;
     }
 
+    public virtual object sum(params object[] args)
+    {
+        object res = 0;
+        foreach (var arg in args)
+        {
+            res = sum(res, arg);
+        }
+        return res;
+    }
+
+    public virtual object sum(object a, object b)
+    {
+        return float.Parse(a.ToString()) + float.Parse(b.ToString());
+    }
+
 }

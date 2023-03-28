@@ -406,5 +406,18 @@ public partial class Exchange
         // stub to implement later
     }
 
+    public virtual object parseNumber(object value, object number = null, object defaultValue = null)
+    {
+        if (value == null)
+            return defaultValue;
+
+
+        if (this.number.GetType() == typeof(float))
+        {
+            return float.Parse(value.ToString());
+        }
+        return value;
+    }
+
 
 }
