@@ -4086,15 +4086,22 @@ export default class mexc3 extends Exchange {
         // withdraw
         //
         //     {
-        //         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
         const id = this.safeString (transaction, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
+        let currencyId = undefined;
         const currencyWithNetwork = this.safeString (transaction, 'coin');
-        const currencyId = currencyWithNetwork.split ('-')[0];
+        if (currencyWithNetwork !== undefined) {
+            currencyId = currencyWithNetwork.split ('-')[0];
+        }
+        let network = undefined;
         const rawNetwork = this.safeString (transaction, 'network');
+        if (rawNetwork !== undefined) {
+            network = this.safeNetwork (rawNetwork);
+        }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amountString = this.safeString (transaction, 'amount');
@@ -4118,7 +4125,7 @@ export default class mexc3 extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.safeNetwork (rawNetwork),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
