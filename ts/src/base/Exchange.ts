@@ -3766,12 +3766,12 @@ export default class Exchange {
         // PARAMS: TIF CHECK
         const providedTifValue = this.safeString2 (params, 'timeInForce', exchangeSpecificKeyForTif);
         params = this.omit (params, [ 'timeInForce', exchangeSpecificKeyForTif ]);
-        if (providedTifValue === undefined) {
-            // support for TIF values in orderType i.e. OKX, where you can `.createOrder ('BTC/USDT', 'ioc', 'buy', ...)`
-            // if (tifsExToUnified !== undefined && orderType in tifsExToUnified) {
-            //     providedTifValue = orderType;
-            // }
-        }
+        // if (providedTifValue === undefined) {
+        // support for TIF values in orderType i.e. OKX, where you can `.createOrder ('BTC/USDT', 'ioc', 'buy', ...)`
+        // if (tifsExToUnified !== undefined && orderType in tifsExToUnified) {
+        //     providedTifValue = orderType;
+        // }
+        // }
         //
         // set final values
         //
