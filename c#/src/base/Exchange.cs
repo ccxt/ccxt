@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace Main;
 
@@ -412,9 +413,9 @@ public partial class Exchange
             return defaultValue;
 
 
-        if (this.number.GetType() == typeof(float))
+        if (this.number.GetType() == typeof(float).GetType())
         {
-            return float.Parse(value.ToString());
+            return float.Parse(value.ToString(), CultureInfo.InvariantCulture);
         }
         return value;
     }

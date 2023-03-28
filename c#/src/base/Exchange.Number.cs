@@ -2,6 +2,7 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace Main;
 
@@ -50,12 +51,12 @@ public partial class Exchange
         var countMode = (int)countmode2;
         var roundingMode = (int)roundingMode2;
         Trace.Assert(precision != null);
-        var numPrecisionDigits = float.Parse(numPrecisionDigits2.ToString());
+        var numPrecisionDigits = float.Parse(numPrecisionDigits2.ToString(), CultureInfo.InvariantCulture);
         if (countMode == TICK_SIZE)
         {
             if (numPrecisionDigits2.GetType() == typeof(string))
             {
-                numPrecisionDigits = float.Parse(numPrecisionDigits2.ToString());
+                // numPrecisionDigits = float.Parse(numPrecisionDigits2.ToString()); //  already done above
             }
             if ((float)numPrecisionDigits < 0)
             {
@@ -64,14 +65,14 @@ public partial class Exchange
         }
 
 
-        var parsedX = float.Parse(x.ToString());
+        var parsedX = float.Parse(x.ToString(), CultureInfo.InvariantCulture);
         if ((float)numPrecisionDigits < 0)
         {
             var toNearest = Math.Pow(10, Math.Abs(-(float)numPrecisionDigits));
             if (roundingMode == ROUND)
             {
                 var res = decimalToPrecision((double)x / toNearest, roundingMode, 0, countmode2, paddingMode);
-                return (toNearest * float.Parse(res)).ToString();
+                return (toNearest * float.Parse(res, CultureInfo.InvariantCulture)).ToString();
             }
             if (roundingMode == TRUNCATE)
             {
@@ -83,11 +84,11 @@ public partial class Exchange
         {
             var precisionDigitsString = decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
             var newNumPrecisionDigits = precisionFromString(precisionDigitsString);
-            var missing = parsedX % float.Parse(newNumPrecisionDigits);
+            var missing = parsedX % float.Parse(newNumPrecisionDigits, CultureInfo.InvariantCulture);
             // See: https://github.com/ccxt/ccxt/pull/6486
             // missing = Number(decimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
-            var fpError = decimalToPrecision(missing / float.Parse(numPrecisionDigits.ToString()), ROUND, Math.Max(float.Parse(newNumPrecisionDigits), 8), DECIMAL_PLACES, NO_PADDING);
-            var fpErrorResult = float.Parse(precisionFromString(fpError));
+            var fpError = decimalToPrecision(missing / float.Parse(numPrecisionDigits.ToString()), ROUND, Math.Max(float.Parse(newNumPrecisionDigits, CultureInfo.InvariantCulture), 8), DECIMAL_PLACES, NO_PADDING);
+            var fpErrorResult = float.Parse(precisionFromString(fpError), CultureInfo.InvariantCulture);
             if (fpErrorResult != 0)
             {
                 if (roundingMode == ROUND)
