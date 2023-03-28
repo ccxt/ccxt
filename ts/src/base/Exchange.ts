@@ -20,7 +20,7 @@ const {
     , uuid
     , unCamelCase
     , precisionFromString
-    , throttle
+    , Throttler
     , capitalize
     , now
     , buildOHLCVC
@@ -253,7 +253,7 @@ export default class Exchange {
     };
     rateLimit: number = undefined; // milliseconds
     tokenBucket = undefined
-    throttle = undefined
+    throttler = undefined
     enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
@@ -774,8 +774,11 @@ export default class Exchange {
             maxCapacity: 1000,
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
         }, this.tokenBucket);
-        this.throttle = throttle (this.tokenBucket);
+        this.throttler = new Throttler (this.tokenBucket);
+    }
 
+    throttle (cost = undefined) {
+       this.throttler.throttle (cost)
     }
 
     setSandboxMode (enabled) {
@@ -1197,7 +1200,7 @@ export default class Exchange {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
                 'verbose': this.verbose,
-                'throttle': throttle (this.tokenBucket),
+                'throttler': new Throttler (this.tokenBucket),
                 // add support for proxies
                 'options': {
                     'agent': this.agent,
