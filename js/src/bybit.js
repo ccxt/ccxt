@@ -11,7 +11,6 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bybit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
