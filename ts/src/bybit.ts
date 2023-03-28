@@ -1102,17 +1102,6 @@ export default class bybit extends Exchange {
                     '4h': '4h',
                     '1d': '1d',
                 },
-                'timeInForceMap': {
-                    'v5unified': {
-                        'exchangeSpecificTifKey': 'timeInForce',
-                        'unifiedToExchange': {
-                            'GTC': 'GTC',
-                            'IOC': 'IOC',
-                            'FOK': 'FOK',
-                            'PO': 'PostOnly',
-                        },
-                    },
-                },
             },
             'fees': {
                 'trading': {
@@ -3500,14 +3489,22 @@ export default class bybit extends Exchange {
         } else {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
+        const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
         if (isLimit) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const handledTif = this.handleRequestTif ('v5unified', lowerCaseType, params);
-        params = handledTif['params'];
-        if (handledTif['calculatedRequestTifKey'] !== undefined) {
-            request[handledTif['calculatedRequestTifKey']] = handledTif['calculatedRequestTifValue'];
+        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
+        if (postOnly) {
+            request['timeInForce'] = 'PostOnly';
+        } else if (timeInForce === 'gtc') {
+            request['timeInForce'] = 'GTC';
+        } else if (timeInForce === 'fok') {
+            request['timeInForce'] = 'FOK';
+        } else if (timeInForce === 'ioc') {
+            request['timeInForce'] = 'IOC';
         }
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
@@ -3575,7 +3572,7 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderType': upperCaseType, // limit, market or limit_maker
-            // 'timeInForce': 'GTC', // FOK, IOC
+            'timeInForce': 'GTC', // FOK, IOC
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
         if ((type === 'market') && (side === 'buy')) {
