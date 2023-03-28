@@ -41,6 +41,7 @@ export default class xt extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -3003,6 +3004,124 @@ export default class xt extends Exchange {
             'network': undefined,
             'info': depositAddress,
         };
+    }
+
+    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of transaction structures to retrieve
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 200
+        }
+        const response = await this.privateSpotGetDepositHistory (this.extend (request, params));
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": false,
+        //             "items": [
+        //                 {
+        //                     "id": 170368702,
+        //                     "currency": "usdt",
+        //                     "chain": "Ethereum",
+        //                     "memo": "",
+        //                     "status": "SUCCESS",
+        //                     "amount": "31.792528",
+        //                     "confirmations": 12,
+        //                     "transactionId": "0x90b8487c258b81b85e15e461b1839c49d4d8e6e9de4c1adb658cd47d4f5c5321",
+        //                     "address": "0x7f7172cf29d3846d30ca5a3aec1120b92dbd150b",
+        //                     "fromAddr": "0x7830c87c02e56aff27fa9ab1241711331fa86f58",
+        //                     "createdTime": 1678491442000
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const deposits = this.safeValue (data, 'items', []);
+        return this.parseTransactions (deposits, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "id": 170368702,
+        //         "currency": "usdt",
+        //         "chain": "Ethereum",
+        //         "memo": "",
+        //         "status": "SUCCESS",
+        //         "amount": "31.792528",
+        //         "confirmations": 12,
+        //         "transactionId": "0x90b8487c258b81b85e15e461b1839c49d4d8e6e9de4c1adb658cd47d4f5c5321",
+        //         "address": "0x7f7172cf29d3846d30ca5a3aec1120b92dbd150b",
+        //         "fromAddr": "0x7830c87c02e56aff27fa9ab1241711331fa86f58",
+        //         "createdTime": 1678491442000
+        //     }
+        //
+        const timestamp = this.safeInteger (transaction, 'createdTime');
+        const address = this.safeString (transaction, 'address');
+        const memo = this.safeString (transaction, 'memo');
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'transactionId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'updated': undefined,
+            'addressFrom': this.safeString (transaction, 'fromAddr'),
+            'addressTo': address,
+            'address': address,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'tag': memo,
+            'type': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': this.safeCurrencyCode (this.safeString (transaction, 'currency'), currency),
+            'network': this.safeString (transaction, 'chain'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'comment': memo,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'SUBMIT': 'pending',
+            'REVIEW': 'pending',
+            'AUDITED': 'pending',
+            'PENDING': 'pending',
+            'CANCEL': 'canceled',
+            'FAIL': 'failed',
+            'SUCCESS': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
