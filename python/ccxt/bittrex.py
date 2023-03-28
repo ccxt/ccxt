@@ -6,19 +6,19 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
-from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AddressPending
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
@@ -93,7 +93,7 @@ class bittrex(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -270,25 +270,6 @@ class bittrex(Exchange):
                 },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
-                # With certain currencies, like
-                # AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
-                # an additional tag / memo / payment id is usually required by exchanges.
-                # With Bittrex some currencies imply the "base address + tag" logic.
-                # The base address for depositing is stored on self.currencies[code]
-                # The base address identifies the exchange as the recipient
-                # while the tag identifies the user account within the exchange
-                # and the tag is retrieved with fetchDepositAddress.
-                'tag': {
-                    'NXT': True,  # NXT, BURST
-                    'CRYPTO_NOTE_PAYMENTID': True,  # AEON, XMR
-                    'BITSHAREX': True,  # BTS
-                    'RIPPLE': True,  # XRP
-                    'NEM': True,  # XEM
-                    'STELLAR': True,  # XLM
-                    'STEEM': True,  # SBD, GOLOS
-                    # https://github.com/ccxt/ccxt/issues/4794
-                    # 'LISK': True,  # LSK
-                },
                 'subaccountId': None,
                 # see the implementation of fetchClosedOrdersV3 below
                 # 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
@@ -336,7 +317,7 @@ class bittrex(Exchange):
         #             "precision":8,
         #             "status":"ONLINE",  # "OFFLINE"
         #             "createdAt":"2019-05-23T00:41:21.843Z",
-        #             "notice":"USDT has swapped to an ERC20-based token as of August 5, 2019."
+        #             "notice":"USDT has swapped to an ERC20-based token August 5, 2019."
         #         }
         #     ]
         #
@@ -373,8 +354,8 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision', '8'))),
+                    'amount': self.parse_number('1e-8'),  # seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -428,7 +409,7 @@ class bittrex(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -488,13 +469,12 @@ class bittrex(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
+            precision = self.parse_number('1e-8')  # default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             fee = self.safe_number(currency, 'txFee')  # todo: redesign
             isActive = self.safe_string(currency, 'status')
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': self.safe_string(currency, 'baseAddress'),
                 'info': currency,
                 'type': self.safe_string(currency, 'coinType'),
                 'name': self.safe_string(currency, 'name'),
@@ -573,7 +553,7 @@ class bittrex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -619,7 +599,7 @@ class bittrex(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -661,7 +641,7 @@ class bittrex(Exchange):
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetMarketsTickers(params)
@@ -726,7 +706,7 @@ class bittrex(Exchange):
         isTaker = self.safe_value(trade, 'isTaker')
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
-            if not isTaker:  # as noted in PR  #15655 self API provides confusing value - when it's 'maker' trade, then side value should reversed
+            if not isTaker:  # in PR  #15655 self API provides confusing value - when it's 'maker' trade, then side value should reversed
                 if side == 'buy':
                     side = 'sell'
                 elif side == 'sell':
@@ -801,7 +781,7 @@ class bittrex(Exchange):
         fetch the trading fees for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -822,7 +802,7 @@ class bittrex(Exchange):
         """
         fetch the trading fees for multiple markets
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.privateGetAccountFeesTrading(params)
@@ -887,13 +867,13 @@ class bittrex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         reverseId = market['baseId'] + '-' + market['quoteId']
         request = {
-            'candleInterval': self.timeframes[timeframe],
+            'candleInterval': self.safe_string(self.timeframes, timeframe, timeframe),
             'marketSymbol': reverseId,
         }
         method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent'
@@ -941,7 +921,7 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1008,7 +988,7 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {
@@ -1029,7 +1009,7 @@ class bittrex(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # A ceiling order is a market or limit order that allows you to specify
         # the amount of quote currency you want to spend(or receive, if selling)
@@ -1191,7 +1171,7 @@ class bittrex(Exchange):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')
@@ -1267,7 +1247,7 @@ class bittrex(Exchange):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1312,7 +1292,7 @@ class bittrex(Exchange):
         :param str id: deposit id
         :param str|None code: filter by currency code
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {
@@ -1335,7 +1315,7 @@ class bittrex(Exchange):
         :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
         :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
         :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         # https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1345,7 +1325,7 @@ class bittrex(Exchange):
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
         if since is not None:
-            startDate = int(since / 1000) * 1000
+            startDate = int((since / str(1000))) * 1000
             request['startDate'] = self.iso8601(startDate)
         if limit is not None:
             request['pageSize'] = limit
@@ -1359,7 +1339,7 @@ class bittrex(Exchange):
             method = 'privateGetDepositsClosed'
         params = self.omit(params, 'status')
         response = getattr(self, method)(self.extend(request, params))
-        # we cannot filter by `since` timestamp, as it isn't set by Bittrex
+        # we cannot filter by `since` timestamp, isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
         # return self.parse_transactions(response, currency, since, limit)
         return self.parse_transactions(response, currency, None, limit)
@@ -1374,7 +1354,7 @@ class bittrex(Exchange):
         :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
         :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
         :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         return self.fetch_deposits(code, since, limit, self.extend(params, {'status': 'pending'}))
@@ -1385,7 +1365,7 @@ class bittrex(Exchange):
         :param str id: withdrawal id
         :param str|None code: filter by currency code
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {
@@ -1408,7 +1388,7 @@ class bittrex(Exchange):
         :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
         :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
         :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         # https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1418,7 +1398,7 @@ class bittrex(Exchange):
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
         if since is not None:
-            startDate = int(since / 1000) * 1000
+            startDate = int((since / str(1000))) * 1000
             request['startDate'] = self.iso8601(startDate)
         if limit is not None:
             request['pageSize'] = limit
@@ -1444,7 +1424,7 @@ class bittrex(Exchange):
         :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
         :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
         :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         return self.fetch_withdrawals(code, since, limit, self.extend(params, {'status': 'pending'}))
@@ -1678,6 +1658,7 @@ class bittrex(Exchange):
             'side': direction,
             'price': limit,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'triggerPrice': self.safe_string(order, 'triggerPrice'),
             'cost': proceeds,
             'average': None,
             'amount': quantity,
@@ -1712,7 +1693,7 @@ class bittrex(Exchange):
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')
@@ -1746,7 +1727,7 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {}
@@ -1770,7 +1751,7 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')
@@ -1787,7 +1768,7 @@ class bittrex(Exchange):
             # and v3 market ids are reversed in comparison to v1
             # v3 has to be a completely separate implementation
             # otherwise we will have to shuffle symbols and currencies everywhere
-            # which is prone to errors, as was shown here
+            # which is prone to errors, shown here
             # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             request['marketSymbol'] = market['base'] + '-' + market['quote']
         method = 'privateGetOrdersClosed'
@@ -1845,7 +1826,7 @@ class bittrex(Exchange):
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1865,15 +1846,12 @@ class bittrex(Exchange):
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
-        tag = self.safe_string(response, 'cryptoAddressTag')
-        if (tag is None) and (currency['type'] in self.options['tag']):
-            tag = address
-            address = currency['address']
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(response, 'cryptoAddressTag'),
+            'network': None,
             'info': response,
         }
 
@@ -1882,7 +1860,7 @@ class bittrex(Exchange):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1902,15 +1880,11 @@ class bittrex(Exchange):
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
-        tag = self.safe_string(response, 'cryptoAddressTag')
-        if (tag is None) and (currency['type'] in self.options['tag']):
-            tag = address
-            address = currency['address']
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(response, 'cryptoAddressTag'),
             'network': None,
             'info': response,
         }
@@ -1923,7 +1897,7 @@ class bittrex(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)

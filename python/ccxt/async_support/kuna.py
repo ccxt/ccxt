@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -59,7 +60,6 @@ class kuna(Exchange):
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setPositionMode': False,
-                'withdraw': None,
             },
             'timeframes': None,
             'urls': {
@@ -405,7 +405,7 @@ class kuna(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -451,7 +451,7 @@ class kuna(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -470,7 +470,7 @@ class kuna(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -486,7 +486,7 @@ class kuna(Exchange):
         :param str symbol: unified market symbol
         :param int|None limit: max number of orders to return, default is None
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
         """
         return await self.fetch_order_book(symbol, limit, params)
 
@@ -590,7 +590,7 @@ class kuna(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         trades = await self.fetch_trades(symbol, since, limit, params)
@@ -640,7 +640,7 @@ class kuna(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -661,7 +661,7 @@ class kuna(Exchange):
         :param str id: order id
         :param str|None symbol: not used by kuna cancelOrder()
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -704,6 +704,7 @@ class kuna(Exchange):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'volume'),
             'filled': self.safe_string(order, 'executed_volume'),
             'remaining': self.safe_string(order, 'remaining_volume'),
@@ -719,7 +720,7 @@ class kuna(Exchange):
         fetches information on an order made by the user
         :param str|None symbol: not used by kuna fetchOrder
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -735,7 +736,7 @@ class kuna(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -747,7 +748,7 @@ class kuna(Exchange):
         response = await self.privateGetOrders(self.extend(request, params))
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
-        # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        # BTC-e, Liqui, Yobit, DSX, Tidex, WEX
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -757,7 +758,7 @@ class kuna(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the kuna api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -832,7 +833,7 @@ class kuna(Exchange):
                     'tonce': nonce,
                 }, params))
                 auth = method + '|' + request + '|' + query
-                signed = self.hmac(self.encode(auth), self.encode(self.secret))
+                signed = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 suffix = query + '&signature=' + signed
                 if method == 'GET':
                     url += '?' + suffix

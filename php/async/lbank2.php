@@ -44,6 +44,8 @@ class lbank2 extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => false,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -193,8 +195,11 @@ class lbank2 extends Exchange {
                 'fetchTrades' => array(
                     'method' => 'publicGetTrades', // or 'publicGetTradesSupplement'
                 ),
-                'fetchTransactionFees' => array(
+                'fetchTransactionFees' => array(   // DEPRECATED, please use fetchDepositWithdrawFees
                     'method' => 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
+                ),
+                'fetchDepositWithdrawFees' => array(
+                    'method' => 'fetchPrivateDepositWithdrawFees', // or 'fetchPublicDepositWithdrawFees'
                 ),
                 'fetchDepositAddress' => array(
                     'method' => 'fetchDepositAddressDefault', // or fetchDepositAddressSupplement
@@ -414,7 +419,7 @@ class lbank2 extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -454,7 +459,7 @@ class lbank2 extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the lbank api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -473,7 +478,7 @@ class lbank2 extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -674,7 +679,7 @@ class lbank2 extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             // endpoint doesnt work
             Async\await($this->load_markets());
@@ -688,8 +693,8 @@ class lbank2 extends Exchange {
             }
             $request = array(
                 'symbol' => $market['id'],
-                'type' => $this->timeframes[$timeframe],
-                'time' => intval($since / 1000),
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+                'time' => $this->parse_to_int($since / 1000),
                 'size' => $limit, // max 2000
             );
             $response = Async\await($this->publicGetKline (array_merge($request, $params)));
@@ -922,7 +927,7 @@ class lbank2 extends Exchange {
              * fetch the trading fees for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             $market = $this->market($symbol);
             $result = Async\await($this->fetch_trading_fees(array_merge($params, array( 'category' => $market['id'] ))));
@@ -935,7 +940,7 @@ class lbank2 extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $request = array();
@@ -961,7 +966,7 @@ class lbank2 extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1033,10 +1038,10 @@ class lbank2 extends Exchange {
             //      }
             //
             $result = $this->safe_value($response, 'data', array());
-            return array(
+            return $this->safe_order(array(
                 'id' => $this->safe_string($result, 'order_id'),
                 'info' => $result,
-            );
+            ), $market);
         }) ();
     }
 
@@ -1166,6 +1171,7 @@ class lbank2 extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $costString,
             'amount' => $amountString,
             'filled' => $filledString,
@@ -1183,7 +1189,7 @@ class lbank2 extends Exchange {
              * fetches information on an order made by the user
              * @param {string|null} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $method = $this->safe_string($params, 'method');
@@ -1290,7 +1296,7 @@ class lbank2 extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $trades for
              * @param {int|null} $limit the maximum number of $trades structures to retrieve
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades () requires a $symbol argument');
@@ -1348,7 +1354,7 @@ class lbank2 extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             // default query is for canceled and completely filled $orders
             // does not return open $orders unless specified explicitly
@@ -1408,7 +1414,7 @@ class lbank2 extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open $orders for
              * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -1464,7 +1470,7 @@ class lbank2 extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1505,7 +1511,7 @@ class lbank2 extends Exchange {
              * cancel all open orders in a $market
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -1553,7 +1559,7 @@ class lbank2 extends Exchange {
              * fetch the deposit address for a currency associated with this account
              * @param {string} $code unified currency $code
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $method = $this->safe_string($params, 'method');
@@ -1660,7 +1666,7 @@ class lbank2 extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string|null} $tag
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
@@ -1668,14 +1674,14 @@ class lbank2 extends Exchange {
             $fee = $this->safe_string($params, 'fee');
             $params = $this->omit($params, 'fee');
             if ($fee === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw () requires a $fee argument to be supplied in $params, the relevant coin $network $fee can be found by calling fetchTransactionFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchTransactionFees ()');
+                throw new ArgumentsRequired($this->id . ' withdraw () requires a $fee argument to be supplied in $params, the relevant coin $network $fee can be found by calling fetchDepositWithdrawFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchDepositWithdrawFees ()');
             }
             $currency = $this->currency($code);
             $request = array(
                 'address' => $address,
                 'coin' => $currency['id'],
                 'amount' => $amount,
-                'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchTransactionFees (private)
+                'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchDepositWithdrawFees (private)
                 // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
                 // 'memo' => memo => memo word of bts and dct
                 // 'mark' => Withdrawal Notes
@@ -1826,7 +1832,7 @@ class lbank2 extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch $deposits for
              * @param {int|null} $limit the maximum number of $deposits structures to retrieve
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1879,7 +1885,7 @@ class lbank2 extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1931,10 +1937,10 @@ class lbank2 extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * fetch transaction fees
+             * *DEPRECATED* please use fetchDepositWithdrawFees instead
              * @param {[string]|null} $codes not used by lbank2 fetchTransactionFees ()
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             // private only returns information for currencies with non-zero balance
             Async\await($this->load_markets());
@@ -2055,7 +2061,7 @@ class lbank2 extends Exchange {
             $withdrawFees = array();
             for ($i = 0; $i < count($result); $i++) {
                 $item = $result[$i];
-                $canWithdraw = $this->safe_string($item, 'canWithDraw');
+                $canWithdraw = $this->safe_value($item, 'canWithDraw');
                 if ($canWithdraw === 'true') {
                     $currencyId = $this->safe_string($item, 'assetCode');
                     $code = $this->safe_currency_code($currencyId);
@@ -2077,6 +2083,221 @@ class lbank2 extends Exchange {
                 'info' => $response,
             );
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * when using private endpoint, only returns information for currencies with non-zero balance, use public $method by specifying $this->options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
+             * @param {[string]|null} $codes array of unified currency $codes
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+             */
+            Async\await($this->load_markets());
+            $isAuthorized = $this->check_required_credentials(false);
+            $method = null;
+            if ($isAuthorized === true) {
+                $method = $this->safe_string($params, 'method');
+                $params = $this->omit($params, 'method');
+                if ($method === null) {
+                    $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
+                    $method = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
+                }
+            } else {
+                $method = 'fetchPublicDepositWithdrawFees';
+            }
+            return Async\await($this->$method ($codes, $params));
+        }) ();
+    }
+
+    public function fetch_private_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            // complete $response
+            // incl. for coins which null in public method
+            Async\await($this->load_markets());
+            $response = Async\await($this->privatePostSupplementUserInfo ($params));
+            //
+            //    {
+            //        "result" => "true",
+            //        "data" => array(
+            //            {
+            //                "usableAmt" => "14.36",
+            //                "assetAmt" => "14.36",
+            //                "networkList" => array(
+            //                    array(
+            //                        "isDefault" => false,
+            //                        "withdrawFeeRate" => "",
+            //                        "name" => "erc20",
+            //                        "withdrawMin" => 30,
+            //                        "minLimit" => 0.0001,
+            //                        "minDeposit" => 20,
+            //                        "feeAssetCode" => "usdt",
+            //                        "withdrawFee" => "30",
+            //                        "type" => 1,
+            //                        "coin" => "usdt",
+            //                        "network" => "eth"
+            //                    ),
+            //                    ...
+            //                ),
+            //                "freezeAmt" => "0",
+            //                "coin" => "ada"
+            //            }
+            //        ),
+            //        "code" => 0
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
+        }) ();
+    }
+
+    public function fetch_public_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            // extremely incomplete $response
+            // vast majority fees null
+            Async\await($this->load_markets());
+            $request = array();
+            $response = Async\await($this->publicGetWithdrawConfigs (array_merge($request, $params)));
+            //
+            //    {
+            //        result => 'true',
+            //        $data => array(
+            //            array(
+            //                amountScale => '4',
+            //                chain => 'heco',
+            //                assetCode => 'lbk',
+            //                min => '200',
+            //                transferAmtScale => '4',
+            //                canWithDraw => true,
+            //                fee => '100',
+            //                minTransfer => '0.0001',
+            //                type => '1'
+            //            ),
+            //            ...
+            //        ),
+            //        error_code => '0',
+            //        ts => '1663364435973'
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_public_deposit_withdraw_fees($data, $codes);
+        }) ();
+    }
+
+    public function parse_public_deposit_withdraw_fees($response, $codes = null) {
+        //
+        //    array(
+        //        array(
+        //            amountScale => '4',
+        //            $chain => 'heco',
+        //            assetCode => 'lbk',
+        //            min => '200',
+        //            transferAmtScale => '4',
+        //            canWithDraw => true,
+        //            $fee => '100',
+        //            minTransfer => '0.0001',
+        //            type => '1'
+        //        ),
+        //        ...
+        //    )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $fee = $response[$i];
+            $canWithdraw = $this->safe_value($fee, 'canWithDraw');
+            if ($canWithdraw === true) {
+                $currencyId = $this->safe_string($fee, 'assetCode');
+                $code = $this->safe_currency_code($currencyId);
+                if ($codes === null || $this->in_array($code, $codes)) {
+                    $withdrawFee = $this->safe_number($fee, 'fee');
+                    if ($withdrawFee !== null) {
+                        $resultValue = $this->safe_value($result, $code);
+                        if ($resultValue === null) {
+                            $result[$code] = $this->deposit_withdraw_fee(array( $fee ));
+                        } else {
+                            $result[$code]['info'][] = $fee;
+                        }
+                        $chain = $this->safe_string($fee, 'chain');
+                        $networkCode = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
+                        if ($networkCode !== null) {
+                            $result[$code]['networks'][$networkCode] = array(
+                                'withdraw' => array(
+                                    'fee' => $withdrawFee,
+                                    'percentage' => null,
+                                ),
+                                'deposit' => array(
+                                    'fee' => null,
+                                    'percentage' => null,
+                                ),
+                            );
+                        } else {
+                            $result[$code]['withdraw'] = array(
+                                'fee' => $withdrawFee,
+                                'percentage' => null,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        // * only used for fetchPrivateDepositWithdrawFees
+        //
+        //    {
+        //        "usableAmt" => "14.36",
+        //        "assetAmt" => "14.36",
+        //        "networkList" => array(
+        //            array(
+        //                "isDefault" => false,
+        //                "withdrawFeeRate" => "",
+        //                "name" => "erc20",
+        //                "withdrawMin" => 30,
+        //                "minLimit" => 0.0001,
+        //                "minDeposit" => 20,
+        //                "feeAssetCode" => "usdt",
+        //                "withdrawFee" => "30",
+        //                "type" => 1,
+        //                "coin" => "usdt",
+        //                "network" => "eth"
+        //            ),
+        //            ...
+        //        ),
+        //        "freezeAmt" => "0",
+        //        "coin" => "ada"
+        //    }
+        //
+        $result = $this->deposit_withdraw_fee($fee);
+        $networkList = $this->safe_value($fee, 'networkList', array());
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkEntry = $networkList[$j];
+            $networkId = $this->safe_string($networkEntry, 'name');
+            $networkCode = $this->safe_string_upper($this->options['inverse-networks'], $networkId, $networkId);
+            $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
+            $isDefault = $this->safe_value($networkEntry, 'isDefault');
+            if ($withdrawFee !== null) {
+                if ($isDefault) {
+                    $result['withdraw'] = array(
+                        'fee' => $withdrawFee,
+                        'percentage' => null,
+                    );
+                }
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => array(
+                        'fee' => $withdrawFee,
+                        'percentage' => null,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2107,7 +2328,7 @@ class lbank2 extends Exchange {
                 'timestamp' => $timestamp,
             ), $query)));
             $encoded = $this->encode($auth);
-            $hash = $this->hash($encoded);
+            $hash = $this->hash($encoded, 'sha256');
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {
@@ -2122,10 +2343,9 @@ class lbank2 extends Exchange {
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                 }
-                $encodedPem = $this->encode($pem);
-                $sign = $this->binary_to_base64($this->rsa($uppercaseHash, $encodedPem, 'RS256'));
+                $sign = $this->rsa($uppercaseHash, $pem, 'sha256');
             } elseif ($signatureMethod === 'HmacSHA256') {
-                $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret));
+                $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret), 'sha256');
             }
             $query['sign'] = $sign;
             $body = $this->urlencode($this->keysort($query));
@@ -2142,7 +2362,7 @@ class lbank2 extends Exchange {
     public function convert_secret_to_pem($secret) {
         $lineLength = 64;
         $secretLength = strlen($secret) - 0;
-        $numLines = intval($secretLength / $lineLength);
+        $numLines = $this->parse_to_int($secretLength / $lineLength);
         $numLines = $this->sum($numLines, 1);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for ($i = 0; $i < $numLines; $i++) {

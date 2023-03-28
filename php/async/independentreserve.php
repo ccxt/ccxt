@@ -17,6 +17,7 @@ class independentreserve extends Exchange {
             'name' => 'Independent Reserve',
             'countries' => array( 'AU', 'NZ' ), // Australia, New Zealand
             'rateLimit' => 1000,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -251,7 +252,7 @@ class independentreserve extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -319,7 +320,7 @@ class independentreserve extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -429,6 +430,7 @@ class independentreserve extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($order, 'Price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $this->safe_string($order, 'Value'),
             'average' => $this->safe_string($order, 'AvgPrice'),
             'amount' => $this->safe_string_2($order, 'VolumeOrdered', 'Volume'),
@@ -463,7 +465,7 @@ class independentreserve extends Exchange {
              * fetches information on an order made by the user
              * @param {string|null} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGetOrderDetails (array_merge(array(
@@ -485,7 +487,7 @@ class independentreserve extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open orders for
              * @param {int|null} $limit the maximum number of  open orders structures to retrieve
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = $this->ordered(array());
@@ -514,7 +516,7 @@ class independentreserve extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = $this->ordered(array());
@@ -543,7 +545,7 @@ class independentreserve extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch trades for
              * @param {int|null} $limit the maximum number of trades structures to retrieve
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
@@ -587,7 +589,7 @@ class independentreserve extends Exchange {
                 $side = 'sell';
             }
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -601,7 +603,7 @@ class independentreserve extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -631,7 +633,7 @@ class independentreserve extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGetBrokerageFees ($params));
@@ -683,7 +685,7 @@ class independentreserve extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -701,10 +703,10 @@ class independentreserve extends Exchange {
             }
             $request['volume'] = $amount;
             $response = Async\await($this->$method (array_merge($request, $params)));
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['OrderGuid'],
-            );
+            ), $market);
         }) ();
     }
 
@@ -715,7 +717,7 @@ class independentreserve extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol unified $symbol of the market the order was made in
              * @param {array} $params extra parameters specific to the independentreserve api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -746,7 +748,7 @@ class independentreserve extends Exchange {
                 $auth[] = $key . '=' . $value;
             }
             $message = implode(',', $auth);
-            $signature = $this->hmac($this->encode($message), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256');
             $query = $this->ordered(array());
             $query['apiKey'] = $this->apiKey;
             $query['nonce'] = $nonce;

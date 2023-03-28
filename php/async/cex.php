@@ -10,7 +10,6 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NullResponse;
 use ccxt\InvalidOrder;
-use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -22,6 +21,7 @@ class cex extends Exchange {
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -130,6 +130,7 @@ class cex extends Exchange {
                         'cancel_replace_order/{pair}/',
                         'close_position/{pair}/',
                         'get_address/',
+                        'get_crypto_address',
                         'get_myfee/',
                         'get_order/',
                         'get_order_tx/',
@@ -191,6 +192,23 @@ class cex extends Exchange {
                         'cd' => 'canceled',
                         'a' => 'open',
                     ),
+                ),
+                'defaultNetwork' => 'ERC20',
+                'defaultNetworks' => array(
+                    'USDT' => 'TRC20',
+                ),
+                'networks' => array(
+                    'ERC20' => 'Ethereum',
+                    'BTC' => 'BTC',
+                    'BEP20' => 'Binance Smart Chain',
+                    'BSC' => 'Binance Smart Chain',
+                    'TRC20' => 'Tron',
+                ),
+                'networksById' => array(
+                    'Ethereum' => 'ERC20',
+                    'BTC' => 'BTC',
+                    'Binance Smart Chain' => 'BEP20',
+                    'Tron' => 'TRC20',
                 ),
             ),
         ));
@@ -475,7 +493,7 @@ class cex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -521,7 +539,7 @@ class cex extends Exchange {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -544,7 +562,7 @@ class cex extends Exchange {
                 //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
                 //     }
                 //
-                $key = 'data' . $this->timeframes[$timeframe];
+                $key = 'data' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
                 $data = $this->safe_string($response, $key);
                 $ohlcvs = json_decode($data, $as_associative_array = true);
                 return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
@@ -595,7 +613,7 @@ class cex extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -623,7 +641,7 @@ class cex extends Exchange {
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -696,7 +714,7 @@ class cex extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGetMyfee ($params));
@@ -743,7 +761,7 @@ class cex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             // for $market buy it requires the $amount of quote currency to spend
             if (($type === 'market') && ($side === 'buy')) {
@@ -818,7 +836,7 @@ class cex extends Exchange {
              * @param {string} $id order $id
              * @param {string|null} $symbol not used by cex cancelOrder ()
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1074,6 +1092,7 @@ class cex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1093,7 +1112,7 @@ class cex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch open $orders for
              * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1120,7 +1139,7 @@ class cex extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $method = 'privatePostArchivedOrdersPair';
@@ -1140,7 +1159,7 @@ class cex extends Exchange {
              * fetches information on an order made by the user
              * @param {string|null} $symbol not used by cex fetchOrder
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1260,7 +1279,7 @@ class cex extends Exchange {
              * @param {int|null} $since the earliest $time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1505,26 +1524,49 @@ class cex extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the cex api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
-            if ($code === 'XRP' || $code === 'XLM') {
-                // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-                throw new NotSupported($this->id . ' fetchDepositAddress() does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
-            }
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostGetAddress (array_merge($request, $params)));
-            $address = $this->safe_string($response, 'data');
+            list($networkCode, $query) = $this->handle_network_code_and_params($params);
+            // atm, cex doesn't support network in the $request
+            $response = Async\await($this->privatePostGetCryptoAddress (array_merge($request, $query)));
+            //
+            //    {
+            //         "e" => "get_crypto_address",
+            //         "ok" => "ok",
+            //         "data" => {
+            //             "name" => "BTC",
+            //             "addresses" => array(
+            //                 {
+            //                     "blockchain" => "Bitcoin",
+            //                     "address" => "2BvKwe1UwrdTjq2nzhscFYXwqCjCaaHCeq"
+            //
+            //                     // for others coins (i.e. XRP, XLM) other keys are present:
+            //                     //     "destination" => "rF1sdh25BJX3qFwneeTBwaq3zPEWYcwjp2",
+            //                     //     "destinationTag" => "7519113655",
+            //                     //     "memo" => "XLM-memo12345",
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $addresses = $this->safe_value($data, 'addresses', array());
+            $chainsIndexedById = $this->index_by($addresses, 'blockchain');
+            $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
+            $addressObject = $this->safe_value($chainsIndexedById, $selectedNetworkId, array());
+            $address = $this->safe_string_2($addressObject, 'address', 'destination');
             $this->check_address($address);
             return array(
                 'currency' => $code,
                 'address' => $address,
-                'tag' => null,
-                'network' => null,
-                'info' => $response,
+                'tag' => $this->safe_string_2($addressObject, 'destinationTag', 'memo'),
+                'network' => $this->network_id_to_code($selectedNetworkId),
+                'info' => $data,
             );
         }) ();
     }
@@ -1544,7 +1586,7 @@ class cex extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $auth = $nonce . $this->uid . $this->apiKey;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $body = $this->json(array_merge(array(
                 'key' => $this->apiKey,
                 'signature' => strtoupper($signature),

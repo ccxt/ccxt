@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.1.73';
+$version = '3.0.40';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,18 +55,287 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.1.73';
+    const VERSION = '3.0.40';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
     private static $base58_decoder = null;
 
+    public $defined_rest_api = array();
+
+    public $curl = null;
+    public $curl_options = array(); // overrideable by user, empty by default
+    public $curl_reset = true;
+    public $curl_close = false;
+
+    public $id = null;
+
+    public $validateServerSsl = true;
+    public $validateClientSsl = false;
+    public $curlopt_interface = null;
+    public $timeout = 10000; // in milliseconds
+    public $proxy = '';
+    public $origin = '*'; // CORS origin
+    public $headers = array();
+    public $hostname = null; // in case of inaccessibility of the "main" domain
+
+    public $options = array(); // exchange-specific options if any
+
+    public $skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
+    public $quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+
+    public $name = null;
+    public $countries = null;
+    public $version = null;
+    public $certified = false; // if certified by the CCXT dev team
+    public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
+    public $alias = false; // whether this exchange is an alias to another exchange
+
+    public $urls = array();
+    public $api = array();
+    public $comment = null;
+
+    public $markets = null;
+    public $symbols = null;
+    public $codes = null;
+    public $ids = null;
+    public $currencies = array();
+    public $base_currencies = null;
+    public $quote_currencies = null;
+    public $balance = array();
+    public $orderbooks = array();
+    public $tickers = array();
+    public $fees = array('trading' => array(), 'funding' => array());
+    public $precision = array();
+    public $orders = null;
+    public $myTrades = null;
+    public $trades = array();
+    public $transactions = array();
+    public $positions = array();
+    public $ohlcvs = array();
+    public $exceptions = array();
+    public $accounts = array();
+    public $status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
+    public $limits = array(
+        'cost' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'price' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'amount' => array(
+            'min' => null,
+            'max' => null,
+        ),
+        'leverage' => array(
+            'min' => null,
+            'max' => null,
+        ),
+    );
+    public $httpExceptions = array(
+        '422' => 'ExchangeError',
+        '418' => 'DDoSProtection',
+        '429' => 'RateLimitExceeded',
+        '404' => 'ExchangeNotAvailable',
+        '409' => 'ExchangeNotAvailable',
+        '410' => 'ExchangeNotAvailable',
+        '451' => 'ExchangeNotAvailable',
+        '500' => 'ExchangeNotAvailable',
+        '501' => 'ExchangeNotAvailable',
+        '502' => 'ExchangeNotAvailable',
+        '520' => 'ExchangeNotAvailable',
+        '521' => 'ExchangeNotAvailable',
+        '522' => 'ExchangeNotAvailable',
+        '525' => 'ExchangeNotAvailable',
+        '526' => 'ExchangeNotAvailable',
+        '400' => 'ExchangeNotAvailable',
+        '403' => 'ExchangeNotAvailable',
+        '405' => 'ExchangeNotAvailable',
+        '503' => 'ExchangeNotAvailable',
+        '530' => 'ExchangeNotAvailable',
+        '408' => 'RequestTimeout',
+        '504' => 'RequestTimeout',
+        '401' => 'AuthenticationError',
+        '407' => 'AuthenticationError',
+        '511' => 'AuthenticationError',
+    );
+    public $verbose = false;
+    public $apiKey = '';
+    public $secret = '';
+    public $password = '';
+    public $login = '';
+    public $uid = '';
+    public $privateKey = '';
+    public $walletAddress = '';
+    public $token = ''; // reserved for HTTP auth in some cases
+
+    public $twofa = null;
+    public $markets_by_id = null;
+    public $currencies_by_id = null;
+    public $userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
+    public $userAgents = array(
+        'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+        'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+    );
+    public $minFundingAddressLength = 1; // used in check_address
+    public $substituteCommonCurrencyCodes = true;
+
+    // whether fees should be summed by currency code
+    public $reduceFees = true;
+
+    public $timeframes = null;
+
+    public $requiredCredentials = array(
+        'apiKey' => true,
+        'secret' => true,
+        'uid' => false,
+        'login' => false,
+        'password' => false,
+        'twofa' => false, // 2-factor authentication (one-time password key)
+        'privateKey' => false,
+        'walletAddress' => false,
+        'token' => false, // reserved for HTTP auth in some cases
+    );
+
+    // API methods metainfo
+    public $has = array(
+        'publicAPI' => true,
+        'privateAPI' => true,
+        'CORS' => null,
+        'spot' => null,
+        'margin' => null,
+        'swap' => null,
+        'future' => null,
+        'option' => null,
+        'addMargin' => null,
+        'cancelAllOrders' => null,
+        'cancelOrder' => true,
+        'cancelOrders' => null,
+        'createDepositAddress' => null,
+        'createLimitOrder' => true,
+        'createMarketOrder' => true,
+        'createOrder' => true,
+        'createPostOnlyOrder' => null,
+        'createReduceOnlyOrder' => null,
+        'createStopOrder' => null,
+        'editOrder' => 'emulated',
+        'fetchAccounts' => null,
+        'fetchBalance' => true,
+        'fetchBidsAsks' => null,
+        'fetchBorrowInterest' => null,
+        'fetchBorrowRate' => null,
+        'fetchBorrowRateHistory' => null,
+        'fetchBorrowRatesPerSymbol' => null,
+        'fetchBorrowRates' => null,
+        'fetchCanceledOrders' => null,
+        'fetchClosedOrder' => null,
+        'fetchClosedOrders' => null,
+        'fetchCurrencies' => 'emulated',
+        'fetchDeposit' => null,
+        'fetchDepositAddress' => null,
+        'fetchDepositAddresses' => null,
+        'fetchDepositAddressesByNetwork' => null,
+        'fetchDeposits' => null,
+        'fetchFundingFee' => null,
+        'fetchFundingFees' => null,
+        'fetchFundingHistory' => null,
+        'fetchFundingRate' => null,
+        'fetchFundingRateHistory' => null,
+        'fetchFundingRates' => null,
+        'fetchIndexOHLCV' => null,
+        'fetchL2OrderBook' => true,
+        'fetchLedger' => null,
+        'fetchLedgerEntry' => null,
+        'fetchLeverageTiers' => null,
+        'fetchMarketLeverageTiers' => null,
+        'fetchMarkets' => true,
+        'fetchMarkOHLCV' => null,
+        'fetchMyTrades' => null,
+        'fetchOHLCV' => 'emulated',
+        'fetchOpenOrder' => null,
+        'fetchOpenOrders' => null,
+        'fetchOrder' => null,
+        'fetchOrderBook' => true,
+        'fetchOrderBooks' => null,
+        'fetchOrders' => null,
+        'fetchOrderTrades' => null,
+        'fetchPermissions' => null,
+        'fetchPosition' => null,
+        'fetchPositions' => null,
+        'fetchPositionsRisk' => null,
+        'fetchPremiumIndexOHLCV' => null,
+        'fetchStatus' => 'emulated',
+        'fetchTicker' => true,
+        'fetchTickers' => null,
+        'fetchTime' => null,
+        'fetchTrades' => true,
+        'fetchTradingFee' => null,
+        'fetchTradingFees' => null,
+        'fetchTradingLimits' => null,
+        'fetchTransactions' => null,
+        'fetchTransfers' => null,
+        'fetchWithdrawal' => null,
+        'fetchWithdrawals' => null,
+        'reduceMargin' => null,
+        'setLeverage' => null,
+        'setMargin' => null,
+        'setMarginMode' => null,
+        'setPositionMode' => null,
+        'signIn' => null,
+        'transfer' => null,
+        'withdraw' => null,
+    );
+
+    public $precisionMode = DECIMAL_PLACES;
+    public $paddingMode = NO_PADDING;
+    public $number = 'floatval';
+    public $handleContentTypeApplicationZip = false;
+
+    public $lastRestRequestTimestamp = 0;
+    public $lastRestPollTimestamp = 0;
+    public $restRequestQueue = null;
+    public $restPollerLoopIsRunning = false;
+    public $enableRateLimit = true;
+    public $enableLastJsonResponse = true;
+    public $enableLastHttpResponse = true;
+    public $enableLastResponseHeaders = true;
+    public $last_http_response = null;
+    public $last_json_response = null;
+    public $last_response_headers = null;
+
+    public $requiresWeb3 = false;
+    public $requiresEddsa = false;
+    public $rateLimit = 2000;
+
+    public $commonCurrencies = array(
+        'XBT' => 'BTC',
+        'BCC' => 'BCH',
+        'BCHABC' => 'BCH',
+        'BCHSV' => 'BSV',
+    );
+
+    public $urlencode_glue = '&'; // ini_get('arg_separator.output'); // can be overrided by exchange constructor params
+    public $urlencode_glue_warning = true;
+
+    public $tokenBucket = null; /* array(
+        'delay' => 0.001,
+        'capacity' => 1.0,
+        'cost' => 1.0,
+        'maxCapacity' => 1000,
+        'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+    ); */
+
+    public $baseCurrencies = null;
+    public $quoteCurrencies = null;
+
     public static $exchanges = array(
-        'aax',
+        'ace',
         'alpaca',
         'ascendex',
         'bequant',
-        'bibox',
         'bigone',
         'binance',
         'binancecoinm',
@@ -103,9 +372,7 @@ class Exchange {
         'btctradeua',
         'btcturk',
         'buda',
-        'bw',
         'bybit',
-        'bytetrade',
         'cex',
         'coinbase',
         'coinbaseprime',
@@ -115,8 +382,8 @@ class Exchange {
         'coinfalcon',
         'coinmate',
         'coinone',
+        'coinsph',
         'coinspot',
-        'crex24',
         'cryptocom',
         'currencycom',
         'delta',
@@ -125,8 +392,6 @@ class Exchange {
         'exmo',
         'flowbtc',
         'fmfwio',
-        'ftx',
-        'ftxus',
         'gate',
         'gateio',
         'gemini',
@@ -141,13 +406,13 @@ class Exchange {
         'indodax',
         'itbit',
         'kraken',
+        'krakenfutures',
         'kucoin',
         'kucoinfutures',
         'kuna',
         'latoken',
         'lbank',
         'lbank2',
-        'liquid',
         'luno',
         'lykke',
         'mercado',
@@ -163,12 +428,10 @@ class Exchange {
         'paymium',
         'phemex',
         'poloniex',
+        'poloniexfutures',
         'probit',
-        'qtrade',
         'ripio',
         'stex',
-        'therock',
-        'tidebit',
         'tidex',
         'timex',
         'tokocrypto',
@@ -180,49 +443,57 @@ class Exchange {
         'yobit',
         'zaif',
         'zb',
-        'zipmex',
         'zonda',
     );
 
     public static $camelcase_methods = array(
-        'defaultFetch' => 'default_fetch',
-        'arrayConcat' => 'array_concat',
-        'inArray' => 'in_array',
-        'toArray' => 'to_array',
-        'isEmpty' => 'is_empty',
+        'deepExtend' => 'deep_extend',
         'indexBy' => 'index_by',
-        'groupBy' => 'group_by',
-        'filterBy' => 'filter_by',
         'sortBy' => 'sort_by',
         'sortBy2' => 'sort_by_2',
-        'deepExtend' => 'deep_extend',
+        'groupBy' => 'group_by',
         'unCamelCase' => 'un_camel_case',
-        'isNumber' => 'is_number',
-        'isInteger' => 'is_integer',
-        'isArray' => 'is_array',
-        'isObject' => 'is_object',
-        'isString' => 'is_string',
-        'isStringCoercible' => 'is_string_coercible',
-        'isDictionary' => 'is_dictionary',
-        'hasProps' => 'has_props',
-        'asFloat' => 'as_float',
-        'asInteger' => 'as_integer',
-        'safeFloat' => 'safe_float',
-        'safeInteger' => 'safe_integer',
-        'safeIntegerProduct' => 'safe_integer_product',
-        'safeTimestamp' => 'safe_timestamp',
+        'precisionFromString' => 'precision_from_string',
+        'buildOHLCVC' => 'build_ohlcvc',
+        'decimalToPrecision' => 'decimal_to_precision',
         'safeValue' => 'safe_value',
+        'safeValue2' => 'safe_value_2',
         'safeString' => 'safe_string',
+        'safeString2' => 'safe_string_2',
+        'safeFloat' => 'safe_float',
+        'safeFloat2' => 'safe_float_2',
+        'binaryToBase16' => 'binary_to_base16',
+        'numberToBE' => 'number_to_be',
+        'base16ToBinary' => 'base16_to_binary',
+        'isJsonEncodedObject' => 'is_json_encoded_object',
+        'safeInteger' => 'safe_integer',
+        'omitZero' => 'omit_zero',
+        'implodeParams' => 'implode_params',
+        'extractParams' => 'extract_params',
+        'binaryConcat' => 'binary_concat',
+        'arrayConcat' => 'array_concat',
+        'numberToString' => 'number_to_string',
+        'parseTimeframe' => 'parse_timeframe',
+        'safeInteger2' => 'safe_integer_2',
         'safeStringLower' => 'safe_string_lower',
         'safeStringUpper' => 'safe_string_upper',
-        'safeFloat2' => 'safe_float_2',
-        'safeInteger2' => 'safe_integer_2',
+        'safeTimestamp' => 'safe_timestamp',
+        'binaryConcatArray' => 'binary_concat_array',
+        'numberToLE' => 'number_to_le',
+        'stringToBase64' => 'string_to_base64',
         'safeIntegerProduct2' => 'safe_integer_product_2',
+        'safeIntegerProduct' => 'safe_integer_product',
+        'base58ToBinary' => 'base58_to_binary',
+        'base64ToBinary' => 'base64_to_binary',
         'safeTimestamp2' => 'safe_timestamp_2',
-        'safeValue2' => 'safe_value_2',
-        'safeString2' => 'safe_string_2',
+        'inArray' => 'in_array',
         'safeStringLower2' => 'safe_string_lower_2',
         'safeStringUpper2' => 'safe_string_upper_2',
+        'isEmpty' => 'is_empty',
+        'filterBy' => 'filter_by',
+        'urlencodeWithArrayRepeat' => 'urlencode_with_array_repeat',
+        'binaryToBase64' => 'binary_to_base64',
+        'toArray' => 'to_array',
         'safeFloatN' => 'safe_float_n',
         'safeIntegerN' => 'safe_integer_n',
         'safeIntegerProductN' => 'safe_integer_product_n',
@@ -231,38 +502,26 @@ class Exchange {
         'safeStringN' => 'safe_string_n',
         'safeStringLowerN' => 'safe_string_lower_n',
         'safeStringUpperN' => 'safe_string_upper_n',
-        'numberToString' => 'number_to_string',
-        'precisionFromString' => 'precision_from_string',
-        'decimalToPrecision' => 'decimal_to_precision',
-        'omitZero' => 'omit_zero',
-        'isJsonEncodedObject' => 'is_json_encoded_object',
-        'stringToBinary' => 'string_to_binary',
-        'stringToBase64' => 'string_to_base64',
-        'base64ToBinary' => 'base64_to_binary',
-        'base64ToString' => 'base64_to_string',
-        'binaryToBase64' => 'binary_to_base64',
-        'base16ToBinary' => 'base16_to_binary',
-        'binaryToBase16' => 'binary_to_base16',
-        'binaryConcat' => 'binary_concat',
-        'binaryConcatArray' => 'binary_concat_array',
         'urlencodeNested' => 'urlencode_nested',
-        'urlencodeWithArrayRepeat' => 'urlencode_with_array_repeat',
-        'urlencodeBase64' => 'urlencode_base64',
-        'numberToLE' => 'number_to_le',
-        'numberToBE' => 'number_to_be',
-        'base58ToBinary' => 'base58_to_binary',
-        'binaryToBase58' => 'binary_to_base58',
-        'byteArrayToWordArray' => 'byte_array_to_word_array',
         'parseDate' => 'parse_date',
-        'setTimeout_safe' => 'set_timeout_safe',
+        'isArray' => 'is_array',
+        'base64ToString' => 'base64_to_string',
         'TimedOut' => 'timed_out',
-        'parseTimeframe' => 'parse_timeframe',
+        'asFloat' => 'as_float',
+        'asInteger' => 'as_integer',
+        'binaryToBase58' => 'binary_to_base58',
+        'binaryToString' => 'binary_to_string',
+        'hasProps' => 'has_props',
+        'isDictionary' => 'is_dictionary',
+        'isInteger' => 'is_integer',
+        'isNumber' => 'is_number',
+        'isObject' => 'is_object',
+        'isString' => 'is_string',
+        'isStringCoercible' => 'is_string_coercible',
         'roundTimeframe' => 'round_timeframe',
-        'buildOHLCVC' => 'build_ohlcvc',
-        'implodeParams' => 'implode_params',
-        'extractParams' => 'extract_params',
-        'fetchImplementation' => 'fetch_implementation',
-        'executeRestRequest' => 'execute_rest_request',
+        'setTimeout_safe' => 'set_timeout_safe',
+        'stringToBinary' => 'string_to_binary',
+        'urlencodeBase64' => 'urlencode_base64',
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
         'checkAddress' => 'check_address',
@@ -290,6 +549,46 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'findTimeframe' => 'find_timeframe',
+        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
+        'orderBook' => 'order_book',
+        'indexedOrderBook' => 'indexed_order_book',
+        'countedOrderBook' => 'counted_order_book',
+        'handleMessage' => 'handle_message',
+        'onConnected' => 'on_connected',
+        'onError' => 'on_error',
+        'onClose' => 'on_close',
+        'handleDelta' => 'handle_delta',
+        'loadOrderBook' => 'load_order_book',
+        'handleDeltas' => 'handle_deltas',
+        'getCacheIndex' => 'get_cache_index',
+        'fetchAccounts' => 'fetch_accounts',
+        'fetchTrades' => 'fetch_trades',
+        'watchTrades' => 'watch_trades',
+        'fetchDepositAddresses' => 'fetch_deposit_addresses',
+        'fetchOrderBook' => 'fetch_order_book',
+        'watchOrderBook' => 'watch_order_book',
+        'fetchTime' => 'fetch_time',
+        'fetchTradingLimits' => 'fetch_trading_limits',
+        'parseTicker' => 'parse_ticker',
+        'parseDepositAddress' => 'parse_deposit_address',
+        'parseTrade' => 'parse_trade',
+        'parseTransaction' => 'parse_transaction',
+        'parseTransfer' => 'parse_transfer',
+        'parseAccount' => 'parse_account',
+        'parseLedgerEntry' => 'parse_ledger_entry',
+        'parseOrder' => 'parse_order',
+        'fetchBorrowRates' => 'fetch_borrow_rates',
+        'parseMarketLeverageTiers' => 'parse_market_leverage_tiers',
+        'fetchLeverageTiers' => 'fetch_leverage_tiers',
+        'parsePosition' => 'parse_position',
+        'parseFundingRateHistory' => 'parse_funding_rate_history',
+        'parseBorrowInterest' => 'parse_borrow_interest',
+        'fetchFundingRates' => 'fetch_funding_rates',
+        'createDepositAddress' => 'create_deposit_address',
+        'setLeverage' => 'set_leverage',
+        'parseToInt' => 'parse_to_int',
+        'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -300,6 +599,7 @@ class Exchange {
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeTicker' => 'safe_ticker',
         'fetchOHLCV' => 'fetch_ohlcv',
+        'watchOHLCV' => 'watch_ohlcv',
         'convertTradingViewToOHLCV' => 'convert_trading_view_to_ohlcv',
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'marketIds' => 'market_ids',
@@ -310,6 +610,14 @@ class Exchange {
         'filterBySymbol' => 'filter_by_symbol',
         'parseOHLCV' => 'parse_ohlcv',
         'getNetwork' => 'get_network',
+        'networkCodeToId' => 'network_code_to_id',
+        'networkIdToCode' => 'network_id_to_code',
+        'networkCodesToIds' => 'network_codes_to_ids',
+        'handleNetworkCodeAndParams' => 'handle_network_code_and_params',
+        'defaultNetworkCode' => 'default_network_code',
+        'selectNetworkCodeFromUnifiedNetworks' => 'select_network_code_from_unified_networks',
+        'selectNetworkIdFromRawNetworks' => 'select_network_id_from_raw_networks',
+        'selectNetworkKeyFromNetworks' => 'select_network_key_from_networks',
         'safeNumber2' => 'safe_number_2',
         'parseOrderBook' => 'parse_order_book',
         'parseOHLCVs' => 'parse_ohlcvs',
@@ -326,7 +634,6 @@ class Exchange {
         'resolvePath' => 'resolve_path',
         'filterByArray' => 'filter_by_array',
         'loadAccounts' => 'load_accounts',
-        'fetchTrades' => 'fetch_trades',
         'fetchOHLCVC' => 'fetch_ohlcvc',
         'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -343,6 +650,7 @@ class Exchange {
         'safeMarket' => 'safe_market',
         'checkRequiredCredentials' => 'check_required_credentials',
         'fetchBalance' => 'fetch_balance',
+        'watchBalance' => 'watch_balance',
         'fetchPartialBalance' => 'fetch_partial_balance',
         'fetchFreeBalance' => 'fetch_free_balance',
         'fetchUsedBalance' => 'fetch_used_balance',
@@ -352,31 +660,41 @@ class Exchange {
         'fetchFundingFees' => 'fetch_funding_fees',
         'fetchTransactionFee' => 'fetch_transaction_fee',
         'fetchTransactionFees' => 'fetch_transaction_fees',
+        'fetchDepositWithdrawFees' => 'fetch_deposit_withdraw_fees',
+        'fetchDepositWithdrawFee' => 'fetch_deposit_withdraw_fee',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleOptionAndParams' => 'handle_option_and_params',
+        'handleOption' => 'handle_option',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'handleSubTypeAndParams' => 'handle_sub_type_and_params',
+        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
         'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
         'findBroadlyMatchedKey' => 'find_broadly_matched_key',
         'handleErrors' => 'handle_errors',
         'calculateRateLimiterCost' => 'calculate_rate_limiter_cost',
         'fetchTicker' => 'fetch_ticker',
+        'watchTicker' => 'watch_ticker',
         'fetchTickers' => 'fetch_tickers',
+        'watchTickers' => 'watch_tickers',
         'fetchOrder' => 'fetch_order',
         'fetchOrderStatus' => 'fetch_order_status',
         'fetchUnifiedOrder' => 'fetch_unified_order',
         'createOrder' => 'create_order',
         'cancelOrder' => 'cancel_order',
+        'cancelAllOrders' => 'cancel_all_orders',
         'cancelUnifiedOrder' => 'cancel_unified_order',
         'fetchOrders' => 'fetch_orders',
+        'watchOrders' => 'watch_orders',
         'fetchOpenOrders' => 'fetch_open_orders',
         'fetchClosedOrders' => 'fetch_closed_orders',
         'fetchMyTrades' => 'fetch_my_trades',
+        'watchMyTrades' => 'watch_my_trades',
         'fetchTransactions' => 'fetch_transactions',
         'fetchDeposits' => 'fetch_deposits',
         'fetchWithdrawals' => 'fetch_withdrawals',
+        'parseLastPrice' => 'parse_last_price',
         'fetchDepositAddress' => 'fetch_deposit_address',
         'commonCurrencyCode' => 'common_currency_code',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
@@ -405,6 +723,7 @@ class Exchange {
         'safeCurrencyCode' => 'safe_currency_code',
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
+        'parseLastPrices' => 'parse_last_prices',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseBorrowInterests' => 'parse_borrow_interests',
@@ -414,6 +733,8 @@ class Exchange {
         'parseFundingRates' => 'parse_funding_rates',
         'isTriggerOrder' => 'is_trigger_order',
         'isPostOnly' => 'is_post_only',
+        'handlePostOnly' => 'handle_post_only',
+        'fetchLastPrices' => 'fetch_last_prices',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
         'parseOpenInterest' => 'parse_open_interest',
@@ -424,9 +745,16 @@ class Exchange {
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
         'convertTypeToAccount' => 'convert_type_to_account',
-        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
         'checkRequiredArgument' => 'check_required_argument',
+        'checkRequiredMarginArgument' => 'check_required_margin_argument',
         'checkRequiredSymbol' => 'check_required_symbol',
+        'parseDepositWithdrawFees' => 'parse_deposit_withdraw_fees',
+        'parseDepositWithdrawFee' => 'parse_deposit_withdraw_fee',
+        'depositWithdrawFee' => 'deposit_withdraw_fee',
+        'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
+        'parseIncome' => 'parse_income',
+        'parseIncomes' => 'parse_incomes',
+        'getMarketFromSymbols' => 'get_market_from_symbols',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -458,10 +786,23 @@ class Exchange {
     }
 
     public static function safe_string_lower($object, $key, $default_value = null) {
-        return static::valid_object_value($object, $key) ? strtolower(strval($object[$key])) : $default_value;
+        if (static::valid_object_value($object, $key)) {
+            return strtolower(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper($object, $key, $default_value = null) {
+        if (static::valid_object_value($object, $key)) {
+            return strtoupper(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
         return static::valid_object_value($object, $key) ? strtoupper(strval($object[$key])) : $default_value;
     }
 
@@ -478,7 +819,7 @@ class Exchange {
     }
 
     public static function safe_value($object, $key, $default_value = null) {
-        return (is_array($object) && isset($object[$key])) ? $object[$key] : $default_value;
+        return isset($object[$key]) ? $object[$key] : $default_value;
     }
 
     // we're not using safe_floats with a list argument as we're trying to save some cycles here
@@ -536,12 +877,24 @@ class Exchange {
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strtolower(strval($value)) : $default_value;
+        if (static::valid_string($value) && is_scalar($value)) {
+            return strtolower(strval($value));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strtoupper(strval($value)) : $default_value;
+        if (static::valid_string($value) && is_scalar($value)) {
+            return strtoupper(strval($value));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
     }
 
     public static function safe_integer_n($object, $array, $default_value = null) {
@@ -560,12 +913,12 @@ class Exchange {
 
     public static function safe_value_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_scalar($value)) ? $value : $default_value;
+        return isset($value) ? $value : $default_value;
     }
 
     public static function get_object_value_from_key_array($object, $array) {
         foreach($array as $key) {
-            if (isset($object[$key])) {
+            if (isset($object[$key]) && $object[$key] !== '') {
                 return $object[$key];
             }
         }
@@ -1126,261 +1479,9 @@ class Exchange {
         //     }
         // }
 
-        $this->defined_rest_api = array();
-        $this->curl = null;
-        $this->curl_options = array(); // overrideable by user, empty by default
-        $this->curl_reset = true;
-        $this->curl_close = false;
-
-        $this->id = null;
-
-        $this->validateServerSsl = true;
-        $this->validateClientSsl = false;
-        $this->curlopt_interface = null;
-        $this->timeout = 10000; // in milliseconds
-        $this->proxy = '';
-        $this->origin = '*'; // CORS origin
-        $this->headers = array();
-        $this->hostname = null; // in case of inaccessibility of the "main" domain
-
-        $this->options = array(); // exchange-specific options if any
-
-        $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
-        $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
-
-        $this->name = null;
-        $this->countries = null;
-        $this->version = null;
-        $this->certified = false; // if certified by the CCXT dev team
-        $this->pro = false; // if it is integrated with CCXT Pro for WebSocket support
-        $this->alias = false; // whether this exchange is an alias to another exchange
-
-        $this->urls = array();
-        $this->api = array();
-        $this->comment = null;
-
-        $this->markets = null;
-        $this->symbols = null;
-        $this->codes = null;
-        $this->ids = null;
-        $this->currencies = array();
-        $this->base_currencies = null;
-        $this->quote_currencies = null;
-        $this->balance = array();
-        $this->orderbooks = array();
-        $this->tickers = array();
-        $this->fees = array('trading' => array(), 'funding' => array());
-        $this->precision = array();
-        $this->orders = null;
-        $this->myTrades = null;
-        $this->trades = array();
-        $this->transactions = array();
-        $this->positions = array();
-        $this->ohlcvs = array();
-        $this->exceptions = array();
-        $this->accounts = array();
-        $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
-        $this->limits = array(
-            'cost' => array(
-                'min' => null,
-                'max' => null,
-            ),
-            'price' => array(
-                'min' => null,
-                'max' => null,
-            ),
-            'amount' => array(
-                'min' => null,
-                'max' => null,
-            ),
-            'leverage' => array(
-                'min' => null,
-                'max' => null,
-            ),
-        );
-        $this->httpExceptions = array(
-            '422' => 'ExchangeError',
-            '418' => 'DDoSProtection',
-            '429' => 'RateLimitExceeded',
-            '404' => 'ExchangeNotAvailable',
-            '409' => 'ExchangeNotAvailable',
-            '410' => 'ExchangeNotAvailable',
-            '500' => 'ExchangeNotAvailable',
-            '501' => 'ExchangeNotAvailable',
-            '502' => 'ExchangeNotAvailable',
-            '520' => 'ExchangeNotAvailable',
-            '521' => 'ExchangeNotAvailable',
-            '522' => 'ExchangeNotAvailable',
-            '525' => 'ExchangeNotAvailable',
-            '526' => 'ExchangeNotAvailable',
-            '400' => 'ExchangeNotAvailable',
-            '403' => 'ExchangeNotAvailable',
-            '405' => 'ExchangeNotAvailable',
-            '503' => 'ExchangeNotAvailable',
-            '530' => 'ExchangeNotAvailable',
-            '408' => 'RequestTimeout',
-            '504' => 'RequestTimeout',
-            '401' => 'AuthenticationError',
-            '511' => 'AuthenticationError',
-        );
-        $this->verbose = false;
-        $this->apiKey = '';
-        $this->secret = '';
-        $this->password = '';
-        $this->login = '';
-        $this->uid = '';
-        $this->privateKey = '';
-        $this->walletAddress = '';
-        $this->token = ''; // reserved for HTTP auth in some cases
-
-        $this->twofa = null;
-        $this->markets_by_id = null;
-        $this->currencies_by_id = null;
-        $this->userAgent = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
-        $this->userAgents = array(
-            'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-            'chrome100' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-        );
-        $this->minFundingAddressLength = 1; // used in check_address
-        $this->substituteCommonCurrencyCodes = true;
-
-        // whether fees should be summed by currency code
-        $this->reduceFees = true;
-
-        $this->timeframes = null;
-
-        $this->requiredCredentials = array(
-            'apiKey' => true,
-            'secret' => true,
-            'uid' => false,
-            'login' => false,
-            'password' => false,
-            'twofa' => false, // 2-factor authentication (one-time password key)
-            'privateKey' => false,
-            'walletAddress' => false,
-            'token' => false, // reserved for HTTP auth in some cases
-        );
-
-        // API methods metainfo
-        $this->has = array(
-            'publicAPI' => true,
-            'privateAPI' => true,
-            'CORS' => null,
-            'spot' => null,
-            'margin' => null,
-            'swap' => null,
-            'future' => null,
-            'option' => null,
-            'addMargin' => null,
-            'cancelAllOrders' => null,
-            'cancelOrder' => true,
-            'cancelOrders' => null,
-            'createDepositAddress' => null,
-            'createLimitOrder' => true,
-            'createMarketOrder' => true,
-            'createOrder' => true,
-            'createPostOnlyOrder' => null,
-            'createReduceOnlyOrder' => null,
-            'createStopOrder' => null,
-            'editOrder' => 'emulated',
-            'fetchAccounts' => null,
-            'fetchBalance' => true,
-            'fetchBidsAsks' => null,
-            'fetchBorrowInterest' => null,
-            'fetchBorrowRate' => null,
-            'fetchBorrowRateHistory' => null,
-            'fetchBorrowRatesPerSymbol' => null,
-            'fetchBorrowRates' => null,
-            'fetchCanceledOrders' => null,
-            'fetchClosedOrder' => null,
-            'fetchClosedOrders' => null,
-            'fetchCurrencies' => 'emulated',
-            'fetchDeposit' => null,
-            'fetchDepositAddress' => null,
-            'fetchDepositAddresses' => null,
-            'fetchDepositAddressesByNetwork' => null,
-            'fetchDeposits' => null,
-            'fetchFundingFee' => null,
-            'fetchFundingFees' => null,
-            'fetchFundingHistory' => null,
-            'fetchFundingRate' => null,
-            'fetchFundingRateHistory' => null,
-            'fetchFundingRates' => null,
-            'fetchIndexOHLCV' => null,
-            'fetchL2OrderBook' => true,
-            'fetchLedger' => null,
-            'fetchLedgerEntry' => null,
-            'fetchLeverageTiers' => null,
-            'fetchMarketLeverageTiers' => null,
-            'fetchMarkets' => true,
-            'fetchMarkOHLCV' => null,
-            'fetchMyTrades' => null,
-            'fetchOHLCV' => 'emulated',
-            'fetchOpenOrder' => null,
-            'fetchOpenOrders' => null,
-            'fetchOrder' => null,
-            'fetchOrderBook' => true,
-            'fetchOrderBooks' => null,
-            'fetchOrders' => null,
-            'fetchOrderTrades' => null,
-            'fetchPermissions' => null,
-            'fetchPosition' => null,
-            'fetchPositions' => null,
-            'fetchPositionsRisk' => null,
-            'fetchPremiumIndexOHLCV' => null,
-            'fetchStatus' => 'emulated',
-            'fetchTicker' => true,
-            'fetchTickers' => null,
-            'fetchTime' => null,
-            'fetchTrades' => true,
-            'fetchTradingFee' => null,
-            'fetchTradingFees' => null,
-            'fetchTradingLimits' => null,
-            'fetchTransactions' => null,
-            'fetchTransfers' => null,
-            'fetchWithdrawal' => null,
-            'fetchWithdrawals' => null,
-            'reduceMargin' => null,
-            'setLeverage' => null,
-            'setMargin' => null,
-            'setMarginMode' => null,
-            'setPositionMode' => null,
-            'signIn' => null,
-            'transfer' => null,
-            'withdraw' => null,
-        );
-
-        $this->precisionMode = DECIMAL_PLACES;
-        $this->paddingMode = NO_PADDING;
-        $this->number = 'floatval';
-        $this->handleContentTypeApplicationZip = false;
-
-        $this->lastRestRequestTimestamp = 0;
-        $this->lastRestPollTimestamp = 0;
-        $this->restRequestQueue = null;
-        $this->restPollerLoopIsRunning = false;
-        $this->enableRateLimit = true;
-        $this->enableLastJsonResponse = true;
-        $this->enableLastHttpResponse = true;
-        $this->enableLastResponseHeaders = true;
-        $this->last_http_response = null;
-        $this->last_json_response = null;
-        $this->last_response_headers = null;
-
-        $this->requiresWeb3 = false;
-        $this->requiresEddsa = false;
-        $this->rateLimit = 2000;
-
-        $this->commonCurrencies = array(
-            'XBT' => 'BTC',
-            'BCC' => 'BCH',
-            'BCHABC' => 'BCH',
-            'BCHSV' => 'BSV',
-        );
+        $this->options = $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
-        $this->urlencode_glue_warning = true;
 
         $options = array_replace_recursive($this->describe(), $options);
         if ($options) {
@@ -1520,34 +1621,24 @@ class Exchange {
         return $hmac;
     }
 
-    public static function jwt($request, $secret, $alg = 'HS256') {
-        $algorithms = array(
-            'HS256' => 'sha256',
-            'HS384' => 'sha384',
-            'HS512' => 'sha512',
-        );
+    public static function jwt($request, $secret, $algorithm = 'sha256', $is_rsa = false) {
+        $alg = ($is_rsa ? 'RS' : 'HS') . mb_substr($algorithm, 3, 3);
         $encodedHeader = static::urlencodeBase64(json_encode(array('alg' => $alg, 'typ' => 'JWT')));
         $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
-        $algoType = substr($alg, 0, 2);
-
-        if ($algoType === 'HS') {
-            $algName = $algorithms[$alg];
-            if (!array_key_exists($alg, $algorithms)) {
-                throw new ExchangeError($alg . ' is not a supported jwt algorithm.');
-            }
-            $signature =  static::hmac($token, $secret, $algName, 'binary');
-        } elseif ($algoType === 'RS') {
-            $signature = static::rsa($token, $secret, $alg);
+        if ($is_rsa) {
+            $signature = \base64_decode(static::rsa($token, $secret, $algorithm));
+        } else {
+            $signature =  static::hmac($token, $secret, $algorithm, 'binary');
         }
         return $token . '.' . static::urlencodeBase64($signature);
     }
 
-    public static function rsa($request, $secret, $alg = 'RS256') {
+    public static function rsa($request, $secret, $alg = 'sha256') {
         $algorithms = array(
-            'RS256' => \OPENSSL_ALGO_SHA256,
-            'RS384' => \OPENSSL_ALGO_SHA384,
-            'RS512' => \OPENSSL_ALGO_SHA512,
+            'sha256' => \OPENSSL_ALGO_SHA256,
+            'sha384' => \OPENSSL_ALGO_SHA384,
+            'sha512' => \OPENSSL_ALGO_SHA512,
         );
         if (!array_key_exists($alg, $algorithms)) {
             throw new ExchangeError($alg . ' is not a supported rsa signing algorithm.');
@@ -1555,7 +1646,7 @@ class Exchange {
         $algName = $algorithms[$alg];
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
-        return $signature;
+        return \base64_encode($signature);
     }
 
     public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $fixedLength = false) {
@@ -1597,10 +1688,6 @@ class Exchange {
             $delay = $sleep_time - $elapsed;
             usleep((int) ($delay * 1000.0));
         }
-    }
-
-    public function sign($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
-        throw new NotSupported($this->id . ' sign() is not supported yet');
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
@@ -1912,8 +1999,18 @@ class Exchange {
         return $this->currencies ? $this->currencies : array();
     }
 
-    public function precision_from_string($string) {
-        $parts = explode('.', preg_replace('/0+$/', '', $string));
+    public function precision_from_string($str) {
+        // support string formats like '1e-4'
+        if (strpos($str, 'e') > -1) {
+            $numStr = preg_replace ('/\de/', '', $str);
+            return ((int)$numStr) * -1;
+        }
+        // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
+        // if (strpos($str, '.') === -1) {
+        //     return strlen(str) * -1;
+        // }
+        // default strings like '0.0001'
+        $parts = explode('.', preg_replace('/0+$/', '', $str));
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
     }
 
@@ -2008,12 +2105,16 @@ class Exchange {
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
         if ($countingMode === TICK_SIZE) {
-            if (!(is_float($numPrecisionDigits) || is_int($numPrecisionDigits)))
-                throw new BaseError('Precision must be an integer or float for TICK_SIZE');
+            if (!(is_float($numPrecisionDigits) || is_int($numPrecisionDigits) || is_string($numPrecisionDigits) ))
+                throw new BaseError('Precision must be an integer or float or string for TICK_SIZE');
         } else {
             if (!is_int($numPrecisionDigits)) {
                 throw new BaseError('Precision must be an integer');
             }
+        }
+
+        if (is_string($numPrecisionDigits)) {
+            $numPrecisionDigits = (float) $numPrecisionDigits;
         }
 
         if (!is_numeric($x)) {
@@ -2404,6 +2505,25 @@ class Exchange {
         }
     }
 
+    function find_timeframe($timeframe, $timeframes = null) {
+        $timeframes = $timeframes ? $timeframes : $this->timeframes;
+        $keys = array_keys($timeframes);
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
+    }
+
+    public function formatScientificNotationFTX($n) {
+        if ($n === 0) {
+            return '0e-00';
+        }
+        return str_replace('E-', 'e-0', sprintf('g', $n));
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2442,6 +2562,136 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        return array();
+    }
+
+    public function fetch_accounts($params = array ()) {
+        throw new NotSupported($this->id . ' fetchAccounts() is not supported yet');
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
+    }
+
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTrades() is not supported yet');
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
+    }
+
+    public function fetch_time($params = array ()) {
+        throw new NotSupported($this->id . ' fetchTime() is not supported yet');
+    }
+
+    public function fetch_trading_limits($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        throw new NotSupported($this->id . ' parseTicker() is not supported yet');
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositAddress() is not supported yet');
+    }
+
+    public function parse_trade($trade, $market = null) {
+        throw new NotSupported($this->id . ' parseTrade() is not supported yet');
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        throw new NotSupported($this->id . ' parseTransaction() is not supported yet');
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
+    }
+
+    public function parse_account($account) {
+        throw new NotSupported($this->id . ' parseAccount() is not supported yet');
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        throw new NotSupported($this->id . ' parseLedgerEntry() is not supported yet');
+    }
+
+    public function parse_order($order, $market = null) {
+        throw new NotSupported($this->id . ' parseOrder() is not supported yet');
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        throw new NotSupported($this->id . ' fetchBorrowRates() is not supported yet');
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        throw new NotSupported($this->id . ' parseMarketLeverageTiers() is not supported yet');
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported yet');
+    }
+
+    public function parse_position($position, $market = null) {
+        throw new NotSupported($this->id . ' parsePosition() is not supported yet');
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        throw new NotSupported($this->id . ' parseFundingRateHistory() is not supported yet');
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        throw new NotSupported($this->id . ' transfer() is not supported yet');
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        throw new NotSupported($this->id . ' withdraw() is not supported yet');
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        throw new NotSupported($this->id . ' createDepositAddress() is not supported yet');
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' setLeverage() is not supported yet');
+    }
+
+    public function parse_to_int($number) {
+        // Solve Common intvalmisuse ex => intval((since / (string) 1000))
+        // using a $number which is not valid in ts
+        $stringifiedNumber = (string) $number;
+        $convertedNumber = floatval($stringifiedNumber);
+        return intval($convertedNumber);
+    }
+
+    public function get_default_options() {
+        return array(
+            'defaultNetworkCodeReplacements' => array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+                'CRO' => array( 'CRC20' => 'CRONOS' ),
+            ),
+        );
+    }
 
     public function safe_ledger_entry($entry, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
@@ -2492,16 +2742,24 @@ class Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
-        $marketValues = $this->to_array($markets);
+        $this->markets_by_id = array();
+        // handle marketId conflicts
+        // we insert spot $markets first
+        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true);
         for ($i = 0; $i < count($marketValues); $i++) {
+            $value = $marketValues[$i];
+            if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
+                ($this->markets_by_id[$value['id']])[] = $value;
+            } else {
+                $this->markets_by_id[$value['id']] = array( $value );
+            }
             $market = $this->deep_extend($this->safe_market(), array(
                 'precision' => $this->precision,
                 'limits' => $this->limits,
-            ), $this->fees['trading'], $marketValues[$i]);
+            ), $this->fees['trading'], $value);
             $values[] = $market;
         }
         $this->markets = $this->index_by($values, 'symbol');
-        $this->markets_by_id = $this->index_by($markets, 'id');
         $marketsSortedBySymbol = $this->keysort ($this->markets);
         $marketsSortedById = $this->keysort ($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
@@ -2513,13 +2771,13 @@ class Exchange {
             $quoteCurrencies = array();
             for ($i = 0; $i < count($values); $i++) {
                 $market = $values[$i];
-                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('0.00000001');
+                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
                 $marketPrecision = $this->safe_value($market, 'precision', array());
                 if (is_array($market) && array_key_exists('base', $market)) {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'baseId', 'base'),
-                        'numericId' => $this->safe_string($market, 'baseNumericId'),
+                        'numericId' => $this->safe_integer($market, 'baseNumericId'),
                         'code' => $this->safe_string($market, 'base'),
                         'precision' => $currencyPrecision,
                     );
@@ -2529,7 +2787,7 @@ class Exchange {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
-                        'numericId' => $this->safe_string($market, 'quoteNumericId'),
+                        'numericId' => $this->safe_integer($market, 'quoteNumericId'),
                         'code' => $this->safe_string($market, 'quote'),
                         'precision' => $currencyPrecision,
                     );
@@ -2573,11 +2831,13 @@ class Exchange {
         $balance['free'] = array();
         $balance['used'] = array();
         $balance['total'] = array();
+        $debtBalance = array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
+            $debt = $this->safe_string($balance[$code], 'debt');
             if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
@@ -2593,13 +2853,22 @@ class Exchange {
             $balance['free'][$code] = $balance[$code]['free'];
             $balance['used'][$code] = $balance[$code]['used'];
             $balance['total'][$code] = $balance[$code]['total'];
+            if ($debt !== null) {
+                $balance[$code]['debt'] = $this->parse_number($debt);
+                $debtBalance[$code] = $balance[$code]['debt'];
+            }
+        }
+        $debtBalanceArray = is_array($debtBalance) ? array_keys($debtBalance) : array();
+        $length = count($debtBalanceArray);
+        if ($length) {
+            $balance['debt'] = $debtBalance;
         }
         return $balance;
     }
 
     public function safe_order($order, $market = null) {
-        // parses numbers as strings
-        // it is important pass the $trades as unparsed $rawTrades
+        // parses numbers
+        // * it is important pass the $trades $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
@@ -2607,26 +2876,25 @@ class Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'average'));
         $price = $this->omit_zero($this->safe_string($order, 'price'));
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $symbol = $this->safe_string($order, 'symbol');
+        $side = $this->safe_string($order, 'side');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
         $fee = $this->safe_value($order, 'fee');
         $parseFee = ($fee === null);
         $parseFees = $this->safe_value($order, 'fees') === null;
+        $parseSymbol = $symbol === null;
+        $parseSide = $side === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = $this->safe_value($order, 'fees', array());
         $trades = array();
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $rawTrades = $this->safe_value($order, 'trades', $trades);
             $oldNumber = $this->number;
-            // we parse $trades as strings here!
+            // we parse $trades here!
             $this->number = 'strval';
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'symbol' => $order['symbol'],
-                'side' => $order['side'],
-                'type' => $order['type'],
-                'order' => $order['id'],
-            ));
+            $trades = $this->parse_trades($rawTrades, $market);
             $this->number = $oldNumber;
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
@@ -2662,6 +2930,12 @@ class Exchange {
                     $tradeCost = $this->safe_string($trade, 'cost');
                     if ($parseCost && ($tradeCost !== null)) {
                         $cost = Precise::string_add($cost, $tradeCost);
+                    }
+                    if ($parseSymbol) {
+                        $symbol = $this->safe_string($trade, 'symbol');
+                    }
+                    if ($parseSide) {
+                        $side = $this->safe_string($trade, 'side');
                     }
                     $tradeTimestamp = $this->safe_value($trade, 'timestamp');
                     if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
@@ -2728,12 +3002,29 @@ class Exchange {
             }
         }
         // ensure that the $average field is calculated correctly
+        $inverse = $this->safe_value($market, 'inverse', false);
+        $contractSize = $this->number_to_string($this->safe_value($market, 'contractSize', 1));
+        // $inverse
+        // $price = $filled * contract size / $cost
+        //
+        // linear
+        // $price = $cost / ($filled * contract size)
         if ($average === null) {
             if (($filled !== null) && ($cost !== null) && Precise::string_gt($filled, '0')) {
-                $average = Precise::string_div($cost, $filled);
+                $filledTimesContractSize = Precise::string_mul($filled, $contractSize);
+                if ($inverse) {
+                    $average = Precise::string_div($filledTimesContractSize, $cost);
+                } else {
+                    $average = Precise::string_div($cost, $filledTimesContractSize);
+                }
             }
         }
-        // also ensure the $cost field is calculated correctly
+        // similarly
+        // $inverse
+        // $cost = $filled * contract size / $price
+        //
+        // linear
+        // $cost = $filled * contract size * $price
         $costPriceExists = ($average !== null) || ($price !== null);
         if ($parseCost && ($filled !== null) && $costPriceExists) {
             $multiplyPrice = null;
@@ -2743,15 +3034,12 @@ class Exchange {
                 $multiplyPrice = $average;
             }
             // contract trading
-            $contractSize = $this->safe_string($market, 'contractSize');
-            if ($contractSize !== null) {
-                $inverse = $this->safe_value($market, 'inverse', false);
-                if ($inverse) {
-                    $multiplyPrice = Precise::string_div('1', $multiplyPrice);
-                }
-                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
+            $filledTimesContractSize = Precise::string_mul($filled, $contractSize);
+            if ($inverse) {
+                $cost = Precise::string_div($filledTimesContractSize, $multiplyPrice);
+            } else {
+                $cost = Precise::string_mul($filledTimesContractSize, $multiplyPrice);
             }
-            $cost = Precise::string_mul($multiplyPrice, $filled);
         }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
@@ -2772,18 +3060,35 @@ class Exchange {
             }
             $entry['fee'] = $fee;
         }
-        // timeInForceHandling
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = $this->safe_value($order, 'postOnly');
+        // timeInForceHandling
         if ($timeInForce === null) {
             if ($this->safe_string($order, 'type') === 'market') {
                 $timeInForce = 'IOC';
             }
-            // allow postOnly override
-            if ($this->safe_value($order, 'postOnly', false)) {
+            // allow $postOnly override
+            if ($postOnly) {
                 $timeInForce = 'PO';
             }
+        } elseif ($postOnly === null) {
+            // $timeInForce is not null here
+            $postOnly = $timeInForce === 'PO';
         }
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        $datetime = $this->safe_string($order, 'datetime');
+        if ($datetime === null) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
+        $triggerPrice = $this->parse_number($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
         return array_merge($order, array(
+            'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'symbol' => $symbol,
+            'type' => $this->safe_string($order, 'type'),
+            'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
             'price' => $this->parse_number($price),
             'amount' => $this->parse_number($amount),
@@ -2792,7 +3097,13 @@ class Exchange {
             'filled' => $this->parse_number($filled),
             'remaining' => $this->parse_number($remaining),
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'trades' => $trades,
+            'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
+            'stopPrice' => $triggerPrice,  // ! deprecated, use $triggerPrice instead
+            'triggerPrice' => $triggerPrice,
+            'status' => $this->safe_string($order, 'status'),
+            'fee' => $this->safe_value($order, 'fee'),
         ));
     }
 
@@ -2912,20 +3223,6 @@ class Exchange {
         $parseFees = $this->safe_value($trade, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = array();
-        if ($shouldParseFees) {
-            $tradeFees = $this->safe_value($trade, 'fees');
-            if ($tradeFees !== null) {
-                for ($j = 0; $j < count($tradeFees); $j++) {
-                    $tradeFee = $tradeFees[$j];
-                    $fees[] = array_merge(array(), $tradeFee);
-                }
-            } else {
-                $tradeFee = $this->safe_value($trade, 'fee');
-                if ($tradeFee !== null) {
-                    $fees[] = array_merge(array(), $tradeFee);
-                }
-            }
-        }
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
@@ -3125,6 +3422,10 @@ class Exchange {
         return $result;
     }
 
+    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
+    }
+
     public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_value($ohlcvs, $timestamp, array());
@@ -3155,7 +3456,7 @@ class Exchange {
         $result[$close] = array();
         $result[$volume] = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
-            $ts = $ms ? $ohlcvs[$i][0] : intval($ohlcvs[$i][0] / 1000);
+            $ts = $ms ? $ohlcvs[$i][0] : $this->parseToInt ($ohlcvs[$i][0] / 1000);
             $result[$timestamp][] = $ts;
             $result[$open][] = $ohlcvs[$i][1];
             $result[$high][] = $ohlcvs[$i][2];
@@ -3167,6 +3468,9 @@ class Exchange {
     }
 
     public function market_ids($symbols) {
+        if ($symbols === null) {
+            return $symbols;
+        }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->market_id($symbols[$i]);
@@ -3280,6 +3584,149 @@ class Exchange {
         }
     }
 
+    public function network_code_to_id($networkCode, $currencyCode = null) {
+        /**
+         * @ignore
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified network code
+         * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} exchange-specific network id
+         */
+        $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
+        $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
+        // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
+        if ($networkId === null) {
+            if ($currencyCode === null) {
+                // if $currencyCode was not provided, then we just set passed $value to $networkId
+                $networkId = $networkCode;
+            } else {
+                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH)
+                $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
+                if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
+                    // if there is a replacement for the passed $networkCode, then we use it to find network-id in `options->networks` object
+                    $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
+                    $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
+                    for ($i = 0; $i < count($keys); $i++) {
+                        $key = $keys[$i];
+                        $value = $replacementObject[$key];
+                        // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        if ($value === $networkCode) {
+                            $networkId = $this->safe_string($networkIdsByCodes, $key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided $value to network-id
+                if ($networkId === null) {
+                    $networkId = $networkCode;
+                }
+            }
+        }
+        return $networkId;
+    }
+
+    public function network_id_to_code($networkId, $currencyCode = null) {
+        /**
+         * @ignore
+         * tries to convert the provided exchange-specific $networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
+         * @param {string} $networkId unified network code
+         * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} unified network code
+         */
+        $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
+        $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
+        if ($currencyCode !== null) {
+            $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
+            if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
+                $replacementObject = $this->safe_value($defaultNetworkCodeReplacements, $currencyCode, array());
+                $networkCode = $this->safe_string($replacementObject, $networkCode, $networkCode);
+            }
+        }
+        return $networkCode;
+    }
+
+    public function network_codes_to_ids($networkCodes = null) {
+        /**
+         * @ignore
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|null} $networkCodes unified network codes
+         * @return {[string|null]} exchange-specific network $ids
+         */
+        if ($networkCodes === null) {
+            return null;
+        }
+        $ids = array();
+        for ($i = 0; $i < count($networkCodes); $i++) {
+            $networkCode = $networkCodes[$i];
+            $ids[] = $this->networkCodeToId ($networkCode);
+        }
+        return $ids;
+    }
+
+    public function handle_network_code_and_params($params) {
+        $networkCodeInParams = $this->safe_string_2($params, 'networkCode', 'network');
+        if ($networkCodeInParams !== null) {
+            $params = $this->omit ($params, array( 'networkCode', 'network' ));
+        }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return array( $networkCodeInParams, $params );
+    }
+
+    public function default_network_code($currencyCode) {
+        $defaultNetworkCode = null;
+        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks', array());
+        if (is_array($defaultNetworks) && array_key_exists($currencyCode, $defaultNetworks)) {
+            // if currency had set its network in "defaultNetworks", use it
+            $defaultNetworkCode = $defaultNetworks[$currencyCode];
+        } else {
+            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
+            $defaultNetwork = $this->safe_value($this->options, 'defaultNetwork');
+            if ($defaultNetwork !== null) {
+                $defaultNetworkCode = $defaultNetwork;
+            }
+        }
+        return $defaultNetworkCode;
+    }
+
+    public function select_network_code_from_unified_networks($currencyCode, $networkCode, $indexedNetworkEntries) {
+        return $this->selectNetworkKeyFromNetworks ($currencyCode, $networkCode, $indexedNetworkEntries, true);
+    }
+
+    public function select_network_id_from_raw_networks($currencyCode, $networkCode, $indexedNetworkEntries) {
+        return $this->selectNetworkKeyFromNetworks ($currencyCode, $networkCode, $indexedNetworkEntries, false);
+    }
+
+    public function select_network_key_from_networks($currencyCode, $networkCode, $indexedNetworkEntries, $isIndexedByUnifiedNetworkCode = false) {
+        // this method is used against raw & unparse network entries, which are just indexed by network id
+        $chosenNetworkId = null;
+        $availableNetworkIds = is_array($indexedNetworkEntries) ? array_keys($indexedNetworkEntries) : array();
+        $responseNetworksLength = count($availableNetworkIds);
+        if ($networkCode !== null) {
+            if ($responseNetworksLength === 0) {
+                throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
+            } else {
+                // if $networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
+                $networkId = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->networkCodeToId ($networkCode, $currencyCode);
+                if (is_array($indexedNetworkEntries) && array_key_exists($networkId, $indexedNetworkEntries)) {
+                    $chosenNetworkId = $networkId;
+                } else {
+                    throw new NotSupported($this->id . ' - ' . $networkId . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
+                }
+            }
+        } else {
+            if ($responseNetworksLength === 0) {
+                throw new NotSupported($this->id . ' - no networks were returned for ' . $currencyCode);
+            } else {
+                // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                $defaultNetworkCode = $this->defaultNetworkCode ($currencyCode);
+                $defaultNetworkId = $isIndexedByUnifiedNetworkCode ? $defaultNetworkCode : $this->networkCodeToId ($defaultNetworkCode, $currencyCode);
+                $chosenNetworkId = (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) ? $defaultNetworkId : $availableNetworkIds[0];
+            }
+        }
+        return $chosenNetworkId;
+    }
+
     public function safe_number_2($dictionary, $key1, $key2, $d = null) {
         $value = $this->safe_string_2($dictionary, $key1, $key2);
         return $this->parse_number($value, $d);
@@ -3315,7 +3762,7 @@ class Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $id = $this->safe_string($item, $marketIdKey);
-            $market = $this->safe_market($id);
+            $market = $this->safe_market($id, null, null, $this->safe_string($this->options, 'defaultType'));
             $symbol = $market['symbol'];
             $contract = $this->safe_value($market, 'contract', false);
             if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
@@ -3489,10 +3936,6 @@ class Exchange {
         return $this->accounts;
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
-    }
-
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
@@ -3567,7 +4010,7 @@ class Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null) {
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
         $result = array(
             'id' => $marketId,
             'symbol' => $marketId,
@@ -3614,7 +4057,22 @@ class Exchange {
         );
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $market = $this->markets_by_id[$marketId];
+                $markets = $this->markets_by_id[$marketId];
+                $numMarkets = count($markets);
+                if ($numMarkets === 1) {
+                    return $markets[0];
+                } else {
+                    if (($marketType === null) && ($market === null)) {
+                        throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
+                    }
+                    $inferredMarketType = ($marketType === null) ? $market['type'] : $marketType;
+                    for ($i = 0; $i < count($markets); $i++) {
+                        $market = $markets[$i];
+                        if ($market[$inferredMarketType]) {
+                            return $market;
+                        }
+                    }
+                }
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
@@ -3644,7 +4102,7 @@ class Exchange {
                 if ($error) {
                     throw new AuthenticationError($this->id . ' requires "' . $key . '" credential');
                 } else {
-                    return $error;
+                    return false;
                 }
             }
         }
@@ -3653,7 +4111,7 @@ class Exchange {
 
     public function oath() {
         if ($this->twofa !== null) {
-            return $this->totp ($this->twofa);
+            return $this->totp($this->twofa);
         } else {
             throw new ExchangeError($this->id . ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
         }
@@ -3661,6 +4119,10 @@ class Exchange {
 
     public function fetch_balance($params = array ()) {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
+    }
+
+    public function watch_balance($params = array ()) {
+        throw new NotSupported($this->id . ' watchBalance() is not supported yet');
     }
 
     public function fetch_partial_balance($part, $params = array ()) {
@@ -3686,6 +4148,9 @@ class Exchange {
             $this->status = array_merge($this->status, array(
                 'updated' => $time,
             ));
+        }
+        if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
+            $this->status['info'] = null;
         }
         return $this->status;
     }
@@ -3717,6 +4182,18 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
     }
 
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDepositWithdrawFees() is not supported yet');
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        if (!$this->has['fetchDepositWithdrawFees']) {
+            throw new NotSupported($this->id . ' fetchDepositWithdrawFee() is not supported yet');
+        }
+        $fees = $this->fetchDepositWithdrawFees (array( $code ), $params);
+        return $this->safe_value($fees, $code);
+    }
+
     public function get_supported_mapping($key, $mapping = array ()) {
         if (is_array($mapping) && array_key_exists($key, $mapping)) {
             return $mapping[$key];
@@ -3742,23 +4219,30 @@ class Exchange {
         // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
         $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
         // check if $params contain the key
-        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        $value = $this->safe_value_2($params, $optionName, $defaultOptionName);
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
-        }
-        if ($value === null) {
-            // check if exchange-wide method options contain the key
+        } else {
+            // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
-                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+                // check if the option is defined in this method's props
+                $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
+            if ($value === null) {
+                // if it's still null, check if global exchange-wide option exists
+                $value = $this->safe_value_2($this->options, $optionName, $defaultOptionName);
+            }
+            // if it's still null, use the default $value
+            $value = ($value !== null) ? $value : $defaultValue;
         }
-        if ($value === null) {
-            // check if exchange-wide options contain the key
-            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
-        }
-        $value = ($value !== null) ? $value : $defaultValue;
         return array( $value, $params );
+    }
+
+    public function handle_option($methodName, $optionName, $defaultValue = null) {
+        // eslint-disable-next-line no-unused-vars
+        list($result, $empty) = $this->handleOptionAndParams (array(), $methodName, $optionName, $defaultValue);
+        return $result;
     }
 
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
@@ -3778,14 +4262,14 @@ class Exchange {
         return array( $type, $params );
     }
 
-    public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = null) {
         $subType = null;
         // if set in $params, it takes precedence
-        $subTypeInParams = $this->safe_string_2($params, 'subType', 'subType');
+        $subTypeInParams = $this->safe_string_2($params, 'subType', 'defaultSubType');
         // avoid omitting if it's not present
         if ($subTypeInParams !== null) {
             $subType = $subTypeInParams;
-            $params = $this->omit ($params, array( 'defaultSubType', 'subType' ));
+            $params = $this->omit ($params, array( 'subType', 'defaultSubType' ));
         } else {
             // at first, check from $market object
             if ($market !== null) {
@@ -3797,12 +4281,20 @@ class Exchange {
             }
             // if it was not defined in $market object
             if ($subType === null) {
-                $exchangeWideValue = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
-                $methodOptions = $this->safe_value($this->options, $methodName, array());
-                $subType = $this->safe_string_2($methodOptions, 'defaultSubType', 'subType', $exchangeWideValue);
+                $values = $this->handleOptionAndParams (null, $methodName, 'subType', $defaultValue); // no need to re-test $params here
+                $subType = $values[0];
             }
         }
         return array( $subType, $params );
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the marginMode in lowercase by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        return $this->handleOptionAndParams ($params, $methodName, 'marginMode', $defaultValue);
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -3835,6 +4327,7 @@ class Exchange {
     public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         // it is a stub $method that must be overrided in the derived exchange classes
         // throw new NotSupported($this->id . ' handleErrors() not implemented yet');
+        return null;
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
@@ -3843,6 +4336,9 @@ class Exchange {
 
     public function fetch_ticker($symbol, $params = array ()) {
         if ($this->has['fetchTickers']) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+            $symbol = $market['symbol'];
             $tickers = $this->fetch_tickers(array( $symbol ), $params);
             $ticker = $this->safe_value($tickers, $symbol);
             if ($ticker === null) {
@@ -3855,8 +4351,16 @@ class Exchange {
         }
     }
 
+    public function watch_ticker($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTicker() is not supported yet');
+    }
+
     public function fetch_tickers($symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function watch_tickers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -3880,12 +4384,20 @@ class Exchange {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelAllOrders() is not supported yet');
+    }
+
     public function cancel_unified_order($order, $params = array ()) {
         return $this->cancelOrder ($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrders() is not supported yet');
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -3900,6 +4412,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
     }
 
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
+    }
+
     public function fetch_transactions($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTransactions() is not supported yet');
     }
@@ -3910,6 +4426,10 @@ class Exchange {
 
     public function fetch_withdrawals($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
+    }
+
+    public function parse_last_price($price, $market = null) {
+        throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -3957,19 +4477,24 @@ class Exchange {
 
     public function market($symbol) {
         if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if ($this->markets_by_id === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
+            throw new ExchangeError($this->id . ' $markets not loaded');
         }
         if (gettype($symbol) === 'string') {
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 return $this->markets[$symbol];
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                return $this->markets_by_id[$symbol];
+                $markets = $this->markets_by_id[$symbol];
+                $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
+                for ($i = 0; $i < count($markets); $i++) {
+                    $market = $markets[$i];
+                    if ($market[$defaultType]) {
+                        return $market;
+                    }
+                }
+                return $markets[0];
             }
         }
-        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
@@ -4017,12 +4542,20 @@ class Exchange {
 
     public function price_to_precision($symbol, $price) {
         $market = $this->market ($symbol);
-        return $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new ArgumentsRequired($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $this->number_to_string($market['precision']['price']));
+        }
+        return $result;
     }
 
     public function amount_to_precision($symbol, $amount) {
         $market = $this->market ($symbol);
-        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new ArgumentsRequired($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+        }
+        return $result;
     }
 
     public function fee_to_precision($symbol, $fee) {
@@ -4045,21 +4578,34 @@ class Exchange {
         }
     }
 
-    public function safe_number($object, $key, $d = null) {
-        $value = $this->safe_string($object, $key);
-        return $this->parse_number($value, $d);
+    public function safe_number($obj, $key, $defaultNumber = null) {
+        $value = $this->safe_string($obj, $key);
+        return $this->parse_number($value, $defaultNumber);
     }
 
-    public function safe_number_n($object, $arr, $d = null) {
+    public function safe_number_n($object, $arr, $defaultNumber = null) {
         $value = $this->safe_string_n($object, $arr);
-        return $this->parse_number($value, $d);
+        return $this->parse_number($value, $defaultNumber);
     }
 
     public function parse_precision($precision) {
+        /**
+         * @ignore
+         * @param {string} $precision The number of digits to the right of the decimal
+         * @return {string} a string number equal to 1e-$precision
+         */
         if ($precision === null) {
             return null;
         }
-        return '1e' . Precise::string_neg($precision);
+        $precisionNumber = intval($precision);
+        if ($precisionNumber === 0) {
+            return '1';
+        }
+        $parsedPrecision = '0.';
+        for ($i = 0; $i < $precisionNumber - 1; $i++) {
+            $parsedPrecision = $parsedPrecision . '0';
+        }
+        return $parsedPrecision . '1';
     }
 
     public function load_time_difference($params = array ()) {
@@ -4142,6 +4688,45 @@ class Exchange {
         return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
+    public function parse_last_prices($pricesData, $symbols = null, $params = array ()) {
+        //
+        // the value of tickers is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'marketId1' => array( ... ),
+        //         'marketId2' => array( ... ),
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     array(
+        //         array( 'market' => 'marketId1', ... ),
+        //         array( 'market' => 'marketId2', ... ),
+        //         ...
+        //     )
+        //
+        $results = array();
+        if (gettype($pricesData) === 'array' && array_keys($pricesData) === array_keys(array_keys($pricesData))) {
+            for ($i = 0; $i < count($pricesData); $i++) {
+                $priceData = array_merge($this->parseLastPrice ($pricesData[$i]), $params);
+                $results[] = $priceData;
+            }
+        } else {
+            $marketIds = is_array($pricesData) ? array_keys($pricesData) : array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $market = $this->safe_market($marketId);
+                $priceData = array_merge($this->parseLastPrice ($pricesData[$marketId], $market), $params);
+                $results[] = $priceData;
+            }
+        }
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array($results, 'symbol', $symbols);
+    }
+
     public function parse_tickers($tickers, $symbols = null, $params = array ()) {
         //
         // the value of $tickers is either a dict or a list
@@ -4192,7 +4777,9 @@ class Exchange {
         if ($codes !== null) {
             $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
-        $result = $indexed ? $this->index_by($result, 'currency') : $result;
+        if ($indexed) {
+            return $this->index_by($result, 'currency');
+        }
         return $result;
     }
 
@@ -4216,8 +4803,8 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function safe_symbol($marketId, $market = null, $delimiter = null) {
-        $market = $this->safe_market($marketId, $market, $delimiter);
+    public function safe_symbol($marketId, $market = null, $delimiter = null, $marketType = null) {
+        $market = $this->safe_market($marketId, $market, $delimiter, $marketType);
         return $market['symbol'];
     }
 
@@ -4268,6 +4855,40 @@ class Exchange {
         } else {
             return false;
         }
+    }
+
+    public function handle_post_only($isMarketOrder, $exchangeSpecificPostOnlyOption, $params = array ()) {
+        /**
+         * @ignore
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificBoolean exchange specific $postOnly
+         * @param {array} $params exchange specific $params
+         * @return array([boolean, $params])
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $po = $timeInForce === 'PO';
+        $postOnly = $postOnly || $po || $exchangeSpecificPostOnlyOption;
+        if ($postOnly) {
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
+            } else {
+                if ($po) {
+                    $params = $this->omit ($params, 'timeInForce');
+                }
+                $params = $this->omit ($params, 'postOnly');
+                return array( true, $params );
+            }
+        }
+        return array( false, $params );
+    }
+
+    public function fetch_last_prices($params = array ()) {
+        throw new NotSupported($this->id . ' fetchLastPrices() is not supported yet');
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -4324,7 +4945,7 @@ class Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
+         * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
          */
         if ($this->has['fetchMarkOHLCV']) {
             $request = array(
@@ -4344,7 +4965,7 @@ class Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
+         * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
          */
         if ($this->has['fetchIndexOHLCV']) {
             $request = array(
@@ -4364,7 +4985,7 @@ class Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
+         * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
          */
         if ($this->has['fetchPremiumIndexOHLCV']) {
             $request = array(
@@ -4401,32 +5022,15 @@ class Exchange {
          * @return the exchange specific $account name or the isolated margin id for transfers
          */
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $symbols = $this->symbols;
         $lowercaseAccount = strtolower($account);
         if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
             return $accountsByType[$lowercaseAccount];
-        } elseif ($this->in_array($account, $symbols)) {
+        } elseif ((is_array($this->markets) && array_key_exists($account, $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($account, $this->markets_by_id))) {
             $market = $this->market ($account);
             return $market['id'];
         } else {
             return $account;
         }
-    }
-
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
-        /**
-         * @ignore
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
-         */
-        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
-        $methodOptions = $this->safe_value($this->options, $methodName, array());
-        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
-        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
-        if ($marginMode !== null) {
-            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
-        }
-        return array( $marginMode, $params );
     }
 
     public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
@@ -4438,13 +5042,28 @@ class Exchange {
          * @param {[string]} $options a list of $options that the $argument can be
          * @return {null}
          */
-        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+        $optionsLength = count($options);
+        if (($argument === null) || (($optionsLength > 0) && (!($this->in_array($argument, $options))))) {
             $messageOptions = implode(', ', $options);
             $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
             if ($messageOptions !== '') {
                 $message .= ', one of ' . '(' . $messageOptions . ')';
             }
             throw new ArgumentsRequired($message);
+        }
+    }
+
+    public function check_required_margin_argument($methodName, $symbol, $marginMode) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         * @param {string} $marginMode is either 'isolated' or 'cross'
+         */
+        if (($marginMode === 'isolated') && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for isolated margin');
+        } elseif (($marginMode === 'cross') && ($symbol !== null)) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() cannot have a $symbol argument for cross margin');
         }
     }
 
@@ -4455,5 +5074,111 @@ class Exchange {
          * @param {string} $methodName name of the method that requires a $symbol
          */
         $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        /**
+         * @ignore
+         * @param {[object]|array} $response unparsed $response from the exchange
+         * @param {[string]|null} $codes the unified $currency $codes to fetch transactions fees for, returns all currencies when null
+         * @param {str|null} $currencyIdKey *should only be null when $response is a $dictionary* the object key that corresponds to the $currency id
+         * @return {array} objects with withdraw and deposit fees, indexed by $currency $codes
+         */
+        $depositWithdrawFees = array();
+        $codes = $this->marketCodes ($codes);
+        $isArray = gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response));
+        $responseKeys = $response;
+        if (!$isArray) {
+            $responseKeys = is_array($response) ? array_keys($response) : array();
+        }
+        for ($i = 0; $i < count($responseKeys); $i++) {
+            $entry = $responseKeys[$i];
+            $dictionary = $isArray ? $entry : $response[$entry];
+            $currencyId = $isArray ? $this->safe_string($dictionary, $currencyIdKey) : $entry;
+            $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+            $code = $this->safe_string($currency, 'code', $currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFees[$code] = $this->parseDepositWithdrawFee ($dictionary, $currency);
+            }
+        }
+        return $depositWithdrawFees;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
+    }
+
+    public function deposit_withdraw_fee($info) {
+        return array(
+            'info' => $info,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function assign_default_deposit_withdraw_fees($fee, $currency = null) {
+        /**
+         * @ignore
+         * Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {array} $fee A deposit withdraw $fee structure
+         * @param {array} $currency A $currency structure, the response from $this->currency ()
+         * @return {array} A deposit withdraw $fee structure
+         */
+        $networkKeys = is_array($fee['networks']) ? array_keys($fee['networks']) : array();
+        $numNetworks = count($networkKeys);
+        if ($numNetworks === 1) {
+            $fee['withdraw'] = $fee['networks'][$networkKeys[0]]['withdraw'];
+            $fee['deposit'] = $fee['networks'][$networkKeys[0]]['deposit'];
+            return $fee;
+        }
+        $currencyCode = $this->safe_string($currency, 'code');
+        for ($i = 0; $i < $numNetworks; $i++) {
+            $network = $networkKeys[$i];
+            if ($network === $currencyCode) {
+                $fee['withdraw'] = $fee['networks'][$networkKeys[$i]]['withdraw'];
+                $fee['deposit'] = $fee['networks'][$networkKeys[$i]]['deposit'];
+            }
+        }
+        return $fee;
+    }
+
+    public function parse_income($info, $market = null) {
+        throw new NotSupported($this->id . ' parseIncome () is not supported yet');
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        /**
+         * @ignore
+         * parses funding fee info from exchange response
+         * @param {[array]} $incomes each item describes once instance of currency being received or paid
+         * @param {array|null} $market ccxt $market
+         * @param {int|null} $since when defined, the response items are filtered to only include items after this timestamp
+         * @param {int|null} $limit limits the number of items in the response
+         * @return {[array]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         */
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income($entry, $market);
+            $result[] = $parsed;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
+    }
+
+    public function get_market_from_symbols($symbols = null) {
+        if ($symbols === null) {
+            return null;
+        }
+        $firstMarket = $this->safe_string($symbols, 0);
+        $market = $this->market ($firstMarket);
+        return $market;
     }
 }
