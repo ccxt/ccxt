@@ -1469,11 +1469,10 @@ export default class ascendex extends Exchange {
         };
         const isMarketOrder = ((type === 'market') || (type === 'stop_market'));
         const isLimitOrder = ((type === 'limit') || (type === 'stop_limit'));
-        let timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
         let postOnly = this.isPostOnly (isMarketOrder, false, params);
         if (timeInForce === 'PO') {
             postOnly = true;
-            timeInForce = undefined;
         }
         if (postOnly && (timeInForce !== undefined) && (timeInForce !== 'PO')) {
             throw new InvalidOrder (this.id + ' createOrder() - postOnly conflicts with timeInForce');
@@ -1490,11 +1489,10 @@ export default class ascendex extends Exchange {
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
-        if (timeInForce !== undefined) {
-            request['timeInForce'] = timeInForce;
-        }
         if (postOnly) {
             request['postOnly'] = true;
+        } else if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
         }
         if (stopPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
