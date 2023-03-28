@@ -43,7 +43,7 @@ export default class probit extends probitRest {
                 },
                 'watchOrders': {
                     'channel': 'open_order',
-                }
+                },
             },
             'streaming': {
             },
@@ -114,7 +114,7 @@ export default class probit extends probitRest {
             const entry = data[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (entry,'available');
+            account['free'] = this.safeString (entry, 'available');
             account['total'] = this.safeString (entry, 'total');
             this.balance[code] = account;
         }
@@ -425,7 +425,7 @@ export default class probit extends probitRest {
         let interval = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 100);
         const subscriptionHash = 'marketdata:' + symbol;
-        messageHash = messageHash + ':' +  symbol;
+        messageHash = messageHash + ':' + symbol;
         let filters = {};
         if (subscriptionHash in client.subscriptions) {
             // already subscribed
@@ -603,4 +603,4 @@ export default class probit extends probitRest {
         }
         return await future;
     }
-};
+}
