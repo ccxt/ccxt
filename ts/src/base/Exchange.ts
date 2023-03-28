@@ -158,7 +158,6 @@ export default class Exchange {
     optionNetworkData: any;
     generatedNetworkData: any;
     networksIdsDependOnCurrencies: any;
-    fetchOptions: any;
     userAgents: any;
     headers: any;
 
