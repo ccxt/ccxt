@@ -430,7 +430,7 @@ export default class whitebit extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchTransactionFees
@@ -485,7 +485,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDepositWithdrawFees
@@ -541,7 +541,7 @@ export default class whitebit extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         //
         //    {
         //        "1INCH": {
@@ -772,7 +772,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchTickers
@@ -849,7 +849,7 @@ export default class whitebit extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchTrades
@@ -881,7 +881,7 @@ export default class whitebit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchMyTrades
@@ -1036,7 +1036,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOHLCV
@@ -1227,7 +1227,7 @@ export default class whitebit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#cancelOrder
@@ -1321,7 +1321,7 @@ export default class whitebit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOpenOrders
@@ -1367,7 +1367,7 @@ export default class whitebit extends Exchange {
         return this.parseOrders (response, market, since, limit, { 'status': 'open' });
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchClosedOrders
@@ -1530,7 +1530,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOrderTrades
@@ -1651,7 +1651,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#setLeverage
@@ -1919,7 +1919,7 @@ export default class whitebit extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDeposits
@@ -1986,7 +1986,7 @@ export default class whitebit extends Exchange {
         return this.parseTransactions (records, currency, since, limit);
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchBorrowInterest
@@ -2073,7 +2073,7 @@ export default class whitebit extends Exchange {
         return this.inArray (currency, fiatCurrencies);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api as any, 0);
         const accessibility = this.safeValue (api as any, 1);

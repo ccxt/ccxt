@@ -1868,7 +1868,7 @@ export default class bybit extends Exchange {
         return this.parseTicker (rawTicker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTickers
@@ -1985,7 +1985,7 @@ export default class bybit extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOHLCV
@@ -2139,7 +2139,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchFundingRates
@@ -2219,7 +2219,7 @@ export default class bybit extends Exchange {
         return this.filterByArray (fundingRates, 'symbol', symbols);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchFundingRateHistory
@@ -2544,7 +2544,7 @@ export default class bybit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTrades
@@ -3318,7 +3318,7 @@ export default class bybit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOrder
@@ -4181,7 +4181,7 @@ export default class bybit extends Exchange {
         return await this.editContractV3Order (id, symbol, type, side, amount, price, params);
     }
 
-    async cancelUnifiedAccountOrder (id, symbol: string = undefined, params = {}) {
+    async cancelUnifiedAccountOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -4229,7 +4229,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelSpotOrder (id, symbol: string = undefined, params = {}) {
+    async cancelSpotOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -4268,7 +4268,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelUnifiedMarginOrder (id, symbol: string = undefined, params = {}) {
+    async cancelUnifiedMarginOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelUnifiedMarginOrder() requires a symbol argument');
         }
@@ -4310,7 +4310,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelUSDCOrder (id, symbol: string = undefined, params = {}) {
+    async cancelUSDCOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelUSDCOrder() requires a symbol argument');
         }
@@ -4351,7 +4351,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelDerivativesOrder (id, symbol: string = undefined, params = {}) {
+    async cancelDerivativesOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelDerivativesOrder() requires a symbol argument');
         }
@@ -4380,7 +4380,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bybit#cancelOrder
@@ -4409,7 +4409,7 @@ export default class bybit extends Exchange {
         return await this.cancelDerivativesOrder (id, symbol, params);
     }
 
-    async cancelAllUnifiedAccountOrders (symbol: string = undefined, params = {}) {
+    async cancelAllUnifiedAccountOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
@@ -4465,7 +4465,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    async cancelAllSpotOrders (symbol: string = undefined, params = {}) {
+    async cancelAllSpotOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllSpotOrders() requires a symbol argument');
         }
@@ -4493,7 +4493,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    async cancelAllUnifiedMarginOrders (symbol: string = undefined, params = {}) {
+    async cancelAllUnifiedMarginOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
@@ -4554,7 +4554,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    async cancelAllUSDCOrders (symbol: string = undefined, params = {}) {
+    async cancelAllUSDCOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllUSDCOrders() requires a symbol argument');
         }
@@ -4601,7 +4601,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    async cancelAllDerivativesOrders (symbol: string = undefined, params = {}) {
+    async cancelAllDerivativesOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
@@ -4639,7 +4639,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name bybit#cancelAllOrders
@@ -4681,18 +4681,18 @@ export default class bybit extends Exchange {
         }
     }
 
-    async fetchUnifiedAccountOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchUnifiedAccountOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
-            // 'category': string, Type of derivatives product: spot, linear or option.
-            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            // 'orderId': string, Order ID
-            // 'orderLinkId': string, Unique user-set order ID
-            // 'orderStatus': string, // Return all status orders if not passed
-            // 'orderFilter': string, Conditional order or active order
+            // 'category', Type of derivatives product: spot, linear or option.
+            // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'orderId', Order ID
+            // 'orderLinkId', Unique user-set order ID
+            // 'orderStatus', // Return all status orders if not passed
+            // 'orderFilter', Conditional order or active order
             // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4786,19 +4786,19 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchUnifiedMarginOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchUnifiedMarginOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
-            // 'category': string, Type of derivatives product: linear or option.
-            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            // 'orderId': string, Order ID
-            // 'orderLinkId': string, Unique user-set order ID
-            // 'orderStatus': string, Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
-            // 'orderFilter': string, Conditional order or active order
-            // 'direction': string, prev: prev, next: next.
+            // 'category', Type of derivatives product: linear or option.
+            // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'orderId', Order ID
+            // 'orderLinkId', Unique user-set order ID
+            // 'orderStatus', Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
+            // 'orderFilter', Conditional order or active order
+            // 'direction', prev: prev, next: next.
             // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4873,19 +4873,19 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchDerivativesOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDerivativesOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
             // 'symbol': market['id'],
-            // 'category': string, Type of derivatives product: spot, linear or option.
-            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            // 'orderId': string, Order ID
-            // 'orderLinkId': string, Unique user-set order ID
-            // 'orderStatus': string, // Return all status orders if not passed
-            // 'orderFilter': string, Conditional order or active order
+            // 'category', Type of derivatives product: spot, linear or option.
+            // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'orderId', Order ID
+            // 'orderLinkId', Unique user-set order ID
+            // 'orderStatus', // Return all status orders if not passed
+            // 'orderFilter', Conditional order or active order
             // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         if (symbol === undefined) {
             let type = undefined;
@@ -4969,7 +4969,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOrders
@@ -5011,7 +5011,7 @@ export default class bybit extends Exchange {
         }
     }
 
-    async fetchSpotClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchSpotClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -5066,7 +5066,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchClosedOrders
@@ -5094,7 +5094,7 @@ export default class bybit extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchCanceledOrders
@@ -5122,18 +5122,18 @@ export default class bybit extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchUnifiedAccountOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchUnifiedAccountOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
-            // 'category': string, Type of derivatives product: linear or option.
-            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-            // 'orderId': string, Order ID
-            // 'orderLinkId': string, Unique user-set order ID
-            // 'orderFilter': string, Conditional order or active order
+            // 'category', Type of derivatives product: linear or option.
+            // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'settleCoin', Settle coin. For linear, either symbol or settleCoin is required
+            // 'orderId', Order ID
+            // 'orderLinkId', Unique user-set order ID
+            // 'orderFilter', Conditional order or active order
             // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
             // 'openOnly': 0,
         };
         let market = undefined;
@@ -5231,7 +5231,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchSpotOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchSpotOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -5281,7 +5281,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchUnifiedMarginOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchUnifiedMarginOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -5360,20 +5360,20 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchDerivativesOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDerivativesOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
         const request = {
             // 'symbol': market['id'],
-            // 'category': string, Type of derivatives product: linear or option.
-            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-            // 'orderId': string, Order ID
-            // 'orderLinkId': string, Unique user-set order ID
-            // 'orderFilter': string, Conditional order or active order
+            // 'category', Type of derivatives product: linear or option.
+            // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'settleCoin', Settle coin. For linear, either symbol or settleCoin is required
+            // 'orderId', Order ID
+            // 'orderLinkId', Unique user-set order ID
+            // 'orderFilter', Conditional order or active order
             // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
             // 'openOnly': 0,
         };
         if (symbol !== undefined) {
@@ -5461,7 +5461,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchUSDCOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchUSDCOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -5504,7 +5504,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOpenOrders
@@ -5548,7 +5548,7 @@ export default class bybit extends Exchange {
         }
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOrderTrades
@@ -5566,7 +5566,7 @@ export default class bybit extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyUnifiedTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyUnifiedTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -5649,7 +5649,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMySpotTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMySpotTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMySpotTrades() requires a symbol argument');
         }
@@ -5705,7 +5705,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyUnifiedMarginTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyUnifiedMarginTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
@@ -5774,7 +5774,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyContractTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyContractTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyContractTrades() requires a symbol argument');
         }
@@ -5851,7 +5851,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyUsdcTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyUsdcTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -5896,7 +5896,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (dataList, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchMyTrades
@@ -6060,7 +6060,7 @@ export default class bybit extends Exchange {
         return this.parseDepositAddress (addressObject, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchDeposits
@@ -6126,7 +6126,7 @@ export default class bybit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchWithdrawals
@@ -6305,7 +6305,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchLedger
@@ -6809,7 +6809,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async fetchUnifiedPositions (symbols: string[] = undefined, params = {}) {
+    async fetchUnifiedPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let type = undefined;
@@ -6897,7 +6897,7 @@ export default class bybit extends Exchange {
         return this.filterByArray (results, 'symbol', symbols, false);
     }
 
-    async fetchUSDCPositions (symbols: string[] = undefined, params = {}) {
+    async fetchUSDCPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {};
@@ -6973,7 +6973,7 @@ export default class bybit extends Exchange {
         return this.filterByArray (results, 'symbol', symbols, false);
     }
 
-    async fetchDerivativesPositions (symbols: string[] = undefined, params = {}) {
+    async fetchDerivativesPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -7042,7 +7042,7 @@ export default class bybit extends Exchange {
         return this.parsePositions (positions, symbols, params);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchPositions
@@ -7286,7 +7286,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const values = await this.isUnifiedEnabled ();
         const isUnifiedAccount = this.safeValue (values, 1);
@@ -7296,7 +7296,7 @@ export default class bybit extends Exchange {
         return await this.setDerivativesMarginMode (marginMode, symbol, params);
     }
 
-    async setUnifiedMarginMode (marginMode, symbol: string = undefined, params = {}) {
+    async setUnifiedMarginMode (marginMode, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if ((marginMode !== 'REGULAR_MARGIN') && (marginMode !== 'PORTFOLIO_MARGIN')) {
             throw new BadRequest (this.id + ' setMarginMode() marginMode must be either REGULAR_MARGIN or PORTFOLIO_MARGIN');
@@ -7313,7 +7313,7 @@ export default class bybit extends Exchange {
         return response;
     }
 
-    async setDerivativesMarginMode (marginMode, symbol: string = undefined, params = {}) {
+    async setDerivativesMarginMode (marginMode, symbol = undefined, params = {}) {
         this.checkRequiredSymbol ('setMarginMode', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -7365,7 +7365,7 @@ export default class bybit extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bybit#setLeverage
@@ -7422,7 +7422,7 @@ export default class bybit extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let mode = undefined;
         if (hedged) {
@@ -7455,7 +7455,7 @@ export default class bybit extends Exchange {
         return await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
     }
 
-    async fetchDerivativesOpenInterestHistory (symbol, timeframe = '1h', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDerivativesOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         const subType = market['linear'] ? 'linear' : 'inverse';
@@ -7568,7 +7568,7 @@ export default class bybit extends Exchange {
         return this.parseOpenInterest (data[0], market);
     }
 
-    async fetchOpenInterestHistory (symbol, timeframe = '1h', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOpenInterestHistory
@@ -7672,7 +7672,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchBorrowInterest
@@ -7810,7 +7810,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTransfers
@@ -7863,7 +7863,7 @@ export default class bybit extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bybit#borrowMargin
@@ -7905,7 +7905,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bybit#repayMargin
@@ -8217,7 +8217,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

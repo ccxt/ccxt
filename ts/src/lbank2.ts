@@ -451,7 +451,7 @@ export default class lbank2 extends Exchange {
         return this.parseTicker (first, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchTickers
@@ -597,7 +597,7 @@ export default class lbank2 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchTrades
@@ -668,7 +668,7 @@ export default class lbank2 extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOHLCV
@@ -1181,7 +1181,7 @@ export default class lbank2 extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOrder
@@ -1200,7 +1200,7 @@ export default class lbank2 extends Exchange {
         return result;
     }
 
-    async fetchOrderSupplement (id, symbol: string = undefined, params = {}) {
+    async fetchOrderSupplement (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
@@ -1236,7 +1236,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrder (result);
     }
 
-    async fetchOrderDefault (id, symbol: string = undefined, params = {}) {
+    async fetchOrderDefault (id, symbol = undefined, params = {}) {
         // Id can be a list of ids delimited by a comma
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -1282,7 +1282,7 @@ export default class lbank2 extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchMyTrades
@@ -1302,12 +1302,12 @@ export default class lbank2 extends Exchange {
         params = this.omit (params, 'start_date');
         const request = {
             'symbol': market['id'],
-            // 'start_date': String Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            // 'end_date': String Finish time yyyy-mm-dd, the maximum is today, the default is today
+            // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
             // 'The start': and end date of the query window is up to 2 days
-            // 'from': String Initial transaction number inquiring
-            // 'direct': String inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            // 'size': String Query the number of defaults to 100
+            // 'from' Initial transaction number inquiring
+            // 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            // 'size' Query the number of defaults to 100
         };
         if (limit !== undefined) {
             request['size'] = limit;
@@ -1340,7 +1340,7 @@ export default class lbank2 extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOrders
@@ -1400,7 +1400,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOpenOrders
@@ -1457,7 +1457,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#cancelOrder
@@ -1499,7 +1499,7 @@ export default class lbank2 extends Exchange {
         return result;
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#cancelAllOrders
@@ -1814,7 +1814,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDeposits
@@ -1867,7 +1867,7 @@ export default class lbank2 extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchWithdrawals
@@ -1924,7 +1924,7 @@ export default class lbank2 extends Exchange {
         return this.parseTransactions (withdraws, currency, since, limit);
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchTransactionFees
@@ -2071,7 +2071,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDepositWithdrawFees
@@ -2096,7 +2096,7 @@ export default class lbank2 extends Exchange {
         return await this[method] (codes, params);
     }
 
-    async fetchPrivateDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchPrivateDepositWithdrawFees (codes = undefined, params = {}) {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
@@ -2135,7 +2135,7 @@ export default class lbank2 extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
-    async fetchPublicDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchPublicDepositWithdrawFees (codes = undefined, params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();
@@ -2282,7 +2282,7 @@ export default class lbank2 extends Exchange {
         return result;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"

@@ -265,7 +265,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#fetchTrades
@@ -373,7 +373,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#cancelOrder
@@ -389,7 +389,7 @@ export default class bl3p extends Exchange {
         return await this.privatePostMarketMoneyOrderCancel (this.extend (request, params));
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams (path, params);
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + request;
         const query = this.omit (params, this.extractParams (path));

@@ -111,7 +111,7 @@ export default class hollaex extends hollaexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#watchTrades
@@ -169,7 +169,7 @@ export default class hollaex extends hollaexRest {
         client.resolve (stored, channel);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#watchMyTrades
@@ -251,7 +251,7 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#watchOrders

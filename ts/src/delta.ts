@@ -781,7 +781,7 @@ export default class delta extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchTickers
@@ -967,7 +967,7 @@ export default class delta extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchTrades
@@ -1024,7 +1024,7 @@ export default class delta extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchOHLCV
@@ -1148,7 +1148,7 @@ export default class delta extends Exchange {
         return this.parsePosition (result, market);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchPositions
@@ -1462,7 +1462,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelOrder
@@ -1522,7 +1522,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelAllOrders
@@ -1551,7 +1551,7 @@ export default class delta extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchOpenOrders
@@ -1565,7 +1565,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchClosedOrders
@@ -1579,7 +1579,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'product_ids': market['id'], // comma-separated
@@ -1587,8 +1587,8 @@ export default class delta extends Exchange {
             // 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
             // 'start_time': since * 1000,
             // 'end_time': this.microseconds (),
-            // 'after': string, // after cursor for pagination
-            // 'before': string, // before cursor for pagination
+            // 'after', // after cursor for pagination
+            // 'before', // before cursor for pagination
             // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1630,7 +1630,7 @@ export default class delta extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchMyTrades
@@ -1647,8 +1647,8 @@ export default class delta extends Exchange {
             // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
             // 'start_time': since * 1000,
             // 'end_time': this.microseconds (),
-            // 'after': string, // after cursor for pagination
-            // 'before': string, // before cursor for pagination
+            // 'after', // after cursor for pagination
+            // 'before', // before cursor for pagination
             // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1712,7 +1712,7 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchLedger
@@ -1908,7 +1908,7 @@ export default class delta extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));

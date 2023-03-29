@@ -424,7 +424,7 @@ export default class tidex extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOrderBooks
@@ -505,7 +505,7 @@ export default class tidex extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchTickers
@@ -613,7 +613,7 @@ export default class tidex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchTrades
@@ -707,7 +707,7 @@ export default class tidex extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name tidex#cancelOrder
@@ -776,7 +776,7 @@ export default class tidex extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOrder
@@ -796,7 +796,7 @@ export default class tidex extends Exchange {
         return this.parseOrder (this.extend ({ 'id': id }, order));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOpenOrders
@@ -841,7 +841,7 @@ export default class tidex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchMyTrades
@@ -977,7 +977,7 @@ export default class tidex extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {

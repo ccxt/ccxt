@@ -253,7 +253,7 @@ export default class btcbox extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchTrades
@@ -317,7 +317,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#cancelOrder
@@ -415,7 +415,7 @@ export default class btcbox extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchOrder
@@ -450,7 +450,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrdersByType (type, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol === undefined) {
@@ -485,7 +485,7 @@ export default class btcbox extends Exchange {
         return orders;
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchOrders
@@ -499,7 +499,7 @@ export default class btcbox extends Exchange {
         return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchOpenOrders
@@ -517,7 +517,7 @@ export default class btcbox extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -559,7 +559,7 @@ export default class btcbox extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}, context = {}) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         let response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json

@@ -235,7 +235,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchOHLCV
@@ -472,7 +472,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchTrades
@@ -570,7 +570,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchOrders
@@ -819,7 +819,7 @@ export default class bitget extends bitgetRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchMyTrades

@@ -180,7 +180,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchTrades
@@ -406,7 +406,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchOrders

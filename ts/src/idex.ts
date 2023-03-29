@@ -431,7 +431,7 @@ export default class idex extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOHLCV
@@ -494,7 +494,7 @@ export default class idex extends Exchange {
         return [ timestamp, open, high, low, close, volume ];
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchTrades
@@ -830,7 +830,7 @@ export default class idex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchMyTrades
@@ -912,7 +912,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOpenOrders
@@ -929,7 +929,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchClosedOrders
@@ -946,7 +946,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrdersHelper (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersHelper (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'nonce': this.uuidv1 (),
@@ -1504,7 +1504,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchDeposits
@@ -1557,7 +1557,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchWithdrawals
@@ -1574,7 +1574,7 @@ export default class idex extends Exchange {
         return this.fetchTransactionsHelper (code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactionsHelper (code: string = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const nonce = this.uuidv1 ();
         const request = {
@@ -1708,7 +1708,7 @@ export default class idex extends Exchange {
         return authenticated ? (defaultCost / 2) : defaultCost;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const network = this.safeString (this.options, 'network', 'ETH');
         const version = this.safeString (this.options, 'version', 'v1');
         let url = this.urls['api'][network] + '/' + version + '/' + path;

@@ -945,7 +945,7 @@ export default class digifinex extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], timestamp);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchTickers
@@ -1366,7 +1366,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchTrades
@@ -1470,7 +1470,7 @@ export default class digifinex extends Exchange {
         }
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchOHLCV
@@ -1667,7 +1667,7 @@ export default class digifinex extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#cancelOrder
@@ -1738,7 +1738,7 @@ export default class digifinex extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#cancelOrders
@@ -1918,7 +1918,7 @@ export default class digifinex extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchOpenOrders
@@ -2020,7 +2020,7 @@ export default class digifinex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchOrders
@@ -2124,7 +2124,7 @@ export default class digifinex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchOrder
@@ -2220,7 +2220,7 @@ export default class digifinex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchMyTrades
@@ -2372,7 +2372,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchLedger
@@ -2521,7 +2521,7 @@ export default class digifinex extends Exchange {
         return address;
     }
 
-    async fetchTransactionsByType (type, code = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {
@@ -2563,7 +2563,7 @@ export default class digifinex extends Exchange {
         return this.parseTransactions (data, currency, since, limit, { 'type': type });
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchDeposits
@@ -2577,7 +2577,7 @@ export default class digifinex extends Exchange {
         return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchWithdrawals
@@ -2782,7 +2782,7 @@ export default class digifinex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -3023,7 +3023,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchFundingRateHistory
@@ -3136,7 +3136,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchPositions
@@ -3416,7 +3416,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#setLeverage
@@ -3472,7 +3472,7 @@ export default class digifinex extends Exchange {
         //
     }
 
-    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchTransfers
@@ -3517,7 +3517,7 @@ export default class digifinex extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchLeverageTiers
@@ -3563,7 +3563,7 @@ export default class digifinex extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols: string[] = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
         //
         //     [
         //         {
@@ -3730,7 +3730,7 @@ export default class digifinex extends Exchange {
         return [ marginMode, params ];
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchDepositWithdrawFees
@@ -3775,7 +3775,7 @@ export default class digifinex extends Exchange {
         return this.parseDepositWithdrawFees (data, codes);
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         //
         //     [
         //         {
@@ -3846,7 +3846,7 @@ export default class digifinex extends Exchange {
         return depositWithdrawFees;
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = (endpoint === 'spot') ? '/v3' : '/swap/v2';

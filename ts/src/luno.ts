@@ -429,7 +429,7 @@ export default class luno extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchOrder
@@ -446,7 +446,7 @@ export default class luno extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrdersByState (state = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersByState (state = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -462,7 +462,7 @@ export default class luno extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchOrders
@@ -476,7 +476,7 @@ export default class luno extends Exchange {
         return await this.fetchOrdersByState (undefined, symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchOpenOrders
@@ -490,7 +490,7 @@ export default class luno extends Exchange {
         return await this.fetchOrdersByState ('PENDING', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchClosedOrders
@@ -542,7 +542,7 @@ export default class luno extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchTickers
@@ -685,7 +685,7 @@ export default class luno extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchTrades
@@ -722,7 +722,7 @@ export default class luno extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchMyTrades
@@ -844,7 +844,7 @@ export default class luno extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name luno#cancelOrder
@@ -861,7 +861,7 @@ export default class luno extends Exchange {
         return await this.privatePostStoporder (this.extend (request, params));
     }
 
-    async fetchLedgerByEntries (code: string = undefined, entry = -1, limit = 1, params = {}) {
+    async fetchLedgerByEntries (code = undefined, entry = -1, limit = 1, params = {}) {
         // by default without entry number or limit number, return most recent entry
         const since = undefined;
         const request = {
@@ -871,7 +871,7 @@ export default class luno extends Exchange {
         return await this.fetchLedger (code, since, limit, this.extend (request, params));
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchLedger
@@ -1011,7 +1011,7 @@ export default class luno extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {

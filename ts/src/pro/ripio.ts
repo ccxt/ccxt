@@ -27,7 +27,7 @@ export default class ripio extends ripioRest {
         });
     }
 
-    async watchTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];

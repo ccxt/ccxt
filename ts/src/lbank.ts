@@ -308,7 +308,7 @@ export default class lbank extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchTickers
@@ -387,7 +387,7 @@ export default class lbank extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchTrades
@@ -630,7 +630,7 @@ export default class lbank extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name lbank#cancelOrder
@@ -650,7 +650,7 @@ export default class lbank extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrder
@@ -677,7 +677,7 @@ export default class lbank extends Exchange {
         }
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrders
@@ -703,7 +703,7 @@ export default class lbank extends Exchange {
         return this.parseOrders (data, undefined, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchClosedOrders
@@ -810,7 +810,7 @@ export default class lbank extends Exchange {
         return pem + '-----END PRIVATE KEY-----';
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"

@@ -378,7 +378,7 @@ export default class currencycom extends currencycomRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchTrades
@@ -414,7 +414,7 @@ export default class currencycom extends currencycomRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchOHLCV

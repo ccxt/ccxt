@@ -457,7 +457,7 @@ export default class independentreserve extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOrder
@@ -477,7 +477,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOpenOrders
@@ -506,7 +506,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchClosedOrders
@@ -535,7 +535,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchMyTrades
@@ -604,7 +604,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchTrades
@@ -708,7 +708,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#cancelOrder
@@ -725,7 +725,7 @@ export default class independentreserve extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

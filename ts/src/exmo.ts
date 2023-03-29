@@ -420,7 +420,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchTransactionFees
@@ -494,7 +494,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchDepositWithdrawFees
@@ -793,7 +793,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOHLCV
@@ -939,7 +939,7 @@ export default class exmo extends Exchange {
         return this.parseOrderBook (result, market['symbol'], undefined, 'bid', 'ask');
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOrderBooks
@@ -1020,7 +1020,7 @@ export default class exmo extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchTickers
@@ -1148,7 +1148,7 @@ export default class exmo extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchTrades
@@ -1191,7 +1191,7 @@ export default class exmo extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchMyTrades
@@ -1321,7 +1321,7 @@ export default class exmo extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name exmo#cancelOrder
@@ -1336,7 +1336,7 @@ export default class exmo extends Exchange {
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOrder
@@ -1377,7 +1377,7 @@ export default class exmo extends Exchange {
         });
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOrderTrades
@@ -1426,7 +1426,7 @@ export default class exmo extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOpenOrders
@@ -1543,7 +1543,7 @@ export default class exmo extends Exchange {
         }, market);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchCanceledOrders
@@ -1813,7 +1813,7 @@ export default class exmo extends Exchange {
         };
     }
 
-    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchTransactions
@@ -1867,7 +1867,7 @@ export default class exmo extends Exchange {
         return this.parseTransactions (response['history'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchWithdrawals
@@ -2025,7 +2025,7 @@ export default class exmo extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchDeposits
@@ -2079,7 +2079,7 @@ export default class exmo extends Exchange {
         return this.parseTransactions (items, currency, since, limit);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         if (api !== 'web') {
             url += this.version + '/';

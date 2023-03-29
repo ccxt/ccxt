@@ -390,7 +390,7 @@ export default class bithumb extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#fetchTickers
@@ -504,7 +504,7 @@ export default class bithumb extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#fetchOHLCV
@@ -628,7 +628,7 @@ export default class bithumb extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#fetchTrades
@@ -707,7 +707,7 @@ export default class bithumb extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#fetchOrder
@@ -867,7 +867,7 @@ export default class bithumb extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#fetchOpenOrders
@@ -916,7 +916,7 @@ export default class bithumb extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#cancelOrder
@@ -1035,7 +1035,7 @@ export default class bithumb extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
         const query = this.omit (params, this.extractParams (path));

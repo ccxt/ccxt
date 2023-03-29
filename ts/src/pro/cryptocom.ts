@@ -112,7 +112,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchTrades
@@ -180,7 +180,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, channel);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchMyTrades
@@ -261,7 +261,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOHLCV
@@ -321,7 +321,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOrders

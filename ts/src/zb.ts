@@ -1183,7 +1183,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.spotV1PrivateGetGetPayinAddress (params);
         //
@@ -1327,7 +1327,7 @@ export default class zb extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchTickers
@@ -1520,7 +1520,7 @@ export default class zb extends Exchange {
         }
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOHLCV
@@ -1713,7 +1713,7 @@ export default class zb extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchTrades
@@ -1964,7 +1964,7 @@ export default class zb extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name zb#cancelOrder
@@ -2014,7 +2014,7 @@ export default class zb extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name zb#cancelAllOrders
@@ -2045,7 +2045,7 @@ export default class zb extends Exchange {
         return await this[method] (this.extend (request, query));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOrder
@@ -2183,7 +2183,7 @@ export default class zb extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOrders
@@ -2344,7 +2344,7 @@ export default class zb extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         /**
          * @method
          * @name zb#fetchCanceledOrders
@@ -2504,7 +2504,7 @@ export default class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         /**
          * @method
          * @name zb#fetchClosedOrders
@@ -2622,7 +2622,7 @@ export default class zb extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOpenOrders
@@ -3088,7 +3088,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
          * @name zb#setLeverage
@@ -3120,7 +3120,7 @@ export default class zb extends Exchange {
         return await this.contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchFundingRateHistory
@@ -3265,7 +3265,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchFundingRates
@@ -3350,7 +3350,7 @@ export default class zb extends Exchange {
         });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchWithdrawals
@@ -3408,7 +3408,7 @@ export default class zb extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchDeposits
@@ -3543,7 +3543,7 @@ export default class zb extends Exchange {
         return this.parsePosition (firstPosition, market);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchPositions
@@ -3800,7 +3800,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchLedger
@@ -4165,7 +4165,7 @@ export default class zb extends Exchange {
         return rates;
     }
 
-    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
         /**
          * @method
          * @name zb#setLeverage
@@ -4215,7 +4215,7 @@ export default class zb extends Exchange {
         return response;
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
         /**
          * @method
          * @name zb#borrowMargin
@@ -4297,7 +4297,7 @@ export default class zb extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, version, access ] = api;
         let url = this.implodeHostname (this.urls['api'][section][version][access]);
         if (access === 'public') {

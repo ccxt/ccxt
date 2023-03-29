@@ -82,7 +82,7 @@ export default class bitmart extends bitmartRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#watchTrades
@@ -114,7 +114,7 @@ export default class bitmart extends bitmartRest {
         return await this.subscribe ('ticker', symbol, params);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#watchOrders
@@ -316,7 +316,7 @@ export default class bitmart extends bitmartRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#watchOHLCV

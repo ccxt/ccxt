@@ -242,7 +242,7 @@ export default class kraken extends krakenRest {
         return await this.watchPublic ('ticker', symbol, params);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchTrades
@@ -288,7 +288,7 @@ export default class kraken extends krakenRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOHLCV
@@ -572,7 +572,7 @@ export default class kraken extends krakenRest {
         return this.safeString (subscription, 'token');
     }
 
-    async watchPrivate (name, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchPrivate (name, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = name;
@@ -599,7 +599,7 @@ export default class kraken extends krakenRest {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchMyTrades
@@ -763,7 +763,7 @@ export default class kraken extends krakenRest {
         };
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOrders

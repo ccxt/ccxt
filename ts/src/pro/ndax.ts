@@ -105,7 +105,7 @@ export default class ndax extends ndaxRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchTrades
@@ -188,7 +188,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchOHLCV

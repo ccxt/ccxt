@@ -241,7 +241,7 @@ export default class bitstamp1 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchTrades
@@ -325,7 +325,7 @@ export default class bitstamp1 extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#cancelOrder
@@ -348,7 +348,7 @@ export default class bitstamp1 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrderStatus (id, symbol: string = undefined, params = {}) {
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -357,7 +357,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseOrderStatus (response);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchMyTrades
@@ -377,7 +377,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

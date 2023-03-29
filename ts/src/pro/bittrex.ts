@@ -212,7 +212,7 @@ export default class bittrex extends bittrexRest {
         return await this.signalrGetStart (request);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOrders
@@ -400,7 +400,7 @@ export default class bittrex extends bittrexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOHLCV
@@ -473,7 +473,7 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchTrades
@@ -542,7 +542,7 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchMyTrades

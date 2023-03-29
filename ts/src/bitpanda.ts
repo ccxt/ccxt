@@ -814,7 +814,7 @@ export default class bitpanda extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOHLCV
@@ -943,7 +943,7 @@ export default class bitpanda extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchTrades
@@ -1099,7 +1099,7 @@ export default class bitpanda extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchDeposits
@@ -1164,7 +1164,7 @@ export default class bitpanda extends Exchange {
         return this.parseTransactions (depositHistory, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchWithdrawals
@@ -1703,7 +1703,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOpenOrders
@@ -1824,7 +1824,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrders (orderHistory, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchClosedOrders
@@ -1841,7 +1841,7 @@ export default class bitpanda extends Exchange {
         return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOrderTrades
@@ -1901,7 +1901,7 @@ export default class bitpanda extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchMyTrades
@@ -1970,7 +1970,7 @@ export default class bitpanda extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

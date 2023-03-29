@@ -536,7 +536,7 @@ export default class probit extends Exchange {
         return this.parseOrderBook (dataBySide, market['symbol'], undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchTickers
@@ -655,7 +655,7 @@ export default class probit extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchMyTrades
@@ -707,7 +707,7 @@ export default class probit extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchTrades
@@ -879,7 +879,7 @@ export default class probit extends Exchange {
         }
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchOHLCV
@@ -969,7 +969,7 @@ export default class probit extends Exchange {
         ];
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchOpenOrders
@@ -993,7 +993,7 @@ export default class probit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchClosedOrders
@@ -1026,7 +1026,7 @@ export default class probit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchOrder
@@ -1068,21 +1068,21 @@ export default class probit extends Exchange {
     parseOrder (order, market = undefined) {
         //
         //     {
-        //         id: string,
-        //         user_id: string,
-        //         market_id: string,
+        //         id,
+        //         user_id,
+        //         market_id,
         //         type: 'orderType',
         //         side: 'side',
-        //         quantity: string,
-        //         limit_price: string,
+        //         quantity,
+        //         limit_price,
         //         time_in_force: 'timeInForce',
-        //         filled_cost: string,
-        //         filled_quantity: string,
-        //         open_quantity: string,
-        //         cancelled_quantity: string,
+        //         filled_cost,
+        //         filled_quantity,
+        //         open_quantity,
+        //         cancelled_quantity,
         //         status: 'orderStatus',
         //         time: 'date',
-        //         client_order_id: string,
+        //         client_order_id,
         //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -1194,21 +1194,21 @@ export default class probit extends Exchange {
         //
         //     {
         //         data: {
-        //             id: string,
-        //             user_id: string,
-        //             market_id: string,
+        //             id,
+        //             user_id,
+        //             market_id,
         //             type: 'orderType',
         //             side: 'side',
-        //             quantity: string,
-        //             limit_price: string,
+        //             quantity,
+        //             limit_price,
         //             time_in_force: 'timeInForce',
-        //             filled_cost: string,
-        //             filled_quantity: string,
-        //             open_quantity: string,
-        //             cancelled_quantity: string,
+        //             filled_cost,
+        //             filled_quantity,
+        //             open_quantity,
+        //             cancelled_quantity,
         //             status: 'orderStatus',
         //             time: 'date',
-        //             client_order_id: string,
+        //             client_order_id,
         //         }
         //     }
         //
@@ -1224,7 +1224,7 @@ export default class probit extends Exchange {
         return order;
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name probit#cancelOrder
@@ -1319,7 +1319,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddress (firstAddress, currency);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchDepositAddresses
@@ -1445,7 +1445,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDepositWithdrawFees
@@ -1585,7 +1585,7 @@ export default class probit extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
         if (api === 'accounts') {

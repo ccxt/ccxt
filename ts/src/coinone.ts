@@ -285,7 +285,7 @@ export default class coinone extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchTickers
@@ -452,7 +452,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchTrades
@@ -527,7 +527,7 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOrder
@@ -676,7 +676,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOpenOrders
@@ -719,7 +719,7 @@ export default class coinone extends Exchange {
         return this.parseOrders (limitOrders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchMyTrades
@@ -763,7 +763,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name coinone#cancelOrder
@@ -802,7 +802,7 @@ export default class coinone extends Exchange {
         return response;
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchDepositAddresses
@@ -862,7 +862,7 @@ export default class coinone extends Exchange {
         return result;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';

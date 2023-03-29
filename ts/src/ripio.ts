@@ -406,7 +406,7 @@ export default class ripio extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name ripio#fetchTickers
@@ -567,7 +567,7 @@ export default class ripio extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ripio#fetchTrades
@@ -780,7 +780,7 @@ export default class ripio extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name ripio#cancelOrder
@@ -821,7 +821,7 @@ export default class ripio extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name ripio#fetchOrder
@@ -861,7 +861,7 @@ export default class ripio extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ripio#fetchOrders
@@ -918,7 +918,7 @@ export default class ripio extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ripio#fetchOpenOrders
@@ -935,7 +935,7 @@ export default class ripio extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ripio#fetchClosedOrders
@@ -1053,7 +1053,7 @@ export default class ripio extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ripio#fetchMyTrades
@@ -1105,7 +1105,7 @@ export default class ripio extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + request;
         const query = this.omit (params, this.extractParams (path));

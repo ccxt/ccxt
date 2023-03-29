@@ -1228,7 +1228,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchDeposits
@@ -1357,7 +1357,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchWithdrawals
@@ -1687,7 +1687,7 @@ export default class bitget extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchTickers
@@ -2041,7 +2041,7 @@ export default class bitget extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchOHLCV
@@ -2561,7 +2561,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitget#cancelOrder
@@ -2604,7 +2604,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitget#cancelOrders
@@ -2677,7 +2677,7 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitget#cancelAllOrders
@@ -2748,7 +2748,7 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchOrder
@@ -2826,7 +2826,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchOpenOrders
@@ -2973,7 +2973,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchClosedOrders
@@ -3001,7 +3001,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchCanceledOrders
@@ -3029,7 +3029,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchCanceledAndClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchCanceledAndClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = undefined;
@@ -3182,7 +3182,7 @@ export default class bitget extends Exchange {
         return this.safeValue (data, 'orderList', data);
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchLedger
@@ -3272,7 +3272,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchMyTrades
@@ -3323,7 +3323,7 @@ export default class bitget extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchOrderTrades
@@ -3423,7 +3423,7 @@ export default class bitget extends Exchange {
         return this.parsePositions (data);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchPositions
@@ -3596,7 +3596,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchFundingRateHistory
@@ -3716,7 +3716,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingHistory (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchFundingHistory
@@ -3945,7 +3945,7 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitget#setLeverage
@@ -3967,7 +3967,7 @@ export default class bitget extends Exchange {
         return await this.privateMixPostAccountSetLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitget#setMarginMode
@@ -3992,7 +3992,7 @@ export default class bitget extends Exchange {
         return await this.privateMixPostAccountSetMarginMode (this.extend (request, params));
     }
 
-    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
         /**
          * @method
          * @name bitget#setPositionMode
@@ -4067,7 +4067,7 @@ export default class bitget extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchTransfers
@@ -4293,7 +4293,7 @@ export default class bitget extends Exchange {
         }
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = (endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';

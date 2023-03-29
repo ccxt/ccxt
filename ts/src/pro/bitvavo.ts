@@ -102,7 +102,7 @@ export default class bitvavo extends bitvavoRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchTrades
@@ -150,7 +150,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchOHLCV
@@ -428,7 +428,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchOrders
@@ -466,7 +466,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchMyTrades

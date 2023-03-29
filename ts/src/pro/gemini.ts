@@ -32,7 +32,7 @@ export default class gemini extends geminiRest {
         });
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gemini#watchTrades
@@ -187,7 +187,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOHLCV
@@ -378,7 +378,7 @@ export default class gemini extends geminiRest {
         this.handleTrades (client, message);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrders

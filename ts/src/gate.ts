@@ -1428,7 +1428,7 @@ export default class gate extends Exchange {
         return this.parseFundingRate (response);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchFundingRates
@@ -1768,7 +1768,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchTransactionFees
@@ -1826,7 +1826,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchDepositWithdrawFees
@@ -1910,7 +1910,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchFundingHistory
@@ -2215,7 +2215,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchTickers
@@ -2439,7 +2439,7 @@ export default class gate extends Exchange {
         return isolated ? result : this.safeBalance (result);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gateio#fetchOHLCV
@@ -2507,7 +2507,7 @@ export default class gate extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchFundingRateHistory
@@ -2601,7 +2601,7 @@ export default class gate extends Exchange {
         }
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchTrades
@@ -2680,7 +2680,7 @@ export default class gate extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchOrderTrades
@@ -2719,7 +2719,7 @@ export default class gate extends Exchange {
         return response;
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchMyTrades
@@ -2949,7 +2949,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchDeposits
@@ -2979,7 +2979,7 @@ export default class gate extends Exchange {
         return this.parseTransactions (response, currency);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchWithdrawals
@@ -3809,7 +3809,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchOrder
@@ -3851,7 +3851,7 @@ export default class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchOpenOrders
@@ -3868,7 +3868,7 @@ export default class gate extends Exchange {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params) as any;
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchClosedOrders
@@ -3885,7 +3885,7 @@ export default class gate extends Exchange {
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params) as any;
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -4051,7 +4051,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name gate#cancelOrder
@@ -4161,7 +4161,7 @@ export default class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name gate#cancelAllOrders
@@ -4291,7 +4291,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
          * @name gate#setLeverage
@@ -4441,7 +4441,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchPositions
@@ -4509,7 +4509,7 @@ export default class gate extends Exchange {
         return this.parsePositions (response, symbols);
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchLeverageTiers
@@ -4747,7 +4747,7 @@ export default class gate extends Exchange {
         return tiers;
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
         /**
          * @method
          * @name gate#repayMargin
@@ -4831,7 +4831,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
         /**
          * @method
          * @name gate#borrowMargin
@@ -4963,7 +4963,7 @@ export default class gate extends Exchange {
         };
     }
 
-    sign (path, api = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
@@ -5107,7 +5107,7 @@ export default class gate extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, params);
     }
 
-    async fetchOpenInterestHistory (symbol, timeframe = '5m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchOpenInterest

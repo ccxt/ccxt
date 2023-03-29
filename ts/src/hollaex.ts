@@ -399,7 +399,7 @@ export default class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchOrderBooks
@@ -492,7 +492,7 @@ export default class hollaex extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchTickers
@@ -522,7 +522,7 @@ export default class hollaex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTickers (response, symbols: string[] = undefined, params = {}) {
+    parseTickers (response, symbols = undefined, params = {}) {
         const result = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
@@ -592,7 +592,7 @@ export default class hollaex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchTrades
@@ -742,7 +742,7 @@ export default class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchOHLCV
@@ -862,7 +862,7 @@ export default class hollaex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOpenOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOpenOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchOpenOrder
@@ -904,7 +904,7 @@ export default class hollaex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchOpenOrders
@@ -921,7 +921,7 @@ export default class hollaex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchClosedOrders
@@ -938,7 +938,7 @@ export default class hollaex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchOrder
@@ -981,7 +981,7 @@ export default class hollaex extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchOrders
@@ -1195,7 +1195,7 @@ export default class hollaex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#cancelOrder
@@ -1226,7 +1226,7 @@ export default class hollaex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#cancelAllOrders
@@ -1262,7 +1262,7 @@ export default class hollaex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchMyTrades
@@ -1345,7 +1345,7 @@ export default class hollaex extends Exchange {
         };
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchDepositAddresses
@@ -1408,7 +1408,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositAddresses (addresses, codes);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchDeposits
@@ -1516,7 +1516,7 @@ export default class hollaex extends Exchange {
         return this.parseTransaction (transaction, currency);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchWithdrawals
@@ -1726,7 +1726,7 @@ export default class hollaex extends Exchange {
         return number;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {

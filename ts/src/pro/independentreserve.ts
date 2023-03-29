@@ -35,7 +35,7 @@ export default class independentreserve extends independentreserveRest {
         });
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#watchTrades

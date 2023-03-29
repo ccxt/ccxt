@@ -105,7 +105,7 @@ export default class cex extends cexRest {
         client.resolve (this.balance, 'balance');
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchTrades
@@ -265,7 +265,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchTickers
@@ -385,7 +385,7 @@ export default class cex extends cexRest {
         }, market);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchOrders
@@ -424,7 +424,7 @@ export default class cex extends cexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchMyTrades
@@ -998,7 +998,7 @@ export default class cex extends cexRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchOHLCV

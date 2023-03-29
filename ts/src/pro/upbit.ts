@@ -63,7 +63,7 @@ export default class upbit extends upbitRest {
         return await this.watchPublic (symbol, 'ticker');
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchTrades

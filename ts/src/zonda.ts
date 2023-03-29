@@ -386,7 +386,7 @@ export default class zonda extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchOpenOrders
@@ -455,7 +455,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchMyTrades
@@ -652,7 +652,7 @@ export default class zonda extends Exchange {
         return this.parseTicker (stats, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchTickers
@@ -681,7 +681,7 @@ export default class zonda extends Exchange {
         return this.parseTickers (items, symbols);
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchLedger
@@ -1058,7 +1058,7 @@ export default class zonda extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchOHLCV
@@ -1184,7 +1184,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchTrades
@@ -1338,7 +1338,7 @@ export default class zonda extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name zonda#cancelOrder
@@ -1435,7 +1435,7 @@ export default class zonda extends Exchange {
         return this.parseDepositAddress (first, currency);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchDepositAddresses
@@ -1655,7 +1655,7 @@ export default class zonda extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));

@@ -438,7 +438,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOrderBook (response['orderBook'], symbol, timestamp);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
         //
@@ -548,7 +548,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -617,7 +617,7 @@ export default class krakenfutures extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchTrades
@@ -903,7 +903,7 @@ export default class krakenfutures extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @param {string} id Order id
          * @param {string|undefined} symbol Not used by Krakenfutures
@@ -921,7 +921,7 @@ export default class krakenfutures extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#cancelAllOrders
@@ -938,7 +938,7 @@ export default class krakenfutures extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchOpenOrders
@@ -1334,7 +1334,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1587,7 +1587,7 @@ export default class krakenfutures extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1627,7 +1627,7 @@ export default class krakenfutures extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchPositions
@@ -1659,7 +1659,7 @@ export default class krakenfutures extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    parsePositions (response, symbols: string[] = undefined, params = {}) {
+    parsePositions (response, symbols = undefined, params = {}) {
         const result = [];
         const positions = this.safeValue (response, 'openPositions');
         for (let i = 0; i < positions.length; i++) {
@@ -1725,7 +1725,7 @@ export default class krakenfutures extends Exchange {
         };
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetInstruments (params);
         //
@@ -1970,7 +1970,7 @@ export default class krakenfutures extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const apiVersions = this.safeValue (this.options['versions'], api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);

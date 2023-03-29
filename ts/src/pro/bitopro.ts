@@ -117,7 +117,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#watchTrades

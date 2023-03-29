@@ -168,7 +168,7 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#watchOrders
