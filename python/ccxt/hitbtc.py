@@ -1387,7 +1387,7 @@ class hitbtc(Exchange):
                     url += '?' + self.urlencode(query)
             elif query:
                 body = self.json(query)
-            payload = self.encode(self.apiKey + ':' + self.secret)
+            payload = self.apiKey + ':' + self.secret
             auth = self.string_to_base64(payload)
             headers = {
                 'Authorization': 'Basic ' + auth,

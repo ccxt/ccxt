@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '3.0.31';
+$version = '3.0.43';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.31';
+    const VERSION = '3.0.43';
 
     public $browser;
     public $marketsLoading = null;
@@ -480,7 +480,7 @@ class Exchange extends \ccxt\Exchange {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'baseId', 'base'),
-                        'numericId' => $this->safe_string($market, 'baseNumericId'),
+                        'numericId' => $this->safe_integer($market, 'baseNumericId'),
                         'code' => $this->safe_string($market, 'base'),
                         'precision' => $currencyPrecision,
                     );
@@ -490,7 +490,7 @@ class Exchange extends \ccxt\Exchange {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'price', $defaultCurrencyPrecision);
                     $currency = array(
                         'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
-                        'numericId' => $this->safe_string($market, 'quoteNumericId'),
+                        'numericId' => $this->safe_integer($market, 'quoteNumericId'),
                         'code' => $this->safe_string($market, 'quote'),
                         'precision' => $currencyPrecision,
                     );
@@ -1787,13 +1787,13 @@ class Exchange extends \ccxt\Exchange {
                 if ($numMarkets === 1) {
                     return $markets[0];
                 } else {
-                    if ($marketType === null && $market === null) {
+                    if (($marketType === null) && ($market === null)) {
                         throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
                     }
-                    $inferedMarketType = ($market !== null) ? $market['type'] : $marketType;
+                    $inferredMarketType = ($marketType === null) ? $market['type'] : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
                         $market = $markets[$i];
-                        if ($market[$inferedMarketType]) {
+                        if ($market[$inferredMarketType]) {
                             return $market;
                         }
                     }

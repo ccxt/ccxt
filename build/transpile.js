@@ -41,6 +41,7 @@ class Transpiler {
     getCommonRegexes () {
         return [
 
+            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /\.deepExtend\s/g, '.deep_extend'],
             [ /\.safeFloat2\s/g, '.safe_float_2'],
             [ /\.safeInteger2\s/g, '.safe_integer_2'],
@@ -247,8 +248,7 @@ class Transpiler {
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
-            [ /\s(md5|secp256k1|ed25519)([,)])/g, ' \'$1\'$2'], // from js imports to this
-            [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
+            [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
         ].concat(this.getTypescriptRemovalRegexes())
     }
@@ -640,7 +640,7 @@ class Transpiler {
             // remove param types
             // Currently supported: single name (object, number, mytype, etc)
             // optional params (string | number)
-            [ /:\s\w+(\s*\|\s*\w+)?(?=\s|,|\))/g, ""], // remove parameters type
+            // [ /:\s\w+(\s*\|\s*\w+)?(?=\s|,|\))/g, ""], // remove parameters type
             // array types: string[] or (string|number)[]
             [ /:\s\(?\w+(\s*\|\s*\w+)?\)?\[]/g, ""], // remove parameters type
         ]
@@ -828,6 +828,12 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
+        if (bodyAsString.match (/: OrderSide/)) {
+            libraries.push ('from ccxt.base.types import OrderSide')
+        }
+        if (bodyAsString.match (/: OrderType/)) {
+            libraries.push ('from ccxt.base.types import OrderType')
+        }
 
         const errorImports = []
 
@@ -957,6 +963,12 @@ class Transpiler {
             if (bodyAsString.match (/Promise\\all/)) {
                 libraryImports.push ('use React\\Promise;')
             }
+        }
+        if (bodyAsString.match (/OrderSide \$/)) {
+            libraryImports.push ('use ccxt\\types\\OrderSide;')
+        }
+        if (bodyAsString.match (/OrderType \$/)) {
+            libraryImports.push ('use ccxt\\types\\OrderType;')
         }
 
 
@@ -1387,7 +1399,7 @@ class Transpiler {
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
             signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
 
-            let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
+            let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
             if (!matches) {
@@ -1408,22 +1420,56 @@ class Transpiler {
             // method arguments
             let args = matches[3].trim ()
 
+            // return type
+            let returnType = matches[4]
+
             // extract argument names and local variables
             args = args.length ? args.split (',').map (x => x.trim ()) : []
 
             // get names of all method arguments for later substitutions
-            let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
+            let variables = args.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ()) [0])
 
             // add $ to each argument name in PHP method signature
-            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace (/\{\}/g, 'array ()')
-            phpArgs = phpArgs.length ? ('$' + phpArgs) : ''
+            const phpTypes = {
+                'any': 'mixed',
+                'string': 'string',
+                'number': 'float',
+                'boolean': 'bool',
+                'Promise<any>': 'mixed',
+                'Balance': 'array',
+                'IndexType': 'int|string',
+                'IntegerType': 'int',
+                'string[]': 'array',
+                'object': 'array',
+            }
+            let phpArgs = args.map (x => {
+                const parts = x.split (':')
+                if (parts.length === 1) {
+                    return '$' + x
+                } else {
+                    const secondPart = parts[1].split ('=')
+                    const endpart = (secondPart.length === 2) ? ' = ' + secondPart[1].trim () : ''
+                    const type = secondPart[0].trim ()
+                    const phpType = phpTypes[type] ?? type
+                    return phpType + ' $' + parts[0] + endpart
+                }
+            }).join (', ').trim ()
+                .replace (/undefined/g, 'null')
+                .replace (/\{\}/g, 'array ()')
+            phpArgs = phpArgs.length ? (phpArgs) : ''
+            const phpReturnType = returnType ? ': ' + (phpTypes[returnType] ?? returnType) : ''
+            const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature
-            let pythonArgs = args.map (x => x.replace (' = ', '='))
+            let pythonArgs = args.map (x => x.includes (':') ? x : x.replace (' = ', '='))
                 .join (', ')
                 .replace (/undefined/g, 'None')
                 .replace (/false/g, 'False')
                 .replace (/true/g, 'True')
+                .replace (/: string/g, ': str')
+                .replace (/: number/g, ': float')
+                .replace (/: boolean/g, ': bool')
+                .replace (/: any/g, ': Any')
 
             // method body without the signature (first line)
             // and without the closing bracket (last line)
@@ -1433,7 +1479,8 @@ class Transpiler {
             let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             // compile the final Python code for the method signature
-            let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
+            const pythonReturnType = returnType ? ' -> ' + returnType : ''
+            let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
 
             // compile signature + body for Python sync
             python2.push ('');
@@ -1447,12 +1494,12 @@ class Transpiler {
 
             // compile signature + body for PHP
             php.push ('');
-            php.push ('    ' + 'public function ' + method + '(' + phpArgs + ') {');
+            php.push (phpSignature);
             php.push (phpBody);
             php.push ('    ' + '}')
 
             phpAsync.push ('');
-            phpAsync.push ('    ' + 'public function ' + method + '(' + phpArgs + ') {');
+            phpAsync.push (phpSignature);
             phpAsync.push (phpAsyncBody);
             phpAsync.push ('    ' + '}')
         }

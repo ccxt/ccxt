@@ -11,7 +11,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class novadax extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

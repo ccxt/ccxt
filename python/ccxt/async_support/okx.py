@@ -60,6 +60,7 @@ class okx(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -186,6 +187,7 @@ class okx(Exchange):
                         'market/option/instrument-family-trades': 1,
                         # 'market/oracle',
                         'public/instruments': 1,
+                        'public/instrument-tick-bands': 4,
                         'public/delivery-exercise-history': 0.5,
                         'public/open-interest': 1,
                         'public/funding-rate': 1,
@@ -216,8 +218,8 @@ class okx(Exchange):
                         'rubik/stat/option/open-interest-volume-strike': 4,
                         'rubik/stat/option/taker-block-volume': 4,
                         'system/status': 100,
-                        'asset/lending-rate-summary': 5 / 3,
-                        'asset/lending-rate-history': 5 / 3,
+                        'finance/savings/lending-rate-summary': 5 / 3,
+                        'finance/savings/lending-rate-history': 5 / 3,
                         'market/exchange-rate': 20,
                     },
                 },
@@ -256,8 +258,6 @@ class okx(Exchange):
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
                         'asset/deposit-lightning': 5,
-                        'asset/lending-history': 5 / 3,
-                        'asset/saving-balance': 5 / 3,
                         'asset/non-tradable-assets': 5 / 3,
                         'trade/order': 1 / 3,
                         'trade/orders-pending': 1,
@@ -294,6 +294,8 @@ class okx(Exchange):
                         'finance/staking-defi/offers': 1,
                         'finance/staking-defi/orders-active': 1,
                         'finance/staking-defi/orders-history': 1,
+                        'finance/savings/balance': 5 / 3,
+                        'finance/savings/lending-history': 5 / 3,
                         'rfq/counterparties': 4,
                         'rfq/maker-instrument-settings': 4,
                         'rfq/rfqs': 10,
@@ -329,9 +331,7 @@ class okx(Exchange):
                         'account/set-auto-loan': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
-                        'asset/purchase_redempt': 5 / 3,
                         'asset/withdrawal-lightning': 5,
-                        'asset/set-lending-rate': 5 / 3,
                         'asset/cancel-withdrawal': 5 / 3,
                         'asset/convert-dust-assets': 10,
                         'trade/order': 1 / 3,
@@ -363,6 +363,8 @@ class okx(Exchange):
                         'finance/staking-defi/purchase': 3,
                         'finance/staking-defi/redeem': 3,
                         'finance/staking-defi/cancel': 3,
+                        'finance/savings/purchase-redempt': 5 / 3,
+                        'finance/savings/set-lending-rate': 5 / 3,
                         'rfq/create-rfq': 4,
                         'rfq/cancel-rfq': 4,
                         'rfq/cancel-batch-rfqs': 10,
@@ -2188,6 +2190,62 @@ class okx(Exchange):
             'side': side,
         })
 
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        request = {
+            'instId': market['id'],
+        }
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        else:
+            request['ordId'] = id
+        params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        if amount is not None:
+            request['newSz'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['newPx'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostTradeAmendOrder(self.extend(request, params))
+        #
+        #     {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        #                 "ordId": "559176536793178112",
+        #                 "reqId": "",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #            }
+        #        ],
+        #        "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0)
+        order = self.parse_order(first, market)
+        return self.extend(order, {
+            'type': type,
+            'side': side,
+        })
+
     async def cancel_order(self, id, symbol=None, params={}):
         """
         cancels an open order
@@ -2330,6 +2388,16 @@ class okx(Exchange):
         #         "clOrdId": "oktswap6",
         #         "ordId": "312269865356374016",
         #         "tag": "",
+        #         "sCode": "0",
+        #         "sMsg": ""
+        #     }
+        #
+        # editOrder
+        #
+        #     {
+        #         "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        #         "ordId": "559176536793178112",
+        #         "reqId": "",
         #         "sCode": "0",
         #         "sMsg": ""
         #     }
@@ -4939,7 +5007,7 @@ class okx(Exchange):
             request['before'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetAssetLendingRateHistory(self.extend(request, params))
+        response = await self.publicGetFinanceSavingsLendingRateHistory(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -4978,7 +5046,7 @@ class okx(Exchange):
             request['before'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetAssetLendingRateHistory(self.extend(request, params))
+        response = await self.publicGetFinanceSavingsLendingRateHistory(self.extend(request, params))
         #
         #     {
         #         "code": "0",

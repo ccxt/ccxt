@@ -543,45 +543,40 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
-        future = client.future('authenticated')
-        action = 'authKeyExpires'
-        authenticated = self.safe_value(client.subscriptions, action)
-        if authenticated is None:
-            try:
-                self.check_required_credentials()
-                timestamp = self.milliseconds()
-                message = 'GET' + '/realtime' + str(timestamp)
-                signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
-                request = {
-                    'op': action,
-                    'args': [
-                        self.apiKey,
-                        timestamp,
-                        signature,
-                    ],
-                }
-                self.spawn(self.watch, url, action, request, action)
-            except Exception as e:
-                client.reject(e, 'authenticated')
-                if action in client.subscriptions:
-                    del client.subscriptions[action]
+        messageHash = 'authenticated'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            self.check_required_credentials()
+            timestamp = self.milliseconds()
+            payload = 'GET' + '/realtime' + str(timestamp)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
+            request = {
+                'op': 'authKeyExpires',
+                'args': [
+                    self.apiKey,
+                    timestamp,
+                    signature,
+                ],
+            }
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
         return future
 
     def handle_authentication_message(self, client, message):
         authenticated = self.safe_value(message, 'success', False)
+        messageHash = 'authenticated'
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
-            client.resolve(message, 'authenticated')
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.json(message))
-            client.reject(error, 'authenticated')
-            # allows further authentication attempts
-            event = 'authKeyExpires'
-            if event in client.subscriptions:
-                del client.subscriptions[event]
+            client.reject(error, messageHash)
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -1092,10 +1087,21 @@ class bitmex(ccxt.async_support.bitmex):
         #         table: 'orderBookL2',
         #         action: 'update',
         #         data: [
-        #             {symbol: 'XBTUSD', id: 8799285100, side: 'Sell', size: 70590},
-        #             {symbol: 'XBTUSD', id: 8799285550, side: 'Sell', size: 217652},
-        #             {symbol: 'XBTUSD', id: 8799288950, side: 'Buy', size: 47552},
-        #             {symbol: 'XBTUSD', id: 8799289250, side: 'Buy', size: 78217},
+        #             {
+        #               table: 'orderBookL2',
+        #               action: 'insert',
+        #               data: [
+        #                 {
+        #                   symbol: 'ETH_USDT',
+        #                   id: 85499965912,
+        #                   side: 'Buy',
+        #                   size: 83000000,
+        #                   price: 1704.4,
+        #                   timestamp: '2023-03-26T22:29:00.299Z'
+        #                 }
+        #               ]
+        #             }
+        #             ...
         #         ]
         #     }
         #
@@ -1115,6 +1121,7 @@ class bitmex(ccxt.async_support.bitmex):
             elif table == 'orderBook10':
                 self.orderbooks[symbol] = self.indexed_order_book({}, 10)
             orderbook = self.orderbooks[symbol]
+            orderbook['symbol'] = symbol
             for i in range(0, len(data)):
                 price = self.safe_float(data[i], 'price')
                 size = self.safe_float(data[i], 'size')
@@ -1123,6 +1130,9 @@ class bitmex(ccxt.async_support.bitmex):
                 side = 'bids' if (side == 'Buy') else 'asks'
                 bookside = orderbook[side]
                 bookside.store(price, size, id)
+                datetime = self.safe_string(data[i], 'timestamp')
+                orderbook['timestamp'] = self.parse8601(datetime)
+                orderbook['datetime'] = datetime
             messageHash = table + ':' + marketId
             client.resolve(orderbook, messageHash)
         else:
@@ -1136,12 +1146,15 @@ class bitmex(ccxt.async_support.bitmex):
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
                 price = self.safe_float(data[i], 'price')
-                size = self.safe_float(data[i], 'size', 0)
+                size = 0 if (action == 'delete') else self.safe_float(data[i], 'size', 0)
                 id = self.safe_string(data[i], 'id')
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'
                 bookside = orderbook[side]
                 bookside.store(price, size, id)
+                datetime = self.safe_string(data[i], 'timestamp')
+                orderbook['timestamp'] = self.parse8601(datetime)
+                orderbook['datetime'] = datetime
             marketIds = list(numUpdatesByMarketId.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]

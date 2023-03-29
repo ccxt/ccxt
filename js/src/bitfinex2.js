@@ -11,7 +11,6 @@ import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitfinex2 extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

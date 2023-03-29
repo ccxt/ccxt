@@ -9,7 +9,6 @@ import zbRest from '../zb.js';
 import { ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class zb extends zbRest {
     describe() {
         return this.deepExtend(super.describe(), {

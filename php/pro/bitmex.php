@@ -563,46 +563,39 @@ class bitmex extends \ccxt\async\bitmex {
     public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
-        $future = $client->future ('authenticated');
-        $action = 'authKeyExpires';
-        $authenticated = $this->safe_value($client->subscriptions, $action);
-        if ($authenticated === null) {
-            try {
-                $this->check_required_credentials();
-                $timestamp = $this->milliseconds();
-                $message = 'GET' . '/realtime' . (string) $timestamp;
-                $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'op' => $action,
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
-            } catch (Exception $e) {
-                $client->reject ($e, 'authenticated');
-                if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
-                    unset($client->subscriptions[$action]);
-                }
-            }
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $this->check_required_credentials();
+            $timestamp = $this->milliseconds();
+            $payload = 'GET' . '/realtime' . (string) $timestamp;
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+            $request = array(
+                'op' => 'authKeyExpires',
+                'args' => array(
+                    $this->apiKey,
+                    $timestamp,
+                    $signature,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
         }
         return $future;
     }
 
     public function handle_authentication_message($client, $message) {
         $authenticated = $this->safe_value($message, 'success', false);
+        $messageHash = 'authenticated';
         if ($authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            $client->resolve ($message, 'authenticated');
+            $client->resolve ($message, $messageHash);
         } else {
             $error = new AuthenticationError ($this->json($message));
-            $client->reject ($error, 'authenticated');
-            // allows further authentication attempts
-            $event = 'authKeyExpires';
-            if (is_array($client->subscriptions) && array_key_exists($event, $client->subscriptions)) {
-                unset($client->subscriptions[$event]);
+            $client->reject ($error, $messageHash);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                unset($client->subscriptions[$messageHash]);
             }
         }
     }
@@ -1152,10 +1145,21 @@ class bitmex extends \ccxt\async\bitmex {
         //         $table => 'orderBookL2',
         //         $action => 'update',
         //         $data => array(
-        //             array( $symbol => 'XBTUSD', $id => 8799285100, $side => 'Sell', $size => 70590 ),
-        //             array( $symbol => 'XBTUSD', $id => 8799285550, $side => 'Sell', $size => 217652 ),
-        //             array( $symbol => 'XBTUSD', $id => 8799288950, $side => 'Buy', $size => 47552 ),
-        //             array( $symbol => 'XBTUSD', $id => 8799289250, $side => 'Buy', $size => 78217 ),
+        //             {
+        //               $table => 'orderBookL2',
+        //               $action => 'insert',
+        //               $data => array(
+        //                 {
+        //                   $symbol => 'ETH_USDT',
+        //                   $id => 85499965912,
+        //                   $side => 'Buy',
+        //                   $size => 83000000,
+        //                   $price => 1704.4,
+        //                   timestamp => '2023-03-26T22:29:00.299Z'
+        //                 }
+        //               )
+        //             }
+        //             ...
         //         )
         //     }
         //
@@ -1176,6 +1180,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 10);
             }
             $orderbook = $this->orderbooks[$symbol];
+            $orderbook['symbol'] = $symbol;
             for ($i = 0; $i < count($data); $i++) {
                 $price = $this->safe_float($data[$i], 'price');
                 $size = $this->safe_float($data[$i], 'size');
@@ -1184,6 +1189,9 @@ class bitmex extends \ccxt\async\bitmex {
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
                 $bookside->store ($price, $size, $id);
+                $datetime = $this->safe_string($data[$i], 'timestamp');
+                $orderbook['timestamp'] = $this->parse8601($datetime);
+                $orderbook['datetime'] = $datetime;
             }
             $messageHash = $table . ':' . $marketId;
             $client->resolve ($orderbook, $messageHash);
@@ -1199,12 +1207,15 @@ class bitmex extends \ccxt\async\bitmex {
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
                 $price = $this->safe_float($data[$i], 'price');
-                $size = $this->safe_float($data[$i], 'size', 0);
+                $size = ($action === 'delete') ? 0 : $this->safe_float($data[$i], 'size', 0);
                 $id = $this->safe_string($data[$i], 'id');
                 $side = $this->safe_string($data[$i], 'side');
                 $side = ($side === 'Buy') ? 'bids' : 'asks';
                 $bookside = $orderbook[$side];
                 $bookside->store ($price, $size, $id);
+                $datetime = $this->safe_string($data[$i], 'timestamp');
+                $orderbook['timestamp'] = $this->parse8601($datetime);
+                $orderbook['datetime'] = $datetime;
             }
             $marketIds = is_array($numUpdatesByMarketId) ? array_keys($numUpdatesByMarketId) : array();
             for ($i = 0; $i < count($marketIds); $i++) {

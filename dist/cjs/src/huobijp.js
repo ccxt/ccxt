@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class huobijp extends huobijp$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -19,7 +18,7 @@ class huobijp extends huobijp$1 {
             'userAgent': this.userAgents['chrome39'],
             'certified': false,
             'version': 'v1',
-            'hostname': 'api-cloud.huobi.co.jp',
+            'hostname': 'api-cloud.bittrade.co.jp',
             'pro': true,
             'has': {
                 'CORS': undefined,

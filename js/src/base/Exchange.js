@@ -7,10 +7,7 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 import * as functions from './functions.js';
-const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, throttle, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
-// TODO: remove these imports to make browser package smaller
-import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
-import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
+const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions;
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
 ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded } from "./errors.js";
@@ -63,7 +60,7 @@ export default class Exchange {
         this.status = undefined;
         this.rateLimit = undefined; // milliseconds
         this.tokenBucket = undefined;
-        this.throttle = undefined;
+        this.throttler = undefined;
         this.enableRateLimit = undefined;
         this.httpExceptions = undefined;
         this.markets_by_id = undefined;
@@ -203,9 +200,6 @@ export default class Exchange {
         //
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
-        this.fetchOptions = {
-        // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
-        };
         // http properties
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -551,7 +545,10 @@ export default class Exchange {
             maxCapacity: 1000,
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
         }, this.tokenBucket);
-        this.throttle = throttle(this.tokenBucket);
+        this.throttler = new Throttler(this.tokenBucket);
+    }
+    throttle(cost = undefined) {
+        this.throttler.throttle(cost);
     }
     setSandboxMode(enabled) {
         if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
@@ -663,6 +660,10 @@ export default class Exchange {
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await import(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js');
+                if (this.agent === undefined) {
+                    const { Agent } = await import(/* webpackIgnore: true */ 'node:https');
+                    this.agent = new Agent({ keepAlive: true });
+                }
                 this.AbortError = module.AbortError;
                 this.fetchImplementation = module.default;
                 this.FetchError = module.FetchError;
@@ -680,19 +681,13 @@ export default class Exchange {
         if (this.agent) {
             params['agent'] = this.agent;
         }
-        else if (this.httpAgent && url.indexOf('http://') === 0) {
-            params['agent'] = this.httpAgent;
-        }
-        else if (this.httpsAgent && url.indexOf('https://') === 0) {
-            params['agent'] = this.httpsAgent;
-        }
         const controller = new AbortController();
         params['signal'] = controller.signal;
         const timeout = setTimeout(() => {
             controller.abort();
         }, this.timeout);
         try {
-            const response = await fetchImplementation(url, this.extend(params, this.fetchOptions));
+            const response = await fetchImplementation(url, params);
             clearTimeout(timeout);
             return this.handleRestResponse(response, url, method, headers, body);
         }
@@ -838,37 +833,6 @@ export default class Exchange {
     checkRequiredDependencies() {
         return;
     }
-    remove0xPrefix(hexData) {
-        if (hexData.slice(0, 2) === '0x') {
-            return hexData.slice(2);
-        }
-        else {
-            return hexData;
-        }
-    }
-    hashMessage(message) {
-        // takes a hex encoded message
-        const binaryMessage = this.base16ToBinary(this.remove0xPrefix(message));
-        const prefix = this.encode('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
-        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), keccak, 'hex');
-    }
-    signHash(hash, privateKey) {
-        const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
-        return {
-            'r': '0x' + signature['r'],
-            's': '0x' + signature['s'],
-            'v': 27 + signature['v'],
-        };
-    }
-    signMessage(message, privateKey) {
-        return this.signHash(this.hashMessage(message), privateKey.slice(-64));
-    }
-    signMessageString(message, privateKey) {
-        // still takes the input as a hex string
-        // same as above but returns a string instead of an object
-        const signature = this.signMessage(message, privateKey);
-        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v'], 1));
-    }
     parseNumber(value, d = undefined) {
         if (value === undefined) {
             return d;
@@ -899,6 +863,14 @@ export default class Exchange {
             throw new ErrorClass(this.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body);
         }
     }
+    remove0xPrefix(hexData) {
+        if (hexData.slice(0, 2) === '0x') {
+            return hexData.slice(2);
+        }
+        else {
+            return hexData;
+        }
+    }
     // method to override
     findTimeframe(timeframe, timeframes = undefined) {
         timeframes = timeframes || this.timeframes;
@@ -910,12 +882,6 @@ export default class Exchange {
             }
         }
         return undefined;
-    }
-    formatScientificNotationFTX(n) {
-        if (n === 0) {
-            return '0e-00';
-        }
-        return n.toExponential().replace('e-', 'e-0');
     }
     spawn(method, ...args) {
         const future = Future();
@@ -954,10 +920,10 @@ export default class Exchange {
                 'log': this.log ? this.log.bind(this) : this.log,
                 'ping': this.ping ? this.ping.bind(this) : this.ping,
                 'verbose': this.verbose,
-                'throttle': throttle(this.tokenBucket),
+                'throttler': new Throttler(this.tokenBucket),
                 // add support for proxies
                 'options': {
-                    'agent': this.agent || this.httpsAgent || this.httpAgent,
+                    'agent': this.agent,
                 }
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
@@ -1324,7 +1290,7 @@ export default class Exchange {
                     const currencyPrecision = this.safeValue2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2(market, 'baseId', 'base'),
-                        'numericId': this.safeString(market, 'baseNumericId'),
+                        'numericId': this.safeInteger(market, 'baseNumericId'),
                         'code': this.safeString(market, 'base'),
                         'precision': currencyPrecision,
                     };
@@ -1334,7 +1300,7 @@ export default class Exchange {
                     const currencyPrecision = this.safeValue2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2(market, 'quoteId', 'quote'),
-                        'numericId': this.safeString(market, 'quoteNumericId'),
+                        'numericId': this.safeInteger(market, 'quoteNumericId'),
                         'code': this.safeString(market, 'quote'),
                         'precision': currencyPrecision,
                     };
@@ -2582,13 +2548,13 @@ export default class Exchange {
                     return markets[0];
                 }
                 else {
-                    if (marketType === undefined && market === undefined) {
+                    if ((marketType === undefined) && (market === undefined)) {
                         throw new ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
                     }
-                    const inferedMarketType = (market !== undefined) ? market['type'] : marketType;
+                    const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const market = markets[i];
-                        if (market[inferedMarketType]) {
+                        if (market[inferredMarketType]) {
                             return market;
                         }
                     }

@@ -5,7 +5,6 @@ import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class btcex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -322,6 +321,7 @@ export default class btcex extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
             },
         });
     }

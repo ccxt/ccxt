@@ -9,7 +9,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class btcex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -324,7 +323,9 @@ export default class btcex extends Exchange {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'ALT': 'ArchLoot',
+            },
         });
     }
     async fetchMarkets(params = {}) {

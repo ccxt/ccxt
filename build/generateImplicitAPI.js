@@ -65,7 +65,7 @@ function generateImplicitMethodNames(id, api, paths = []){
                 const result = paths.concat (key).concat (endpoint.split(pattern));
                 let completePath = result.filter(r => r.length > 0).map(capitalize).join('');
                 completePath = lowercaseFirstLetter(completePath);
-                storedImplicitName[id].push(completePath)
+                storedResult[id].push(completePath)
             }
         } else {
             generateImplicitMethodNames(id, value, paths.concat([ key ]))
@@ -76,26 +76,27 @@ function generateImplicitMethodNames(id, api, paths = []){
 //-------------------------------------------------------------------------
 
 function createImplicitMethodsTs(){
-    const exchanges = Object.keys(storedImplicitName);
+    const exchanges = Object.keys(storedResult);
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        const methodNames = storedImplicitName[exchange];
+        const methodNames = storedResult[exchange];
 
         const methods =  methodNames.map(method=> {
-            return `${IDEN}abstract ${method} (params?: {}): Promise<implicitReturnType>;`
+            return `${IDEN} ${method} (params?: {}): Promise<implicitReturnType>;`
         });
         methods.push ('}')
-        storedMethods['ts'][exchange] = storedMethods['ts'][exchange].concat (methods)
+        const footer = storedMethods[exchange].pop ()
+        storedMethods['ts'][exchange] = storedMethods['ts'][exchange].concat (methods).concat ([ footer ])
     }
 }
 
 //-------------------------------------------------------------------------
 
 function createImplicitMethodsCSharp(){
-    const exchanges = Object.keys(storedImplicitName);
+    const exchanges = Object.keys(storedResult);
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        const methodNames = storedImplicitName[exchange];
+        const methodNames = storedResult[exchange];
 
         const methods =  methodNames.map(method=> {
             return [
@@ -115,7 +116,7 @@ function createImplicitMethodsCSharp(){
 //-------------------------------------------------------------------------
 
 async function editTypesFilesTs(){
-    const exchanges = Object.keys(storedImplicitName);
+    const exchanges = Object.keys(storedResult);
     const files = exchanges.map(ex => PATH + ex + '.ts');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedMethods['ts'][exchanges[idx]].join ('\n'))))
 }
@@ -123,7 +124,7 @@ async function editTypesFilesTs(){
 //-------------------------------------------------------------------------
 
 async function editAPIFilesCSharp(){
-    const exchanges = Object.keys(storedImplicitName);
+    const exchanges = Object.keys(storedResult);
     const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedMethods['cs'][exchanges[idx]].join ('\n'))))
 }
@@ -131,13 +132,15 @@ async function editAPIFilesCSharp(){
 //-------------------------------------------------------------------------
 
 function createTypescriptHeader(exchange){
-    const parent = Object.getPrototypeOf (Object.getPrototypeOf(exchange)).constructor.name
+    const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
     const importType = 'import { implicitReturnType } from \'../base/types.js\';'
     const importParent = (parent === 'Exchange') ?
         `import { Exchange as _Exchange } from '../base/Exchange.js';` :
         `import _${parent} from '../${parent}.js';`
-    const header = `export default abstract class ${parent} extends _${parent} {` // hotswap later
-    storedMethods['ts'][exchange.id] = [ getPreamble(), importType, importParent, '', header];
+    const header = `interface ${parent} {`
+    const footer = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
+    storedResult[exchange] = []
+    storedMethods["ts"][exchange] = [ getPreamble(), importType, importParent, '', header, footer ];
 }
 
 //-------------------------------------------------------------------------
@@ -164,7 +167,7 @@ async function main() {
             api = proInstance.api
         }
 
-        storedImplicitName[exchange] = []
+        storedResult[exchange] = []
         createTypescriptHeader(instance)
         createCSharpHeader(instance)
         generateImplicitMethodNames(exchange, api)
@@ -176,7 +179,7 @@ async function main() {
     log.bright.cyan ('TypeScript implicit api methods completed!')
 }
 
-let storedImplicitName = {};
+let storedResult = {};
 let storedMethods = {
     'ts': {},
     'cs': {},

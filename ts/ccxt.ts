@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.31';
+const version = '3.0.43';
 
 (Exchange as any).ccxtVersion = version
 
@@ -204,11 +204,13 @@ import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
+import mexc3Pro from  './src/pro/mexc3.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
+import probitPro from  './src/pro/probit.js'
 import ripioPro from  './src/pro/ripio.js'
 import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
@@ -375,11 +377,13 @@ const pro = {
     'kucoinfutures':          kucoinfuturesPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
+    'mexc3':                  mexc3Pro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
     'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
+    'probit':                 probitPro,
     'ripio':                  ripioPro,
     'upbit':                  upbitPro,
     'wazirx':                 wazirxPro,

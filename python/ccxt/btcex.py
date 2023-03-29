@@ -338,6 +338,7 @@ class btcex(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
             },
         })
 

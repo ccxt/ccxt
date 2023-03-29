@@ -1062,7 +1062,7 @@ class idex(Exchange):
             self.base16_to_binary(noPrefix),
         ]
         binary = self.binary_concat_array(byteArray)
-        hash = self.hash(binary, keccak, 'hex')
+        hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         # {
         #   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
@@ -1195,7 +1195,7 @@ class idex(Exchange):
         ]
         allBytes = self.array_concat(byteArray, after)
         binary = self.binary_concat_array(allBytes)
-        hash = self.hash(binary, keccak, 'hex')
+        hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request = {
             'parameters': {
@@ -1279,7 +1279,7 @@ class idex(Exchange):
             self.number_to_be(1, 1),  # bool set to True
         ]
         binary = self.binary_concat_array(byteArray)
-        hash = self.hash(binary, keccak, 'hex')
+        hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request = {
             'parameters': {
@@ -1333,7 +1333,7 @@ class idex(Exchange):
             byteArray.append(self.encode(market['id']))
             request['parameters']['market'] = market['id']
         binary = self.binary_concat_array(byteArray)
-        hash = self.hash(binary, keccak, 'hex')
+        hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request['signature'] = signature
         # [{orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e'}]
@@ -1361,7 +1361,7 @@ class idex(Exchange):
             self.encode(id),
         ]
         binary = self.binary_concat_array(byteArray)
-        hash = self.hash(binary, keccak, 'hex')
+        hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request = {
             'parameters': {
@@ -1612,3 +1612,32 @@ class idex(Exchange):
                 payload = body
             headers['IDEX-HMAC-Signature'] = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def remove0x_prefix(self, hexData):
+        if hexData[0:2] == '0x':
+            return hexData[2:]
+        else:
+            return hexData
+
+    def hash_message(self, message):
+        # takes a hex encoded message
+        binaryMessage = self.base16_to_binary(self.remove0x_prefix(message))
+        prefix = self.encode('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
+        return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
+
+    def sign_hash(self, hash, privateKey):
+        signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': 27 + signature['v'],
+        }
+
+    def sign_message(self, message, privateKey):
+        return self.sign_hash(self.hash_message(message), privateKey[-64:])
+
+    def sign_message_string(self, message, privateKey):
+        # still takes the input hex string
+        # same but returns a string instead of an object
+        signature = self.sign_message(message, privateKey)
+        return signature['r'] + self.remove0x_prefix(signature['s']) + self.binary_to_base16(self.number_to_be(signature['v'], 1))

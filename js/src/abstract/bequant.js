@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _hitbtc from '../hitbtc.js';
-export default class hitbtc extends _hitbtc {
+class hitbtc extends _hitbtc {
 }
+export default hitbtc;

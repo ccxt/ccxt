@@ -6,7 +6,6 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class btcex extends btcex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -321,7 +320,9 @@ class btcex extends btcex$1 {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'ALT': 'ArchLoot',
+            },
         });
     }
     async fetchMarkets(params = {}) {

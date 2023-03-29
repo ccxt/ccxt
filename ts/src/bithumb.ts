@@ -9,7 +9,6 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bithumb extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -162,6 +161,7 @@ export default class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },

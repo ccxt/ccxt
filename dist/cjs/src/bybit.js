@@ -5,10 +5,10 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bybit extends bybit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -173,6 +173,8 @@ class bybit extends bybit$1 {
                         'spot/v3/public/quote/ticker/bookTicker': 1,
                         'spot/v3/public/server-time': 1,
                         'spot/v3/public/infos': 1,
+                        'spot/v3/public/margin-product-infos': 1,
+                        'spot/v3/public/margin-ensure-tokens': 1,
                         // data
                         'v2/public/time': 1,
                         'v3/public/time': 1,
@@ -232,6 +234,7 @@ class bybit extends bybit$1 {
                         'v5/market/delivery-price': 1,
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
+                        'v5/announcements/index': 1,
                     },
                 },
                 'private': {
@@ -295,6 +298,9 @@ class bybit extends bybit$1 {
                         'spot/v3/private/cross-margin-account': 10,
                         'spot/v3/private/cross-margin-loan-info': 10,
                         'spot/v3/private/cross-margin-repay-history': 10,
+                        'spot/v3/private/margin-loan-infos': 10,
+                        'spot/v3/private/margin-repaid-infos': 10,
+                        'spot/v3/private/margin-ltv': 10,
                         // account
                         'asset/v1/private/transfer/list': 50,
                         'asset/v3/private/transfer/inter-transfer/list/query': 0.84,
@@ -736,6 +742,7 @@ class bybit extends bybit$1 {
                     '131097': errors.ExchangeError,
                     '131098': errors.ExchangeError,
                     '131099': errors.ExchangeError,
+                    '140001': errors.OrderNotFound,
                     '140003': errors.InvalidOrder,
                     '140004': errors.InsufficientFunds,
                     '140005': errors.InvalidOrder,
@@ -6886,6 +6893,7 @@ class bybit extends bybit$1 {
         }
         if (enableUnified[1]) {
             request['settleCoin'] = settle;
+            request['limit'] = 200;
         }
         // market undefined
         [type, params] = this.handleMarketTypeAndParams('fetchPositions', undefined, params);
@@ -8304,7 +8312,14 @@ class bybit extends bybit$1 {
                     authFull = auth_base + queryEncoded;
                     url += '?' + this.rawencode(query);
                 }
-                headers['X-BAPI-SIGN'] = this.hmac(this.encode(authFull), this.encode(this.secret), sha256.sha256);
+                let signature = undefined;
+                if (this.secret.indexOf('PRIVATE KEY') > -1) {
+                    signature = rsa.rsa(authFull, this.secret, sha256.sha256);
+                }
+                else {
+                    signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha256.sha256);
+                }
+                headers['X-BAPI-SIGN'] = signature;
             }
             else {
                 const query = this.extend(params, {
@@ -8314,7 +8329,13 @@ class bybit extends bybit$1 {
                 });
                 const sortedQuery = this.keysort(query);
                 const auth = this.rawencode(sortedQuery);
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+                let signature = undefined;
+                if (this.secret.indexOf('PRIVATE KEY') > -1) {
+                    signature = rsa.rsa(auth, this.secret, sha256.sha256);
+                }
+                else {
+                    signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+                }
                 if (method === 'POST') {
                     const isSpot = url.indexOf('spot') >= 0;
                     const extendedQuery = this.extend(query, {

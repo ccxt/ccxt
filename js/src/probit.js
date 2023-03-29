@@ -10,7 +10,6 @@ import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOr
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class probit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -18,6 +17,7 @@ export default class probit extends Exchange {
             'name': 'ProBit',
             'countries': ['SC', 'KR'],
             'rateLimit': 50,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,

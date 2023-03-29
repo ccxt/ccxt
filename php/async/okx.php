@@ -46,6 +46,7 @@ class okx extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -172,6 +173,7 @@ class okx extends Exchange {
                         'market/option/instrument-family-trades' => 1,
                         // 'market/oracle',
                         'public/instruments' => 1,
+                        'public/instrument-tick-bands' => 4,
                         'public/delivery-exercise-history' => 0.5,
                         'public/open-interest' => 1,
                         'public/funding-rate' => 1,
@@ -202,8 +204,8 @@ class okx extends Exchange {
                         'rubik/stat/option/open-interest-volume-strike' => 4,
                         'rubik/stat/option/taker-block-volume' => 4,
                         'system/status' => 100,
-                        'asset/lending-rate-summary' => 5 / 3,
-                        'asset/lending-rate-history' => 5 / 3,
+                        'finance/savings/lending-rate-summary' => 5 / 3,
+                        'finance/savings/lending-rate-history' => 5 / 3,
                         'market/exchange-rate' => 20,
                     ),
                 ),
@@ -242,8 +244,6 @@ class okx extends Exchange {
                         'asset/bills' => 5 / 3,
                         'asset/piggy-balance' => 5 / 3,
                         'asset/deposit-lightning' => 5,
-                        'asset/lending-history' => 5 / 3,
-                        'asset/saving-balance' => 5 / 3,
                         'asset/non-tradable-assets' => 5 / 3,
                         'trade/order' => 1 / 3,
                         'trade/orders-pending' => 1,
@@ -280,6 +280,8 @@ class okx extends Exchange {
                         'finance/staking-defi/offers' => 1,
                         'finance/staking-defi/orders-active' => 1,
                         'finance/staking-defi/orders-history' => 1,
+                        'finance/savings/balance' => 5 / 3,
+                        'finance/savings/lending-history' => 5 / 3,
                         'rfq/counterparties' => 4,
                         'rfq/maker-instrument-settings' => 4,
                         'rfq/rfqs' => 10,
@@ -315,9 +317,7 @@ class okx extends Exchange {
                         'account/set-auto-loan' => 4,
                         'asset/transfer' => 10,
                         'asset/withdrawal' => 5 / 3,
-                        'asset/purchase_redempt' => 5 / 3,
                         'asset/withdrawal-lightning' => 5,
-                        'asset/set-lending-rate' => 5 / 3,
                         'asset/cancel-withdrawal' => 5 / 3,
                         'asset/convert-dust-assets' => 10,
                         'trade/order' => 1 / 3,
@@ -349,6 +349,8 @@ class okx extends Exchange {
                         'finance/staking-defi/purchase' => 3,
                         'finance/staking-defi/redeem' => 3,
                         'finance/staking-defi/cancel' => 3,
+                        'finance/savings/purchase-redempt' => 5 / 3,
+                        'finance/savings/set-lending-rate' => 5 / 3,
                         'rfq/create-rfq' => 4,
                         'rfq/cancel-rfq' => 4,
                         'rfq/cancel-batch-rfqs' => 10,
@@ -2298,6 +2300,70 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade $order
+             * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-$order
+             * @param {string} $id $order $id
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the okx api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            }
+            $request = array(
+                'instId' => $market['id'],
+            );
+            $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['clOrdId'] = $clientOrderId;
+            } else {
+                $request['ordId'] = $id;
+            }
+            $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
+            if ($amount !== null) {
+                $request['newSz'] = $this->amount_to_precision($symbol, $amount);
+            }
+            if ($price !== null) {
+                $request['newPx'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = Async\await($this->privatePostTradeAmendOrder (array_merge($request, $params)));
+            //
+            //     {
+            //        "code" => "0",
+            //        "data" => array(
+            //            {
+            //                 "clOrdId" => "e847386590ce4dBCc1a045253497a547",
+            //                 "ordId" => "559176536793178112",
+            //                 "reqId" => "",
+            //                 "sCode" => "0",
+            //                 "sMsg" => ""
+            //            }
+            //        ),
+            //        "msg" => ""
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $first = $this->safe_value($data, 0);
+            $order = $this->parse_order($first, $market);
+            return array_merge($order, array(
+                'type' => $type,
+                'side' => $side,
+            ));
+        }) ();
+    }
+
     public function cancel_order($id, $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
@@ -2460,6 +2526,16 @@ class okx extends Exchange {
         //         "clOrdId" => "oktswap6",
         //         "ordId" => "312269865356374016",
         //         "tag" => "",
+        //         "sCode" => "0",
+        //         "sMsg" => ""
+        //     }
+        //
+        // editOrder
+        //
+        //     {
+        //         "clOrdId" => "e847386590ce4dBCc1a045253497a547",
+        //         "ordId" => "559176536793178112",
+        //         "reqId" => "",
         //         "sCode" => "0",
         //         "sMsg" => ""
         //     }
@@ -5272,7 +5348,7 @@ class okx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetAssetLendingRateHistory (array_merge($request, $params)));
+            $response = Async\await($this->publicGetFinanceSavingsLendingRateHistory (array_merge($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -5316,7 +5392,7 @@ class okx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetAssetLendingRateHistory (array_merge($request, $params)));
+            $response = Async\await($this->publicGetFinanceSavingsLendingRateHistory (array_merge($request, $params)));
             //
             //     {
             //         "code" => "0",

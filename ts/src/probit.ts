@@ -8,7 +8,6 @@ import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class probit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -16,6 +15,7 @@ export default class probit extends Exchange {
             'name': 'ProBit',
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
             'rateLimit': 50, // ms
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,

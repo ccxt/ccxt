@@ -6,10 +6,10 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { rsa } from './base/functions/rsa.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bybit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -174,6 +174,8 @@ export default class bybit extends Exchange {
                         'spot/v3/public/quote/ticker/bookTicker': 1,
                         'spot/v3/public/server-time': 1,
                         'spot/v3/public/infos': 1,
+                        'spot/v3/public/margin-product-infos': 1,
+                        'spot/v3/public/margin-ensure-tokens': 1,
                         // data
                         'v2/public/time': 1,
                         'v3/public/time': 1,
@@ -233,6 +235,7 @@ export default class bybit extends Exchange {
                         'v5/market/delivery-price': 1,
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
+                        'v5/announcements/index': 1,
                     },
                 },
                 'private': {
@@ -296,6 +299,9 @@ export default class bybit extends Exchange {
                         'spot/v3/private/cross-margin-account': 10,
                         'spot/v3/private/cross-margin-loan-info': 10,
                         'spot/v3/private/cross-margin-repay-history': 10,
+                        'spot/v3/private/margin-loan-infos': 10,
+                        'spot/v3/private/margin-repaid-infos': 10,
+                        'spot/v3/private/margin-ltv': 10,
                         // account
                         'asset/v1/private/transfer/list': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v3/private/transfer/inter-transfer/list/query': 0.84, // 60/s
@@ -737,6 +743,7 @@ export default class bybit extends Exchange {
                     '131097': ExchangeError, // Withdrawal of this currency has been closed
                     '131098': ExchangeError, // Withdrawal currently is not availble from new address
                     '131099': ExchangeError, // Hot wallet status can cancel the withdraw
+                    '140001': OrderNotFound, // Order does not exist
                     '140003': InvalidOrder, // Order price is out of permissible range
                     '140004': InsufficientFunds, // Insufficient wallet balance
                     '140005': InvalidOrder, // position status
@@ -6829,6 +6836,7 @@ export default class bybit extends Exchange {
         }
         if (enableUnified[1]) {
             request['settleCoin'] = settle;
+            request['limit'] = 200;
         }
         // market undefined
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
@@ -8259,7 +8267,13 @@ export default class bybit extends Exchange {
                     authFull = auth_base + queryEncoded;
                     url += '?' + this.rawencode (query);
                 }
-                headers['X-BAPI-SIGN'] = this.hmac (this.encode (authFull), this.encode (this.secret), sha256);
+                let signature = undefined;
+                if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+                    signature = rsa (authFull, this.secret, sha256);
+                } else {
+                    signature = this.hmac (this.encode (authFull), this.encode (this.secret), sha256);
+                }
+                headers['X-BAPI-SIGN'] = signature;
             } else {
                 const query = this.extend (params, {
                     'api_key': this.apiKey,
@@ -8268,7 +8282,12 @@ export default class bybit extends Exchange {
                 });
                 const sortedQuery = this.keysort (query);
                 const auth = this.rawencode (sortedQuery);
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+                let signature = undefined;
+                if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+                    signature = rsa (auth, this.secret, sha256);
+                } else {
+                    signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+                }
                 if (method === 'POST') {
                     const isSpot = url.indexOf ('spot') >= 0;
                     const extendedQuery = this.extend (query, {

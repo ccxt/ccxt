@@ -6,7 +6,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------xs
 
-// @ts-expect-error
 export default class alpaca extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {

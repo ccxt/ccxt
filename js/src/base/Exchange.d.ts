@@ -9,7 +9,6 @@ export default class Exchange {
     options: {
         [key: string]: any;
     };
-    fetchOptions: any;
     userAgents: any;
     headers: any;
     httpAgent: any;
@@ -92,7 +91,7 @@ export default class Exchange {
     };
     rateLimit: number;
     tokenBucket: any;
-    throttle: any;
+    throttler: any;
     enableRateLimit: boolean;
     httpExceptions: any;
     limits: {
@@ -150,7 +149,7 @@ export default class Exchange {
     precisionFromString: typeof functions.precisionFromString;
     capitalize: (s: string) => string;
     now: () => number;
-    buildOHLCVC: (trades: any, timeframe?: string, since?: number, limit?: number) => any[];
+    buildOHLCVC: (trades: Trade[], timeframe?: string, since?: number, limit?: number) => import("./types").OHLCVC[];
     decimalToPrecision: (x: any, roundingMode: any, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => any;
     safeValue: (o: any, k: string | number, $default?: any) => any;
     safeValue2: (o: any, k1: string | number, k2: string | number, $default?: any) => any;
@@ -191,7 +190,7 @@ export default class Exchange {
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
     }, digest?: "hex" | "base64" | "binary") => any;
     numberToString: typeof functions.numberToString;
-    parseTimeframe: (timeframe: any) => number;
+    parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: string | number, k2: string | number, $default?: number) => number;
     safeStringLower: (o: any, k: string | number, $default?: string) => string;
     parse8601: (x: any) => number;
@@ -443,6 +442,7 @@ export default class Exchange {
     checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
     checkAddress(address: any): any;
     initRestRateLimiter(): void;
+    throttle(cost?: any): void;
     setSandboxMode(enabled: any): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
@@ -460,24 +460,11 @@ export default class Exchange {
     filterBySinceLimit(array: object[], since?: number, limit?: any, key?: string | number, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: string | number, value?: string | number, since?: number, limit?: any, key?: string, tail?: boolean): any;
     checkRequiredDependencies(): void;
-    remove0xPrefix(hexData: string): string;
-    hashMessage(message: string): string;
-    signHash(hash: string, privateKey: string): {
-        r: string;
-        s: string;
-        v: number;
-    };
-    signMessage(message: string, privateKey: string): {
-        r: string;
-        s: string;
-        v: number;
-    };
-    signMessageString(message: string, privateKey: string): string;
     parseNumber(value: string | number, d?: number): number;
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
+    remove0xPrefix(hexData: any): any;
     findTimeframe(timeframe: any, timeframes?: any): string;
-    formatScientificNotationFTX(n: any): any;
     spawn(method: any, ...args: any[]): Promise<unknown>;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
@@ -501,7 +488,7 @@ export default class Exchange {
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
-    fetchTime(params?: {}): Promise<any>;
+    fetchTime(params?: {}): Promise<number>;
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<any>;
     parseTicker(ticker: object, market?: any): Ticker;
     parseDepositAddress(depositAddress: any, currency?: any): void;
@@ -588,7 +575,7 @@ export default class Exchange {
     selectNetworkKeyFromNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): any;
     safeNumber2(dictionary: any, key1: any, key2: any, d?: any): number;
     parseOrderBook(orderbook: object, symbol: string, timestamp?: number, bidsKey?: string, asksKey?: string, priceKey?: number | string, amountKey?: number | string): OrderBook;
-    parseOHLCVs(ohlcvs: object[], market?: string, timeframe?: string, since?: number, limit?: any): OHLCV[];
+    parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: number, limit?: any): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     parsePositions(positions: any, symbols?: string[], params?: {}): any;
@@ -606,7 +593,7 @@ export default class Exchange {
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<any>;
-    fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any[]>;
+    fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./types").OHLCVC[]>;
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: number, limit?: any): OHLCV[];
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitSellOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;

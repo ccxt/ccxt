@@ -11,8 +11,9 @@ import { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, D
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class idex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1717,5 +1718,36 @@ export default class idex extends Exchange {
             headers['IDEX-HMAC-Signature'] = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'hex');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    remove0xPrefix(hexData) {
+        if (hexData.slice(0, 2) === '0x') {
+            return hexData.slice(2);
+        }
+        else {
+            return hexData;
+        }
+    }
+    hashMessage(message) {
+        // takes a hex encoded message
+        const binaryMessage = this.base16ToBinary(this.remove0xPrefix(message));
+        const prefix = this.encode('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
+        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), keccak, 'hex');
+    }
+    signHash(hash, privateKey) {
+        const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': 27 + signature['v'],
+        };
+    }
+    signMessage(message, privateKey) {
+        return this.signHash(this.hashMessage(message), privateKey.slice(-64));
+    }
+    signMessageString(message, privateKey) {
+        // still takes the input as a hex string
+        // same as above but returns a string instead of an object
+        const signature = this.signMessage(message, privateKey);
+        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v'], 1));
     }
 }

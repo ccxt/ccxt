@@ -56,7 +56,7 @@ script:
     fi;
   fi
 after_failure:
-- dmesg | grep -i kill
+- sleep 10
 before_deploy:
 - echo $SHOULD_DEPLOY
 deploy:

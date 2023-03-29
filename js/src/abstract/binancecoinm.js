@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _binance from '../binance.js';
-export default class binance extends _binance {
+class binance extends _binance {
 }
+export default binance;

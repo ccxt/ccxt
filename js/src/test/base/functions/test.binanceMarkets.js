@@ -108,6 +108,7 @@ defaultOptions = defaultOptions['binance'];
         defaultOptions['agent'] = new HttpsProxyAgent(defaultOptions.httpProxy);
     }
     for (const test of cases) {
+        // @ts-ignore
         const binance = new ccxt.binance(Object.assign({}, defaultOptions, {
             options: {
                 defaultType: test.defaultType,
