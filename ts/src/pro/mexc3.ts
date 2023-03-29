@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import mexc3Rest from '../mexc3.js';
-import { BadRequest, ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
+import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
@@ -27,7 +27,7 @@ export default class mexc3 extends mexc3Rest {
                     'ws': {
                         'spot': 'wss://wbs.mexc.com/ws',
                         'swap': 'wss://contract.mexc.com/ws',
-                    }
+                    },
                 },
             },
             'options': {
@@ -149,7 +149,7 @@ export default class mexc3 extends mexc3Rest {
         }, market);
     }
 
-    async watchSpotPublic (channel, messageHash,  params = {}) {
+    async watchSpotPublic (channel, messageHash, params = {}) {
         const url = this.urls['api']['ws']['spot'];
         const request = {
             'method': 'SUBSCRIPTION',
@@ -226,7 +226,7 @@ export default class mexc3 extends mexc3Rest {
             const requestParams = {
                 'symbol': market['id'],
                 'interval': timeframeId,
-            }
+            };
             ohlcv = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         if (this.newUpdates) {
@@ -282,7 +282,7 @@ export default class mexc3 extends mexc3Rest {
         //       ts: 1651230713067
         //   }
         //
-        const d = this.safeValue2 (message, 'd', 'data',{});
+        const d = this.safeValue2 (message, 'd', 'data', {});
         const rawOhlcv = this.safeValue (d, 'k', d);
         const timeframeId = this.safeString2 (rawOhlcv, 'i', 'interval');
         const timeframes = this.safeValue (this.options, 'timeframes', {});
@@ -459,7 +459,7 @@ export default class mexc3 extends mexc3Rest {
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook ({});
         }
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -1045,7 +1045,7 @@ export default class mexc3 extends mexc3Rest {
         //     }
         //
         const c = this.safeString (message, 'c');
-        let type = (c === undefined) ? 'swap' : 'spot';
+        const type = (c === undefined) ? 'swap' : 'spot';
         const messageHash = 'balance:' + type;
         const data = this.safeValue2 (message, 'd', 'data');
         const futuresTimestamp = this.safeInteger (message, 'ts');
@@ -1126,7 +1126,7 @@ export default class mexc3 extends mexc3Rest {
             const channel = this.safeString (parts, 1);
             const methods = {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
-            }
+            };
             const method = this.safeValue (methods, channel);
             if (method !== undefined) {
                 method.call (this, client, message);
