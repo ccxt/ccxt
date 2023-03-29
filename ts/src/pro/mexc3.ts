@@ -379,8 +379,6 @@ export default class mexc3 extends mexc3Rest {
         // spot
         //     { id: 0, code: 0, msg: 'spot@public.increase.depth.v3.api@BTCUSDT' }
         //
-        // swap
-        //     { channel: 'rs.sub.depth', data: 'success', ts: 1680060045538 }
         const msg = this.safeString (message, 'msg');
         const parts = msg.split ('@');
         const marketId = this.safeString (parts, 2);
@@ -398,7 +396,7 @@ export default class mexc3 extends mexc3Rest {
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaNonce = this.safeInteger (delta, 'r');
+            const deltaNonce = this.safeInteger2 (delta, 'r', 'version');
             if (deltaNonce >= nonce) {
                 return i;
             }
@@ -408,6 +406,7 @@ export default class mexc3 extends mexc3Rest {
 
     handleOrderBook (client, message) {
         //
+        // spot
         //    {
         //        "c": "spot@public.increase.depth.v3.api@BTCUSDT",
         //        "d": {
@@ -422,10 +421,44 @@ export default class mexc3 extends mexc3Rest {
         //        "t": 1661932660144
         //    }
         //
+        //
+        //
+        // swap
+        //  {
+        //      "channel":"push.depth",
+        //      "data":{
+        //         "asks":[
+        //            [
+        //               39146.5,
+        //               11264,
+        //               1
+        //            ]
+        //         ],
+        //         "bids":[
+        //            [
+        //               39144,
+        //               35460,
+        //               1
+        //            ]
+        //         ],
+        //         "end":4895965272,
+        //         "begin":4895965271
+        //      },
+        //      "symbol":"BTC_USDT",
+        //      "ts":1651239652372
+        //  }
+        //
         const data = this.safeValue2 (message, 'd', 'data');
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
+        const subscription = this.safeValue (client.subscriptions, messageHash);
+        if (subscription === true) {
+            // we set client.subscriptions[messageHash] to 1
+            // once we have received the first delta and initialized the orderbook
+            client.subscriptions[messageHash] = 1;
+            this.orderbooks[symbol] = this.countedOrderBook ({});
+        }
         let storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
@@ -460,15 +493,19 @@ export default class mexc3 extends mexc3Rest {
         //
         for (let i = 0; i < bidasks.length; i++) {
             const bidask = bidasks[i];
-            const price = this.safeFloat (bidask, 'p');
-            const amount = this.safeFloat (bidask, 'v');
-            bookside.store (price, amount);
+            if (Array.isArray (bidask)) {
+                bookside.storeArray (bidask);
+            } else {
+                const price = this.safeFloat (bidask, 'p');
+                const amount = this.safeFloat (bidask, 'v');
+                bookside.store (price, amount);
+            }
         }
     }
 
     handleDelta (orderbook, delta) {
         const nonce = this.safeInteger (orderbook, 'nonce');
-        const deltaNonce = this.safeInteger (delta, 'r');
+        const deltaNonce = this.safeInteger2 (delta, 'r', 'version');
         if (deltaNonce !== nonce && deltaNonce !== nonce + 1) {
             throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
         }
@@ -1132,7 +1169,6 @@ export default class mexc3 extends mexc3Rest {
             'private.deals.v3.api': this.handleMyTrade,
             'push.personal.order.deal': this.handleMyTrade,
             'pong': this.handlePong,
-            'rs.sub.depth': this.handleOrderBookSubscription,
         };
         if (channel in methods) {
             const method = methods[channel];
