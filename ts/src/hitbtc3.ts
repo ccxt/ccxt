@@ -300,12 +300,291 @@ export default class hitbtc3 extends Exchange {
                 'broad': {},
             },
             'options': {
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
+                'networksAreIncludedInCurrencyIds': true,
                 'networks': {
-                    'ETH': 'USDT20',
-                    'ERC20': 'USDT20',
-                    'TRX': 'USDTRX',
-                    'TRC20': 'USDTRX',
-                    'OMNI': 'USDT',
+                    // mainnet network ids are in lowercase for BTC & ETH
+                    'BTC': 'btc',
+                    'OMNI': 'BTC',
+                    'ETH': 'eth',
+                    'ERC20': 'ETH',
+                    'ETC': 'ETC',
+                    'BEP20': 'BSC',
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
+                    // '': 'UGT',
+                    'NEAR': 'NEAR',
+                    // '': 'LWF',
+                    'DIGIBYTE': 'DGB',
+                    // '': 'YOYOW',
+                    'BITCOINDIAMOND': 'BCD',
+                    'BITCONNECT': 'BCC',
+                    'AETERNITY': 'AE',
+                    'BCHABC': 'BCHABC',
+                    // '': 'BCI',
+                    'BYTECOIN': 'bcn',
+                    'ARWEAVE': 'AR',
+                    // '': 'HPC',
+                    'CARDANO': 'ADA',
+                    'BELDEX': 'BDX',
+                    'ARDOR': 'ARDR',
+                    'NEBLIO': 'NEBL',
+                    // '': 'DIM',
+                    'CHILIZ': 'CHZ',
+                    // '': 'BET',
+                    // '': '8BT',
+                    'ABBC': 'ABBC',
+                    // '': 'ABTC',
+                    'ACHAIN': 'ACT',
+                    // '': 'ADK',
+                    // '': 'AEON',
+                    'ALGORAND': 'ALGO',
+                    'AMBROSUS': 'AMB',
+                    // '': 'APL',
+                    'APTOS': 'APT',
+                    // '': 'ARK',
+                    'PIRATECHAIN': 'ARRR',
+                    // '': 'ASP',
+                    // '': 'ATB',
+                    'COSMOS': 'ATOM',
+                    'AVALANCHE_C': 'AVAC',
+                    'AVALANCHE_X': 'AVAX',
+                    // '': 'AYA',
+                    // '': 'B2G',
+                    // '': 'B2X',
+                    // '': 'BANANO',
+                    // '': 'BCCF',
+                    'BSV': 'BCHSV',
+                    'BEP2': 'BNB',
+                    'BOSON': 'BOS',
+                    // '': 'BRL', // brazilian real
+                    // '': 'BST',
+                    'BITCOINADDITION': 'BTCADD',
+                    // '': 'BTCP',
+                    'BITCOINVAULT': 'BTCV',
+                    'BITCOINGOLD': 'BTG',
+                    // '': 'BTM',
+                    'BITSHARES_OLD': 'BTS',
+                    // '': 'BTX',
+                    // '': 'BWI',
+                    'CELO': 'CELO',
+                    // '': 'CENNZ',
+                    // '': 'CHX',
+                    'NERVOS': 'CKB',
+                    'CALLISTO': 'CLO',
+                    // '': 'CLR',
+                    // '': 'CNX',
+                    // '': 'CRS',
+                    // '': 'CSOV',
+                    'CORTEX': 'CTXC',
+                    // '': 'CURE',
+                    'CONSTELLATION': 'DAG',
+                    // '': 'DAPS',
+                    'DASH': 'DASH',
+                    // '': 'DBIX',
+                    'DECRED': 'DCR',
+                    // '': 'DCT',
+                    // '': 'DDR',
+                    // '': 'DNA',
+                    'DOGECOIN': 'doge',
+                    // 'POLKADOT': 'DOT',
+                    // '': 'NEWDOT', POLKADOT NEW
+                    // '': 'dsh',
+                    // '': 'ECA',
+                    // '': 'ECOIN',
+                    // '': 'EEX',
+                    'ERLOND': 'EGLD',
+                    // '': 'ELE',
+                    'ELECTRONEUM': 'Electroneum',
+                    // '': 'ELM',
+                    // '': 'EMC',
+                    'EOS': 'EOS',
+                    'AERGO': 'ERG',
+                    'ETHW': 'ETHW',
+                    'ETHERLITE': 'ETL',
+                    // '': 'ETP', // metaverse etp
+                    // '': 'EUNO',
+                    'EVERSCALE': 'EVER',
+                    // '': 'EXP',
+                    // '': 'fcn',
+                    'FETCH_AI': 'FET',
+                    'FILECOIN': 'FIL',
+                    // '': 'FIRO',
+                    'FLOW': 'FLOW',
+                    // '': 'G999',
+                    // '': 'GAME',
+                    // '': 'GASP',
+                    // '': 'GBX',
+                    // '': 'GHOST',
+                    // '': 'GLEEC',
+                    'MOONBEAM': 'GLMR',
+                    // '': 'GMD',
+                    // '': 'GRAPH',
+                    'GRIN': 'GRIN',
+                    'HEDERA': 'HBAR',
+                    // '': 'HDG',
+                    'HIVE': 'HIVE',
+                    'HARBOR': 'HRB',
+                    // '': 'HSR',
+                    // '': 'HTML',
+                    'HYDRA': 'HYDRA',
+                    'INTERNETCOMPUTER': 'ICP',
+                    'ICON': 'ICX',
+                    // '': 'IML',
+                    'IOST': 'IOST',
+                    'IOTA': 'IOTA',
+                    'IOTEX': 'IOTX',
+                    // '': 'IQ',
+                    'KAVA': 'KAVA',
+                    'KLAYTN': 'KIM',
+                    'KOMODO': 'KMD',
+                    // '': 'KRM',
+                    'KUSAMA': 'KSM',
+                    // '': 'LAVA',
+                    'LITECOINCASH': 'LCC',
+                    'LISK': 'LSK',
+                    // '': 'LOC',
+                    'LTC': 'ltc',
+                    // '': 'LTNM',
+                    'TERRACLASSIC': 'LUNA',
+                    'TERRA': 'LUNANEW',
+                    // '': 'MAN',
+                    // '': 'MESH',
+                    'MINA': 'MINA',
+                    // '': 'MNX',
+                    'MOBILECOIN': 'MOB',
+                    'MOONRIVER': 'MOVR',
+                    // '': 'MPK',
+                    // '': 'MRV',
+                    'NANO': 'NANO',
+                    // '': 'NAV',
+                    'NEO': 'NEO',
+                    'NIMIQ': 'NIM',
+                    // '': 'NJBC',
+                    // '': 'NKN',
+                    // '': 'NLC2',
+                    // '': 'NOF',
+                    // 'ENERGI': 'NRG',
+                    // '': 'nxt',
+                    // '': 'ODN',
+                    'HARMONY': 'ONE',
+                    'ONTOLOGYGAS': 'ONG',
+                    'ONTOLOGY': 'ONT',
+                    'OPTIMISM': 'OP',
+                    // '': 'PAD',
+                    // '': 'PART',
+                    // '': 'PBKX',
+                    // '': 'PLC',
+                    'PLCULTIMA': 'PLCU',
+                    // '': 'PLI',
+                    // '': 'POA',
+                    'POLYGON': 'POLYGON',
+                    // '': 'PPC',
+                    // '': 'PQT',
+                    // '': 'PROC',
+                    'PASTEL': 'PSL',
+                    // '': 'qcn',
+                    'QTUM': 'QTUM',
+                    // '': 'RCOIN',
+                    'REI': 'REI',
+                    // '': 'RIF',
+                    // '': 'ROOTS',
+                    'OASIS': 'ROSE',
+                    // '': 'RPX',
+                    // '': 'RUB',
+                    'RAVENCOIN': 'RVN',
+                    // '': 'SBD',
+                    'SUPERBTC': 'SBTC',
+                    'SIACOIN': 'SC',
+                    'SECRET': 'SCRT',
+                    // '': 'SLX',
+                    'SMARTMESH': 'SMART',
+                    // '': 'SMT',
+                    // '': 'SNM',
+                    'SOLANA': 'SOL',
+                    // '': 'SRX',
+                    // '': 'STAK',
+                    'STEEM': 'STEEM',
+                    'STRATIS': 'STRAT',
+                    // '': 'TCN',
+                    // '': 'TENT',
+                    'THETA': 'Theta',
+                    // '': 'TIV',
+                    // '': 'TNC',
+                    'THEOPENNETWORK': 'TONCOIN',
+                    'TRUECHAIN': 'TRUE',
+                    // '': 'TRY', // turkish lira
+                    // '': 'UNO',
+                    // '': 'USNOTA',
+                    // '': 'VEO',
+                    'VECHAIN': 'VET',
+                    // '': 'VITAE',
+                    'VELAS': 'VLX',
+                    'VSYSTEMS': 'VSYS',
+                    // '': 'VTC',
+                    'WAVES': 'WAVES',
+                    'WAX': 'WAX',
+                    // '': 'WEALTH',
+                    'WALTONCHAIN': 'WTC',
+                    // '': 'WTT',
+                    'CHIA': 'XCH',
+                    // '': 'XDC', // xinfin?
+                    // '': 'xdn',
+                    // '': 'XDNCO',
+                    // '': 'XDNICCO',
+                    'ECASH': 'XEC',
+                    'NEM': 'XEM',
+                    'HAVEN': 'XHV',
+                    // '': 'XLC',
+                    'STELLAR': 'XLM',
+                    // '': 'XMO',
+                    'MONERO': 'xmr',
+                    'MONEROCLASSIC': 'XMC',
+                    // '': 'XNS',
+                    // '': 'XPRM',
+                    // '': 'XRC',
+                    'RADIX': 'XRD',
+                    'RIPPLE': 'XRP',
+                    'TEZOS': 'XTZ',
+                    'VERGE': 'XVG',
+                    'SYMBOL': 'XYM',
+                    'ZCASH': 'ZEC',
+                    'HORIZEN': 'ZEN',
+                    'ZILLIQA': 'ZIL',
+                    // '': 'ZYN',
+                },
+                // as listed at /billing/convertible-currencies
+                'currencyMappings': {
+                    'USDT': [ 'USDT', 'OMNI' ],
+                    'USDTBSC': [ 'USDT', 'BEP20' ],
+                    'USDT20': [ 'USDT', 'ERC20' ],
+                    'USDTRX': [ 'USDT', 'TRC20' ],
+                    'USDTSOL': [ 'USDT', 'SOLANA' ],
+                    'USDTAVAC': [ 'USDT', 'AVALANCHE_C' ],
+                    'AVAX': [ 'AVAX', 'AVALANCHE_X' ],
+                    'AVAC': [ 'AVAX', 'AVALANCHE_C' ],
+                    'MATICPOLY': [ 'MATIC', 'POLYGON' ],
+                    'MATIC': [ 'MATIC', 'ERC20' ],
+                    'USDC': [ 'USDC', 'ERC20' ],
+                    'USDCBSC': [ 'USDC', 'BEP20' ],
+                    'USDCSOL': [ 'USDC', 'SOLANA' ],
+                    'USDCAVAC': [ 'USDC', 'AVALANCE_C' ],
+                    'USDCTRX': [ 'USDC', 'TRC20' ],
+                    'USDCXLM': [ 'USDC', 'STELLAR' ],
+                    'BUSD': [ 'BUSD', 'ERC20' ],
+                    'BUSDBSC': [ 'BUSD', 'BEP20' ],
+                    'BUSDBNB': [ 'BUSD', 'BEP2' ],
+                    'BNB': [ 'BNB', 'BEP2' ],
+                    'BNBBSC': [ 'BNB', 'BEP20' ],
+                    'NEAR': [ 'NEAR', 'NEAR' ],
+                    'NEARBSC': [ 'NEAR', 'BEP20' ],
+                    'GMT': [ 'GMT', 'BEP20' ],
+                    'GMTSOL': [ 'GMT', 'SOLANA' ],
+                    'POA': [ 'POA', 'POA' ],
+                    'POA20': [ 'POA', 'ERC20' ],
                 },
                 'accountsByType': {
                     'spot': 'spot',
@@ -493,75 +772,63 @@ export default class hitbtc3 extends Exchange {
         const response = await this.publicGetPublicCurrency (params);
         //
         //     {
-        //       "WEALTH": {
-        //         "full_name": "ConnectWealth",
-        //         "payin_enabled": false,
-        //         "payout_enabled": false,
-        //         "transfer_enabled": true,
-        //         "precision_transfer": "0.001",
-        //         "networks": [
-        //           {
-        //             "network": "ETH",
-        //             "protocol": "ERC20",
-        //             "default": true,
-        //             "payin_enabled": false,
-        //             "payout_enabled": false,
-        //             "precision_payout": "0.001",
-        //             "payout_fee": "0.016800000000",
-        //             "payout_is_payment_id": false,
-        //             "payin_payment_id": false,
-        //             "payin_confirmations": "2"
-        //           }
-        //         ]
-        //       }
-        //     }
+        //        "BAL": {
+        //            "full_name": "Balancer",
+        //            "crypto": true,
+        //            "payin_enabled": true,
+        //            "payout_enabled": true,
+        //            "transfer_enabled": true,
+        //            "precision_transfer": "0.00000001",
+        //            "networks": [
+        //                {
+        //                    "network": "ETH",
+        //                    "protocol": "ERC20",
+        //                    "default": true,
+        //                    "payin_enabled": true,
+        //                    "payout_enabled": true,
+        //                    "precision_payout": "0.00000001",
+        //                    "payout_fee": "1.787629600000",
+        //                    "payout_is_payment_id": false,
+        //                    "payin_payment_id": false,
+        //                    "payin_confirmations": "9",
+        //                    "low_processing_time": "191.086",
+        //                    "high_processing_time": "3105.709",
+        //                    "avg_processing_time": "1157.2329782608704"
+        //                }
+        //            ]
+        //        },
+        //
+        // Note, exchange has same currenceis with different IDs, i.e. `USDTBSC, USDTRX,` etc.., so we use specific approach
         //
         const result = {};
-        const currencies = Object.keys (response);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
-            const code = this.safeCurrencyCode (currencyId);
+        const currencyMappings = this.safeValue (this.options, 'currencyMappings', {});
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const currencyId = keys[i];
             const entry = response[currencyId];
-            const name = this.safeString (entry, 'full_name');
-            const precision = this.safeNumber (entry, 'precision_transfer');
-            const payinEnabled = this.safeValue (entry, 'payin_enabled', false);
-            const payoutEnabled = this.safeValue (entry, 'payout_enabled', false);
-            const transferEnabled = this.safeValue (entry, 'transfer_enabled', false);
-            const active = payinEnabled && payoutEnabled && transferEnabled;
-            const rawNetworks = this.safeValue (entry, 'networks', []);
-            const networks = {};
-            let fee = undefined;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
-            for (let j = 0; j < rawNetworks.length; j++) {
-                const rawNetwork = rawNetworks[j];
-                const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
-                const network = this.safeNetwork (networkId);
-                fee = this.safeNumber (rawNetwork, 'payout_fee');
-                const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
-                const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
-                if (payinEnabledNetwork && !depositEnabled) {
-                    depositEnabled = true;
-                } else if (!payinEnabledNetwork) {
-                    depositEnabled = false;
-                }
-                if (payoutEnabledNetwork && !withdrawEnabled) {
-                    withdrawEnabled = true;
-                } else if (!payoutEnabledNetwork) {
-                    withdrawEnabled = false;
-                }
-                networks[network] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': network,
-                    'fee': fee,
-                    'active': activeNetwork,
-                    'deposit': payinEnabledNetwork,
-                    'withdraw': payoutEnabledNetwork,
-                    'precision': networkPrecision,
+            const currencyIdArray = this.safeValue (currencyMappings, currencyId);
+            const currencyIdPrimary = this.safeString (currencyIdArray, 0, currencyId);
+            const code = this.safeCurrencyCode (currencyIdPrimary);
+            const type = this.safeValue (entry, 'crypto', false) ? 'crypto' : 'fiat';
+            if (!(code in result)) {
+                result[code] = {
+                    'info': {},
+                    'id': currencyIdPrimary,
+                    'code': code,
+                    'name': undefined,
+                    'type': type,
+                    'margin': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'networks': {},
                     'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'withdraw': {
                             'min': undefined,
                             'max': undefined,
@@ -569,36 +836,60 @@ export default class hitbtc3 extends Exchange {
                     },
                 };
             }
-            const networksKeys = Object.keys (networks);
-            const networksLength = networksKeys.length;
-            result[code] = {
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': precision,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'networks': networks,
-                'fee': (networksLength <= 1) ? fee : undefined,
+            // this exchange has only one network for each currency, even though it is array
+            const rawNetworks = this.safeValue (entry, 'networks', []);
+            const rawNetwork = this.safeValue (rawNetworks, 0, {});
+            const networkId = this.safeString (rawNetwork, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            this.defineNetworkCodeNameIdMappings (code, currencyId, networkCode, networkId);
+            const fee = this.safeNumber (rawNetwork, 'payout_fee');
+            const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
+            const deposit = this.safeValue (rawNetwork, 'payin_enabled');
+            const withdraw = this.safeValue (rawNetwork, 'payout_enabled');
+            result[code]['networks'][networkCode] = {
+                'info': rawNetwork,
+                'id': networkId,
+                'network': networkCode,
+                'fee': fee,
+                'active': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'precision': networkPrecision,
                 'limits': {
-                    'amount': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
             };
+            if (result[code]['precision'] === undefined || networkPrecision < result[code]['precision']) {
+                result[code]['precision'] = networkPrecision;
+            }
+            if (deposit) {
+                result[code]['deposit'] = deposit;
+            }
+            if (withdraw) {
+                result[code]['withdraw'] = withdraw;
+            }
+            result[code]['info'][currencyId] = entry;
         }
         return result;
     }
 
-    safeNetwork (networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        } else {
-            return networkId.toUpperCase ();
-        }
+    getCurrencyPartFromCurrencyJunction (currencyIdWithNetworkId, currencyCode = undefined) {
+        const currencyMappings = this.safeValue (this.options, 'currencyMappings', {});
+        const currencyIdArray = this.safeValue (currencyMappings, currencyIdWithNetworkId);
+        return this.safeString (currencyIdArray, 0, currencyIdWithNetworkId);
+    }
+
+    getNetworkPartFromCurrencyJunction (currencyIdWithNetworkId, currencyCode = undefined) {
+        const currencyMappings = this.safeValue (this.options, 'currencyMappings', {});
+        const currencyIdArray = this.safeValue (currencyMappings, currencyIdWithNetworkId);
+        return this.safeString (currencyIdArray, 1, currencyIdWithNetworkId);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -612,28 +903,25 @@ export default class hitbtc3 extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const network = this.safeStringUpper (params, 'network');
-        if ((network !== undefined) && (code === 'USDT')) {
-            const networks = this.safeValue (this.options, 'networks');
-            const parsedNetwork = this.safeString (networks, network);
-            if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
-            }
-            params = this.omit (params, 'network');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' createDepositAddress() requires a "network" parameter');
         }
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
+        const request = {
+            'currency': currencyIdWithNetwork,
+        };
         const response = await this.privatePostWalletCryptoAddress (this.extend (request, params));
         //
         //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
         //
         const currencyId = this.safeString (response, 'currency');
         return {
-            'currency': this.safeCurrencyCode (currencyId),
+            'currency': this.safeCurrencyCode (this.getCurrencyPartFromCurrencyJunction (currencyId)),
             'address': this.safeString (response, 'address'),
             'tag': this.safeString (response, 'payment_id'),
-            'network': undefined,
+            'network': this.networkIdToCode (this.getNetworkPartFromCurrencyJunction (currencyId)),
             'info': response,
         };
     }
@@ -649,18 +937,15 @@ export default class hitbtc3 extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const network = this.safeStringUpper (params, 'network');
-        if ((network !== undefined) && (code === 'USDT')) {
-            const networks = this.safeValue (this.options, 'networks');
-            const parsedNetwork = this.safeString (networks, network);
-            if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
-            }
-            params = this.omit (params, 'network');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
+        const request = {
+            'currency': currencyIdWithNetwork,
+        };
         const response = await this.privateGetWalletCryptoAddress (this.extend (request, params));
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
@@ -669,14 +954,12 @@ export default class hitbtc3 extends Exchange {
         const address = this.safeString (firstAddress, 'address');
         const currencyId = this.safeString (firstAddress, 'currency');
         const tag = this.safeString (firstAddress, 'payment_id');
-        const parsedCode = this.safeCurrencyCode (currencyId);
         return {
-            'info': response,
+            'info': firstAddress,
             'address': address,
             'tag': tag,
-            'code': parsedCode, // kept here for backward-compatibility, but will be removed soon
-            'currency': parsedCode,
-            'network': undefined,
+            'currency': this.safeCurrencyCode (this.getCurrencyPartFromCurrencyJunction (currencyId)),
+            'network': this.networkIdToCode (this.getNetworkPartFromCurrencyJunction (currencyId)),
         };
     }
 
@@ -2099,24 +2382,21 @@ export default class hitbtc3 extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
-        this.checkAddress (address);
         const currency = this.currency (code);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
+        }
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
+        this.checkAddress (address);
         const request = {
-            'currency': currency['id'],
+            'currency': currencyIdWithNetwork,
             'amount': amount,
             'address': address,
         };
         if (tag !== undefined) {
             request['payment_id'] = tag;
-        }
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeStringUpper (params, 'network');
-        if ((network !== undefined) && (code === 'USDT')) {
-            const parsedNetwork = this.safeString (networks, network);
-            if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
-            }
-            params = this.omit (params, 'network');
         }
         const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, params));
         //
