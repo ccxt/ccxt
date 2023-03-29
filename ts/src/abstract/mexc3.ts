@@ -56,7 +56,6 @@ interface Exchange {
      spotPrivateGetRebateDetailKickback (params?: {}): Promise<implicitReturnType>;
      spotPrivateGetRebateReferCode (params?: {}): Promise<implicitReturnType>;
      spotPrivateGetMxDeductEnable (params?: {}): Promise<implicitReturnType>;
-     spotPrivateGetUserDataStream (params?: {}): Promise<implicitReturnType>;
      spotPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
      spotPrivatePostOrderTest (params?: {}): Promise<implicitReturnType>;
      spotPrivatePostSubAccountVirtualSubAccount (params?: {}): Promise<implicitReturnType>;
@@ -74,14 +73,11 @@ interface Exchange {
      spotPrivatePostMarginLoan (params?: {}): Promise<implicitReturnType>;
      spotPrivatePostMarginRepay (params?: {}): Promise<implicitReturnType>;
      spotPrivatePostMxDeductEnable (params?: {}): Promise<implicitReturnType>;
-     spotPrivatePostUserDataStream (params?: {}): Promise<implicitReturnType>;
-     spotPrivatePutUserDataStream (params?: {}): Promise<implicitReturnType>;
      spotPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
      spotPrivateDeleteOpenOrders (params?: {}): Promise<implicitReturnType>;
      spotPrivateDeleteSubAccountApiKey (params?: {}): Promise<implicitReturnType>;
      spotPrivateDeleteMarginOrder (params?: {}): Promise<implicitReturnType>;
      spotPrivateDeleteMarginOpenOrders (params?: {}): Promise<implicitReturnType>;
-     spotPrivateDeleteUserDataStream (params?: {}): Promise<implicitReturnType>;
      contractPublicGetPing (params?: {}): Promise<implicitReturnType>;
      contractPublicGetDetail (params?: {}): Promise<implicitReturnType>;
      contractPublicGetSupportCurrencies (params?: {}): Promise<implicitReturnType>;
