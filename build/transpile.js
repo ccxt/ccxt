@@ -1461,16 +1461,27 @@ class Transpiler {
             const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature
-            let pythonArgs = args.map (x => x.includes (':') ? x : x.replace (' = ', '='))
-                .join (', ')
-                .replace (/undefined/g, 'None')
-                .replace (/false/g, 'False')
-                .replace (/true/g, 'True')
-                .replace (/: string/g, ': str')
-                .replace (/: number/g, ': float')
-                .replace (/: boolean/g, ': bool')
-                .replace (/: any/g, ': Any')
-
+            const pythonTypes = {
+                'string': 'str',
+                'number': 'float',
+                'any': 'Any',
+                'boolean': 'bool'
+            }
+            let pythonArgs = args.map (x => {
+                if (x.includes (':')) {
+                    const parts = x.split(':')
+                    const typeParts = parts[1].trim ().split (' ')
+                    const type = typeParts[0]
+                    typeParts[0] = ''
+                    return parts[0] + ': ' + (pythonTypes[type] ?? type) + typeParts.join (' ')
+                } else {
+                    return x.replace (' = ', '=')
+                }
+            })
+            .join (', ')
+            .replace (/undefined/g, 'None')
+            .replace (/false/g, 'False')
+            .replace (/true/g, 'True')
             // method body without the signature (first line)
             // and without the closing bracket (last line)
             let js = lines.slice (1, -1).join ("\n")
@@ -1479,7 +1490,7 @@ class Transpiler {
             let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             // compile the final Python code for the method signature
-            const pythonReturnType = returnType ? ' -> ' + returnType : ''
+            const pythonReturnType = returnType ? ' -> ' + (pythonTypes[returnType] ?? returnType) : ''
             let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
 
             // compile signature + body for Python sync

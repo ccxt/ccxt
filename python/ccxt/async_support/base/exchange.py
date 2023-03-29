@@ -22,16 +22,11 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import RequestTimeout
-
-from ccxt.base.errors import NotSupported
-from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import NullResponse
-from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import BaseError, BadSymbol, AuthenticationError, ExchangeError, ExchangeNotAvailable, \
+    RequestTimeout, \
+    NotSupported, NullResponse, InvalidOrder, InvalidAddress
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
+from ccxt.base.types import OrderType, OrderSide, IntegerType, IndexType, Balance
 
 # -----------------------------------------------------------------------------
 
@@ -2119,7 +2114,7 @@ class Exchange(BaseExchange):
         value = self.safe_string(obj, key)
         return self.parse_number(value, defaultNumber)
 
-    def safe_number_n(self, obj: object, arr, defaultNumber: float = None) -> number:
+    def safe_number_n(self, obj: object, arr, defaultNumber: float = None) -> float:
         value = self.safe_string_n(obj, arr)
         return self.parse_number(value, defaultNumber)
 
