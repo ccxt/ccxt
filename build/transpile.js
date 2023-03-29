@@ -834,10 +834,10 @@ class Transpiler {
         if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
         }
-        if (bodyAsString.match (/ Optional\[/)) {
+        if (bodyAsString.match (/[\s(]Optional\[/)) {
             libraries.push ('from typing import Optional')
         }
-        if (bodyAsString.match (/[\s\[]List\[/)) {
+        if (bodyAsString.match (/[\s\[(]List\[/)) {
             libraries.push ('from typing import List')
         }
 
