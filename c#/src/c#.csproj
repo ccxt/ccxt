@@ -1,12 +1,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>c_</RootNamespace>
+    <RootNamespace>Main</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- <Nullable>enable</Nullable> -->
     <Nullable>disable</Nullable>
     <NoWarn>1998,CS0168, CS0108</NoWarn>
+  </PropertyGroup>
+    <PropertyGroup>
+    <PackageId>CCXT</PackageId>
+    <Authors>Kroitor, Carlos, Carlo</Authors>
+    <PackageVersion>0.0.1</PackageVersion>
+    <AssemblyVersion>0.0.1</AssemblyVersion>
+    <FileVersion>0.0.1</FileVersion>
+    <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin</Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>Binance C# .Net CryptoCurrency Exchange API wrapper Rest API</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <NeutralLanguage>en</NeutralLanguage>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="*" />
