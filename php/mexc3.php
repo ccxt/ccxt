@@ -3984,7 +3984,7 @@ class mexc3 extends Exchange {
         // {
         //     amount => '10',
         //     coin => 'USDC-TRX',
-        //     network => 'TRX',
+        //     $network => 'TRX',
         //     $status => '5',
         //     $address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
         //     txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
@@ -4000,7 +4000,7 @@ class mexc3 extends Exchange {
         //     $id => 'adcd1c8322154de691b815eedcd10c42',
         //     txId => '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
         //     coin => 'USDC-MATIC',
-        //     network => 'MATIC',
+        //     $network => 'MATIC',
         //     $address => '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
         //     amount => '2',
         //     transferType => '0',
@@ -4015,15 +4015,22 @@ class mexc3 extends Exchange {
         // withdraw
         //
         //     {
-        //         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
         $type = ($id === null) ? 'deposit' : 'withdrawal';
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
+        $currencyId = null;
         $currencyWithNetwork = $this->safe_string($transaction, 'coin');
-        $currencyId = explode('-', $currencyWithNetwork)[0];
+        if ($currencyWithNetwork !== null) {
+            $currencyId = explode('-', $currencyWithNetwork)[0];
+        }
+        $network = null;
         $rawNetwork = $this->safe_string($transaction, 'network');
+        if ($rawNetwork !== null) {
+            $network = $this->safe_network($rawNetwork);
+        }
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
@@ -4047,7 +4054,7 @@ class mexc3 extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->safe_network($rawNetwork),
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

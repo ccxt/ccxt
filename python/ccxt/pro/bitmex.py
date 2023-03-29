@@ -543,45 +543,40 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
-        future = client.future('authenticated')
-        action = 'authKeyExpires'
-        authenticated = self.safe_value(client.subscriptions, action)
-        if authenticated is None:
-            try:
-                self.check_required_credentials()
-                timestamp = self.milliseconds()
-                message = 'GET' + '/realtime' + str(timestamp)
-                signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
-                request = {
-                    'op': action,
-                    'args': [
-                        self.apiKey,
-                        timestamp,
-                        signature,
-                    ],
-                }
-                self.spawn(self.watch, url, action, request, action)
-            except Exception as e:
-                client.reject(e, 'authenticated')
-                if action in client.subscriptions:
-                    del client.subscriptions[action]
+        messageHash = 'authenticated'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            self.check_required_credentials()
+            timestamp = self.milliseconds()
+            payload = 'GET' + '/realtime' + str(timestamp)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
+            request = {
+                'op': 'authKeyExpires',
+                'args': [
+                    self.apiKey,
+                    timestamp,
+                    signature,
+                ],
+            }
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
         return future
 
     def handle_authentication_message(self, client, message):
         authenticated = self.safe_value(message, 'success', False)
+        messageHash = 'authenticated'
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
-            client.resolve(message, 'authenticated')
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.json(message))
-            client.reject(error, 'authenticated')
-            # allows further authentication attempts
-            event = 'authKeyExpires'
-            if event in client.subscriptions:
-                del client.subscriptions[event]
+            client.reject(error, messageHash)
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """

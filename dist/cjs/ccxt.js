@@ -167,6 +167,7 @@ var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
+var mexc3$1 = require('./src/pro/mexc3.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okex$1 = require('./src/pro/okex.js');
@@ -182,7 +183,7 @@ var zb$1 = require('./src/pro/zb.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.41';
+const version = '3.0.43';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -342,6 +343,7 @@ const pro = {
     'kucoinfutures': kucoinfutures$1,
     'luno': luno$1,
     'mexc': mexc$1,
+    'mexc3': mexc3$1,
     'ndax': ndax$1,
     'okcoin': okcoin$1,
     'okex': okex$1,

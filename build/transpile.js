@@ -248,7 +248,7 @@ class Transpiler {
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
-            [ /\s(md5|secp256k1|ed25519)([,)])/g, ' \'$1\'$2'], // from js imports to this
+            [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
             [ /\.checkIfMainnetReplacementNeeded\s/g, '.check_if_mainnet_replacement_needed'],
             [ /\.networkCodeToId\s/g, '.network_code_to_id'],
             [ /\.networkIdToCode\s/g, '.network_id_to_code'],

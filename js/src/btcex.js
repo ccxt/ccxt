@@ -323,7 +323,9 @@ export default class btcex extends Exchange {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'ALT': 'ArchLoot',
+            },
         });
     }
     async fetchMarkets(params = {}) {

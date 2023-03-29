@@ -3817,15 +3817,20 @@ class mexc3(Exchange):
         # withdraw
         #
         #     {
-        #         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        #         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         #     }
         #
         id = self.safe_string(transaction, 'id')
         type = 'deposit' if (id is None) else 'withdrawal'
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
+        currencyId = None
         currencyWithNetwork = self.safe_string(transaction, 'coin')
-        currencyId = currencyWithNetwork.split('-')[0]
+        if currencyWithNetwork is not None:
+            currencyId = currencyWithNetwork.split('-')[0]
+        network = None
         rawNetwork = self.safe_string(transaction, 'network')
+        if rawNetwork is not None:
+            network = self.safe_network(rawNetwork)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amountString = self.safe_string(transaction, 'amount')
@@ -3847,7 +3852,7 @@ class mexc3(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.safe_network(rawNetwork),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

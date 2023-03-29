@@ -171,8 +171,8 @@ class phemex extends Exchange {
                         'exchange/order/v2/tradingList' => 5, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
                         'accounts/accountPositions' => 1, // ?currency=<currency>
-                        'g-accounts/accountPositions' => 5, // ?currency=<currency>
-                        'accounts/positions' => 26, // ?currency=<currency>
+                        'g-accounts/accountPositions' => 1, // ?currency=<currency>
+                        'accounts/positions' => 25, // ?currency=<currency>
                         'api-data/futures/funding-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees' => 5, // ?symbol=<symbol>
                         'api-data/futures/orders' => 5, // ?symbol=<symbol>
@@ -183,7 +183,7 @@ class phemex extends Exchange {
                         'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
-                        'g-orders/activeList' => 5, // ?symbol=<symbol>
+                        'g-orders/activeList' => 1, // ?symbol=<symbol>
                         'orders/activeList' => 1, // ?symbol=<symbol>
                         'exchange/order/list' => 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order' => 5, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
@@ -211,7 +211,7 @@ class phemex extends Exchange {
                         'spot/orders' => 1,
                         // swap
                         'orders' => 1,
-                        'g-orders' => 5,
+                        'g-orders' => 1,
                         'positions/assign' => 5, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
                         'exchange/wallets/transferOut' => 5,
                         'exchange/wallets/transferIn' => 5,
@@ -231,7 +231,7 @@ class phemex extends Exchange {
                         'spot/orders' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
                         'orders/replace' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace' => 5, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace' => 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
                         'positions/leverage' => 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/leverage' => 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/switch-pos-mode-sync' => 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
@@ -245,10 +245,10 @@ class phemex extends Exchange {
                         // swap
                         'orders/cancel' => 1, // ?symbol=<symbol>&orderID=<orderID>
                         'orders' => 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all' => 1, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel' => 5, // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders' => 5, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all' => 5, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'orders/all' => 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel' => 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders' => 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all' => 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     ),
                 ),
             ),
@@ -594,10 +594,13 @@ class phemex extends Exchange {
 
     public function parse_spot_market($market) {
         //
-        //     {
+        //     array(
         //         "symbol":"sBTCUSDT",
+        //         "code":1001,
         //         "displaySymbol":"BTC / USDT",
         //         "quoteCurrency":"USDT",
+        //         "priceScale":8,
+        //         "ratioScale":8,
         //         "pricePrecision":2,
         //         "type":"Spot",
         //         "baseCurrency":"BTC",
@@ -618,8 +621,11 @@ class phemex extends Exchange {
         //         "baseQtyPrecision":6,
         //         "quoteQtyPrecision":2,
         //         "status":"Listed",
-        //         "tipOrderQty":20
-        //     }
+        //         "tipOrderQty":2,
+        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //         "leverage":5
+        //         "valueScale":8,
+        //     ),
         //
         $type = $this->safe_string_lower($market, 'type');
         $id = $this->safe_string($market, 'symbol');
@@ -656,9 +662,9 @@ class phemex extends Exchange {
             'expiryDatetime' => null,
             'strike' => null,
             'optionType' => null,
-            'priceScale' => 8,
-            'valueScale' => 8,
-            'ratioScale' => 8,
+            'priceScale' => $this->safe_integer($market, 'priceScale'),
+            'valueScale' => $this->safe_integer($market, 'valueScale'),
+            'ratioScale' => $this->safe_integer($market, 'ratioScale'),
             'precision' => array(
                 'amount' => $precisionAmount,
                 'price' => $precisionPrice,
@@ -700,9 +706,9 @@ class phemex extends Exchange {
             //         "data":{
             //             "ratioScale":8,
             //             "currencies":array(
-            //                 array("currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"),
-            //                 array("currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"),
-            //                 array("currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"),
+            //                 array("code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"),
+            //                 array("code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"),
+            //                 array("code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"),
             //             ),
             //             "products":array(
             //                 array(
@@ -728,8 +734,11 @@ class phemex extends Exchange {
             //                 ),
             //                 array(
             //                     "symbol":"sBTCUSDT",
+            //                     "code":1001,
             //                     "displaySymbol":"BTC / USDT",
             //                     "quoteCurrency":"USDT",
+            //                     "priceScale":8,
+            //                     "ratioScale":8,
             //                     "pricePrecision":2,
             //                     "type":"Spot",
             //                     "baseCurrency":"BTC",
@@ -748,7 +757,11 @@ class phemex extends Exchange {
             //                     "defaultMakerFee":"0.001",
             //                     "defaultMakerFeeEr":100000,
             //                     "baseQtyPrecision":6,
-            //                     "quoteQtyPrecision":2
+            //                     "quoteQtyPrecision":2,
+            //                     "status":"Listed",
+            //                     "tipOrderQty":2,
+            //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+            //                     "leverage":5
             //                 ),
             //             ),
             //             "riskLimits":array(
@@ -810,8 +823,10 @@ class phemex extends Exchange {
             $v2ProductsData = $this->safe_value($v2Products, 'data', array());
             $products = $this->safe_value($v2ProductsData, 'products', array());
             $riskLimits = $this->safe_value($v2ProductsData, 'riskLimits', array());
+            $currencies = $this->safe_value($v2ProductsData, 'currencies', array());
             $riskLimitsById = $this->index_by($riskLimits, 'symbol');
             $v1ProductsById = $this->index_by($v1ProductsData, 'symbol');
+            $currenciesByCode = $this->index_by($currencies, 'currency');
             $result = array();
             for ($i = 0; $i < count($products); $i++) {
                 $market = $products[$i];
@@ -824,6 +839,10 @@ class phemex extends Exchange {
                     $market = array_merge($market, $v1ProductsValues);
                     $market = $this->parse_swap_market($market);
                 } else {
+                    $baseCurrency = $this->safe_string($market, 'baseCurrency');
+                    $currencyValues = $this->safe_value($currenciesByCode, $baseCurrency, array());
+                    $valueScale = $this->safe_string($currencyValues, 'valueScale', '8');
+                    $market = array_merge($market, array( 'valueScale' => $valueScale ));
                     $market = $this->parse_spot_market($market);
                 }
                 $result[] = $market;
@@ -998,10 +1017,8 @@ class phemex extends Exchange {
         $precise = new Precise ($stringN);
         $precise->decimals = $precise->decimals - $scale;
         $precise->reduce ();
-        $stringValue = (string) $precise;
-        $floatValue = floatval($stringValue);
-        $floatString = (string) $floatValue;
-        return intval($floatString);
+        $preciseString = (string) $precise;
+        return $this->parse_to_int($preciseString);
     }
 
     public function to_ev($amount, $market = null) {
@@ -1928,7 +1945,7 @@ class phemex extends Exchange {
         $amount = $this->from_ev($this->safe_string($order, 'baseQtyEv'), $market);
         $remaining = $this->omit_zero($this->from_ev($this->safe_string($order, 'leavesBaseQtyEv'), $market));
         $filled = $this->from_ev($this->safe_string_2($order, 'cumBaseQtyEv', 'cumBaseValueEv'), $market);
-        $cost = $this->from_ev($this->safe_string_2($order, 'cumQuoteValueEv', 'quoteQtyEv'), $market);
+        $cost = $this->from_er($this->safe_string_2($order, 'cumQuoteValueEv', 'quoteQtyEv'), $market);
         $average = $this->from_ep($this->safe_string($order, 'avgPriceEp'), $market);
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->safe_string_lower($order, 'side');
@@ -2758,14 +2775,16 @@ class phemex extends Exchange {
                 }
             }
             $request = array();
+            if ($limit !== null) {
+                $limit = min (200, $limit);
+                $request['limit'] = $limit;
+            }
             if ($market['settle'] === 'USDT') {
                 $request['currency'] = 'USDT';
                 $request['offset'] = 0;
-                $limit = 200;
-                if ($limit !== null) {
-                    $limit = min (200, $limit);
+                if ($limit === null) {
+                    $request['limit'] = 200;
                 }
-                $request['limit'] = $limit;
             } else {
                 $request['symbol'] = $market['id'];
             }

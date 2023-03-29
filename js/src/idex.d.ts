@@ -120,4 +120,17 @@ export default class idex extends Exchange {
         body: any;
         headers: any;
     };
+    remove0xPrefix(hexData: any): any;
+    hashMessage(message: any): string;
+    signHash(hash: any, privateKey: any): {
+        r: string;
+        s: string;
+        v: number;
+    };
+    signMessage(message: any, privateKey: any): {
+        r: string;
+        s: string;
+        v: number;
+    };
+    signMessageString(message: any, privateKey: any): string;
 }

@@ -7,7 +7,7 @@ export default class bitmex extends bitmexRest {
     handleBalance(client: any, message: any): void;
     handleTrades(client: any, message: any): void;
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: {}): any;
     handleAuthenticationMessage(client: any, message: any): void;
     watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any): void;

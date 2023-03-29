@@ -1,6 +1,6 @@
 import { implicitReturnType } from '../base/types.js';
-import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+import _mexc from '../mexc.js';
+interface mexc {
     spotPublicGetPing(params?: {}): Promise<implicitReturnType>;
     spotPublicGetTime(params?: {}): Promise<implicitReturnType>;
     spotPublicGetExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -48,6 +48,7 @@ interface Exchange {
     spotPrivateGetRebateDetailKickback(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateReferCode(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMxDeductEnable(params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetUserDataStream(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrderTest(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostSubAccountVirtualSubAccount(params?: {}): Promise<implicitReturnType>;
@@ -65,11 +66,14 @@ interface Exchange {
     spotPrivatePostMarginLoan(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostMarginRepay(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostMxDeductEnable(params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostUserDataStream(params?: {}): Promise<implicitReturnType>;
+    spotPrivatePutUserDataStream(params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteOrder(params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteOpenOrders(params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteSubAccountApiKey(params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteMarginOrder(params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteMarginOpenOrders(params?: {}): Promise<implicitReturnType>;
+    spotPrivateDeleteUserDataStream(params?: {}): Promise<implicitReturnType>;
     contractPublicGetPing(params?: {}): Promise<implicitReturnType>;
     contractPublicGetDetail(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSupportCurrencies(params?: {}): Promise<implicitReturnType>;
@@ -154,6 +158,6 @@ interface Exchange {
     spot2PrivateDeleteOrderCancelBySymbol(params?: {}): Promise<implicitReturnType>;
     spot2PrivateDeleteAssetWithdraw(params?: {}): Promise<implicitReturnType>;
 }
-declare abstract class Exchange extends _Exchange {
+declare abstract class mexc extends _mexc {
 }
-export default Exchange;
+export default mexc;
