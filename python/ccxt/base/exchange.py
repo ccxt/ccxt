@@ -27,7 +27,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
-from ccxt.base.types import Balance, IndexType, IntegerType
+from ccxt.base.types import Balance, IndexType, IntegerType, OrderSide, OrderType
 
 # -----------------------------------------------------------------------------
 
@@ -3237,7 +3237,7 @@ class Exchange(object):
     def fetch_unified_order(self, order, params={}):
         return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
     def cancel_order(self, id, symbol: str = None, params={}):
@@ -3338,10 +3338,10 @@ class Exchange(object):
                 params = self.omit(params, 'tag')
         return [tag, params]
 
-    def create_limit_order(self, symbol: str, side: str, amount, price, params={}):
+    def create_limit_order(self, symbol: str, side: OrderSide, amount, price, params={}):
         return self.create_order(symbol, 'limit', side, amount, price, params)
 
-    def create_market_order(self, symbol: str, side: str, amount, price=None, params={}):
+    def create_market_order(self, symbol: str, side: OrderSide, amount, price=None, params={}):
         return self.create_order(symbol, 'market', side, amount, price, params)
 
     def create_limit_buy_order(self, symbol: str, amount, price, params={}):
@@ -3433,19 +3433,19 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
-    def create_post_only_order(self, symbol: str, type: str, side: str, amount, price, params={}):
+    def create_post_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:
             raise NotSupported(self.id + 'createPostOnlyOrder() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
-    def create_reduce_only_order(self, symbol: str, type: str, side: str, amount, price, params={}):
+    def create_reduce_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price, params={}):
         if not self.has['createReduceOnlyOrder']:
             raise NotSupported(self.id + 'createReduceOnlyOrder() is not supported yet')
         query = self.extend(params, {'reduceOnly': True})
         return self.create_order(symbol, type, side, amount, price, query)
 
-    def create_stop_order(self, symbol: str, type: str, side: str, amount, price=None, stopPrice=None, params={}):
+    def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, stopPrice=None, params={}):
         if not self.has['createStopOrder']:
             raise NotSupported(self.id + ' createStopOrder() is not supported yet')
         if stopPrice is None:
@@ -3453,13 +3453,13 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, type, side, amount, price, query)
 
-    def create_stop_limit_order(self, symbol: str, side: str, amount, price, stopPrice, params={}):
+    def create_stop_limit_order(self, symbol: str, side: OrderSide, amount, price, stopPrice, params={}):
         if not self.has['createStopLimitOrder']:
             raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'limit', side, amount, price, query)
 
-    def create_stop_market_order(self, symbol: str, side: str, amount, stopPrice, params={}):
+    def create_stop_market_order(self, symbol: str, side: OrderSide, amount, stopPrice, params={}):
         if not self.has['createStopMarketOrder']:
             raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})

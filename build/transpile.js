@@ -958,6 +958,12 @@ class Transpiler {
                 libraryImports.push ('use React\\Promise;')
             }
         }
+        if (bodyAsString.match (/OrderSide /)) {
+            libraryImports.push ('use ccxt\\types\\OrderSide;')
+        }
+        if (bodyAsString.match (/OrderType /)) {
+            libraryImports.push ('use ccxt\\types\\OrderType;')
+        }
 
 
         header = header.concat (errorImports).concat (precisionImports).concat (libraryImports)
@@ -1513,7 +1519,7 @@ class Transpiler {
         if (parts.length > 1) {
             log.magenta ('Transpiling from', baseExchangeJsFile.yellow)
             const secondPart = parts[1]
-            const methods = secondPart.trim ().split (/\n\s*\n/).slice (159)
+            const methods = secondPart.trim ().split (/\n\s*\n/)
             const {
                 python2,
                 python3,

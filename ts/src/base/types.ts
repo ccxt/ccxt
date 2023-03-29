@@ -197,12 +197,5 @@ export type implicitReturnType = any;
 export type IndexType = number | string;
 export type IntegerType = number;
 
-export enum OrderSide {
-    Buy = 'buy',
-    Sell = 'sell',
-}
-
-export enum OrderType {
-    Limit = 'limit',
-    Market = 'market',
-}
+export type OrderSide  = 'buy' | 'sell';
+export type OrderType = 'limit' | 'market';
