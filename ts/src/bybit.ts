@@ -1104,7 +1104,8 @@ export default class bybit extends Exchange {
                 },
                 'timeInForceMap': {
                     'v5unified': {
-                        'exchangeSpecificTifKey': 'tim_in_foo', // note, actual value for bybit is (by coincidence) same as our unified 'timeInForce', however, just for demonstraional purposes to test in "tif-test.ts" file, we can simulately assume that bybit's TIF key is "tim_in_foo", so that test results give more clear picture
+                        'exchangeSpecificTifKey': 'tim_in_foo', // note, actual value for bybit is (by coincidence) same as CCXT's unified string 'timeInForce', however, just for demonstraional purposes to test in "tif-test.ts" file, we can simulately assume that bybit's TIF key is "tim_in_foo", so that test results give more clear picture
+                        'exchangeSpecificPostOnlyKey': undefined,
                         'unifiedToExchange': {
                             'GTC': 'GTC',
                             'IOC': 'IOC',
@@ -3506,8 +3507,8 @@ export default class bybit extends Exchange {
         }
         const handledTif = this.handleRequestTif ('v5unified', lowerCaseType, params);
         params = handledTif['params'];
-        if (handledTif['calculatedRequestTifKey'] !== undefined) {
-            request[handledTif['calculatedRequestTifKey']] = handledTif['calculatedRequestTifValue'];
+        if (handledTif['requestKey'] !== undefined) {
+            request[handledTif['requestKey']] = handledTif['requestValue'];
         }
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');

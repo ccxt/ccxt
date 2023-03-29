@@ -258,6 +258,18 @@ export default class ascendex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'timeInForceMap': {
+                    'spotAndFutures': {
+                        'exchangeSpecificTifKey': 'timeInForce', // by coincidence, exchange-specific key matches to CCXT unified key
+                        'exchangeSpecificPostOnlyKey': 'postOnly', // same coincidence here
+                        'unifiedToExchange': {
+                            'GTC': 'GTC',
+                            'IOC': 'IOC',
+                            'FOK': 'FOK',
+                            'PO': undefined,
+                        },
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1469,8 +1481,11 @@ export default class ascendex extends Exchange {
         };
         const isMarketOrder = ((type === 'market') || (type === 'stop_market'));
         const isLimitOrder = ((type === 'limit') || (type === 'stop_limit'));
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        const handledTif = this.handleRequestTif ('spotAndFutures', type, params);
+        params = handledTif['params'];
+        if (handledTif['requestKey'] !== undefined) {
+            request[handledTif['requestKey']] = handledTif['requestValue'];
+        }
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice' ]);
@@ -1482,15 +1497,6 @@ export default class ascendex extends Exchange {
         }
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
-        }
-        if (timeInForce === 'IOC') {
-            request['timeInForce'] = 'IOC';
-        }
-        if (timeInForce === 'FOK') {
-            request['timeInForce'] = 'FOK';
-        }
-        if (postOnly) {
-            request['postOnly'] = true;
         }
         if (stopPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);

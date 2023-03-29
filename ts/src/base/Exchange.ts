@@ -3732,22 +3732,24 @@ export default class Exchange {
         //
         // 'options': {
         //     'timeInForceMap': {
-        //         'whateverTitle': {
+        //         'spotV3': {
         //             'exchangeSpecificTifKey': 'time-in-forc',
+        //             'exchangeSpecificPostOnlyKey': 'is_poc',
         //             'unifiedToExchange': {
         //                 'GTC': undefined,
         //                 'IOC': 'ioc',
         //                 'FOK': 'fok',
-        //                 'PO': 'post_only',
+        //                 'PO': 'post_only', // this TIF is not present in exchanges, where they use 'exchangeSpecificPostOnlyKey' instead
         //             },
-        //             'exchangeSpecificPostOnlyKey': 'is_poc', // this prop might exist only in few exchanges
         //         },
         //     },
         // }
         //
-        // - "strings" map is used for exchange-specific TIF values
-        // - "booleans" map is used for exchange-specific postOnly values, i.e. some exchange
-        // might need to have `'POST_ONLY': true` toward api, instead of setting TIF
+        // definitions:
+        //      - spotV3 : this key is a variable root "title" and developer can name it anything s/he wants, and then it is referred with:  `this.handleRequestTif ('spotV3', ....)`
+        //      - exchangeSpecificTifKey : exchange specific request prop-name for TIME-IN-FORCE purposes
+        //      - exchangeSpecificPostOnlyKey : fun-fact, but some exhanges (i.e. ascendex) does not support postonly string inside TIME-IN-FORCE, and instead they need a separate BOOLEAN value in specific request key (i.e. `is_postOnly:true`)
+        //      - "unifiedToExchange" map is used for exchange-specific TIF values
         //
         const isMarketOrder = orderType === 'market';
         // get exchange TIF mappings
@@ -3822,8 +3824,8 @@ export default class Exchange {
         // returns: object, object, boolean, string
         return {
             'params': params,
-            'calculatedRequestTifKey': exPreparedRequestKey,
-            'calculatedRequestTifValue': exPreparedRequestValue,
+            'requestKey': exPreparedRequestKey,
+            'requestValue': exPreparedRequestValue,
             'isPostOnly': isPo,
             'timeInForce': detectedUnifiedTif,
         };
