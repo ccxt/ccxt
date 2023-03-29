@@ -1095,6 +1095,14 @@ export default class Exchange {
         }
     }
 
+    remove0xPrefix (hexData) {
+        if (hexData.slice (0, 2) === '0x') {
+            return hexData.slice (2);
+        } else {
+            return hexData;
+        }
+    }
+
     // method to override
 
     findTimeframe (timeframe, timeframes = undefined) {
@@ -1107,13 +1115,6 @@ export default class Exchange {
             }
         }
         return undefined;
-    }
-
-    formatScientificNotationFTX(n) {
-        if (n === 0) {
-            return '0e-00';
-        }
-        return n.toExponential().replace('e-', 'e-0');
     }
 
     spawn (method, ... args) {
