@@ -1446,16 +1446,18 @@ class Transpiler {
                 if (parts.length === 1) {
                     return '$' + x
                 } else {
-                    // use nullable everywhere instead
                     const secondPart = parts[1].split ('=')
-                    const endpart = (secondPart.length === 2) ? ' = ' + secondPart[1].trim () : ''
+                    let nullable = false
+                    let endpart = ''
+                    if (secondPart.length === 2) {
+                        const trimmed = secondPart[1].trim ()
+                        nullable = trimmed === 'undefined'
+                        endpart = ' = ' + trimmed
+                    }
                     const type = secondPart[0].trim ()
-                    const value = parts[0]
-                    const nullable = value[value.length - 1] === '?'
                     const phpType = phpTypes[type] ?? type
                     const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
-                    const newValue = value.slice (0, (nullable ? value.length - 1 : value.length))
-                    return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + newValue + endpart
+                    return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + parts[0] + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
@@ -1478,21 +1480,18 @@ class Transpiler {
                     const type = typeParts[0]
                     typeParts[0] = ''
                     const variable = parts[0]
-                    const nullable = variable[variable.length - 1] === '?'
+                    const nullable = typeParts[typeParts.length - 1] === 'undefined'
                     const isList = type.slice (-2) === '[]'
                     const searchType = isList ? type.slice (0, -2) : type
                     let rawType = pythonTypes[searchType] ?? searchType
                     rawType = isList ? 'List[' + rawType + ']' : rawType
-                    let resolvedVariable, resolvedType
+                    let resolvedType
                     if (nullable) {
-                        resolvedVariable = variable.slice (0, -1)
                         resolvedType = 'Optional[' + rawType + ']'
-                        typeParts = [ '', '=', 'None' ]
                     } else {
-                        resolvedVariable = variable
                         resolvedType = rawType
                     }
-                    return resolvedVariable + ': ' + resolvedType + typeParts.join (' ')
+                    return variable + ': ' + resolvedType + typeParts.join (' ')
                 } else {
                     return x.replace (' = ', '=')
                 }
