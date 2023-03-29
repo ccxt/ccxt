@@ -73,7 +73,7 @@ export default class coinbase extends coinbaseRest {
             'channel': name,
             'api_key': this.apiKey,
             'timestamp': timestamp,
-            'signature': this.hmac (this.encode (auth), this.encode (this.secret), 'sha256'),
+            'signature': this.hmac (this.encode (auth), this.encode (this.secret)),
         };
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
