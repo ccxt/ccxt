@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class zonda extends Exchange {
 
@@ -189,52 +188,52 @@ class zonda extends Exchange {
                     'tierBased' => false,
                 ),
                 'fiat' => array(
-                    'maker' => 0.30 / 100,
-                    'taker' => 0.43 / 100,
+                    'maker' => $this->parse_number('0.0030'),
+                    'taker' => $this->parse_number('0.0043'),
                     'percentage' => true,
                     'tierBased' => true,
                     'tiers' => array(
                         'taker' => array(
-                            array( 0.0043, 0 ),
-                            array( 0.0042, 1250 ),
-                            array( 0.0041, 3750 ),
-                            array( 0.0040, 7500 ),
-                            array( 0.0039, 10000 ),
-                            array( 0.0038, 15000 ),
-                            array( 0.0037, 20000 ),
-                            array( 0.0036, 25000 ),
-                            array( 0.0035, 37500 ),
-                            array( 0.0034, 50000 ),
-                            array( 0.0033, 75000 ),
-                            array( 0.0032, 100000 ),
-                            array( 0.0031, 150000 ),
-                            array( 0.0030, 200000 ),
-                            array( 0.0029, 250000 ),
-                            array( 0.0028, 375000 ),
-                            array( 0.0027, 500000 ),
-                            array( 0.0026, 625000 ),
-                            array( 0.0025, 875000 ),
+                            array( $this->parse_number('0.0043'), $this->parse_number('0') ),
+                            array( $this->parse_number('0.0042'), $this->parse_number('1250') ),
+                            array( $this->parse_number('0.0041'), $this->parse_number('3750') ),
+                            array( $this->parse_number('0.0040'), $this->parse_number('7500') ),
+                            array( $this->parse_number('0.0039'), $this->parse_number('10000') ),
+                            array( $this->parse_number('0.0038'), $this->parse_number('15000') ),
+                            array( $this->parse_number('0.0037'), $this->parse_number('20000') ),
+                            array( $this->parse_number('0.0036'), $this->parse_number('25000') ),
+                            array( $this->parse_number('0.0035'), $this->parse_number('37500') ),
+                            array( $this->parse_number('0.0034'), $this->parse_number('50000') ),
+                            array( $this->parse_number('0.0033'), $this->parse_number('75000') ),
+                            array( $this->parse_number('0.0032'), $this->parse_number('100000') ),
+                            array( $this->parse_number('0.0031'), $this->parse_number('150000') ),
+                            array( $this->parse_number('0.0030'), $this->parse_number('200000') ),
+                            array( $this->parse_number('0.0029'), $this->parse_number('250000') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('375000') ),
+                            array( $this->parse_number('0.0027'), $this->parse_number('500000') ),
+                            array( $this->parse_number('0.0026'), $this->parse_number('625000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('875000') ),
                         ),
                         'maker' => array(
-                            array( 0.0030, 0 ),
-                            array( 0.0029, 1250 ),
-                            array( 0.0028, 3750 ),
-                            array( 0.0028, 7500 ),
-                            array( 0.0027, 10000 ),
-                            array( 0.0026, 15000 ),
-                            array( 0.0025, 20000 ),
-                            array( 0.0025, 25000 ),
-                            array( 0.0024, 37500 ),
-                            array( 0.0023, 50000 ),
-                            array( 0.0023, 75000 ),
-                            array( 0.0022, 100000 ),
-                            array( 0.0021, 150000 ),
-                            array( 0.0021, 200000 ),
-                            array( 0.0020, 250000 ),
-                            array( 0.0019, 375000 ),
-                            array( 0.0018, 500000 ),
-                            array( 0.0018, 625000 ),
-                            array( 0.0017, 875000 ),
+                            array( $this->parse_number('0.0030'), $this->parse_number('0') ),
+                            array( $this->parse_number('0.0029'), $this->parse_number('1250') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('3750') ),
+                            array( $this->parse_number('0.0028'), $this->parse_number('7500') ),
+                            array( $this->parse_number('0.0027'), $this->parse_number('10000') ),
+                            array( $this->parse_number('0.0026'), $this->parse_number('15000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('20000') ),
+                            array( $this->parse_number('0.0025'), $this->parse_number('25000') ),
+                            array( $this->parse_number('0.0024'), $this->parse_number('37500') ),
+                            array( $this->parse_number('0.0023'), $this->parse_number('50000') ),
+                            array( $this->parse_number('0.0023'), $this->parse_number('75000') ),
+                            array( $this->parse_number('0.0022'), $this->parse_number('100000') ),
+                            array( $this->parse_number('0.0021'), $this->parse_number('150000') ),
+                            array( $this->parse_number('0.0021'), $this->parse_number('200000') ),
+                            array( $this->parse_number('0.0020'), $this->parse_number('250000') ),
+                            array( $this->parse_number('0.0019'), $this->parse_number('375000') ),
+                            array( $this->parse_number('0.0018'), $this->parse_number('500000') ),
+                            array( $this->parse_number('0.0018'), $this->parse_number('625000') ),
+                            array( $this->parse_number('0.0017'), $this->parse_number('875000') ),
                         ),
                     ),
                 ),
@@ -391,7 +390,7 @@ class zonda extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -440,6 +439,7 @@ class zonda extends Exchange {
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_string($order, 'rate'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'filled' => null,
@@ -457,7 +457,7 @@ class zonda extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch trades for
          * @param {int|null} $limit the maximum number of trades structures to retrieve
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -531,7 +531,7 @@ class zonda extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -615,7 +615,7 @@ class zonda extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -644,7 +644,7 @@ class zonda extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $response = $this->v1_01PublicGetTradingStats ($params);
@@ -673,7 +673,7 @@ class zonda extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
          * @param {int|null} $limit max number of ledger entrys to return, default is null
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $balanceCurrencies = array();
         if ($code !== null) {
@@ -966,35 +966,29 @@ class zonda extends Exchange {
         $timestamp = $this->safe_integer($item, 'time');
         $balance = $this->safe_value($item, 'balance', array());
         $currencyId = $this->safe_string($balance, 'currency');
-        $code = $this->safe_currency_code($currencyId);
         $change = $this->safe_value($item, 'change', array());
-        $amount = $this->safe_number($change, 'total');
+        $amount = $this->safe_string($change, 'total');
         $direction = 'in';
-        if ($amount < 0) {
+        if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
-            $amount = -$amount;
+            $amount = Precise::string_neg($amount);
         }
-        $id = $this->safe_string($item, 'historyId');
         // there are 2 undocumented api calls => (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
-        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
-        $referenceId = $this->safe_string($item, 'detailId');
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
+        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId parameter)
         $fundsBefore = $this->safe_value($item, 'fundsBefore', array());
-        $before = $this->safe_number($fundsBefore, 'total');
         $fundsAfter = $this->safe_value($item, 'fundsAfter', array());
-        $after = $this->safe_number($fundsAfter, 'total');
         return array(
             'info' => $item,
-            'id' => $id,
+            'id' => $this->safe_string($item, 'historyId'),
             'direction' => $direction,
             'account' => null,
-            'referenceId' => $referenceId,
+            'referenceId' => $this->safe_string($item, 'detailId'),
             'referenceAccount' => null,
-            'type' => $type,
-            'currency' => $code,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'currency' => $this->safe_currency_code($currencyId),
+            'amount' => $this->parse_number($amount),
+            'before' => $this->safe_number($fundsBefore, 'total'),
+            'after' => $this->safe_number($fundsAfter, 'total'),
             'status' => 'ok',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1055,14 +1049,14 @@ class zonda extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array(
             'symbol' => $tradingSymbol,
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             // 'from' => 1574709092000, // unix timestamp in milliseconds, required
             // 'to' => 1574709092000, // unix timestamp in milliseconds, required
         );
@@ -1206,7 +1200,7 @@ class zonda extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1327,7 +1321,7 @@ class zonda extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
@@ -1388,7 +1382,7 @@ class zonda extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the zonda api endpoint
          * @param {string|null} $params->walletId Wallet id to filter deposit adresses.
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1419,7 +1413,7 @@ class zonda extends Exchange {
          * fetch deposit addresses for multiple currencies and chain types
          * @param {[string]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
          */
         $this->load_markets();
         $response = $this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses ($params);
@@ -1448,7 +1442,7 @@ class zonda extends Exchange {
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1560,7 +1554,7 @@ class zonda extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string|null} $tag
          * @param {array} $params extra parameters specific to the zonda api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);

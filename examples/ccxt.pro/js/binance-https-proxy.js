@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro')
+const ccxt = require ('../../../ccxt')
 
-console.log ('CCXT Pro Version:', ccxtpro.version)
+console.log ('CCXT Version:', ccxt.version)
 
 let HttpsProxyAgent = undefined
 
@@ -23,7 +23,7 @@ async function main () {
     // adjust for your HTTPS proxy URL
     const httpsProxyUrl = process.env.https_proxy || 'https://username:password@your-proxy.com'
         , httpsAgent = new HttpsProxyAgent (httpsProxyUrl)
-        , exchange = new ccxtpro.binance ({
+        , exchange = new ccxt.binance ({
             httpsAgent: httpsAgent, // ←--------------------- httpsAgent here
             options: {
                 'ws': {

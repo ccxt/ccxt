@@ -4,10 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -17,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -56,6 +56,8 @@ class bitstamp(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -313,6 +315,10 @@ class bitstamp(Exchange):
                         'dot_address/': 1,
                         'near_withdrawal/': 1,
                         'near_address/': 1,
+                        'doge_withdrawal/': 1,
+                        'doge_address/': 1,
+                        'flr_withdrawal/': 1,
+                        'flr_address/': 1,
                     },
                 },
             },
@@ -596,7 +602,7 @@ class bitstamp(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -621,7 +627,7 @@ class bitstamp(Exchange):
         #     }
         #
         microtimestamp = self.safe_integer(response, 'microtimestamp')
-        timestamp = int(microtimestamp / 1000)
+        timestamp = self.parse_to_int(microtimestamp / 1000)
         orderbook = self.parse_order_book(response, market['symbol'], timestamp)
         orderbook['nonce'] = microtimestamp
         return orderbook
@@ -675,7 +681,7 @@ class bitstamp(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -750,10 +756,10 @@ class bitstamp(Exchange):
         if numCurrencyIds == 2:
             marketId = currencyIds[0] + currencyIds[1]
             if marketId in self.markets_by_id:
-                return self.markets_by_id[marketId]
+                return self.safe_market(marketId)
             marketId = currencyIds[1] + currencyIds[0]
             if marketId in self.markets_by_id:
-                return self.markets_by_id[marketId]
+                return self.safe_market(marketId)
         return None
 
     def parse_trade(self, trade, market=None):
@@ -804,35 +810,24 @@ class bitstamp(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         type = None
         costString = self.safe_string(trade, 'cost')
-        rawBaseId = None
-        rawQuoteId = None
         rawMarketId = None
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
                 currentKey = keys[i]
                 if currentKey != 'order_id' and currentKey.find('_') >= 0:
-                    marketId = currentKey.replace('_', '')
-                    if marketId in self.markets_by_id:
-                        market = self.markets_by_id[marketId]
-                    else:
-                        rawMarketId = currentKey
-                        parts = currentKey.split('_')
-                        rawBaseId = self.safe_string(parts, 0)
-                        rawQuoteId = self.safe_string(parts, 1)
-                        market = self.safe_market(marketId)
+                    rawMarketId = currentKey
+                    market = self.safe_market(rawMarketId, market, '_')
         # if the market is still not defined
         # try to deduce it from used keys
         if market is None:
             market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = market['quote'] if (market['quote'] is not None) else rawQuoteId
-        baseId = market['baseId'] if (market['baseId'] is not None) else rawBaseId
-        quoteId = market['quoteId'] if (market['quoteId'] is not None) else rawQuoteId
+        feeCurrency = market['quote']
         priceId = rawMarketId if (rawMarketId is not None) else market['marketId']
         priceString = self.safe_string(trade, priceId, priceString)
-        amountString = self.safe_string(trade, baseId, amountString)
-        costString = self.safe_string(trade, quoteId, costString)
+        amountString = self.safe_string(trade, market['baseId'], amountString)
+        costString = self.safe_string(trade, market['quoteId'], costString)
         symbol = market['symbol']
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp = None
@@ -949,27 +944,27 @@ class bitstamp(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'step': self.timeframes[timeframe],
+            'step': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         if limit is None:
             if since is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
+                request['limit'] = 1000  # we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             else:
                 limit = 1000
-                start = int(since / 1000)
+                start = self.parse_to_int(since / 1000)
                 request['start'] = start
                 request['end'] = self.sum(start, limit * duration)
                 request['limit'] = limit
         else:
             if since is not None:
-                start = int(since / 1000)
+                start = self.parse_to_int(since / 1000)
                 request['start'] = start
                 request['end'] = self.sum(start, limit * duration)
             request['limit'] = min(limit, 1000)  # min 1, max 1000
@@ -1041,7 +1036,7 @@ class bitstamp(Exchange):
         fetch the trading fees for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1077,37 +1072,130 @@ class bitstamp(Exchange):
         """
         fetch the trading fees for multiple markets
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def parse_transaction_fees(self, balance):
-        withdraw = {}
-        ids = list(balance.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            if id.find('_withdrawal_fee') >= 0:
-                currencyId = id.split('_')[0]
-                code = self.safe_currency_code(currencyId)
-                withdraw[code] = self.safe_number(balance, id)
-        return {
-            'info': balance,
-            'withdraw': withdraw,
-            'deposit': {},
-        }
-
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
-        :param [str]|None codes: not used by bitstamp fetchTransactionFees()
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://www.bitstamp.net/api/#balance
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         balance = self.privatePostBalance(params)
         return self.parse_transaction_fees(balance)
+
+    def parse_transaction_fees(self, response, codes=None):
+        #
+        #  {
+        #     yfi_available: '0.00000000',
+        #     yfi_balance: '0.00000000',
+        #     yfi_reserved: '0.00000000',
+        #     yfi_withdrawal_fee: '0.00070000',
+        #     yfieur_fee: '0.000',
+        #     yfiusd_fee: '0.000',
+        #     zrx_available: '0.00000000',
+        #     zrx_balance: '0.00000000',
+        #     zrx_reserved: '0.00000000',
+        #     zrx_withdrawal_fee: '12.00000000',
+        #     zrxeur_fee: '0.000',
+        #     zrxusd_fee: '0.000',
+        #     ...
+        #  }
+        #
+        if codes is None:
+            codes = list(self.currencies.keys())
+        result = {}
+        mainCurrencyId = None
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currencyId = id.split('_')[0]
+            code = self.safe_currency_code(currencyId)
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            if id.find('_available') >= 0:
+                mainCurrencyId = currencyId
+                result[code] = {
+                    'deposit': None,
+                    'withdraw': None,
+                    'info': {},
+                }
+            if currencyId == mainCurrencyId:
+                result[code]['info'][id] = self.safe_number(response, id)
+            if id.find('_withdrawal_fee') >= 0:
+                result[code]['withdraw'] = self.safe_number(response, id)
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://www.bitstamp.net/api/#balance
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        self.load_markets()
+        response = self.privatePostBalance(params)
+        #
+        #    {
+        #        yfi_available: '0.00000000',
+        #        yfi_balance: '0.00000000',
+        #        yfi_reserved: '0.00000000',
+        #        yfi_withdrawal_fee: '0.00070000',
+        #        yfieur_fee: '0.000',
+        #        yfiusd_fee: '0.000',
+        #        zrx_available: '0.00000000',
+        #        zrx_balance: '0.00000000',
+        #        zrx_reserved: '0.00000000',
+        #        zrx_withdrawal_fee: '12.00000000',
+        #        zrxeur_fee: '0.000',
+        #        zrxusd_fee: '0.000',
+        #        ...
+        #    }
+        #
+        return self.parse_deposit_withdraw_fees(response, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        #    {
+        #        yfi_available: '0.00000000',
+        #        yfi_balance: '0.00000000',
+        #        yfi_reserved: '0.00000000',
+        #        yfi_withdrawal_fee: '0.00070000',
+        #        yfieur_fee: '0.000',
+        #        yfiusd_fee: '0.000',
+        #        zrx_available: '0.00000000',
+        #        zrx_balance: '0.00000000',
+        #        zrx_reserved: '0.00000000',
+        #        zrx_withdrawal_fee: '12.00000000',
+        #        zrxeur_fee: '0.000',
+        #        zrxusd_fee: '0.000',
+        #        ...
+        #    }
+        #
+        result = {}
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currencyId = id.split('_')[0]
+            code = self.safe_currency_code(currencyId)
+            dictValue = self.safe_number(response, id)
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            if id.find('_available') >= 0:
+                result[code] = self.deposit_withdraw_fee({})
+            if id.find('_withdrawal_fee') >= 0:
+                result[code]['withdraw']['fee'] = dictValue
+            resultValue = self.safe_value(result, code)
+            if resultValue is not None:
+                result[code]['info'][id] = dictValue
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
@@ -1118,7 +1206,7 @@ class bitstamp(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1150,7 +1238,7 @@ class bitstamp(Exchange):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1163,7 +1251,7 @@ class bitstamp(Exchange):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1201,7 +1289,7 @@ class bitstamp(Exchange):
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1242,7 +1330,7 @@ class bitstamp(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {}
@@ -1265,7 +1353,7 @@ class bitstamp(Exchange):
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {}
@@ -1311,7 +1399,7 @@ class bitstamp(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {}
@@ -1387,7 +1475,6 @@ class bitstamp(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
-        id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
         code = self.safe_currency_code(currencyId, currency)
         feeCost = self.safe_string(transaction, 'fee')
@@ -1418,7 +1505,6 @@ class bitstamp(Exchange):
         else:
             # from fetchWithdrawals
             type = 'withdrawal'
-        txid = self.safe_string(transaction, 'transaction_id')
         tag = None
         address = self.safe_string(transaction, 'address')
         if address is not None:
@@ -1428,11 +1514,11 @@ class bitstamp(Exchange):
             if numParts > 1:
                 address = addressParts[0]
                 tag = addressParts[1]
-        addressFrom = None
-        addressTo = address
-        tagFrom = None
-        tagTo = tag
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if feeCost is not None:
             fee = {
                 'currency': feeCurrency,
@@ -1441,28 +1527,31 @@ class bitstamp(Exchange):
             }
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'transaction_id'),
+            'type': type,
+            'currency': code,
+            'network': None,
+            'amount': self.parse_number(amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
             'address': address,
-            'tagFrom': tagFrom,
-            'tagTo': tagTo,
+            'addressFrom': None,
+            'addressTo': address,
             'tag': tag,
-            'type': type,
-            'amount': self.parse_number(amount),
-            'currency': code,
-            'status': status,
+            'tagFrom': None,
+            'tagTo': tag,
             'updated': None,
+            'comment': None,
             'fee': fee,
         }
 
     def parse_transaction_status(self, status):
-        # withdrawals:
-        # 0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #
+        #   withdrawals:
+        #   0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #
         statuses = {
             '0': 'pending',  # Open
             '1': 'pending',  # In process
@@ -1473,43 +1562,44 @@ class bitstamp(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        # from fetch order:
-        #   {status: 'Finished',
-        #     id: 731693945,
-        #     client_order_id: '',
-        #     transactions:
-        #     [{fee: '0.000019',
-        #         price: '0.00015803',
-        #         datetime: '2018-01-07 10:45:34.132551',
-        #         btc: '0.0079015000000000',
-        #         tid: 42777395,
-        #         type: 2,
-        #         xrp: '50.00000000'}]}
         #
-        # partially filled order:
-        #   {"id": 468646390,
-        #     "client_order_id": "",
-        #     "status": "Canceled",
-        #     "transactions": [{
-        #         "eth": "0.23000000",
-        #         "fee": "0.09",
-        #         "tid": 25810126,
-        #         "usd": "69.8947000000000000",
-        #         "type": 2,
-        #         "price": "303.89000000",
-        #         "datetime": "2017-11-11 07:22:20.710567"
-        #     }]}
+        #   from fetch order:
+        #     {status: 'Finished',
+        #       id: 731693945,
+        #       client_order_id: '',
+        #       transactions:
+        #       [{fee: '0.000019',
+        #           price: '0.00015803',
+        #           datetime: '2018-01-07 10:45:34.132551',
+        #           btc: '0.0079015000000000',
+        #           tid: 42777395,
+        #           type: 2,
+        #           xrp: '50.00000000'}]}
         #
-        # from create order response:
-        #     {
-        #         price: '0.00008012',
-        #         client_order_id: '',
-        #         currency_pair: 'XRP/BTC',
-        #         datetime: '2019-01-31 21:23:36',
-        #         amount: '15.00000000',
-        #         type: '0',
-        #         id: '2814205012'
-        #     }
+        #   partially filled order:
+        #     {"id": 468646390,
+        #       "client_order_id": "",
+        #       "status": "Canceled",
+        #       "transactions": [{
+        #           "eth": "0.23000000",
+        #           "fee": "0.09",
+        #           "tid": 25810126,
+        #           "usd": "69.8947000000000000",
+        #           "type": 2,
+        #           "price": "303.89000000",
+        #           "datetime": "2017-11-11 07:22:20.710567"
+        #       }]}
+        #
+        #   from create order response:
+        #       {
+        #           price: '0.00008012',
+        #           client_order_id: '',
+        #           currency_pair: 'XRP/BTC',
+        #           datetime: '2019-01-31 21:23:36',
+        #           amount: '15.00000000',
+        #           type: '0',
+        #           id: '2814205012'
+        #       }
         #
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')
@@ -1538,6 +1628,7 @@ class bitstamp(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'filled': None,
@@ -1592,8 +1683,7 @@ class bitstamp(Exchange):
             for i in range(0, len(keys)):
                 if keys[i].find('_') >= 0:
                     marketId = keys[i].replace('_', '')
-                    if marketId in self.markets_by_id:
-                        market = self.markets_by_id[marketId]
+                    market = self.safe_market(marketId, market)
             # if the market is still not defined
             # try to deduce it from used keys
             if market is None:
@@ -1620,13 +1710,13 @@ class bitstamp(Exchange):
             parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             if 'amount' in item:
-                amount = self.safe_number(item, 'amount')
-                direction = 'in' if (amount > 0) else 'out'
+                amount = self.safe_string(item, 'amount')
+                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 currencyCode = self.safe_string(parsedTransaction, 'currency')
                 currency = self.currency(currencyCode)
-                amount = self.safe_number(item, currency['id'])
-                direction = 'in' if (amount > 0) else 'out'
+                amount = self.safe_string(item, currency['id'])
+                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             return {
                 'id': parsedTransaction['id'],
                 'info': item,
@@ -1652,7 +1742,7 @@ class bitstamp(Exchange):
         :param int|None since: timestamp in ms of the earliest ledger entry, default is None
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
         request = {}
@@ -1671,13 +1761,14 @@ class bitstamp(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         market = None
         self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
         response = self.privatePostOpenOrdersAll(params)
+        #
         #     [
         #         {
         #             price: '0.00008012',
@@ -1696,6 +1787,11 @@ class bitstamp(Exchange):
         })
 
     def get_currency_name(self, code):
+        """
+         * @ignore
+        :param str code: Unified currency code
+        :returns str: lowercase version of code
+        """
         return code.lower()
 
     def is_fiat(self, code):
@@ -1706,7 +1802,7 @@ class bitstamp(Exchange):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
@@ -1732,7 +1828,7 @@ class bitstamp(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the bitstamp api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
@@ -1801,7 +1897,7 @@ class bitstamp(Exchange):
                     headers['Content-Type'] = contentType
             authBody = body if body else ''
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['X-Auth-Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -1812,6 +1908,7 @@ class bitstamp(Exchange):
         #     {"error": "No permission found"}  # fetchDepositAddress returns self on apiKeys that don't have the permission required
         #     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
         #     reuse of a nonce gives: {status: 'error', reason: 'Invalid nonce', code: 'API0004'}
+        #
         status = self.safe_string(response, 'status')
         error = self.safe_value(response, 'error')
         if (status == 'error') or (error is not None):

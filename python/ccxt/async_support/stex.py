@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -15,6 +14,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -24,7 +24,7 @@ class stex(Exchange):
     def describe(self):
         return self.deep_extend(super(stex, self).describe(), {
             'id': 'stex',
-            'name': 'STEX',  # formerly known as stocks.exchange
+            'name': 'STEX',  # formerly known.exchange
             'countries': ['EE'],  # Estonia
             'rateLimit': 1000 / 3,  # https://help.stex.com/en/articles/2815043-api-3-rate-limits
             'certified': False,
@@ -54,6 +54,8 @@ class stex(Exchange):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -503,7 +505,7 @@ class stex(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -586,7 +588,7 @@ class stex(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -692,7 +694,7 @@ class stex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTicker(params)
@@ -764,7 +766,7 @@ class stex(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -772,13 +774,13 @@ class stex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'currencyPairId': market['id'],
-            'candlesType': self.timeframes[timeframe],  # default 1d
+            'candlesType': self.safe_string(self.timeframes, timeframe, timeframe),  # default 1d
             # 'timeStart': 1574709092,  # unix timestamp in seconds, required
             # 'timeEnd': 1574709092,  # unix timestamp in seconds, required
             # 'limit': 100,  # default 100, optional
@@ -794,7 +796,7 @@ class stex(Exchange):
             request['timeEnd'] = self.seconds()
             request['timeStart'] = request['timeEnd'] - timerange
         else:
-            request['timeStart'] = int(since / 1000)
+            request['timeStart'] = self.parse_to_int(since / 1000)
             request['timeEnd'] = self.sum(request['timeStart'], timerange)
         response = await self.publicGetChartCurrencyPairIdCandlesType(self.extend(request, params))
         #
@@ -886,7 +888,7 @@ class stex(Exchange):
             request['limit'] = limit  # currently limited to 100 or fewer
         if since is not None:
             request['sort'] = 'ASC'  # needed to make the from param work
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         response = await self.publicGetTradesCurrencyPairId(self.extend(request, params))
         #
         #     {
@@ -910,7 +912,7 @@ class stex(Exchange):
         fetch the trading fees for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1078,13 +1080,7 @@ class stex(Exchange):
         if (type == 'BUY') or (type == 'SELL'):
             type = None
         side = self.safe_string_lower(order, 'type')
-        rawTrades = self.safe_value(order, 'trades')
-        trades = None
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': symbol,
-                'order': id,
-            })
+        trades = self.safe_value(order, 'trades')
         stopPrice = self.safe_number(order, 'trigger_price')
         result = {
             'info': order,
@@ -1100,6 +1096,7 @@ class stex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -1137,7 +1134,7 @@ class stex(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -1180,7 +1177,7 @@ class stex(Exchange):
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1218,7 +1215,7 @@ class stex(Exchange):
         :param str id: order id
         :param str|None symbol: unified market symbol, default is None
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1274,7 +1271,7 @@ class stex(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         order = await self.fetch_closed_order(id, symbol, params)
         return order['trades']
@@ -1286,7 +1283,7 @@ class stex(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1332,7 +1329,7 @@ class stex(Exchange):
         :param str id: order id
         :param str|None symbol: not used by stex cancelOrder()
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1400,7 +1397,7 @@ class stex(Exchange):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1429,7 +1426,7 @@ class stex(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -1471,14 +1468,14 @@ class stex(Exchange):
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'currencyId': currency['id'],
             # Default value is the value that represents legacy protocol.
-            # In case of USDT it is 10 as Tether OMNI was the default previously.
+            # In case of USDT it is 10 OMNI was the default previously.
             # The list of protocols can be obtained from the /public/currencies/{currencyId}
             # 'protocol_id': 10,
         }
@@ -1551,7 +1548,7 @@ class stex(Exchange):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         balance = await self.fetch_balance()
@@ -1777,7 +1774,7 @@ class stex(Exchange):
         :param str id: deposit id
         :param str|None code: not used by stex fetchDeposit()
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -1826,7 +1823,7 @@ class stex(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -1869,7 +1866,7 @@ class stex(Exchange):
         #     }
         #
         deposits = self.safe_value(response, 'data', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawal(self, id, code=None, params={}):
         """
@@ -1877,7 +1874,7 @@ class stex(Exchange):
         :param str id: withdrawal id
         :param str|None code: not used by stex.fetchWithdrawal
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -1933,7 +1930,7 @@ class stex(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -1987,7 +1984,7 @@ class stex(Exchange):
         #     }
         #
         withdrawals = self.safe_value(response, 'data', [])
-        return self.parse_transactions(withdrawals, code, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
@@ -1997,7 +1994,7 @@ class stex(Exchange):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -2093,7 +2090,7 @@ class stex(Exchange):
         #                 telegram: '',
         #                 icon_large: 'https://app-coin-images.stex.com/large/usdt.png',
         #                 icon_small: 'https://app-coin-images.stex.com/small/usdt.png',
-        #                 description: 'Tether(USDT) is a cryptocurrency with a value meant to mirror the value of the U.S. dollar. The idea was to create a stable cryptocurrency that can be used like digital dollars. Coins that serve self purpose of being a stable dollar substitute are called “stable coins.” Tether is the most popular stable coin and even acts as a dollar replacement on many popular exchanges! According to their site, Tether converts cash into digital currency, to anchor or “tether” the value of the coin to the price of national currencies like the US dollar, the Euro, and the Yen. Like other cryptos it uses blockchain. Unlike other cryptos, it is [according to the official Tether site] “100% backed by USD”(USD is held in reserve). The primary use of Tether is that it offers some stability to the otherwise volatile crypto space and offers liquidity to exchanges who can’t deal in dollars and with banks(for example to the sometimes controversial but leading exchange Bitfinex).The digital coins are issued by a company called Tether Limited that is governed by the laws of the British Virgin Islands, according to the legal part of its website. It is incorporated in Hong Kong. It has emerged that Jan Ludovicus van der Velde is the CEO of cryptocurrency exchange Bitfinex, which has been accused of being involved in the price manipulation of bitcoin, as well as tether. Many people trading on exchanges, including Bitfinex, will use tether to buy other cryptocurrencies like bitcoin. Tether Limited argues that using self method to buy virtual currencies allows users to move fiat in and out of an exchange more quickly and cheaply. Also, exchanges typically have rocky relationships with banks, and using Tether is a way to circumvent that.USDT is fairly simple to use. Once on exchanges like Poloniex or Bittrex, it can be used to purchase Bitcoin and other cryptocurrencies. It can be easily transferred from an exchange to any Omni Layer enabled wallet. Tether has no transaction fees, although external wallets and exchanges may charge one. In order to convert USDT to USD and vise versa through the Tether.to Platform, users must pay a small fee. Buying and selling Tether for Bitcoin can be done through a variety of exchanges like the ones mentioned previously or through the Tether.to platform, which also allows the conversion between USD to and from your bank account.',
+        #                 description: 'Tether(USDT) is a cryptocurrency with a value meant to mirror the value of the U.S. dollar. The idea was to create a stable cryptocurrency that can be used like digital dollars. Coins that serve self purpose of being a stable dollar substitute are called “stable coins.” Tether is the most popular stable coin and even acts dollar replacement on many popular exchanges! According to their site, Tether converts cash into digital currency, to anchor or “tether” the value of the coin to the price of national currencies like the US dollar, the Euro, and the Yen. Like other cryptos it uses blockchain. Unlike other cryptos, it is [according to the official Tether site] “100% backed by USD”(USD is held in reserve). The primary use of Tether is that it offers some stability to the otherwise volatile crypto space and offers liquidity to exchanges who can’t deal in dollars and with banks(for example to the sometimes controversial but leading exchange Bitfinex).The digital coins are issued by a company called Tether Limited that is governed by the laws of the British Virgin Islands, according to the legal part of its website. It is incorporated in Hong Kong. It has emerged that Jan Ludovicus van der Velde is the CEO of cryptocurrency exchange Bitfinex, which has been accused of being involved in the price manipulation of bitcoin,. Many people trading on exchanges, including Bitfinex, will use tether to buy other cryptocurrencies like bitcoin. Tether Limited argues that using self method to buy virtual currencies allows users to move fiat in and out of an exchange more quickly and cheaply. Also, exchanges typically have rocky relationships with banks, and using Tether is a way to circumvent that.USDT is fairly simple to use. Once on exchanges like Poloniex or Bittrex, it can be used to purchase Bitcoin and other cryptocurrencies. It can be easily transferred from an exchange to any Omni Layer enabled wallet. Tether has no transaction fees, although external wallets and exchanges may charge one. In order to convert USDT to USD and vise versa through the Tether.to Platform, users must pay a small fee. Buying and selling Tether for Bitcoin can be done through a variety of exchanges like the ones mentioned previously or through the Tether.to platform, which also allows the conversion between USD to and from your bank account.',
         #                 official_site: 'https://tether.to/',
         #                 official_block_explorer: 'https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7'
         #             },
@@ -2223,7 +2220,7 @@ class stex(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -2239,8 +2236,8 @@ class stex(Exchange):
         if tag is not None:
             request['additional_address_parameter'] = tag
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_integer(networks, network, network)  # handle ERC20>ETH alias
+        networkRaw = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_integer(networks, networkRaw, self.parse_to_int(networkRaw))  # handle ERC20>ETH alias
         if network is not None:
             request['protocol_id'] = network
             params = self.omit(params, 'network')
@@ -2283,13 +2280,13 @@ class stex(Exchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
-        :param [str]|None codes: not used by stex fetchTransactionFees()
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the stex api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
-        response = await self.publicGetCurrencies(params)
         #
         #     {
         #         "success": True,
@@ -2329,19 +2326,136 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        withdrawFees = {}
-        depositFees = {}
-        for i in range(0, len(data)):
-            id = self.safe_string(data[i], 'id')
-            code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_number(data[i], 'withdrawal_fee_const')
-            depositFees[code] = self.safe_number(data[i], 'deposit_fee_const')
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': response,
+        currencyKeys = list(self.currencies.keys())
+        result = {}
+        for i in range(0, len(currencyKeys)):
+            code = currencyKeys[i]
+            currency = self.currencies[code]
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            info = self.safe_value(currency, 'info')
+            result[code] = {
+                'withdraw': self.safe_number(currency, 'fee'),
+                'deposit': self.safe_number(info, 'deposit_fee_const'),
+                'info': info,
+            }
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the stex api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": [
+        #             {
+        #                 "id": 1,
+        #                 "code": "BTC",
+        #                 "name": "Bitcoin",
+        #                 "active": True,
+        #                 "delisted": False,
+        #                 "precision": 8,
+        #                 "minimum_tx_confirmations": 24,
+        #                 "minimum_withdrawal_amount": "0.009",
+        #                 "minimum_deposit_amount": "0.000003",
+        #                 "deposit_fee_currency_id": 1,
+        #                 "deposit_fee_currency_code": "ETH",
+        #                 "deposit_fee_const": "0.00001",
+        #                 "deposit_fee_percent": "0",
+        #                 "withdrawal_fee_currency_id": 1,
+        #                 "withdrawal_fee_currency_code": "ETH",
+        #                 "withdrawal_fee_const": "0.0015",
+        #                 "withdrawal_fee_percent": "0",
+        #                 "withdrawal_limit": "string",
+        #                 "block_explorer_url": "https://blockchain.info/tx/",
+        #                 "protocol_specific_settings": [
+        #                     {
+        #                         "protocol_name": "Tether OMNI",
+        #                         "protocol_id": 10,
+        #                         "active": True,
+        #                         "withdrawal_fee_currency_id": 1,
+        #                         "withdrawal_fee_const": 0.002,
+        #                         "withdrawal_fee_percent": 0,
+        #                         "block_explorer_url": "https://omniexplorer.info/search/"
+        #                     }
+        #                 ]
+        #             }
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'code')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "id": 1,
+        #        "code": "BTC",
+        #        "name": "Bitcoin",
+        #        "active": True,
+        #        "delisted": False,
+        #        "precision": 8,
+        #        "minimum_tx_confirmations": 24,
+        #        "minimum_withdrawal_amount": "0.009",
+        #        "minimum_deposit_amount": "0.000003",
+        #        "deposit_fee_currency_id": 1,
+        #        "deposit_fee_currency_code": "ETH",
+        #        "deposit_fee_const": "0.00001",
+        #        "deposit_fee_percent": "0",
+        #        "withdrawal_fee_currency_id": 1,
+        #        "withdrawal_fee_currency_code": "ETH",
+        #        "withdrawal_fee_const": "0.0015",
+        #        "withdrawal_fee_percent": "0",
+        #        "withdrawal_limit": "string",
+        #        "block_explorer_url": "https://blockchain.info/tx/",
+        #        "protocol_specific_settings": [
+        #            {
+        #                "protocol_name": "Tether OMNI",
+        #                "protocol_id": 10,
+        #                "active": True,
+        #                "withdrawal_fee_currency_id": 1,
+        #                "withdrawal_fee_const": 0.002,
+        #                "withdrawal_fee_percent": 0,
+        #                "block_explorer_url": "https://omniexplorer.info/search/"
+        #            }
+        #        ]
+        #    }
+        #
+        result = {
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdrawal_fee_const'),
+                'percentage': False,
+            },
+            'deposit': {
+                'fee': self.safe_number(fee, 'deposit_fee_const'),
+                'percentage': False,
+            },
+            'networks': {},
         }
+        networks = self.safe_value(fee, 'protocol_specific_settings', [])
+        for i in range(0, len(networks)):
+            network = networks[i]
+            networkId = self.safe_string(network, 'protocol_name')
+            networkCode = self.network_id_to_code(networkId)
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': self.safe_number(network, 'withdrawal_fee_const'),
+                    'percentage': False,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+        return result
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

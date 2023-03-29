@@ -4,13 +4,14 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -49,6 +50,8 @@ class bitso(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -156,9 +159,6 @@ class bitso(Exchange):
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
-                        'ripple_withdrawal',
-                        'bcash_withdrawal',
-                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
@@ -189,7 +189,7 @@ class bitso(Exchange):
         :param int|None since: timestamp in ms of the earliest ledger entry, default is None
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         request = {}
         if limit is not None:
@@ -523,7 +523,7 @@ class bitso(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -584,7 +584,7 @@ class bitso(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -620,13 +620,13 @@ class bitso(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'book': market['id'],
-            'time_bucket': self.timeframes[timeframe],
+            'time_bucket': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['start'] = since
@@ -798,7 +798,7 @@ class bitso(Exchange):
         """
         fetch the trading fees for multiple markets
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privateGetFees(params)
@@ -869,7 +869,7 @@ class bitso(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -904,7 +904,7 @@ class bitso(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -918,10 +918,10 @@ class bitso(Exchange):
             request['price'] = self.price_to_precision(market['symbol'], price)
         response = await self.privatePostOrders(self.extend(request, params))
         id = self.safe_string(response['payload'], 'oid')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
-        }
+        }, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
@@ -929,7 +929,7 @@ class bitso(Exchange):
         :param str id: order id
         :param str|None symbol: not used by bitso cancelOrder()
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -943,7 +943,7 @@ class bitso(Exchange):
         :param [str] ids: order ids
         :param str|None symbol: unified market symbol
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if not isinstance(ids, list):
             raise ArgumentsRequired(self.id + ' cancelOrders() ids argument should be an array')
@@ -973,7 +973,7 @@ class bitso(Exchange):
         cancel all open orders
         :param None symbol: bitso does not support canceling orders for only a specific market
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is not None:
             raise NotSupported(self.id + ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.')
@@ -1033,6 +1033,7 @@ class bitso(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'remaining': remaining,
@@ -1050,7 +1051,7 @@ class bitso(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1082,7 +1083,7 @@ class bitso(Exchange):
         fetches information on an order made by the user
         :param str|None symbol: not used by bitso fetchOrder
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         response = await self.privateGetOrdersOid({
@@ -1103,7 +1104,7 @@ class bitso(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1119,7 +1120,7 @@ class bitso(Exchange):
         :param str id: deposit id
         :param str|None code: bitso does not support filtering by currency code and will ignore self argument
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -1160,9 +1161,12 @@ class bitso(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the exmo api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetFundings(params)
         #
         #     {
@@ -1188,14 +1192,14 @@ class bitso(Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'payload', [])
-        return self.parse_transactions(transactions, code, since, limit, params)
+        return self.parse_transactions(transactions, currency, since, limit, params)
 
     async def fetch_deposit_address(self, code, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1220,10 +1224,98 @@ class bitso(Exchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
-        :param [str]|None codes: not used by bitso fetchTransactionFees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://bitso.com/api_info#fees
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetFees(params)
+        #
+        #    {
+        #        success: True,
+        #        payload: {
+        #            fees: [
+        #                {
+        #                    book: 'btc_mxn',
+        #                    fee_percent: '0.6500',
+        #                    fee_decimal: '0.00650000',
+        #                    taker_fee_percent: '0.6500',
+        #                    taker_fee_decimal: '0.00650000',
+        #                    maker_fee_percent: '0.5000',
+        #                    maker_fee_decimal: '0.00500000',
+        #                    volume_currency: 'mxn',
+        #                    current_volume: '0.00',
+        #                    next_volume: '1500000.00',
+        #                    next_maker_fee_percent: '0.490',
+        #                    next_taker_fee_percent: '0.637',
+        #                    nextVolume: '1500000.00',
+        #                    nextFee: '0.490',
+        #                    nextTakerFee: '0.637'
+        #                },
+        #                ...
+        #            ],
+        #            deposit_fees: [
+        #                {
+        #                    currency: 'btc',
+        #                    method: 'rewards',
+        #                    fee: '0.00',
+        #                    is_fixed: False
+        #                },
+        #                ...
+        #            ],
+        #            withdrawal_fees: {
+        #                ada: '0.20958100',
+        #                bch: '0.00009437',
+        #                ars: '0',
+        #                btc: '0.00001209',
+        #                ...
+        #            }
+        #        }
+        #    }
+        #
+        result = {}
+        payload = self.safe_value(response, 'payload', {})
+        depositFees = self.safe_value(payload, 'deposit_fees', [])
+        for i in range(0, len(depositFees)):
+            depositFee = depositFees[i]
+            currencyId = self.safe_string(depositFee, 'currency')
+            code = self.safe_currency_code(currencyId)
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': self.safe_number(depositFee, 'fee'),
+                'withdraw': None,
+                'info': {
+                    'deposit': depositFee,
+                    'withdraw': None,
+                },
+            }
+        withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
+        currencyIds = list(withdrawalFees.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': self.safe_value(result[code], 'deposit'),
+                'withdraw': self.safe_number(withdrawalFees, currencyId),
+                'info': {
+                    'deposit': self.safe_value(result[code]['info'], 'deposit'),
+                    'withdraw': self.safe_number(withdrawalFees, currencyId),
+                },
+            }
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://bitso.com/api_info#fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         response = await self.privateGetFees(params)
@@ -1271,25 +1363,81 @@ class bitso(Exchange):
         #    }
         #
         payload = self.safe_value(response, 'payload', {})
-        depositFees = self.safe_value(payload, 'deposit_fees', [])
-        deposit = {}
-        for i in range(0, len(depositFees)):
-            depositFee = depositFees[i]
-            currencyId = self.safe_string(depositFee, 'currency')
+        return self.parse_deposit_withdraw_fees(payload, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        #    {
+        #        fees: [
+        #            {
+        #                book: 'btc_mxn',
+        #                fee_percent: '0.6500',
+        #                fee_decimal: '0.00650000',
+        #                taker_fee_percent: '0.6500',
+        #                taker_fee_decimal: '0.00650000',
+        #                maker_fee_percent: '0.5000',
+        #                maker_fee_decimal: '0.00500000',
+        #                volume_currency: 'mxn',
+        #                current_volume: '0.00',
+        #                next_volume: '1500000.00',
+        #                next_maker_fee_percent: '0.490',
+        #                next_taker_fee_percent: '0.637',
+        #                nextVolume: '1500000.00',
+        #                nextFee: '0.490',
+        #                nextTakerFee: '0.637'
+        #            },
+        #            ...
+        #        ],
+        #        deposit_fees: [
+        #            {
+        #                currency: 'btc',
+        #                method: 'rewards',
+        #                fee: '0.00',
+        #                is_fixed: False
+        #            },
+        #            ...
+        #        ],
+        #        withdrawal_fees: {
+        #            ada: '0.20958100',
+        #            bch: '0.00009437',
+        #            ars: '0',
+        #            btc: '0.00001209',
+        #            ...
+        #        }
+        #    }
+        #
+        result = {}
+        depositResponse = self.safe_value(response, 'deposit_fees', [])
+        withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
+        for i in range(0, len(depositResponse)):
+            entry = depositResponse[i]
+            currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            deposit[code] = self.safe_number(depositFee, 'fee')
-        withdraw = {}
-        withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
-        currencyIds = list(withdrawalFees.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+            if (codes is None) or (code in codes):
+                result[code] = {
+                    'deposit': {
+                        'fee': self.safe_number(entry, 'fee'),
+                        'percentage': not self.safe_value(entry, 'is_fixed'),
+                    },
+                    'withdraw': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                    'networks': {},
+                    'info': entry,
+                }
+        withdrawalKeys = list(withdrawalResponse.keys())
+        for i in range(0, len(withdrawalKeys)):
+            currencyId = withdrawalKeys[i]
             code = self.safe_currency_code(currencyId)
-            withdraw[code] = self.safe_number(withdrawalFees, currencyId)
-        return {
-            'info': response,
-            'deposit': deposit,
-            'withdraw': withdraw,
-        }
+            if (codes is None) or (code in codes):
+                withdrawFee = self.parse_number(withdrawalResponse[currencyId])
+                resultValue = self.safe_value(result, code)
+                if resultValue is None:
+                    result[code] = self.deposit_withdraw_fee({})
+                result[code]['withdraw']['fee'] = withdrawFee
+                result[code]['info'][code] = withdrawFee
+        return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         """
@@ -1299,7 +1447,7 @@ class bitso(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the bitso api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1449,7 +1597,7 @@ class bitso(Exchange):
                 if query:
                     body = self.json(query)
                     request += body
-            signature = self.hmac(self.encode(request), self.encode(self.secret))
+            signature = self.hmac(self.encode(request), self.encode(self.secret), hashlib.sha256)
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = {
                 'Authorization': 'Bitso ' + auth,
