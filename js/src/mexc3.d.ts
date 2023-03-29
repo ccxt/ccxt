@@ -117,7 +117,7 @@ export default class mexc3 extends Exchange {
         txid: string;
         timestamp: number;
         datetime: string;
-        network: string;
+        network: any;
         address: string;
         addressTo: string;
         addressFrom: any;
@@ -190,7 +190,7 @@ export default class mexc3 extends Exchange {
         txid: string;
         timestamp: number;
         datetime: string;
-        network: string;
+        network: any;
         address: string;
         addressTo: string;
         addressFrom: any;

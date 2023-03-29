@@ -91,7 +91,7 @@ export default class Exchange {
     };
     rateLimit: number;
     tokenBucket: any;
-    throttle: any;
+    throttler: any;
     enableRateLimit: boolean;
     httpExceptions: any;
     limits: {
@@ -442,6 +442,7 @@ export default class Exchange {
     checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
     checkAddress(address: any): any;
     initRestRateLimiter(): void;
+    throttle(cost?: any): void;
     setSandboxMode(enabled: any): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
