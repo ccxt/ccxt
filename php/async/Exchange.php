@@ -23,6 +23,7 @@ const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 use \ccxt\Precise;
 use \ccxt\AuthenticationError;
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
 use \ccxt\BadSymbol;
 
