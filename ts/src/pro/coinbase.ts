@@ -5,7 +5,7 @@
 import coinbaseRest from '../coinbase.js';
 import { ArgumentsRequired } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Precise } from '../base/Precise.js';
+
 //  ---------------------------------------------------------------------------
 
 export default class coinbase extends coinbaseRest {
