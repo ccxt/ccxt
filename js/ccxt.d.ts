@@ -160,6 +160,7 @@ import kucoinPro from './src/pro/kucoin.js';
 import kucoinfuturesPro from './src/pro/kucoinfutures.js';
 import lunoPro from './src/pro/luno.js';
 import mexcPro from './src/pro/mexc.js';
+import mexc3Pro from './src/pro/mexc3.js';
 import ndaxPro from './src/pro/ndax.js';
 import okcoinPro from './src/pro/okcoin.js';
 import okexPro from './src/pro/okex.js';
@@ -330,6 +331,7 @@ declare const pro: {
     kucoinfutures: typeof kucoinfuturesPro;
     luno: typeof lunoPro;
     mexc: typeof mexcPro;
+    mexc3: typeof mexc3Pro;
     ndax: typeof ndaxPro;
     okcoin: typeof okcoinPro;
     okex: typeof okexPro;
@@ -392,6 +394,7 @@ declare const ccxt: {
         kucoinfutures: typeof kucoinfuturesPro;
         luno: typeof lunoPro;
         mexc: typeof mexcPro;
+        mexc3: typeof mexc3Pro;
         ndax: typeof ndaxPro;
         okcoin: typeof okcoinPro;
         okex: typeof okexPro;

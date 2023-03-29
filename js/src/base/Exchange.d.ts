@@ -460,24 +460,11 @@ export default class Exchange {
     filterBySinceLimit(array: object[], since?: number, limit?: any, key?: string | number, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: string | number, value?: string | number, since?: number, limit?: any, key?: string, tail?: boolean): any;
     checkRequiredDependencies(): void;
-    remove0xPrefix(hexData: string): string;
-    hashMessage(message: string): string;
-    signHash(hash: string, privateKey: string): {
-        r: string;
-        s: string;
-        v: number;
-    };
-    signMessage(message: string, privateKey: string): {
-        r: string;
-        s: string;
-        v: number;
-    };
-    signMessageString(message: string, privateKey: string): string;
     parseNumber(value: string | number, d?: number): number;
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
+    remove0xPrefix(hexData: any): any;
     findTimeframe(timeframe: any, timeframes?: any): string;
-    formatScientificNotationFTX(n: any): any;
     spawn(method: any, ...args: any[]): Promise<unknown>;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;

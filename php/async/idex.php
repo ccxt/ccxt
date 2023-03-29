@@ -1131,7 +1131,7 @@ class idex extends Exchange {
                 $this->base16_to_binary($noPrefix),
             );
             $binary = $this->binary_concat_array($byteArray);
-            $hash = $this->hash($binary, keccak, 'hex');
+            $hash = $this->hash($binary, 'keccak', 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             // {
             //   address => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
@@ -1277,7 +1277,7 @@ class idex extends Exchange {
             );
             $allBytes = $this->array_concat($byteArray, $after);
             $binary = $this->binary_concat_array($allBytes);
-            $hash = $this->hash($binary, keccak, 'hex');
+            $hash = $this->hash($binary, 'keccak', 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             $request = array(
                 'parameters' => array(
@@ -1369,7 +1369,7 @@ class idex extends Exchange {
                 $this->number_to_be(1, 1), // bool set to true
             ];
             $binary = $this->binary_concat_array($byteArray);
-            $hash = $this->hash($binary, keccak, 'hex');
+            $hash = $this->hash($binary, 'keccak', 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             $request = array(
                 'parameters' => array(
@@ -1428,7 +1428,7 @@ class idex extends Exchange {
                 $request['parameters']['market'] = $market['id'];
             }
             $binary = $this->binary_concat_array($byteArray);
-            $hash = $this->hash($binary, keccak, 'hex');
+            $hash = $this->hash($binary, 'keccak', 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             $request['signature'] = $signature;
             // array( array( orderId => '688336f0-ec50-11ea-9842-b332f8a34d0e' ) )
@@ -1460,7 +1460,7 @@ class idex extends Exchange {
                 $this->encode($id),
             );
             $binary = $this->binary_concat_array($byteArray);
-            $hash = $this->hash($binary, keccak, 'hex');
+            $hash = $this->hash($binary, 'keccak', 'hex');
             $signature = $this->sign_message_string($hash, $this->privateKey);
             $request = array(
                 'parameters' => array(
@@ -1743,5 +1743,40 @@ class idex extends Exchange {
             $headers['IDEX-HMAC-Signature'] = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function remove0x_prefix($hexData) {
+        if (mb_substr($hexData, 0, 2 - 0) === '0x') {
+            return mb_substr($hexData, 2);
+        } else {
+            return $hexData;
+        }
+    }
+
+    public function hash_message($message) {
+        // takes a hex encoded $message
+        $binaryMessage = $this->base16_to_binary($this->remove0x_prefix($message));
+        $prefix = $this->encode('\x19Ethereum Signed Message:\n' . $binaryMessage->byteLength);
+        return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
+    }
+
+    public function sign_hash($hash, $privateKey) {
+        $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
+        return array(
+            'r' => '0x' . $signature['r'],
+            's' => '0x' . $signature['s'],
+            'v' => 27 . $signature['v'],
+        );
+    }
+
+    public function sign_message($message, $privateKey) {
+        return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
+    }
+
+    public function sign_message_string($message, $privateKey) {
+        // still takes the input hex string
+        // same but returns a string instead of an object
+        $signature = $this->sign_message($message, $privateKey);
+        return $signature['r'] . $this->remove0x_prefix($signature['s']) . bin2hex($this->number_to_be($signature['v'], 1));
     }
 }

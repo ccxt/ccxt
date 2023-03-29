@@ -166,8 +166,8 @@ export default class phemex extends Exchange {
                         'exchange/order/v2/tradingList': 5,
                         // swap
                         'accounts/accountPositions': 1,
-                        'g-accounts/accountPositions': 5,
-                        'accounts/positions': 26,
+                        'g-accounts/accountPositions': 1,
+                        'accounts/positions': 25,
                         'api-data/futures/funding-fees': 5,
                         'api-data/g-futures/funding-fees': 5,
                         'api-data/futures/orders': 5,
@@ -178,7 +178,7 @@ export default class phemex extends Exchange {
                         'api-data/g-futures/trades': 5,
                         'api-data/futures/trading-fees': 5,
                         'api-data/g-futures/trading-fees': 5,
-                        'g-orders/activeList': 5,
+                        'g-orders/activeList': 1,
                         'orders/activeList': 1,
                         'exchange/order/list': 5,
                         'exchange/order': 5,
@@ -206,7 +206,7 @@ export default class phemex extends Exchange {
                         'spot/orders': 1,
                         // swap
                         'orders': 1,
-                        'g-orders': 5,
+                        'g-orders': 1,
                         'positions/assign': 5,
                         'exchange/wallets/transferOut': 5,
                         'exchange/wallets/transferIn': 5,
@@ -226,7 +226,7 @@ export default class phemex extends Exchange {
                         'spot/orders': 1,
                         // swap
                         'orders/replace': 1,
-                        'g-orders/replace': 5,
+                        'g-orders/replace': 1,
                         'positions/leverage': 5,
                         'g-positions/leverage': 5,
                         'g-positions/switch-pos-mode-sync': 5,
@@ -240,10 +240,10 @@ export default class phemex extends Exchange {
                         // swap
                         'orders/cancel': 1,
                         'orders': 1,
-                        'orders/all': 1,
-                        'g-orders/cancel': 5,
-                        'g-orders': 5,
-                        'g-orders/all': 5, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'orders/all': 3,
+                        'g-orders/cancel': 1,
+                        'g-orders': 1,
+                        'g-orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     },
                 },
             },

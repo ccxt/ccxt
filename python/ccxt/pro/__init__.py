@@ -55,6 +55,7 @@ from ccxt.pro.kucoin import kucoin                                        # noqa
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
+from ccxt.pro.mexc3 import mexc3                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okex import okex                                            # noqa: F401
@@ -112,6 +113,7 @@ exchanges = [
     'kucoinfutures',
     'luno',
     'mexc',
+    'mexc3',
     'ndax',
     'okcoin',
     'okex',

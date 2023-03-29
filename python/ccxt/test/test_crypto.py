@@ -65,20 +65,21 @@ assert(equals(ecdsa(privateKey, privateKey, 'secp256k1', None), {
 
 # ---------------------------------------------------------------------------------------------------------------------
 
-assert exchange.hashMessage(privateKey) == '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f'
-
-assert(equals(exchange.signHash('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', privateKey), {
-    'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
-    's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
-    'v': 27
-}))
-
-assert(equals(exchange.signMessage(privateKey, privateKey), {
-    'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
-    's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
-    'v': 27
-}))
-
+#
+# assert exchange.hashMessage(privateKey) == '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f'
+#
+# assert(equals(exchange.signHash('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', privateKey), {
+#     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
+#     's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
+#     'v': 27
+# }))
+#
+# assert(equals(exchange.signMessage(privateKey, privateKey), {
+#     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
+#     's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
+#     'v': 27
+# }))
+#
 # ---------------------------------------------------------------------------------------------------------------------
 
 pemKeyArray = [

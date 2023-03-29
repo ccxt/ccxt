@@ -181,8 +181,8 @@ class phemex(Exchange):
                         'exchange/order/v2/tradingList': 5,  # ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         # swap
                         'accounts/accountPositions': 1,  # ?currency=<currency>
-                        'g-accounts/accountPositions': 5,  # ?currency=<currency>
-                        'accounts/positions': 26,  # ?currency=<currency>
+                        'g-accounts/accountPositions': 1,  # ?currency=<currency>
+                        'accounts/positions': 25,  # ?currency=<currency>
                         'api-data/futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/futures/orders': 5,  # ?symbol=<symbol>
@@ -193,7 +193,7 @@ class phemex(Exchange):
                         'api-data/g-futures/trades': 5,  # ?symbol=<symbol>
                         'api-data/futures/trading-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/trading-fees': 5,  # ?symbol=<symbol>
-                        'g-orders/activeList': 5,  # ?symbol=<symbol>
+                        'g-orders/activeList': 1,  # ?symbol=<symbol>
                         'orders/activeList': 1,  # ?symbol=<symbol>
                         'exchange/order/list': 5,  # ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order': 5,  # ?symbol=<symbol>&orderID=<orderID5,orderID2>
@@ -221,7 +221,7 @@ class phemex(Exchange):
                         'spot/orders': 1,
                         # swap
                         'orders': 1,
-                        'g-orders': 5,
+                        'g-orders': 1,
                         'positions/assign': 5,  # ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
                         'exchange/wallets/transferOut': 5,
                         'exchange/wallets/transferIn': 5,
@@ -241,7 +241,7 @@ class phemex(Exchange):
                         'spot/orders': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         # swap
                         'orders/replace': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace': 5,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
                         'positions/leverage': 5,  # ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/leverage': 5,  # ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/switch-pos-mode-sync': 5,  # ?symbol=<symbol>&targetPosMode=<targetPosMode>
@@ -255,10 +255,10 @@ class phemex(Exchange):
                         # swap
                         'orders/cancel': 1,  # ?symbol=<symbol>&orderID=<orderID>
                         'orders': 1,  # ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all': 1,  # ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel': 5,  # ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders': 5,  # ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all': 5,  # ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'orders/all': 3,  # ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel': 1,  # ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders': 1,  # ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all': 3,  # ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     },
                 },
             },
