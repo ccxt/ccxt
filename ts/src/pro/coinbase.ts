@@ -108,24 +108,6 @@ export default class coinbase extends coinbaseRest {
         const name = 'ticker_batch';
         const tickers = await this.subscribe (name, symbols, params);
         return tickers;
-        // todo: like binance
-        // const result = {};
-        // for (let i = 0; i < tickers.length; i++) {
-        //     const ticker = tickers[i];
-        //     const tickerSymbol = ticker['symbol'];
-        //     if (symbols === undefined || this.inArray (tickerSymbol, symbols)) {
-        //         result[tickerSymbol] = ticker;
-        //     }
-        // }
-        // const resultKeys = Object.keys (result);
-        // const resultKeysLength = resultKeys.length;
-        // if (resultKeysLength > 0) {
-        //     if (this.newUpdates) {
-        //         return result;
-        //     }
-        //     return this.filterByArray (this.tickers, 'symbol', symbols);
-        // }
-        // return await this.watchTickers (symbols, oriParams);
     }
 
     handleTicker (client, message) {
@@ -404,20 +386,6 @@ export default class coinbase extends coinbaseRest {
                     this.orders = new ArrayCacheBySymbolById (limit);
                 }
                 const cachedOrders = this.orders;
-                // const symbol = this.safeString (parsed, 'symbol');
-                // const orderId = this.safeString (parsed, 'id');
-                // const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-                // const order = this.safeValue (orders, orderId);
-                // if (order !== undefined) {
-                //     // todo add others to calculate average etc
-                //     const stopPrice = this.safeValue (order, 'stopPrice');
-                //     if (stopPrice !== undefined) {
-                //         parsed['stopPrice'] = stopPrice;
-                //     }
-                //     if (order['status'] === 'closed') {
-                //         parsed['status'] = 'closed';
-                //     }
-                // }
                 const marketId = this.safeString (responseOrder, 'product_id');
                 if (!(marketId in marketIds)) {
                     marketIds.push (marketId);
@@ -431,30 +399,6 @@ export default class coinbase extends coinbaseRest {
             client.resolve (this.orders, messageHash);
         }
         client.resolve (this.orders, 'user');
-        // if (this.orders === undefined) {
-        //     const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        //     this.orders = new ArrayCacheBySymbolById (limit);
-        // }
-        // const events = this.safeValue (message, 'events');
-        // for (let i = 0; i < events.length; i++) {
-        //     const event = events[i];
-        //     const orders = this.safeValue (event, 'orders', []);
-        //     for (let i = 0; i < orders.length; i++) {
-        //         const order = this.parseWsOrder (orders[i]);
-        //         const marketId = this.marketId (order['symbol']);
-        //         if (!(marketId in this.orders)) {
-        //             this.orders[marketId] = [];
-        //         }
-        //         this.orders[marketId].push (order);
-        //     }
-        //     const orderKeys = Object.keys (this.orders);
-        //     for (let i = 0; i < orderKeys.length; i++) {
-        //         const marketId = orderKeys[i];
-        //         const messageHash = 'user:' + marketId;
-        //         client.resolve (this.orders[marketId], messageHash);
-        //     }
-        //     client.resolve (this.orders, 'user');
-        // }
         return message;
     }
 
