@@ -46,7 +46,7 @@
     "tokocrypto":    { "skip": true },
     "crex24":        { "skip": true },
     "btcex":         { "skip": true },
-    "wazirx":        { "skipWs": true },
+    "blockchaincom": { "skip": true },
     "deribit":       { "skipWs": true },
     "tidex":         { "skip": true },
     "yobit":         { "skip": true },

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.42';
+$version = '3.0.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.42';
+    const VERSION = '3.0.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -506,6 +506,7 @@ class Exchange {
         'parseDate' => 'parse_date',
         'isArray' => 'is_array',
         'base64ToString' => 'base64_to_string',
+        'Throttler' => 'throttler',
         'TimedOut' => 'timed_out',
         'asFloat' => 'as_float',
         'asInteger' => 'as_integer',
@@ -541,16 +542,11 @@ class Exchange {
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
         'checkRequiredDependencies' => 'check_required_dependencies',
-        'remove0xPrefix' => 'remove0x_prefix',
-        'hashMessage' => 'hash_message',
-        'signHash' => 'sign_hash',
-        'signMessage' => 'sign_message',
-        'signMessageString' => 'sign_message_string',
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'remove0xPrefix' => 'remove0x_prefix',
         'findTimeframe' => 'find_timeframe',
-        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
         'orderBook' => 'order_book',
         'indexedOrderBook' => 'indexed_order_book',
         'countedOrderBook' => 'counted_order_book',
@@ -2515,13 +2511,6 @@ class Exchange {
             }
         }
         return null;
-    }
-
-    public function formatScientificNotationFTX($n) {
-        if ($n === 0) {
-            return '0e-00';
-        }
-        return str_replace('E-', 'e-0', sprintf('g', $n));
     }
 
     // ########################################################################

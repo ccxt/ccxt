@@ -164,8 +164,8 @@ export default class phemex extends Exchange {
                         'exchange/order/v2/tradingList': 5, // ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         // swap
                         'accounts/accountPositions': 1, // ?currency=<currency>
-                        'g-accounts/accountPositions': 5, // ?currency=<currency>
-                        'accounts/positions': 26, // ?currency=<currency>
+                        'g-accounts/accountPositions': 1, // ?currency=<currency>
+                        'accounts/positions': 25, // ?currency=<currency>
                         'api-data/futures/funding-fees': 5, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5, // ?symbol=<symbol>
                         'api-data/futures/orders': 5, // ?symbol=<symbol>
@@ -176,7 +176,7 @@ export default class phemex extends Exchange {
                         'api-data/g-futures/trades': 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees': 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees': 5, // ?symbol=<symbol>
-                        'g-orders/activeList': 5, // ?symbol=<symbol>
+                        'g-orders/activeList': 1, // ?symbol=<symbol>
                         'orders/activeList': 1, // ?symbol=<symbol>
                         'exchange/order/list': 5, // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order': 5, // ?symbol=<symbol>&orderID=<orderID5,orderID2>
@@ -204,7 +204,7 @@ export default class phemex extends Exchange {
                         'spot/orders': 1,
                         // swap
                         'orders': 1,
-                        'g-orders': 5,
+                        'g-orders': 1,
                         'positions/assign': 5, // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
                         'exchange/wallets/transferOut': 5,
                         'exchange/wallets/transferIn': 5,
@@ -224,7 +224,7 @@ export default class phemex extends Exchange {
                         'spot/orders': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
                         'orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace': 5, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace': 1, // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
                         'positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/leverage': 5, // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/switch-pos-mode-sync': 5, // ?symbol=<symbol>&targetPosMode=<targetPosMode>
@@ -238,10 +238,10 @@ export default class phemex extends Exchange {
                         // swap
                         'orders/cancel': 1, // ?symbol=<symbol>&orderID=<orderID>
                         'orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all': 1, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel': 5, // ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders': 5, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all': 5, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel': 1, // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders': 1, // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     },
                 },
             },
@@ -589,8 +589,11 @@ export default class phemex extends Exchange {
         //
         //     {
         //         "symbol":"sBTCUSDT",
+        //         "code":1001,
         //         "displaySymbol":"BTC / USDT",
         //         "quoteCurrency":"USDT",
+        //         "priceScale":8,
+        //         "ratioScale":8,
         //         "pricePrecision":2,
         //         "type":"Spot",
         //         "baseCurrency":"BTC",
@@ -611,8 +614,11 @@ export default class phemex extends Exchange {
         //         "baseQtyPrecision":6,
         //         "quoteQtyPrecision":2,
         //         "status":"Listed",
-        //         "tipOrderQty":20
-        //     }
+        //         "tipOrderQty":2,
+        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //         "leverage":5
+        //         "valueScale":8,
+        //     },
         //
         const type = this.safeStringLower (market, 'type');
         const id = this.safeString (market, 'symbol');
@@ -649,9 +655,9 @@ export default class phemex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'priceScale': 8,
-            'valueScale': 8,
-            'ratioScale': 8,
+            'priceScale': this.safeInteger (market, 'priceScale'),
+            'valueScale': this.safeInteger (market, 'valueScale'),
+            'ratioScale': this.safeInteger (market, 'ratioScale'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -694,9 +700,9 @@ export default class phemex extends Exchange {
         //         "data":{
         //             "ratioScale":8,
         //             "currencies":[
-        //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        //                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //                 {"code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        //                 {"code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        //                 {"code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
         //             ],
         //             "products":[
         //                 {
@@ -722,8 +728,11 @@ export default class phemex extends Exchange {
         //                 },
         //                 {
         //                     "symbol":"sBTCUSDT",
+        //                     "code":1001,
         //                     "displaySymbol":"BTC / USDT",
         //                     "quoteCurrency":"USDT",
+        //                     "priceScale":8,
+        //                     "ratioScale":8,
         //                     "pricePrecision":2,
         //                     "type":"Spot",
         //                     "baseCurrency":"BTC",
@@ -742,7 +751,11 @@ export default class phemex extends Exchange {
         //                     "defaultMakerFee":"0.001",
         //                     "defaultMakerFeeEr":100000,
         //                     "baseQtyPrecision":6,
-        //                     "quoteQtyPrecision":2
+        //                     "quoteQtyPrecision":2,
+        //                     "status":"Listed",
+        //                     "tipOrderQty":2,
+        //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //                     "leverage":5
         //                 },
         //             ],
         //             "riskLimits":[
@@ -804,8 +817,10 @@ export default class phemex extends Exchange {
         const v2ProductsData = this.safeValue (v2Products, 'data', {});
         const products = this.safeValue (v2ProductsData, 'products', []);
         const riskLimits = this.safeValue (v2ProductsData, 'riskLimits', []);
+        const currencies = this.safeValue (v2ProductsData, 'currencies', []);
         const riskLimitsById = this.indexBy (riskLimits, 'symbol');
         const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');
+        const currenciesByCode = this.indexBy (currencies, 'currency');
         const result = [];
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
@@ -818,6 +833,10 @@ export default class phemex extends Exchange {
                 market = this.extend (market, v1ProductsValues);
                 market = this.parseSwapMarket (market);
             } else {
+                const baseCurrency = this.safeString (market, 'baseCurrency');
+                const currencyValues = this.safeValue (currenciesByCode, baseCurrency, {});
+                const valueScale = this.safeString (currencyValues, 'valueScale', '8');
+                market = this.extend (market, { 'valueScale': valueScale });
                 market = this.parseSpotMarket (market);
             }
             result.push (market);
@@ -991,10 +1010,8 @@ export default class phemex extends Exchange {
         const precise = new Precise (stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
-        const stringValue = precise.toString ();
-        const floatValue = parseFloat (stringValue);
-        const floatString = floatValue.toString ();
-        return parseInt (floatString);
+        const preciseString = precise.toString ();
+        return this.parseToInt (preciseString);
     }
 
     toEv (amount, market = undefined) {
@@ -1921,7 +1938,7 @@ export default class phemex extends Exchange {
         const amount = this.fromEv (this.safeString (order, 'baseQtyEv'), market);
         const remaining = this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
         const filled = this.fromEv (this.safeString2 (order, 'cumBaseQtyEv', 'cumBaseValueEv'), market);
-        const cost = this.fromEv (this.safeString2 (order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
+        const cost = this.fromEr (this.safeString2 (order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
         const average = this.fromEp (this.safeString (order, 'avgPriceEp'), market);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
@@ -2752,14 +2769,16 @@ export default class phemex extends Exchange {
             }
         }
         const request = {};
+        if (limit !== undefined) {
+            limit = Math.min (200, limit);
+            request['limit'] = limit;
+        }
         if (market['settle'] === 'USDT') {
             request['currency'] = 'USDT';
             request['offset'] = 0;
-            limit = 200;
-            if (limit !== undefined) {
-                limit = Math.min (200, limit);
+            if (limit === undefined) {
+                request['limit'] = 200;
             }
-            request['limit'] = limit;
         } else {
             request['symbol'] = market['id'];
         }

@@ -190,6 +190,9 @@ class kraken extends kraken$1 {
                         'Staking/Assets': 3,
                         'Staking/Pending': 3,
                         'Staking/Transactions': 3,
+                        // sub accounts
+                        'CreateSubaccount': 3,
+                        'AccountTransfer': 3,
                     },
                 },
             },

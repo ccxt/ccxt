@@ -53,6 +53,8 @@ interface Exchange {
      privatePostStakingAssets (params?: {}): Promise<implicitReturnType>;
      privatePostStakingPending (params?: {}): Promise<implicitReturnType>;
      privatePostStakingTransactions (params?: {}): Promise<implicitReturnType>;
+     privatePostCreateSubaccount (params?: {}): Promise<implicitReturnType>;
+     privatePostAccountTransfer (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

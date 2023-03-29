@@ -563,46 +563,39 @@ class bitmex extends \ccxt\async\bitmex {
     public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
-        $future = $client->future ('authenticated');
-        $action = 'authKeyExpires';
-        $authenticated = $this->safe_value($client->subscriptions, $action);
-        if ($authenticated === null) {
-            try {
-                $this->check_required_credentials();
-                $timestamp = $this->milliseconds();
-                $message = 'GET' . '/realtime' . (string) $timestamp;
-                $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'op' => $action,
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
-            } catch (Exception $e) {
-                $client->reject ($e, 'authenticated');
-                if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
-                    unset($client->subscriptions[$action]);
-                }
-            }
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $this->check_required_credentials();
+            $timestamp = $this->milliseconds();
+            $payload = 'GET' . '/realtime' . (string) $timestamp;
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+            $request = array(
+                'op' => 'authKeyExpires',
+                'args' => array(
+                    $this->apiKey,
+                    $timestamp,
+                    $signature,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
         }
         return $future;
     }
 
     public function handle_authentication_message($client, $message) {
         $authenticated = $this->safe_value($message, 'success', false);
+        $messageHash = 'authenticated';
         if ($authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            $client->resolve ($message, 'authenticated');
+            $client->resolve ($message, $messageHash);
         } else {
             $error = new AuthenticationError ($this->json($message));
-            $client->reject ($error, 'authenticated');
-            // allows further authentication attempts
-            $event = 'authKeyExpires';
-            if (is_array($client->subscriptions) && array_key_exists($event, $client->subscriptions)) {
-                unset($client->subscriptions[$event]);
+            $client->reject ($error, $messageHash);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                unset($client->subscriptions[$messageHash]);
             }
         }
     }

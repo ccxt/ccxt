@@ -248,7 +248,7 @@ class Transpiler {
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
-            [ /\s(md5|secp256k1|ed25519)([,)])/g, ' \'$1\'$2'], // from js imports to this
+            [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
         ].concat(this.getTypescriptRemovalRegexes())
     }
