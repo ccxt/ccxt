@@ -2181,33 +2181,34 @@ export default class xt extends Exchange {
         // swap and future
         //
         //     {
-        //         "error": {
-        //             "code": "",
-        //             "msg": ""
-        //         },
-        //         "msgInfo": "",
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
         //         "result": {
-        //             "avgPrice": 0,
+        //             "orderId": "211451874783183936",
+        //             "clientOrderId": null,
+        //             "symbol": "btc_usdt",
+        //             "orderType": "LIMIT",
+        //             "orderSide": "BUY",
+        //             "positionSide": "LONG",
+        //             "timeInForce": "GTC",
         //             "closePosition": false,
-        //             "closeProfit": 0,
-        //             "createdTime": 0,
-        //             "executedQty": 0,
+        //             "price": "20000",
+        //             "origQty": "10",
+        //             "avgPrice": "0",
+        //             "executedQty": "0",
+        //             "marginFrozen": "1.34533334",
+        //             "remark": null,
+        //             "triggerProfitPrice": null,
+        //             "triggerStopPrice": null,
+        //             "sourceId": null,
+        //             "sourceType": "DEFAULT",
         //             "forceClose": false,
-        //             "marginFrozen": 0,
-        //             "orderId": 0,
-        //             "orderSide": "",
-        //             "orderType": "",
-        //             "origQty": 0,
-        //             "positionSide": "",
-        //             "price": 0,
-        //             "sourceId": 0,
-        //             "state": "",
-        //             "symbol": "",
-        //             "timeInForce": "",
-        //             "triggerProfitPrice": 0,
-        //             "triggerStopPrice": 0
+        //             "closeProfit": null,
+        //             "state": "NEW",
+        //             "createdTime": 1680116055693,
+        //             "updatedTime": 1680116055693
         //         }
-        //         "returnCode": 0
         //     }
         //
         const order = this.safeValue (response, 'result', {});
@@ -2740,31 +2741,7 @@ export default class xt extends Exchange {
         //         "updatedTime": 1679175285255
         //     }
         //
-        // swap and future: fetchOrder
-        //
-        //     {
-        //         "avgPrice": 0,
-        //         "closePosition": false,
-        //         "closeProfit": 0,
-        //         "createdTime": 0,
-        //         "executedQty": 0,
-        //         "forceClose": false,
-        //         "marginFrozen": 0,
-        //         "orderId": 0,
-        //         "orderSide": "",
-        //         "orderType": "",
-        //         "origQty": 0,
-        //         "positionSide": "",
-        //         "price": 0,
-        //         "sourceId": 0,
-        //         "state": "",
-        //         "symbol": "",
-        //         "timeInForce": "",
-        //         "triggerProfitPrice": 0,
-        //         "triggerStopPrice": 0
-        //     }
-        //
-        // swap and future: fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus
+        // swap and future: fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus
         //
         //     {
         //         "orderId": "207519546930995456",
