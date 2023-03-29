@@ -397,73 +397,38 @@ export default class coinbase extends coinbaseRest {
             const event = events[i];
             const responseOrders = this.safeValue (event, 'orders');
             for (let j = 0; j < responseOrders.length; j++) {
-                const order = responseOrders[j];
-                const marketId = this.safeString (order, 'product_id');
-                const symbol = this.safeSymbol (marketId);
-                let orders = this.safeValue (this.orders, symbol);
-                if (orders === undefined) {
-                    const limit = this.safeInteger (this.options, 'ordersLimit');
-                    orders = new ArrayCacheBySymbolById (limit);
-                    this.orders = orders;
+                const responseOrder = responseOrders[j];
+                const parsed = this.parseWsOrder (responseOrder);
+                if (this.orders === undefined) {
+                    const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                    this.orders = new ArrayCacheBySymbolById (limit);
                 }
-                const orderId = this.safeString (order, 'orderId');
-                const clientOrderId = this.safeString (order, 'client_id');
-                const previousOrders = this.safeValue (this.orders.hashmap, symbol, {});
-                const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
-                if (previousOrder === undefined) {
-                    const parsed = this.parseWsOrder (order);
-                    this.orders.append (parsed);
-                    // client.resolve (this.orders[symbol], messageHash);
-                } else {
-                    const trade = this.parseTrade (order);
-                    if (previousOrder['trades'] === undefined) {
-                        previousOrder['trades'] = [];
-                    }
-                    previousOrder['trades'].push (trade);
-                    previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                    let totalCost = '0';
-                    let totalAmount = '0';
-                    const trades = previousOrder['trades'];
-                    for (let i = 0; i < trades.length; i++) {
-                        const trade = trades[i];
-                        totalCost = Precise.stringAdd (totalCost, this.numberToString (trade['cost']));
-                        totalAmount = Precise.stringAdd (totalAmount, this.numberToString (trade['amount']));
-                    }
-                    if (Precise.stringGt (totalAmount, '0')) {
-                        previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
-                    }
-                    previousOrder['cost'] = totalCost;
-                    if (previousOrder['filled'] !== undefined) { // ? previousOrder['filled'] = 0
-                        previousOrder['filled'] += trade['amount'];
-                        if (previousOrder['amount'] !== undefined) {
-                            previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
-                        }
-                    }
-                    if (previousOrder['fee'] === undefined) {
-                        previousOrder['fee'] = {
-                            'rate': undefined,
-                            'cost': this.parseNumber ('0'),
-                            'currency': trade['fee']['currency'],
-                        };
-                    }
-                    if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                        const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                        const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                        previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
-                    }
-                    // update the newUpdates count
-                    this.orders.append (previousOrder);
-                    if (!(marketId in marketIds)) {
-                        marketIds.push (marketId);
-                    }
+                const cachedOrders = this.orders;
+                // const symbol = this.safeString (parsed, 'symbol');
+                // const orderId = this.safeString (parsed, 'id');
+                // const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+                // const order = this.safeValue (orders, orderId);
+                // if (order !== undefined) {
+                //     // todo add others to calculate average etc
+                //     const stopPrice = this.safeValue (order, 'stopPrice');
+                //     if (stopPrice !== undefined) {
+                //         parsed['stopPrice'] = stopPrice;
+                //     }
+                //     if (order['status'] === 'closed') {
+                //         parsed['status'] = 'closed';
+                //     }
+                // }
+                const marketId = this.safeString (responseOrder, 'product_id');
+                if (!(marketId in marketIds)) {
+                    marketIds.push (marketId);
                 }
+                cachedOrders.append (parsed);
             }
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const messageHash = 'user:' + marketIds[i];
-            const symbol = this.symbol (marketId);
-            client.resolve (this.orders[symbol], messageHash);
+            const messageHash = 'user:' + marketId;
+            client.resolve (this.orders, messageHash);
         }
         client.resolve (this.orders, 'user');
         // if (this.orders === undefined) {
@@ -644,7 +609,6 @@ export default class coinbase extends coinbaseRest {
             throw new Error (errorMessage);
         }
         const method = this.safeValue (methods, channel);
-        console.log (message);
         return method.call (this, client, message);
     }
 }
