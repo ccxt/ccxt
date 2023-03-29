@@ -9,7 +9,6 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class xt extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -55,6 +54,7 @@ export default class xt extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'precisionMode': DECIMAL_PLACES,
@@ -3064,6 +3064,63 @@ export default class xt extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
+    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of transaction structures to retrieve
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 200
+        }
+        const response = await this.privateSpotGetWithdrawHistory (this.extend (request, params));
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": false,
+        //             "items": [
+        //                 {
+        //                     "id": 950898,
+        //                     "currency": "usdt",
+        //                     "chain": "Tron",
+        //                     "address": "TGB2vxTjiqraVZBy7YHXF8V3CSMVhQKcaf",
+        //                     "memo": "",
+        //                     "status": "SUCCESS",
+        //                     "amount": "5",
+        //                     "fee": "2",
+        //                     "confirmations": 6,
+        //                     "transactionId": "c36e230b879842b1d7afd19d15ee1a866e26eaa0626e367d6f545d2932a15156",
+        //                     "createdTime": 1680049062000
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const withdrawals = this.safeValue (data, 'items', []);
+        return this.parseTransactions (withdrawals, currency, since, limit, params);
+    }
+
     async withdraw (code, amount, address, tag: string = undefined, params = {}) {
         /**
          * @method
@@ -3127,6 +3184,22 @@ export default class xt extends Exchange {
         //         "createdTime": 1678491442000
         //     }
         //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": 950898,
+        //         "currency": "usdt",
+        //         "chain": "Tron",
+        //         "address": "TGB2vxTjiqraVZBy7YHXF8V3CSMVhQKcaf",
+        //         "memo": "",
+        //         "status": "SUCCESS",
+        //         "amount": "5",
+        //         "fee": "2",
+        //         "confirmations": 6,
+        //         "transactionId": "c36e230b879842b1d7afd19d15ee1a866e26eaa0626e367d6f545d2932a15156",
+        //         "createdTime": 1680049062000
+        //     }
+        //
         // withdraw
         //
         //     {
@@ -3136,6 +3209,9 @@ export default class xt extends Exchange {
         const timestamp = this.safeInteger (transaction, 'createdTime');
         const address = this.safeString (transaction, 'address');
         const memo = this.safeString (transaction, 'memo');
+        const currencyCode = this.safeCurrencyCode (this.safeString (transaction, 'currency'), currency);
+        const fee = this.safeNumber (transaction, 'fee');
+        const feeCurrency = (fee !== undefined) ? currencyCode : undefined;
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
@@ -3151,13 +3227,13 @@ export default class xt extends Exchange {
             'tag': memo,
             'type': undefined,
             'amount': this.safeNumber (transaction, 'amount'),
-            'currency': this.safeCurrencyCode (this.safeString (transaction, 'currency'), currency),
+            'currency': currencyCode,
             'network': this.safeString (transaction, 'chain'),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'comment': memo,
             'fee': {
-                'currency': undefined,
-                'cost': undefined,
+                'currency': feeCurrency,
+                'cost': fee,
                 'rate': undefined,
             },
         };
