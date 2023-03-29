@@ -55,6 +55,7 @@ export default class xt extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'withdraw': true,
             },
             'precisionMode': DECIMAL_PLACES,
             'urls': {
@@ -3063,6 +3064,51 @@ export default class xt extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
+    async withdraw (code, amount, address, tag: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#withdraw
+         * @description make a withdrawal
+         * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeString2 (networkIdsByCodes, networkCode, code);
+        const request = {
+            'currency': currency['id'],
+            'chain': networkId,
+            'amount': this.currencyToPrecision (code, amount),
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.privateSpotPostWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {
+        //             "id": 950898
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTransaction (result, currency);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
@@ -3079,6 +3125,12 @@ export default class xt extends Exchange {
         //         "address": "0x7f7172cf29d3846d30ca5a3aec1120b92dbd150b",
         //         "fromAddr": "0x7830c87c02e56aff27fa9ab1241711331fa86f58",
         //         "createdTime": 1678491442000
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": 950898
         //     }
         //
         const timestamp = this.safeInteger (transaction, 'createdTime');
