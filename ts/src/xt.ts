@@ -4,11 +4,12 @@
 import Exchange from './abstract/xt.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
+// @ts-expect-error
 export default class xt extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -55,6 +56,7 @@ export default class xt extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'withdraw': true,
             },
             'precisionMode': DECIMAL_PLACES,
@@ -308,8 +310,6 @@ export default class xt extends Exchange {
                 },
                 'broad': {},
             },
-            'commonCurrencies': { // TODO: commonCurrencies
-            },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',
@@ -325,6 +325,7 @@ export default class xt extends Exchange {
                 '1w': '1w',
                 '1M': '1M', // spot only
             },
+            'commonCurrencies': {},
             'options': {
                 'networks': {
                     'ERC20': 'Ethereum',
@@ -3252,10 +3253,51 @@ export default class xt extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        // TODO: finish handleErrors, spot api and linear/inverse, private and public, apis check the different error formats
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://doc.xt.com/#futures_useradjustLeverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {string} params.positionSide 'LONG' or 'SHORT'
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol ('setLeverage', symbol);
+        const positionSide = this.safeString (params, 'positionSide');
+        this.checkRequiredArgument ('setLeverage', positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 125');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!(market['contract'])) {
+            throw new BadSymbol (this.id + ' setLeverage() supports contract markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'positionSide': positionSide,
+            'leverage': leverage,
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setLeverage', market, params);
+        const response = (subType === 'inverse') ? await this.privateInversePostFutureUserV1PositionAdjustLeverage (this.extend (request, params)) : await this.privateLinearPostFutureUserV1PositionAdjustLeverage (this.extend (request, params));
         //
-        // spot
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": null
+        //     }
+        //
+        return response;
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        //
+        // spot: error
         //
         //     {
         //         "rc": 1,
@@ -3264,6 +3306,8 @@ export default class xt extends Exchange {
         //         "result": null
         //     }
         //
+        // spot: success
+        //
         //     {
         //         "returnCode": 0,
         //         "msgInfo": "success",
@@ -3271,7 +3315,7 @@ export default class xt extends Exchange {
         //         "result": []
         //     }
         //
-        // swap and future
+        // swap and future: error
         //
         //     {
         //         "returnCode": 1,
@@ -3281,6 +3325,24 @@ export default class xt extends Exchange {
         //             "msg": "invalid signature"
         //         },
         //         "result": null
+        //     }
+        //
+        // swap and future: success
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": null
+        //     }
+        //
+        // other:
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {}
         //     }
         //
         const status = this.safeStringUpper2 (response, 'msgInfo', 'mc');
