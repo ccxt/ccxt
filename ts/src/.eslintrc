@@ -67,7 +67,6 @@
       { "blankLine": "always", "prev":"*", "next": "function" }
 
     ],
-    "default-param-last": "off",
     "prefer-template": "off",
     "curly": "error",
     "no-plusplus": "off",
