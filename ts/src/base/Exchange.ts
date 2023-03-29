@@ -774,7 +774,7 @@ export default class Exchange {
     }
 
     throttle (cost = undefined) {
-       this.throttler.throttle (cost)
+        return this.throttler.throttle (cost)
     }
 
     setSandboxMode (enabled) {
