@@ -14,6 +14,7 @@ import aiohttp
 import ssl
 import sys
 import yarl
+from typing import Any
 
 # -----------------------------------------------------------------------------
 
@@ -475,25 +476,25 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None):
         return {}
 
     async def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchTrades() is not supported yet')
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
     async def fetch_time(self, params={}):
@@ -502,13 +503,13 @@ class Exchange(BaseExchange):
     async def fetch_trading_limits(self, symbols=None, params={}):
         raise NotSupported(self.id + ' fetchTradingLimits() is not supported yet')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: object, market=None):
         raise NotSupported(self.id + ' parseTicker() is not supported yet')
 
     def parse_deposit_address(self, depositAddress, currency=None):
         raise NotSupported(self.id + ' parseDepositAddress() is not supported yet')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade: object, market=None):
         raise NotSupported(self.id + ' parseTrade() is not supported yet')
 
     def parse_transaction(self, transaction, currency=None):
@@ -547,16 +548,16 @@ class Exchange(BaseExchange):
     async def fetch_funding_rates(self, symbols=None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     async def create_deposit_address(self, code, params={}):
         raise NotSupported(self.id + ' createDepositAddress() is not supported yet')
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: str = None, params={}):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     def parse_to_int(self, number):
@@ -575,7 +576,7 @@ class Exchange(BaseExchange):
             },
         }
 
-    def safe_ledger_entry(self, entry, currency=None):
+    def safe_ledger_entry(self, entry: object, currency: str = None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
         before = self.safe_string(entry, 'before')
@@ -689,7 +690,7 @@ class Exchange(BaseExchange):
         self.codes = list(currenciesSortedByCode.keys())
         return self.markets
 
-    def safe_balance(self, balance):
+    def safe_balance(self, balance: object):
         balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
         codes = list(balances.keys())
         balance['free'] = {}
@@ -723,7 +724,7 @@ class Exchange(BaseExchange):
             balance['debt'] = debtBalance
         return balance
 
-    def safe_order(self, order, market=None):
+    def safe_order(self, order: object, market: object = None):
         # parses numbers
         # * it is important pass the trades rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
@@ -918,7 +919,7 @@ class Exchange(BaseExchange):
             'fee': self.safe_value(order, 'fee'),
         })
 
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
+    def parse_orders(self, orders: object, market: object = None, since: float = None, limit: IntegerType = None, params={}):
         #
         # the value of orders is either a dict or a list
         #
@@ -956,7 +957,7 @@ class Exchange(BaseExchange):
         tail = since is None
         return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+    def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
         if type == 'market' and takerOrMaker == 'maker':
             raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
@@ -1001,7 +1002,7 @@ class Exchange(BaseExchange):
             'cost': self.parse_number(cost),
         }
 
-    def safe_trade(self, trade, market=None):
+    def safe_trade(self, trade: object, market: object = None):
         amount = self.safe_string(trade, 'amount')
         price = self.safe_string(trade, 'price')
         cost = self.safe_string(trade, 'cost')
@@ -1122,7 +1123,7 @@ class Exchange(BaseExchange):
             result = self.array_concat(result, reducedFeeValues)
         return result
 
-    def safe_ticker(self, ticker, market=None):
+    def safe_ticker(self, ticker: object, market=None):
         open = self.safe_value(ticker, 'open')
         close = self.safe_value(ticker, 'close')
         last = self.safe_value(ticker, 'last')
@@ -1170,10 +1171,9 @@ class Exchange(BaseExchange):
             'previousClose': self.safe_number(ticker, 'previousClose'),
         })
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: float = None, limit: IntegerType = None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
-        await self.load_markets()
         trades = await self.fetchTrades(symbol, since, limit, params)
         ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
         result = []
@@ -1188,7 +1188,7 @@ class Exchange(BaseExchange):
             ])
         return result
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
     def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
@@ -1252,21 +1252,21 @@ class Exchange(BaseExchange):
             result.append(self.common_currency_code(codes[i]))
         return result
 
-    def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
+    def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1):
         bidasks = self.to_array(bidasks)
         result = []
         for i in range(0, len(bidasks)):
             result.append(self.parse_bid_ask(bidasks[i], priceKey, amountKey))
         return result
 
-    async def fetch_l2_order_book(self, symbol, limit=None, params={}):
+    async def fetch_l2_order_book(self, symbol: str, limit: IntegerType = None, params={}):
         orderbook = await self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
         })
 
-    def filter_by_symbol(self, objects, symbol=None):
+    def filter_by_symbol(self, objects, symbol: str = None):
         if symbol is None:
             return objects
         result = []
@@ -1288,7 +1288,7 @@ class Exchange(BaseExchange):
             ]
         return ohlcv
 
-    def get_network(self, network, code):
+    def get_network(self, network: str, code: str):
         network = network.upper()
         aliases = {
             'ETHEREUM': 'ETH',
@@ -1447,7 +1447,7 @@ class Exchange(BaseExchange):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, d)
 
-    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
+    def parse_order_book(self, orderbook: object, symbol: str, timestamp: float = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1):
         bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey)
         asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey)
         return {
@@ -1459,7 +1459,7 @@ class Exchange(BaseExchange):
             'nonce': None,
         }
 
-    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcvs(self, ohlcvs, market: Any = None, timeframe: str = '1m', since: float = None, limit: IntegerType = None):
         results = []
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ohlcv(ohlcvs[i], market))
@@ -1508,7 +1508,7 @@ class Exchange(BaseExchange):
             result.append(account)
         return result
 
-    def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
+    def parse_trades(self, trades, market: object = None, since: float = None, limit: IntegerType = None, params={}):
         trades = self.to_array(trades)
         result = []
         for i in range(0, len(trades)):
@@ -1519,7 +1519,7 @@ class Exchange(BaseExchange):
         tail = (since is None)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
 
-    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
+    def parse_transactions(self, transactions, currency: str = None, since: float = None, limit: IntegerType = None, params={}):
         transactions = self.to_array(transactions)
         result = []
         for i in range(0, len(transactions)):
@@ -1530,7 +1530,7 @@ class Exchange(BaseExchange):
         tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
-    def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
+    def parse_transfers(self, transfers, currency: str = None, since: float = None, limit: IntegerType = None, params={}):
         transfers = self.to_array(transfers)
         result = []
         for i in range(0, len(transfers)):
@@ -1541,7 +1541,7 @@ class Exchange(BaseExchange):
         tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
-    def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
+    def parse_ledger(self, data, currency: str = None, since: float = None, limit: IntegerType = None, params={}):
         result = []
         arrayData = self.to_array(data)
         for i in range(0, len(arrayData)):
@@ -1562,13 +1562,13 @@ class Exchange(BaseExchange):
     def set_headers(self, headers):
         return headers
 
-    def market_id(self, symbol):
+    def market_id(self, symbol: str):
         market = self.market(symbol)
         if market is not None:
             return market['id']
         return symbol
 
-    def symbol(self, symbol):
+    def symbol(self, symbol: str):
         market = self.market(symbol)
         return self.safe_string(market, 'symbol', symbol)
 
@@ -1578,7 +1578,7 @@ class Exchange(BaseExchange):
             self.omit(params, self.extract_params(path)),
         ]
 
-    def filter_by_array(self, objects, key, values=None, indexed=True):
+    def filter_by_array(self, objects, key: IndexType, values=None, indexed=True):
         objects = self.to_array(objects)
         # return all of them if no values were passed
         if values is None or not values:
@@ -1589,7 +1589,7 @@ class Exchange(BaseExchange):
                 results.append(objects[i])
         return self.index_by(results, key) if indexed else results
 
-    async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+    async def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}, context={}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
             await self.throttle(cost)
@@ -1597,7 +1597,7 @@ class Exchange(BaseExchange):
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+    async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}, context={}):
         return await self.fetch2(path, api, method, params, headers, body, config, context)
 
     async def load_accounts(self, reload=False, params={}):
@@ -1611,14 +1611,14 @@ class Exchange(BaseExchange):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    async def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcvc(self, symbol, timeframe='1m', since: Any = None, limit: IntegerType = None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
         await self.load_markets()
         trades = await self.fetchTrades(symbol, since, limit, params)
         return self.build_ohlcvc(trades, timeframe, since, limit)
 
-    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since: float = None, limit: IntegerType = None):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
@@ -1650,12 +1650,12 @@ class Exchange(BaseExchange):
     async def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+    def parse_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1):
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
-    def safe_currency(self, currencyId, currency=None):
+    def safe_currency(self, currencyId: str, currency: str = None):
         if (currencyId is None) and (currency is not None):
             return currency
         if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
@@ -1789,7 +1789,7 @@ class Exchange(BaseExchange):
             self.status['info'] = None
         return self.status
 
-    async def fetch_funding_fee(self, code, params={}):
+    async def fetch_funding_fee(self, code: str, params={}):
         warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
         if warnOnFetchFundingFee:
             raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
@@ -1824,7 +1824,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
 
-    async def fetch_borrow_rate(self, code, params={}):
+    async def fetch_borrow_rate(self, code: str, params={}):
         await self.load_markets()
         if not self.has['fetchBorrowRates']:
             raise NotSupported(self.id + ' fetchBorrowRate() is not supported yet')
@@ -1929,7 +1929,7 @@ class Exchange(BaseExchange):
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         return self.safe_value(config, 'cost', 1)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         if self.has['fetchTickers']:
             await self.load_markets()
             market = self.market(symbol)
@@ -1943,7 +1943,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchTicker() is not supported yet')
 
     async def fetch_tickers(self, symbols=None, params={}):
@@ -1952,59 +1952,59 @@ class Exchange(BaseExchange):
     async def watch_tickers(self, symbols=None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: str = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
-    async def fetch_order_status(self, id, symbol=None, params={}):
+    async def fetch_order_status(self, id: str, symbol: str = None, params={}):
         order = await self.fetch_order(id, symbol, params)
         return order['status']
 
     async def fetch_unified_order(self, order, params={}):
         return await self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: str = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):
         return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
-    async def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
 
-    async def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
 
-    async def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, symbol: str = None, since: float = None, limit: IntegerType = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
 
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         if self.has['fetchDepositAddresses']:
             depositAddresses = await self.fetchDepositAddresses([code], params)
             depositAddress = self.safe_value(depositAddresses, code)
@@ -2015,14 +2015,14 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 
-    def account(self):
+    def account(self) -> Balance:
         return {
             'free': None,
             'used': None,
             'total': None,
         }
 
-    def common_currency_code(self, currency):
+    def common_currency_code(self, currency: str):
         if not self.substituteCommonCurrencyCodes:
             return currency
         return self.safe_string(self.commonCurrencies, currency, currency)
@@ -2037,7 +2037,7 @@ class Exchange(BaseExchange):
                 return self.currencies_by_id[code]
         raise ExchangeError(self.id + ' does not have currency code ' + code)
 
-    def market(self, symbol):
+    def market(self, symbol: str):
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
         if isinstance(symbol, str):
@@ -2063,47 +2063,47 @@ class Exchange(BaseExchange):
                 params = self.omit(params, 'tag')
         return [tag, params]
 
-    async def create_limit_order(self, symbol, side, amount, price, params={}):
+    async def create_limit_order(self, symbol: str, side: OrderSide, amount, price, params={}):
         return await self.create_order(symbol, 'limit', side, amount, price, params)
 
-    async def create_market_order(self, symbol, side, amount, price=None, params={}):
+    async def create_market_order(self, symbol: str, side: OrderSide, amount, price=None, params={}):
         return await self.create_order(symbol, 'market', side, amount, price, params)
 
-    async def create_limit_buy_order(self, symbol, amount, price, params={}):
+    async def create_limit_buy_order(self, symbol: str, amount, price, params={}):
         return await self.create_order(symbol, 'limit', 'buy', amount, price, params)
 
-    async def create_limit_sell_order(self, symbol, amount, price, params={}):
+    async def create_limit_sell_order(self, symbol: str, amount, price, params={}):
         return await self.create_order(symbol, 'limit', 'sell', amount, price, params)
 
-    async def create_market_buy_order(self, symbol, amount, params={}):
+    async def create_market_buy_order(self, symbol: str, amount, params={}):
         return await self.create_order(symbol, 'market', 'buy', amount, None, params)
 
-    async def create_market_sell_order(self, symbol, amount, params={}):
+    async def create_market_sell_order(self, symbol: str, amount, params={}):
         return await self.create_order(symbol, 'market', 'sell', amount, None, params)
 
-    def cost_to_precision(self, symbol, cost):
+    def cost_to_precision(self, symbol: str, cost):
         market = self.market(symbol)
         return self.decimal_to_precision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def price_to_precision(self, symbol, price):
+    def price_to_precision(self, symbol: str, price):
         market = self.market(symbol)
         result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
         if result == '0':
             raise ArgumentsRequired(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
         return result
 
-    def amount_to_precision(self, symbol, amount):
+    def amount_to_precision(self, symbol: str, amount):
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
             raise ArgumentsRequired(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
         return result
 
-    def fee_to_precision(self, symbol, fee):
+    def fee_to_precision(self, symbol: str, fee):
         market = self.market(symbol)
         return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, code, fee, networkCode=None):
+    def currency_to_precision(self, code: str, fee, networkCode=None):
         currency = self.currencies[code]
         precision = self.safe_value(currency, 'precision')
         if networkCode is not None:
@@ -2115,15 +2115,15 @@ class Exchange(BaseExchange):
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
-    def safe_number(self, obj, key, defaultNumber=None):
+    def safe_number(self, obj: object, key: IndexType, defaultNumber: float = None):
         value = self.safe_string(obj, key)
         return self.parse_number(value, defaultNumber)
 
-    def safe_number_n(self, object, arr, defaultNumber=None):
-        value = self.safe_string_n(object, arr)
+    def safe_number_n(self, obj: object, arr, defaultNumber: float = None) -> number:
+        value = self.safe_string_n(obj, arr)
         return self.parse_number(value, defaultNumber)
 
-    def parse_precision(self, precision):
+    def parse_precision(self, precision: str):
         """
          * @ignore
         :param str precision: The number of digits to the right of the decimal
@@ -2145,10 +2145,10 @@ class Exchange(BaseExchange):
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
 
-    def implode_hostname(self, url):
+    def implode_hostname(self, url: str):
         return self.implode_params(url, {'hostname': self.hostname})
 
-    async def fetch_market_leverage_tiers(self, symbol, params={}):
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         if self.has['fetchLeverageTiers']:
             market = await self.market(symbol)
             if not market['contract']:
@@ -2158,19 +2158,19 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
-    async def create_post_only_order(self, symbol, type, side, amount, price, params={}):
+    async def create_post_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:
             raise NotSupported(self.id + 'createPostOnlyOrder() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return await self.create_order(symbol, type, side, amount, price, query)
 
-    async def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
+    async def create_reduce_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price, params={}):
         if not self.has['createReduceOnlyOrder']:
             raise NotSupported(self.id + 'createReduceOnlyOrder() is not supported yet')
         query = self.extend(params, {'reduceOnly': True})
         return await self.create_order(symbol, type, side, amount, price, query)
 
-    async def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
+    async def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, stopPrice=None, params={}):
         if not self.has['createStopOrder']:
             raise NotSupported(self.id + ' createStopOrder() is not supported yet')
         if stopPrice is None:
@@ -2178,26 +2178,26 @@ class Exchange(BaseExchange):
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, type, side, amount, price, query)
 
-    async def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
+    async def create_stop_limit_order(self, symbol: str, side: OrderSide, amount, price, stopPrice, params={}):
         if not self.has['createStopLimitOrder']:
             raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'limit', side, amount, price, query)
 
-    async def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
+    async def create_stop_market_order(self, symbol: str, side: OrderSide, amount, stopPrice, params={}):
         if not self.has['createStopMarketOrder']:
             raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
 
-    def safe_currency_code(self, currencyId, currency=None):
+    def safe_currency_code(self, currencyId: str, currency: str = None):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
-    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None, tail=False):
+    def filter_by_symbol_since_limit(self, array, symbol: str = None, since: float = None, limit: IntegerType = None, tail=False):
         return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None, tail=False):
+    def filter_by_currency_since_limit(self, array, code=None, since: float = None, limit: IntegerType = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def parse_last_prices(self, pricesData, symbols=None, params={}):
@@ -2290,7 +2290,7 @@ class Exchange(BaseExchange):
             interests.append(self.parse_borrow_interest(row, market))
         return interests
 
-    def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
+    def parse_funding_rate_histories(self, response, market=None, since: float = None, limit: IntegerType = None):
         rates = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -2303,7 +2303,7 @@ class Exchange(BaseExchange):
         market = self.safe_market(marketId, market, delimiter, marketType)
         return market['symbol']
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract: str, market=None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
     def parse_funding_rates(self, response, market=None):
@@ -2319,7 +2319,7 @@ class Exchange(BaseExchange):
             params = self.omit(params, ['trigger', 'stop'])
         return [isTrigger, params]
 
-    def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
+    def is_post_only(self, isMarketOrder: bool, exchangeSpecificParam, params={}):
         """
          * @ignore
         :param str type: Order type
@@ -2344,7 +2344,7 @@ class Exchange(BaseExchange):
         else:
             return False
 
-    def handle_post_only(self, isMarketOrder, exchangeSpecificPostOnlyOption, params={}):
+    def handle_post_only(self, isMarketOrder: bool, exchangeSpecificPostOnlyOption: bool, params: Any = {}):
         """
          * @ignore
         :param str type: Order type
@@ -2384,7 +2384,7 @@ class Exchange(BaseExchange):
     def parse_open_interest(self, interest, market=None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 
-    def parse_open_interests(self, response, market=None, since=None, limit=None):
+    def parse_open_interests(self, response, market=None, since: float = None, limit: IntegerType = None):
         interests = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -2409,7 +2409,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
 
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since: float = None, limit: IntegerType = None, params={}):
         """
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2427,7 +2427,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
 
-    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_index_ohlcv(self, symbol: str, timeframe='1m', since: float = None, limit: IntegerType = None, params={}):
         """
         fetches historical index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2445,7 +2445,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
 
-    async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_premium_index_ohlcv(self, symbol: str, timeframe='1m', since: float = None, limit: IntegerType = None, params={}):
         """
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2511,7 +2511,7 @@ class Exchange(BaseExchange):
                 message += ', one of ' + '(' + messageOptions + ')'
             raise ArgumentsRequired(message)
 
-    def check_required_margin_argument(self, methodName, symbol, marginMode):
+    def check_required_margin_argument(self, methodName: str, symbol: str, marginMode: str):
         """
          * @ignore
         :param str symbol: unified symbol of the market
@@ -2523,7 +2523,7 @@ class Exchange(BaseExchange):
         elif (marginMode == 'cross') and (symbol is not None):
             raise ArgumentsRequired(self.id + ' ' + methodName + '() cannot have a symbol argument for cross margin')
 
-    def check_required_symbol(self, methodName, symbol):
+    def check_required_symbol(self, methodName: str, symbol: str):
         """
          * @ignore
         :param str symbol: unified symbol of the market
