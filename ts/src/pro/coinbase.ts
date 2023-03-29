@@ -422,9 +422,10 @@ export default class coinbase extends coinbaseRest {
         const clientOrderId = this.safeString (order, 'client_order_id');
         const marketId = this.safeString (order, 'product_id');
         const datetime = this.safeString (order, 'time');
+        market = this.safeMarket (marketId, market);
         return this.safeOrder ({
             'info': order,
-            'symbol': this.safeSymbol (marketId),
+            'symbol': this.safeString (market, 'symbol'),
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': this.parse8601 (datetime),
@@ -445,7 +446,7 @@ export default class coinbase extends coinbaseRest {
             'status': this.safeStringLower (order, 'status'),
             'fee': {
                 'amount': this.safeString (order, 'total_fees'),
-                'currency': undefined, // TODO
+                'currency': this.safeString (market, 'quote'),
             },
             'trades': undefined,
         });
