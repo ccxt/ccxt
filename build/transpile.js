@@ -642,7 +642,7 @@ class Transpiler {
             // optional params (string | number)
             // [ /:\s\w+(\s*\|\s*\w+)?(?=\s|,|\))/g, ""], // remove parameters type
             // array types: string[] or (string|number)[]
-            [ /:\s\(?\w+(\s*\|\s*\w+)?\)?\[]/g, ""], // remove parameters type
+            // [ /:\s\(?\w+(\s*\|\s*\w+)?\)?\[]/g, ""], // remove parameters type
         ]
     }
 
@@ -1427,7 +1427,7 @@ class Transpiler {
             args = args.length ? args.split (',').map (x => x.trim ()) : []
 
             // get names of all method arguments for later substitutions
-            let variables = args.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ()) [0])
+            let variables = args.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
 
             // add $ to each argument name in PHP method signature
             const phpTypes = {
@@ -1439,7 +1439,6 @@ class Transpiler {
                 'Balance': 'array',
                 'IndexType': 'int|string',
                 'IntegerType': 'int',
-                'string[]': 'array',
                 'object': 'array',
             }
             let phpArgs = args.map (x => {
@@ -1447,11 +1446,16 @@ class Transpiler {
                 if (parts.length === 1) {
                     return '$' + x
                 } else {
+                    // use nullable everywhere instead
                     const secondPart = parts[1].split ('=')
                     const endpart = (secondPart.length === 2) ? ' = ' + secondPart[1].trim () : ''
                     const type = secondPart[0].trim ()
+                    const value = parts[0]
+                    const nullable = value[value.length - 1] === '?'
                     const phpType = phpTypes[type] ?? type
-                    return phpType + ' $' + parts[0] + endpart
+                    const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
+                    const newValue = value.slice (0, (nullable ? value.length - 1 : value.length))
+                    return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + newValue + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
@@ -1470,10 +1474,25 @@ class Transpiler {
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
                     const parts = x.split(':')
-                    const typeParts = parts[1].trim ().split (' ')
+                    let typeParts = parts[1].trim ().split (' ')
                     const type = typeParts[0]
                     typeParts[0] = ''
-                    return parts[0] + ': ' + (pythonTypes[type] ?? type) + typeParts.join (' ')
+                    const variable = parts[0]
+                    const nullable = variable[variable.length - 1] === '?'
+                    const isList = type.slice (-2) === '[]'
+                    const searchType = isList ? type.slice (0, -2) : type
+                    let rawType = pythonTypes[searchType] ?? searchType
+                    rawType = isList ? 'List[' + rawType + ']' : rawType
+                    let resolvedVariable, resolvedType
+                    if (nullable) {
+                        resolvedVariable = variable.slice (0, -1)
+                        resolvedType = 'Optional[' + rawType + ']'
+                        typeParts = [ '', '=', 'None' ]
+                    } else {
+                        resolvedVariable = variable
+                        resolvedType = rawType
+                    }
+                    return resolvedVariable + ': ' + resolvedType + typeParts.join (' ')
                 } else {
                     return x.replace (' = ', '=')
                 }
