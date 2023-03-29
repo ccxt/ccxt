@@ -1446,6 +1446,7 @@ class Transpiler {
                 if (parts.length === 1) {
                     return '$' + x
                 } else {
+                    let variable = parts[0]
                     const secondPart = parts[1].split ('=')
                     let nullable = false
                     let endpart = ''
@@ -1454,10 +1455,12 @@ class Transpiler {
                         nullable = trimmed === 'undefined'
                         endpart = ' = ' + trimmed
                     }
+                    nullable = nullable || variable.slice (-1) === '?'
+                    variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
                     const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
-                    return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + parts[0] + endpart
+                    return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
@@ -1479,8 +1482,9 @@ class Transpiler {
                     let typeParts = parts[1].trim ().split (' ')
                     const type = typeParts[0]
                     typeParts[0] = ''
-                    const variable = parts[0]
-                    const nullable = typeParts[typeParts.length - 1] === 'undefined'
+                    let variable = parts[0]
+                    const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
+                    variable = variable.replace (/\?$/, '')
                     const isList = type.slice (-2) === '[]'
                     const searchType = isList ? type.slice (0, -2) : type
                     let rawType = pythonTypes[searchType] ?? searchType

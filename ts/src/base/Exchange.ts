@@ -2791,7 +2791,7 @@ export default class Exchange {
         return [ price, amount ];
     }
 
-    safeCurrency (currencyId: string, currency: string = undefined) {
+    safeCurrency (currencyId?: string, currency: string = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
@@ -3475,7 +3475,7 @@ export default class Exchange {
         return await this.createOrder (symbol, 'market', side, amount, undefined, query);
     }
 
-    safeCurrencyCode (currencyId: string, currency: string = undefined) {
+    safeCurrencyCode (currencyId?: string, currency: string = undefined) {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }
