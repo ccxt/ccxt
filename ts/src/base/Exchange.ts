@@ -109,10 +109,6 @@ const {
     , TICK_SIZE
 } = functions
 
-// TODO: remove these imports to make browser package smaller
-import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js'
-import { keccak_256 as keccak } from '../static_dependencies/noble-hashes/sha3.js';
-
 // import exceptions from "./errors.js"
 
  import { // eslint-disable-line object-curly-newline
@@ -1066,41 +1062,6 @@ export default class Exchange {
 
     checkRequiredDependencies () {
         return
-    }
-
-    remove0xPrefix (hexData: string) {
-        if (hexData.slice (0, 2) === '0x') {
-            return hexData.slice (2)
-        } else {
-            return hexData
-        }
-    }
-
-    hashMessage (message: string) {
-        // takes a hex encoded message
-        const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
-        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
-        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex')
-    }
-
-    signHash (hash: string, privateKey: string) {
-        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined)
-        return {
-            'r': '0x' + signature['r'],
-            's': '0x' + signature['s'],
-            'v': 27 + signature['v'],
-        }
-    }
-
-    signMessage (message: string, privateKey: string) {
-        return this.signHash (this.hashMessage (message), privateKey.slice (-64))
-    }
-
-    signMessageString (message: string, privateKey: string) {
-        // still takes the input as a hex string
-        // same as above but returns a string instead of an object
-        const signature = this.signMessage (message, privateKey)
-        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v'], 1))
     }
 
     parseNumber (value: string | number, d: number = undefined): number {
