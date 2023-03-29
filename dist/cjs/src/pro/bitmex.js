@@ -548,50 +548,42 @@ class bitmex extends bitmex$1 {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
-    async authenticate(params = {}) {
+    authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
-        const future = client.future('authenticated');
-        const action = 'authKeyExpires';
-        const authenticated = this.safeValue(client.subscriptions, action);
-        if (authenticated === undefined) {
-            try {
-                this.checkRequiredCredentials();
-                const timestamp = this.milliseconds();
-                const message = 'GET' + '/realtime' + timestamp.toString();
-                const signature = this.hmac(this.encode(message), this.encode(this.secret), sha256.sha256);
-                const request = {
-                    'op': action,
-                    'args': [
-                        this.apiKey,
-                        timestamp,
-                        signature,
-                    ],
-                };
-                this.spawn(this.watch, url, action, request, action);
-            }
-            catch (e) {
-                client.reject(e, 'authenticated');
-                if (action in client.subscriptions) {
-                    delete client.subscriptions[action];
-                }
-            }
+        const messageHash = 'authenticated';
+        let future = this.safeValue(client.subscriptions, messageHash);
+        if (future === undefined) {
+            this.checkRequiredCredentials();
+            const timestamp = this.milliseconds();
+            const payload = 'GET' + '/realtime' + timestamp.toString();
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+            const request = {
+                'op': 'authKeyExpires',
+                'args': [
+                    this.apiKey,
+                    timestamp,
+                    signature,
+                ],
+            };
+            const message = this.extend(request, params);
+            future = this.watch(url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
         return future;
     }
     handleAuthenticationMessage(client, message) {
         const authenticated = this.safeValue(message, 'success', false);
+        const messageHash = 'authenticated';
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            client.resolve(message, 'authenticated');
+            client.resolve(message, messageHash);
         }
         else {
             const error = new errors.AuthenticationError(this.json(message));
-            client.reject(error, 'authenticated');
-            // allows further authentication attempts
-            const event = 'authKeyExpires';
-            if (event in client.subscriptions) {
-                delete client.subscriptions[event];
+            client.reject(error, messageHash);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
             }
         }
     }
