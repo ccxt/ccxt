@@ -828,6 +828,12 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
+        if (bodyAsString.match (/ OrderSide/)) {
+            libraries.push ('from ccxt.base.types import OrderSide')
+        }
+        if (bodyAsString.match (/ OrderType/)) {
+            libraries.push ('from ccxt.base.types import OrderType')
+        }
 
         const errorImports = []
 
