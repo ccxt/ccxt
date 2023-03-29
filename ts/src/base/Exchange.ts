@@ -3382,7 +3382,7 @@ export default class Exchange {
         return this.parseNumber (value, defaultNumber);
     }
 
-    safeNumberN (obj: object, arr: (IndexType)[], defaultNumber: number = undefined): number {
+    safeNumberN (obj: object, arr: IndexType[], defaultNumber: number = undefined): number {
         const value = this.safeStringN (obj, arr);
         return this.parseNumber (value, defaultNumber);
     }
