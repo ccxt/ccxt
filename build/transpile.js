@@ -828,10 +828,10 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        if (bodyAsString.match (/ OrderSide/)) {
+        if (bodyAsString.match (/: OrderSide/)) {
             libraries.push ('from ccxt.base.types import OrderSide')
         }
-        if (bodyAsString.match (/ OrderType/)) {
+        if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
         }
 
@@ -964,10 +964,10 @@ class Transpiler {
                 libraryImports.push ('use React\\Promise;')
             }
         }
-        if (bodyAsString.match (/OrderSide /)) {
+        if (bodyAsString.match (/OrderSide \$/)) {
             libraryImports.push ('use ccxt\\types\\OrderSide;')
         }
-        if (bodyAsString.match (/OrderType /)) {
+        if (bodyAsString.match (/OrderType \$/)) {
             libraryImports.push ('use ccxt\\types\\OrderType;')
         }
 
