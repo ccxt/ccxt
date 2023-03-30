@@ -3811,10 +3811,10 @@ export default class Exchange {
         }
         return {
             'params': params,
-            'requestKey': requestKey,
-            'requestValue': requestValue,
             'isPostOnly': isPo,
             'timeInForce': referenceUnifiedTif,
+            'requestKey': requestKey,
+            'requestValue': requestValue,
         };
     }
 
