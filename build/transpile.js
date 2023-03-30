@@ -2097,18 +2097,17 @@ class Transpiler {
 
         const fileHeaders = {
             pySync: [
-                "import ccxt # noqa: E402",
                 "",
-                "############################",
+                "import ccxt  # noqa: E402",
+                "",
                 "",
                 "",
                 //"print('CCXT Version:', ccxt.__version__)"
             ],
             pyAsync: [
                 "import asyncio",
-                "import ccxt.async_support as ccxt # noqa: E402",
+                "import ccxt.async_support as ccxt  # noqa: E402",
                 "",
-                "############################",
                 "",
                 "",
             ],
@@ -2117,7 +2116,6 @@ class Transpiler {
                 "error_reporting(E_ALL | E_STRICT);",
                 "date_default_timezone_set('UTC');",
                 "",
-                "//#######################//",
                 "",
                 "",
                 //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
@@ -2127,13 +2125,12 @@ class Transpiler {
                 "error_reporting(E_ALL | E_STRICT);",
                 "date_default_timezone_set('UTC');",
                 "",
-                "//#######################//",
-                "",
                 "use ccxt\\Precise;",
                 "use React\\Async;",
                 "use React\\Promise;",
                 //"$loop = \\React\\EventLoop\\Factory::create();",
                 //"$kernel = \\Recoil\\React\\ReactKernel::create($loop);",
+                "",
                 "",
                 "",
             ]
