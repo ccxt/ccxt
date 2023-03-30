@@ -148,22 +148,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const name = 'ticker';
+        const name = '/contractMarket/ticker';
         return await this.subscribe (name, false, [ symbol ], params);
-    }
-
-    async watchTickers (symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniexfutures#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.poloniex.com/#public-channels-market-data-ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
-        const name = 'ticker';
-        return await this.subscribe (name, false, symbols, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -179,7 +165,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const name = 'trades';
+        const name = '/contractMarket/execution';
+        // const name = ' /contractMarket/level3v2'; // ? or
         const trades = await this.subscribe (name, false, [ symbol ], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -198,7 +185,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        let name = this.safeString (this.options, 'watchOrderBookMethod', 'book_lv2');
+        let name = this.safeString (this.options, 'watchOrderBookMethod', '/contractMarket/level3v2'); // can also be /contractMarket/level2
         [ name, params ] = this.handleOptionAndParams (params, 'watchOrderBookMethod', 'name', name);
         const orderbook = await this.subscribe (name, false, [ symbol ], params);
         return orderbook.limit ();
@@ -217,7 +204,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const name = 'orders';
+        const name = '/contractMarket/tradeOrders';
+        // const name = '/contractMarket/advancedOrders'; // TODO: for stop orders
         await this.authenticate ();
         const orders = await this.subscribe (name, true, [ symbol ], params);
         if (this.newUpdates) {
@@ -239,7 +227,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const name = 'orders';
+        const name = '/contractMarket/tradeOrders';
         await this.authenticate ();
         const orders = await this.subscribe (name, true, [ symbol ], params);
         if (this.newUpdates) {
@@ -261,7 +249,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const name = 'balances';
+        const name = '/contractAccount/wallet';
         await this.authenticate ();
         return await this.subscribe (name, true, undefined, params);
     }
@@ -338,20 +326,20 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleTrade (client, message) {
         //
-        //    {
-        //        channel: 'trades',
-        //        data: [
-        //            {
-        //                symbol: 'BTC_USDT',
-        //                amount: '13.41634893',
-        //                quantity: '0.000537',
-        //                takerSide: 'buy',
-        //                createTime: 1676950548834,
-        //                price: '24983.89',
-        //                id: '62486976',
-        //                ts: 1676950548839
-        //            }
-        //        ]
+        //       {
+        //        "topic": "/contractMarket/level3v2:BTCUSDTPERP",
+        //        "subject": "match",
+        //        "data": {
+        //            "symbol": "BTCUSDTPERP",                          // symbol
+        //            "sequence": 3262786901,                           // sequence
+        //            "side": "buy",                                    // buy or sell of taker
+        //            "price": "3634",                                  // filled price
+        //            "size": "10",                                     // filled size
+        //            "makerOrderId": "5c0b520032eba53a888fd01e",       // maker order ID
+        //            "takerOrderId": "5c0b520032eba53a888fd01f",       // taker order ID
+        //            "tradeId": "6c23b5454353a8882d023b3o",            // trade ID
+        //            "ts": 1547697294838004923                         // transaction time - nanosecond
+        //        }
         //    }
         //
         const data = this.safeValue (message, 'data', []);
