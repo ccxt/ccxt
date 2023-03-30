@@ -1367,7 +1367,7 @@ class poloniex(Exchange):
             'nonce': None,
         }
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1410,7 +1410,7 @@ class poloniex(Exchange):
             'info': response,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1453,7 +1453,7 @@ class poloniex(Exchange):
             'info': response,
         }
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1516,7 +1516,7 @@ class poloniex(Exchange):
             'status': self.parse_order_status(self.safe_string(transfer, 'success', 'failed')),
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1553,7 +1553,7 @@ class poloniex(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_transactions_helper(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
@@ -1636,7 +1636,7 @@ class poloniex(Exchange):
         #
         return response
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1657,7 +1657,7 @@ class poloniex(Exchange):
         transactions = self.array_concat(depositTransactions, withdrawalTransactions)
         return self.filter_by_currency_since_limit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1791,7 +1791,7 @@ class poloniex(Exchange):
         }
         return depositWithdrawFee
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code

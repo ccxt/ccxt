@@ -1547,7 +1547,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_network_deposit_address($code, $params = array ()) {
+    public function fetch_network_deposit_address(string $code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1587,7 +1587,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -1598,7 +1598,7 @@ class gate extends Exchange {
         return $this->fetch_deposit_address($code, $params);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-$currency-deposit-$address
@@ -2905,7 +2905,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -2933,7 +2933,7 @@ class gate extends Exchange {
         return $this->parse_transactions($response, $currency);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -2961,7 +2961,7 @@ class gate extends Exchange {
         return $this->parse_transactions($response, $currency);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -4151,7 +4151,7 @@ class gate extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code for $currency being transferred
@@ -4675,7 +4675,7 @@ class gate extends Exchange {
         return $tiers;
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
@@ -4757,7 +4757,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan

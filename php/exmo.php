@@ -1542,7 +1542,7 @@ class exmo extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit, $params);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a currency associated with this account
          * @param {string} $code unified currency $code
@@ -1588,7 +1588,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1766,7 +1766,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
@@ -1818,7 +1818,7 @@ class exmo extends Exchange {
         return $this->parse_transactions($response['history'], $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -1870,7 +1870,7 @@ class exmo extends Exchange {
         return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -1920,7 +1920,7 @@ class exmo extends Exchange {
         return $this->parse_transaction($first, $currency);
     }
 
-    public function fetch_deposit($id = null, $code = null, $params = array ()) {
+    public function fetch_deposit($id = null, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -1970,7 +1970,7 @@ class exmo extends Exchange {
         return $this->parse_transaction($first, $currency);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code

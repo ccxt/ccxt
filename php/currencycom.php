@@ -1461,7 +1461,7 @@ class currencycom extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -1473,7 +1473,7 @@ class currencycom extends Exchange {
         return $this->fetch_transactions_by_method('privateGetV2Deposits', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1485,7 +1485,7 @@ class currencycom extends Exchange {
         return $this->fetch_transactions_by_method('privateGetV2Withdrawals', $code, $since, $limit, $params);
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified currency $code for the currency of the transactions, default is null
@@ -1497,7 +1497,7 @@ class currencycom extends Exchange {
         return $this->fetch_transactions_by_method('privateGetV2Transactions', $code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_by_method($method, $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_by_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $currency = null;
@@ -1598,7 +1598,7 @@ class currencycom extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -1723,7 +1723,7 @@ class currencycom extends Exchange {
         return $this->safe_number($response, 'value');
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code

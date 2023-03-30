@@ -591,7 +591,7 @@ class kucoinfutures(kucoin):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1516,7 +1516,7 @@ class kucoinfutures(kucoin):
         #
         return self.parse_balance(response)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1804,7 +1804,7 @@ class kucoinfutures(kucoin):
             'fee': fee,
         }, market)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1854,7 +1854,7 @@ class kucoinfutures(kucoin):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1904,7 +1904,7 @@ class kucoinfutures(kucoin):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_transaction_fee(self, code, params={}):
+    async def fetch_transaction_fee(self, code: str, params={}):
         """
         *DEPRECATED* please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
@@ -1914,7 +1914,7 @@ class kucoinfutures(kucoin):
         # raise BadRequest(self.id + ' fetchTransactionFee() is not supported')
         return None
 
-    async def fetch_deposit_withdraw_fee(self, code, params={}):
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}):
         """
         Not supported
         :param str code: unified currency code
@@ -1923,7 +1923,7 @@ class kucoinfutures(kucoin):
         """
         raise BadRequest(self.id + ' fetchDepositWithdrawFee() is not supported')
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         # raise BadRequest(self.id + ' fetchLedger() is not supported yet')
         return None
 

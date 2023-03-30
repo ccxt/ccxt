@@ -4479,7 +4479,7 @@ class binance(Exchange):
             'info': trade,
         }
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -4571,7 +4571,7 @@ class binance(Exchange):
             response[i]['type'] = 'deposit'
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -4919,7 +4919,7 @@ class binance(Exchange):
             'amount': amount,
         }
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -4997,7 +4997,7 @@ class binance(Exchange):
         #
         return self.parse_transfer(response, currency)
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -5052,7 +5052,7 @@ class binance(Exchange):
         rows = self.safe_value(response, 'rows', [])
         return self.parse_transfers(rows, currency, since, limit)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -5346,7 +5346,7 @@ class binance(Exchange):
             }
         return result
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -5585,7 +5585,7 @@ class binance(Exchange):
                     }
             return result
 
-    async def futures_transfer(self, code, amount, type, params={}):
+    async def futures_transfer(self, code: str, amount, type, params={}):
         """
         transfer between futures account
         :param str code: unified currency code
@@ -6643,7 +6643,7 @@ class binance(Exchange):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
@@ -7003,7 +7003,7 @@ class binance(Exchange):
         """
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
-    async def fetch_borrow_rate(self, code, params={}):
+    async def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
@@ -7030,7 +7030,7 @@ class binance(Exchange):
         rate = self.safe_value(response, 0)
         return self.parse_borrow_rate(rate)
 
-    async def fetch_borrow_rate_history(self, code, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
         :param str code: unified currency code
@@ -7097,7 +7097,7 @@ class binance(Exchange):
             'info': info,
         }
 
-    async def create_gift_code(self, code, amount, params={}):
+    async def create_gift_code(self, code: str, amount, params={}):
         """
         create gift code
         :param str code: gift code
@@ -7177,7 +7177,7 @@ class binance(Exchange):
         #
         return response
 
-    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
@@ -7238,7 +7238,7 @@ class binance(Exchange):
             'info': info,
         }
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
@@ -7269,7 +7269,7 @@ class binance(Exchange):
         #
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin

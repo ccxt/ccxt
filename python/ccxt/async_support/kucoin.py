@@ -798,7 +798,7 @@ class kucoin(Exchange):
             })
         return result
 
-    async def fetch_transaction_fee(self, code, params={}):
+    async def fetch_transaction_fee(self, code: str, params={}):
         """
         *DEPRECATED* please use fetchDepositWithdrawFee instead
         see https://docs.kucoin.com/#get-withdrawal-quotas
@@ -828,7 +828,7 @@ class kucoin(Exchange):
             'deposit': {},
         }
 
-    async def fetch_deposit_withdraw_fee(self, code, params={}):
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}):
         """
         fetch the fee for deposits and withdrawals
         see https://docs.kucoin.com/#get-withdrawal-quotas
@@ -1164,7 +1164,7 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         see https://docs.kucoin.com/#create-deposit-address
         create a currency deposit address
@@ -1206,7 +1206,7 @@ class kucoin(Exchange):
             'tag': tag,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1253,7 +1253,7 @@ class kucoin(Exchange):
             'network': self.safe_string(depositAddress, 'chain'),
         }
 
-    async def fetch_deposit_addresses_by_network(self, code, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         see https://docs.kucoin.com/#get-deposit-addresses-v2
         fetch the deposit address for a currency associated with self account
@@ -2127,7 +2127,7 @@ class kucoin(Exchange):
             'tierBased': True,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2289,7 +2289,7 @@ class kucoin(Exchange):
             'updated': updated,
         }
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2356,7 +2356,7 @@ class kucoin(Exchange):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2564,7 +2564,7 @@ class kucoin(Exchange):
                     result[code] = account
         return result if isolated else self.safe_balance(result)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://docs.kucoin.com/#inner-transfer
@@ -2831,7 +2831,7 @@ class kucoin(Exchange):
             'info': item,
         }
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -2912,7 +2912,7 @@ class kucoin(Exchange):
             return config['v1']
         return self.safe_value(config, 'cost', 1)
 
-    async def fetch_borrow_rate_history(self, code, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
         see https://docs.kucoin.com/#margin-trade-data
@@ -2978,7 +2978,7 @@ class kucoin(Exchange):
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         see https://docs.kucoin.com/#get-repay-record
@@ -3146,7 +3146,7 @@ class kucoin(Exchange):
             'info': info,
         }
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://docs.kucoin.com/#post-borrow-order
@@ -3207,7 +3207,7 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://docs.kucoin.com/#one-click-repayment

@@ -4436,7 +4436,7 @@ class huobi(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
@@ -4466,7 +4466,7 @@ class huobi(Exchange):
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -4480,7 +4480,7 @@ class huobi(Exchange):
         selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
         return indexedAddresses[selectedNetworkCode]
 
-    def fetch_withdraw_addresses(self, code, note=None, networkCode=None, params={}):
+    def fetch_withdraw_addresses(self, code: str, note=None, networkCode=None, params={}):
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -4512,7 +4512,7 @@ class huobi(Exchange):
                 addresses.append(address)
         return addresses
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -4565,7 +4565,7 @@ class huobi(Exchange):
         #
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -4724,7 +4724,7 @@ class huobi(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -4800,7 +4800,7 @@ class huobi(Exchange):
             'status': None,
         }
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
@@ -5187,7 +5187,7 @@ class huobi(Exchange):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
@@ -6110,7 +6110,7 @@ class huobi(Exchange):
             'info': item,
         }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -6571,7 +6571,7 @@ class huobi(Exchange):
             'info': interest,
         }
 
-    def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
@@ -6621,7 +6621,7 @@ class huobi(Exchange):
             'symbol': symbol,
         })
 
-    def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated

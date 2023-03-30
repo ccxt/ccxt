@@ -14,12 +14,12 @@ export default class kucoin extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchAccounts(params?: {}): Promise<any[]>;
-    fetchTransactionFee(code: any, params?: {}): Promise<{
+    fetchTransactionFee(code: string, params?: {}): Promise<{
         info: any;
         withdraw: {};
         deposit: {};
     }>;
-    fetchDepositWithdrawFee(code: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     isFuturesMethod(methodName: any, params: any): boolean;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
@@ -27,14 +27,14 @@ export default class kucoin extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    createDepositAddress(code: any, params?: {}): Promise<{
+    createDepositAddress(code: string, params?: {}): Promise<{
         info: any;
-        currency: any;
+        currency: string;
         network: string;
         address: string;
         tag: string;
     }>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
         currency: any;
         address: string;
@@ -48,7 +48,7 @@ export default class kucoin extends Exchange {
         tag: string;
         network: string;
     };
-    fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<any[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<any[]>;
     parseDepositAddressesByNetwork(depositAddresses: any, currency?: any): any[];
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
@@ -71,7 +71,7 @@ export default class kucoin extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     }>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;
@@ -114,15 +114,15 @@ export default class kucoin extends Exchange {
         fee: any;
         updated: number;
     };
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances | {
         info: any;
         timestamp: any;
         datetime: any;
     }>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
         currency: any;
         timestamp: number;
@@ -163,9 +163,9 @@ export default class kucoin extends Exchange {
         fee: any;
         info: any;
     };
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;
-    fetchBorrowRateHistory(code: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: any): {
         currency: any;
@@ -175,7 +175,7 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: string;
         marginMode: string;
@@ -187,7 +187,7 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
-    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<{
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
         id: string;
         currency: any;
         amount: number;
@@ -196,7 +196,7 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     }>;
-    repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<{
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
         id: string;
         currency: any;
         amount: number;

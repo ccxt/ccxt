@@ -344,7 +344,7 @@ class itbit(Exchange):
                 result['fee'] = None
         return result
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: not used by itbit fetchTransactions()

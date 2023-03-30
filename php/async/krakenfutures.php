@@ -1908,7 +1908,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * transfer from futures wallet to spot wallet
@@ -1921,7 +1921,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfers currencies between sub-accounts

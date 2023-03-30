@@ -1256,7 +1256,7 @@ class idex(Exchange):
         response = self.privatePostOrders(request)
         return self.parse_order(response, market)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1387,7 +1387,7 @@ class idex(Exchange):
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
 
-    def fetch_deposit(self, id, code=None, params={}):
+    def fetch_deposit(self, id, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1405,7 +1405,7 @@ class idex(Exchange):
         response = self.privateGetDeposits(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1431,7 +1431,7 @@ class idex(Exchange):
         #
         return self.safe_number(response, 'serverTime')
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1449,7 +1449,7 @@ class idex(Exchange):
         response = self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1463,7 +1463,7 @@ class idex(Exchange):
         }, params)
         return self.fetch_transactions_helper(code, since, limit, params)
 
-    def fetch_transactions_helper(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         nonce = self.uuidv1()
         request = {

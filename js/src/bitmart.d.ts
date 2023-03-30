@@ -14,7 +14,7 @@ export default class bitmart extends Exchange {
     fetchContractMarkets(params?: {}): Promise<any[]>;
     fetchMarkets(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchTransactionFee(code: any, params?: {}): Promise<{
+    fetchTransactionFee(code: string, params?: {}): Promise<{
         info: any;
         withdraw: {};
         deposit: {};
@@ -31,7 +31,7 @@ export default class bitmart extends Exchange {
         };
         networks: {};
     };
-    fetchDepositWithdrawFee(code: any, params?: {}): Promise<{
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<{
         info: any;
         withdraw: {
             fee: number;
@@ -82,17 +82,17 @@ export default class bitmart extends Exchange {
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         network: any;
         info: any;
     }>;
     safeNetwork(networkId: any): any;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    fetchTransactionsByType(type: any, code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposit(id: any, code?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    fetchTransactionsByType(type: any, code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposit(id: any, code?: string, params?: {}): Promise<{
         info: any;
         id: any;
         currency: any;
@@ -112,8 +112,8 @@ export default class bitmart extends Exchange {
         datetime: string;
         fee: any;
     }>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawal(id: any, code?: string, params?: {}): Promise<{
         info: any;
         id: any;
         currency: any;
@@ -133,7 +133,7 @@ export default class bitmart extends Exchange {
         datetime: string;
         fee: any;
     }>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -155,8 +155,8 @@ export default class bitmart extends Exchange {
         datetime: string;
         fee: any;
     };
-    repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
-    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
         id: string;
         currency: any;
@@ -166,7 +166,7 @@ export default class bitmart extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowRate(code: any, params?: {}): Promise<{
+    fetchBorrowRate(code: string, params?: {}): Promise<{
         currency: any;
         rate: number;
         period: number;
@@ -184,7 +184,7 @@ export default class bitmart extends Exchange {
     };
     fetchBorrowRates(params?: {}): Promise<any[]>;
     parseBorrowRates(info: any, codeKey: any): any[];
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
     parseTransfer(transfer: any, currency?: any): {
         id: string;
@@ -196,7 +196,7 @@ export default class bitmart extends Exchange {
         toAccount: any;
         status: string;
     };
-    fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: string;
         marginMode: string;

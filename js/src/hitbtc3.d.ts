@@ -6,14 +6,14 @@ export default class hitbtc3 extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     safeNetwork(networkId: any): any;
-    createDepositAddress(code: any, params?: {}): Promise<{
+    createDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
         network: any;
         info: any;
     }>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
         address: string;
         tag: string;
@@ -58,9 +58,9 @@ export default class hitbtc3 extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     parseTradingFee(fee: any, market?: any): {
@@ -89,7 +89,7 @@ export default class hitbtc3 extends Exchange {
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
         timestamp: number;
         datetime: string;
@@ -111,10 +111,10 @@ export default class hitbtc3 extends Exchange {
         status: any;
         info: any;
     };
-    convertCurrencyNetwork(code: any, amount: any, fromNetwork: any, toNetwork: any, params: any): Promise<{
+    convertCurrencyNetwork(code: string, amount: any, fromNetwork: any, toNetwork: any, params: any): Promise<{
         info: any;
     }>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;

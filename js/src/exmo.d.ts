@@ -85,15 +85,15 @@ export default class exmo extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): any;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: any;
         tag: any;
         network: any;
         info: any;
     }>;
     getMarketFromTrades(trades: any): any;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -144,9 +144,9 @@ export default class exmo extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawal(id: any, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -171,7 +171,7 @@ export default class exmo extends Exchange {
             rate: any;
         };
     }>;
-    fetchDeposit(id?: any, code?: any, params?: {}): Promise<{
+    fetchDeposit(id?: any, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -196,7 +196,7 @@ export default class exmo extends Exchange {
             rate: any;
         };
     }>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

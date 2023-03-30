@@ -1526,7 +1526,7 @@ class gate(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_network_deposit_address(self, code, params={}):
+    async def fetch_network_deposit_address(self, code: str, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1563,7 +1563,7 @@ class gate(Exchange):
             }
         return result
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -1573,7 +1573,7 @@ class gate(Exchange):
         """
         return await self.fetch_deposit_address(code, params)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -2806,7 +2806,7 @@ class gate(Exchange):
             'fees': fees,
         }, market)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2830,7 +2830,7 @@ class gate(Exchange):
         response = await self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2854,7 +2854,7 @@ class gate(Exchange):
         response = await self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3971,7 +3971,7 @@ class gate(Exchange):
         #
         return self.parse_orders(response, market)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code for currency being transferred
@@ -4470,7 +4470,7 @@ class gate(Exchange):
             floor = cap
         return tiers
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
@@ -4548,7 +4548,7 @@ class gate(Exchange):
             response = response[0]
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan

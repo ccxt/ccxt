@@ -1464,7 +1464,7 @@ class exmo(Exchange):
         })
         return self.parse_orders(response, market, since, limit, params)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1505,7 +1505,7 @@ class exmo(Exchange):
             return self.markets[symbols[0]]
         return None
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1667,7 +1667,7 @@ class exmo(Exchange):
             'fee': fee,
         }
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1716,7 +1716,7 @@ class exmo(Exchange):
         #
         return self.parse_transactions(response['history'], currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1765,7 +1765,7 @@ class exmo(Exchange):
         items = self.safe_value(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1813,7 +1813,7 @@ class exmo(Exchange):
         first = self.safe_value(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposit(self, id=None, code=None, params={}):
+    def fetch_deposit(self, id=None, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1861,7 +1861,7 @@ class exmo(Exchange):
         first = self.safe_value(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code

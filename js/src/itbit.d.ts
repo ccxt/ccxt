@@ -6,7 +6,7 @@ export default class itbit extends Exchange {
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market?: any): any;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     parseTransferStatus(status: any): string;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

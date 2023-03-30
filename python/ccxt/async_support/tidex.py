@@ -823,7 +823,7 @@ class tidex(Exchange):
         trades = self.safe_value(response, 'return', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

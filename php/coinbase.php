@@ -482,7 +482,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit $address
          * @param {string} $code unified currency $code of the currency for the deposit $address
@@ -589,7 +589,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($buys['data'], null, $since, $limit);
     }
 
-    public function fetch_transactions_with_method($method, $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_with_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $request = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         $this->load_markets();
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
@@ -597,7 +597,7 @@ class coinbase extends Exchange {
         return $this->parse_transactions($response['data'], null, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -610,7 +610,7 @@ class coinbase extends Exchange {
         return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -1504,7 +1504,7 @@ class coinbase extends Exchange {
         return $this->parse_balance($response, $params);
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -1884,7 +1884,7 @@ class coinbase extends Exchange {
         return $request;
     }
 
-    public function prepare_account_request_with_currency_code($code = null, ?int $limit = null, $params = array ()) {
+    public function prepare_account_request_with_currency_code(?string $code = null, ?int $limit = null, $params = array ()) {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
             if ($code === null) {

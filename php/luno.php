@@ -831,7 +831,7 @@ class luno extends Exchange {
         return $this->privatePostStoporder (array_merge($request, $params));
     }
 
-    public function fetch_ledger_by_entries($code = null, $entry = -1, $limit = 1, $params = array ()) {
+    public function fetch_ledger_by_entries(?string $code = null, $entry = -1, $limit = 1, $params = array ()) {
         // by default without $entry number or $limit number, return most recent $entry
         $since = null;
         $request = array(
@@ -841,7 +841,7 @@ class luno extends Exchange {
         return $this->fetch_ledger($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null

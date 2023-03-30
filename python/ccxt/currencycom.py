@@ -1420,7 +1420,7 @@ class currencycom(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1431,7 +1431,7 @@ class currencycom(Exchange):
         """
         return self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1442,7 +1442,7 @@ class currencycom(Exchange):
         """
         return self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1453,7 +1453,7 @@ class currencycom(Exchange):
         """
         return self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
 
-    def fetch_transactions_by_method(self, method, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions_by_method(self, method, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         request = {}
         currency = None
@@ -1546,7 +1546,7 @@ class currencycom(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1662,7 +1662,7 @@ class currencycom(Exchange):
         #
         return self.safe_number(response, 'value')
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code

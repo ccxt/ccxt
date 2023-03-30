@@ -1337,7 +1337,7 @@ class woo(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1371,7 +1371,7 @@ class woo(Exchange):
             'info': response,
         }
 
-    async def get_asset_history_rows(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def get_asset_history_rows(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {}
         currency = None
@@ -1423,7 +1423,7 @@ class woo(Exchange):
         # }
         return [currency, self.safe_value(response, 'rows', {})]
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1482,7 +1482,7 @@ class woo(Exchange):
             currency = self.safe_currency(currencyId)
         return currency
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1496,7 +1496,7 @@ class woo(Exchange):
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1510,7 +1510,7 @@ class woo(Exchange):
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1576,7 +1576,7 @@ class woo(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1610,7 +1610,7 @@ class woo(Exchange):
             transfer['toAccount'] = toAccount
         return transfer
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -1694,7 +1694,7 @@ class woo(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1732,7 +1732,7 @@ class woo(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://docs.woo.org/#repay-interest

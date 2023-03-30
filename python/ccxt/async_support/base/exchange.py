@@ -549,7 +549,7 @@ class Exchange(BaseExchange):
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         raise NotSupported(self.id + ' createDepositAddress() is not supported yet')
 
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
@@ -1810,7 +1810,7 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
         return await self.fetch_transaction_fees(codes, params)
 
-    async def fetch_transaction_fee(self, code, params={}):
+    async def fetch_transaction_fee(self, code: str, params={}):
         if not self.has['fetchTransactionFees']:
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
         return await self.fetch_transaction_fees([code], params)
@@ -1821,7 +1821,7 @@ class Exchange(BaseExchange):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositWithdrawFees() is not supported yet')
 
-    async def fetch_deposit_withdraw_fee(self, code, params={}):
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}):
         if not self.has['fetchDepositWithdrawFees']:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = await self.fetchDepositWithdrawFees([code], params)

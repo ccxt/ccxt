@@ -986,7 +986,7 @@ class wavesexchange(Exchange):
             self.safe_number(data, 'volume', 0),
         ]
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2080,7 +2080,7 @@ class wavesexchange(Exchange):
         if not success:
             raise ExchangeError(self.id + ' ' + body)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

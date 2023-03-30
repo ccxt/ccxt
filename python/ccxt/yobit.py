@@ -1056,7 +1056,7 @@ class yobit(Exchange):
             result.append(trade)
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1076,7 +1076,7 @@ class yobit(Exchange):
             'info': response['info'],
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1108,7 +1108,7 @@ class yobit(Exchange):
             'info': response,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

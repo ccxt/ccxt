@@ -1224,7 +1224,7 @@ class bitget(Exchange):
             }
         return result
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
@@ -1274,7 +1274,7 @@ class bitget(Exchange):
         rawTransactions = self.safe_value(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1341,7 +1341,7 @@ class bitget(Exchange):
             result['network'] = chain
         return result
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
@@ -1444,7 +1444,7 @@ class bitget(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -3022,7 +3022,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.safe_value(data, 'orderList', data)
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -3829,7 +3829,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
@@ -3878,7 +3878,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transfers(data, currency, since, limit)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
         transfer currency internally between wallets on the same account

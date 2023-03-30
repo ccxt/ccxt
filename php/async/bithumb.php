@@ -957,7 +957,7 @@ class bithumb extends Exchange {
         return $this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params));
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

@@ -700,7 +700,7 @@ class lbank extends Exchange {
         return $this->filter_by_symbol_since_limit($allOrders, $symbol, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

@@ -370,7 +370,7 @@ class hitbtc(Exchange):
             }))
         return result
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -788,7 +788,7 @@ class hitbtc(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         see https://api.hitbtc.com/v2#get-transactions-history
@@ -1265,7 +1265,7 @@ class hitbtc(Exchange):
             return self.parse_trades(response, market, since, limit)
         raise OrderNotFound(self.id + ' order ' + id + ' not found, ' + self.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]')
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1288,7 +1288,7 @@ class hitbtc(Exchange):
             'info': response,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1318,7 +1318,7 @@ class hitbtc(Exchange):
             'info': response,
         }
 
-    async def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
+    async def convert_currency_network(self, code: str, amount, fromNetwork, toNetwork, params):
         await self.load_markets()
         currency = self.currency(code)
         networks = self.safe_value(self.options, 'networks', {})
@@ -1336,7 +1336,7 @@ class hitbtc(Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

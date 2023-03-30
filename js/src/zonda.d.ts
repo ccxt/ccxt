@@ -12,7 +12,7 @@ export default class zonda extends Exchange {
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         info: any;
         id: string;
@@ -45,7 +45,7 @@ export default class zonda extends Exchange {
         network: any;
         info: any;
     };
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
@@ -53,7 +53,7 @@ export default class zonda extends Exchange {
         info: any;
     }>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: any;
         timestamp: any;
@@ -76,7 +76,7 @@ export default class zonda extends Exchange {
         status: string;
     };
     parseTransferStatus(status: any): string;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         txid: any;
         timestamp: any;

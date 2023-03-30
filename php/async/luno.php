@@ -867,7 +867,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger_by_entries($code = null, $entry = -1, $limit = 1, $params = array ()) {
+    public function fetch_ledger_by_entries(?string $code = null, $entry = -1, $limit = 1, $params = array ()) {
         return Async\async(function () use ($code, $entry, $limit, $params) {
             // by default without $entry number or $limit number, return most recent $entry
             $since = null;
@@ -879,7 +879,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user

@@ -108,10 +108,10 @@ export default class mexc extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<any[]>;
-    fetchDepositAddress(code: any, params?: {}): Promise<any>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<any[]>;
+    fetchDepositAddress(code: string, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -147,8 +147,8 @@ export default class mexc extends Exchange {
         toAccount: string;
         status: string;
     }>;
-    fetchTransfers(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
         id: string;
@@ -162,7 +162,7 @@ export default class mexc extends Exchange {
     };
     parseAccountId(status: any): string;
     parseTransferStatus(status: any): string;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -187,8 +187,8 @@ export default class mexc extends Exchange {
         info: any;
         hedged: boolean;
     }>;
-    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
-    repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<{
         withdraw: {};
         deposit: {};

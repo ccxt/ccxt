@@ -1210,7 +1210,7 @@ class zb(Exchange):
         datas = self.safe_value(message, 'datas', [])
         return self.parse_deposit_addresses(datas, codes)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -3130,7 +3130,7 @@ class zb(Exchange):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3177,7 +3177,7 @@ class zb(Exchange):
             'amount': amount,
         })
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -3230,7 +3230,7 @@ class zb(Exchange):
         withdrawals = self.safe_value(datas, 'list', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -3607,7 +3607,7 @@ class zb(Exchange):
             'fee': fee,
         }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -3661,7 +3661,7 @@ class zb(Exchange):
         list = self.safe_value(data, 'list', [])
         return self.parse_ledger(list, currency, since, limit)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -3848,7 +3848,7 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
         return self.modify_margin_helper(symbol, amount, 0, params)
 
-    def fetch_borrow_rate(self, code, params={}):
+    def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
@@ -3981,7 +3981,7 @@ class zb(Exchange):
         #
         return response
 
-    def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         :param str code: unified currency code of the currency to borrow

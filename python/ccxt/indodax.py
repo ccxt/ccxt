@@ -710,7 +710,7 @@ class indodax(Exchange):
         }
         return self.privatePostCancelOrder(self.extend(request, params))
 
-    def fetch_transaction_fee(self, code, params={}):
+    def fetch_transaction_fee(self, code: str, params={}):
         """
         fetch the fee for a transaction
         :param str code: unified currency code
@@ -741,7 +741,7 @@ class indodax(Exchange):
             'currency': self.safe_currency_code(currencyId, currency),
         }
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -835,7 +835,7 @@ class indodax(Exchange):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

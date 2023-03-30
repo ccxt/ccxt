@@ -1465,7 +1465,7 @@ class stex(Exchange):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1545,7 +1545,7 @@ class stex(Exchange):
             'info': response,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1770,7 +1770,7 @@ class stex(Exchange):
             'fee': fee,
         }
 
-    def fetch_deposit(self, id, code=None, params={}):
+    def fetch_deposit(self, id, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1818,7 +1818,7 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1870,7 +1870,7 @@ class stex(Exchange):
         deposits = self.safe_value(response, 'data', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1925,7 +1925,7 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1988,7 +1988,7 @@ class stex(Exchange):
         withdrawals = self.safe_value(response, 'data', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2214,7 +2214,7 @@ class stex(Exchange):
             'status': None,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

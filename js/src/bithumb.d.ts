@@ -22,7 +22,7 @@ export default class bithumb extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: any;
         txid: any;
         timestamp: any;

@@ -665,7 +665,7 @@ class zonda(Exchange):
         items = self.safe_value(response, 'items')
         return self.parse_tickers(items, symbols)
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1348,7 +1348,7 @@ class zonda(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1404,7 +1404,7 @@ class zonda(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_addresses(data, codes)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1512,7 +1512,7 @@ class zonda(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

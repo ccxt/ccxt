@@ -1513,7 +1513,7 @@ class lbank2 extends Exchange {
         return $network;
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
          * @param {string} $code unified currency $code
@@ -1530,7 +1530,7 @@ class lbank2 extends Exchange {
         return $this->$method ($code, $params);
     }
 
-    public function fetch_deposit_address_default($code, $params = array ()) {
+    public function fetch_deposit_address_default(string $code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1570,7 +1570,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_deposit_address_supplement($code, $params = array ()) {
+    public function fetch_deposit_address_supplement(string $code, $params = array ()) {
         // returns the $address for whatever the default $network is...
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1611,7 +1611,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1776,7 +1776,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -1827,7 +1827,7 @@ class lbank2 extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code

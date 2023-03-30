@@ -33,14 +33,14 @@ export default class stex extends Exchange {
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    createDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         info: any;
     }>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         network: any;
@@ -73,7 +73,7 @@ export default class stex extends Exchange {
         updated: number;
         fee: any;
     };
-    fetchDeposit(id: any, code?: any, params?: {}): Promise<{
+    fetchDeposit(id: any, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -93,8 +93,8 @@ export default class stex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawal(id: any, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -114,8 +114,8 @@ export default class stex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: any;
@@ -137,7 +137,7 @@ export default class stex extends Exchange {
         toAccount: any;
         status: any;
     };
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;

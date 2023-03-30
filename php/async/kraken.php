@@ -972,7 +972,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1017,7 +1017,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger_entries_by_ids($ids, $code = null, $params = array ()) {
+    public function fetch_ledger_entries_by_ids($ids, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($ids, $code, $params) {
             // https://www.kraken.com/features/api#query-ledgers
             Async\await($this->load_markets());
@@ -1048,7 +1048,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger_entry($id, $code = null, $params = array ()) {
+    public function fetch_ledger_entry($id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             $items = Async\await($this->fetch_ledger_entries_by_ids(array( $id ), $code, $params));
             return $items[0];
@@ -2114,7 +2114,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type($type, $transactions, $code = null, ?int $since = null, ?int $limit = null) {
+    public function parse_transactions_by_type($type, $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction(array_merge(array(
@@ -2125,7 +2125,7 @@ class kraken extends Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2185,7 +2185,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2222,7 +2222,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
@@ -2237,7 +2237,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_methods($code, $params = array ()) {
+    public function fetch_deposit_methods(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2272,7 +2272,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2355,7 +2355,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

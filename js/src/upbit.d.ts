@@ -2,7 +2,7 @@ import Exchange from './abstract/upbit.js';
 import { Int } from './base/types.js';
 export default class upbit extends Exchange {
     describe(): any;
-    fetchCurrency(code: any, params?: {}): Promise<{
+    fetchCurrency(code: string, params?: {}): Promise<{
         info: any;
         id: string;
         code: any;
@@ -200,8 +200,8 @@ export default class upbit extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -287,21 +287,21 @@ export default class upbit extends Exchange {
         network: any;
         info: any;
     };
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
         network: any;
         info: any;
     }>;
-    createDepositAddress(code: any, params?: {}): Promise<{
+    createDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
         network: any;
         info: any;
     }>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         currency: any;

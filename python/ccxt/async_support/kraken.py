@@ -930,7 +930,7 @@ class kraken(Exchange):
             },
         }
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -969,7 +969,7 @@ class kraken(Exchange):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    async def fetch_ledger_entries_by_ids(self, ids, code=None, params={}):
+    async def fetch_ledger_entries_by_ids(self, ids, code: Optional[str] = None, params={}):
         # https://www.kraken.com/features/api#query-ledgers
         await self.load_markets()
         ids = ','.join(ids)
@@ -996,7 +996,7 @@ class kraken(Exchange):
             items.append(value)
         return self.parse_ledger(items)
 
-    async def fetch_ledger_entry(self, id, code=None, params={}):
+    async def fetch_ledger_entry(self, id, code: Optional[str] = None, params={}):
         items = await self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
@@ -1951,7 +1951,7 @@ class kraken(Exchange):
             },
         }
 
-    def parse_transactions_by_type(self, type, transactions, code=None, since: Optional[int] = None, limit: Optional[int] = None):
+    def parse_transactions_by_type(self, type, transactions, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
         result = []
         for i in range(0, len(transactions)):
             transaction = self.parse_transaction(self.extend({
@@ -1960,7 +1960,7 @@ class kraken(Exchange):
             result.append(transaction)
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2013,7 +2013,7 @@ class kraken(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.safe_timestamp(result, 'unixtime')
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2046,7 +2046,7 @@ class kraken(Exchange):
         #
         return self.parse_transactions_by_type('withdrawal', response['result'], code, since, limit)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -2058,7 +2058,7 @@ class kraken(Exchange):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_methods(self, code, params={}):
+    async def fetch_deposit_methods(self, code: str, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2090,7 +2090,7 @@ class kraken(Exchange):
         #
         return self.safe_value(response, 'result')
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2162,7 +2162,7 @@ class kraken(Exchange):
             'info': depositAddress,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

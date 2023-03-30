@@ -1245,7 +1245,7 @@ class coinbasepro extends Exchange {
         return $this->privateGetPaymentMethods ($params);
     }
 
-    public function deposit($code, $amount, $address, $params = array ()) {
+    public function deposit(string $code, $amount, $address, $params = array ()) {
         /**
          * Creates a new deposit $address, by coinbasepro
          * @param {string} $code Unified CCXT $currency $code (e.g. `"USDT"`)
@@ -1283,7 +1283,7 @@ class coinbasepro extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1404,7 +1404,7 @@ class coinbasepro extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} $code unified $currency $code, default is null
@@ -1447,7 +1447,7 @@ class coinbasepro extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
@@ -1553,7 +1553,7 @@ class coinbasepro extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -1565,7 +1565,7 @@ class coinbasepro extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge(array( 'type' => 'deposit' ), $params));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1673,7 +1673,7 @@ class coinbasepro extends Exchange {
         );
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address

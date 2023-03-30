@@ -490,7 +490,7 @@ class coinbase(Exchange):
             'info': account,
         }
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -590,14 +590,14 @@ class coinbase(Exchange):
         buys = await self.v2PrivateGetAccountsAccountIdBuys(self.extend(request, query))
         return self.parse_trades(buys['data'], None, since, limit)
 
-    async def fetch_transactions_with_method(self, method, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions_with_method(self, method, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         request = await self.prepare_account_request_with_currency_code(code, limit, params)
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_transactions(response['data'], None, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -609,7 +609,7 @@ class coinbase(Exchange):
         # fiat only, for crypto transactions use fetchLedger
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1466,7 +1466,7 @@ class coinbase(Exchange):
         #
         return self.parse_balance(response, params)
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1831,7 +1831,7 @@ class coinbase(Exchange):
             request['limit'] = limit
         return request
 
-    async def prepare_account_request_with_currency_code(self, code=None, limit: Optional[int] = None, params={}):
+    async def prepare_account_request_with_currency_code(self, code: Optional[str] = None, limit: Optional[int] = None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             if code is None:

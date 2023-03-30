@@ -1305,7 +1305,7 @@ class idex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1445,7 +1445,7 @@ class idex extends Exchange {
         }
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -1464,7 +1464,7 @@ class idex extends Exchange {
         return $this->parse_transaction($response, $code);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -1492,7 +1492,7 @@ class idex extends Exchange {
         return $this->safe_number($response, 'serverTime');
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -1511,7 +1511,7 @@ class idex extends Exchange {
         return $this->parse_transaction($response, $code);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1526,7 +1526,7 @@ class idex extends Exchange {
         return $this->fetch_transactions_helper($code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_helper($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $nonce = $this->uuidv1();
         $request = array(

@@ -370,7 +370,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' withdraw() is not supported yet');
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         throw new NotSupported($this->id . ' createDepositAddress() is not supported yet');
     }
 
@@ -1925,7 +1925,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             if (!$this->has['fetchTransactionFees']) {
                 throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
@@ -1942,7 +1942,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchDepositWithdrawFees() is not supported yet');
     }
 
-    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             if (!$this->has['fetchDepositWithdrawFees']) {
                 throw new NotSupported($this->id . ' fetchDepositWithdrawFee() is not supported yet');

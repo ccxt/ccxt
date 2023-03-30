@@ -32,7 +32,7 @@ export default class probit extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
@@ -40,7 +40,7 @@ export default class probit extends Exchange {
         info: any;
     }>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         currency: any;
         amount: number;

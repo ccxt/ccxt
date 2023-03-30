@@ -33,22 +33,22 @@ export default class lbank2 extends Exchange {
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     getNetworkCodeForCurrency(currencyCode: any, params: any): string;
-    fetchDepositAddress(code: any, params?: {}): Promise<any>;
-    fetchDepositAddressDefault(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<any>;
+    fetchDepositAddressDefault(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         network: string;
         info: any;
     }>;
-    fetchDepositAddressSupplement(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddressSupplement(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         network: string;
         info: any;
     }>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
     }>;
@@ -75,8 +75,8 @@ export default class lbank2 extends Exchange {
         internal: boolean;
         fee: any;
     };
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<any>;
     fetchPrivateTransactionFees(params?: {}): Promise<{
         withdraw: {};

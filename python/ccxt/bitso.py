@@ -183,7 +183,7 @@ class bitso(Exchange):
             },
         })
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1115,7 +1115,7 @@ class bitso(Exchange):
         response = self.privateGetOrderTradesOid(self.extend(request, params))
         return self.parse_trades(response['payload'], market)
 
-    def fetch_deposit(self, id, code=None, params={}):
+    def fetch_deposit(self, id, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1155,7 +1155,7 @@ class bitso(Exchange):
         first = self.safe_value(transactions, 0, {})
         return self.parse_transaction(first)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1195,7 +1195,7 @@ class bitso(Exchange):
         transactions = self.safe_value(response, 'payload', [])
         return self.parse_transactions(transactions, currency, since, limit, params)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1440,7 +1440,7 @@ class bitso(Exchange):
                 result[code]['info'][code] = withdrawFee
         return result
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

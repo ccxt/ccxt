@@ -1482,7 +1482,7 @@ class whitebit(Exchange):
         data = self.safe_value(response, 'records', [])
         return self.parse_trades(data, market)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1569,7 +1569,7 @@ class whitebit(Exchange):
         #         "leverage": 5
         #     }
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
@@ -1614,7 +1614,7 @@ class whitebit(Exchange):
             'status': None,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1733,7 +1733,7 @@ class whitebit(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit(self, id, code=None, params={}):
+    async def fetch_deposit(self, id, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1794,7 +1794,7 @@ class whitebit(Exchange):
         first = self.safe_value(records, 0, {})
         return self.parse_transaction(first, currency)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1856,7 +1856,7 @@ class whitebit(Exchange):
         records = self.safe_value(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
-    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions

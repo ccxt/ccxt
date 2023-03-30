@@ -28,8 +28,8 @@ export default class luno extends Exchange {
     }>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchLedgerByEntries(code?: any, entry?: number, limit?: number, params?: {}): Promise<any>;
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedgerByEntries(code?: string, entry?: number, limit?: number, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerComment(comment: any): {
         type: string;
         referenceId: any;

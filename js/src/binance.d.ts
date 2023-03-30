@@ -150,8 +150,8 @@ export default class binance extends Exchange {
         };
         info: any;
     };
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatusByType(status: any, type?: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -195,7 +195,7 @@ export default class binance extends Exchange {
         id: string;
         amount: number;
     };
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;
@@ -206,9 +206,9 @@ export default class binance extends Exchange {
         toAccount: any;
         status: string;
     }>;
-    fetchTransfers(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         network: any;
@@ -221,7 +221,7 @@ export default class binance extends Exchange {
     }>;
     fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -255,7 +255,7 @@ export default class binance extends Exchange {
         taker: number;
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    futuresTransfer(code: any, amount: any, type: any, params?: {}): Promise<{
+    futuresTransfer(code: string, amount: any, type: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;
@@ -377,7 +377,7 @@ export default class binance extends Exchange {
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
         direction: any;
@@ -416,7 +416,7 @@ export default class binance extends Exchange {
     };
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    fetchBorrowRate(code: any, params?: {}): Promise<{
+    fetchBorrowRate(code: string, params?: {}): Promise<{
         currency: any;
         rate: number;
         period: number;
@@ -424,7 +424,7 @@ export default class binance extends Exchange {
         datetime: string;
         info: any;
     }>;
-    fetchBorrowRateHistory(code: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: any): {
         currency: any;
@@ -434,16 +434,16 @@ export default class binance extends Exchange {
         datetime: string;
         info: any;
     };
-    createGiftCode(code: any, amount: any, params?: {}): Promise<{
+    createGiftCode(code: string, amount: any, params?: {}): Promise<{
         info: any;
         id: string;
         code: string;
-        currency: any;
+        currency: string;
         amount: any;
     }>;
     redeemGiftCode(giftcardCode: any, params?: {}): Promise<any>;
     verifyGiftCode(id: any, params?: {}): Promise<any>;
-    fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         account: string;
         symbol: string;
@@ -456,7 +456,7 @@ export default class binance extends Exchange {
         datetime: string;
         info: any;
     };
-    repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<{
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
         id: number;
         currency: any;
         amount: any;
@@ -465,7 +465,7 @@ export default class binance extends Exchange {
         datetime: any;
         info: any;
     }>;
-    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<{
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
         id: number;
         currency: any;
         amount: any;

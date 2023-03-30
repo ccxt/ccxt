@@ -675,7 +675,7 @@ class lbank(Exchange):
         allOrders = self.array_concat(closed, canceled)
         return self.filter_by_symbol_since_limit(allOrders, symbol, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

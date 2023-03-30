@@ -112,11 +112,11 @@ export default class huobi extends Exchange {
         note: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<{}>;
-    fetchDepositAddress(code: any, params?: {}): Promise<any>;
-    fetchWithdrawAddresses(code: any, note?: any, networkCode?: any, params?: {}): Promise<any[]>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddress(code: string, params?: {}): Promise<any>;
+    fetchWithdrawAddresses(code: string, note?: any, networkCode?: any, params?: {}): Promise<any[]>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -142,7 +142,7 @@ export default class huobi extends Exchange {
         };
     };
     parseTransactionStatus(status: any): string;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -177,7 +177,7 @@ export default class huobi extends Exchange {
         toAccount: any;
         status: any;
     };
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: any;
@@ -232,7 +232,7 @@ export default class huobi extends Exchange {
         previousFundingDatetime: any;
     }>;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
-    fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         account: string;
         symbol: string;
@@ -284,7 +284,7 @@ export default class huobi extends Exchange {
         fee: any;
         info: any;
     };
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
@@ -300,8 +300,8 @@ export default class huobi extends Exchange {
         datetime: string;
         info: any;
     };
-    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
-    repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
         id: number;
         currency: any;

@@ -113,8 +113,8 @@ export default class cex extends Exchange {
         info: any;
         average: any;
     }>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         network: string;

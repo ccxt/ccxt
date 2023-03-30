@@ -51,7 +51,7 @@ export default class digifinex extends Exchange {
         datetime: string;
         fee: any;
     };
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         info: any;
         currency: any;
@@ -59,10 +59,10 @@ export default class digifinex extends Exchange {
         tag: string;
         network: any;
     };
-    fetchDepositAddress(code: any, params?: {}): Promise<any>;
-    fetchTransactionsByType(type: any, code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositAddress(code: string, params?: {}): Promise<any>;
+    fetchTransactionsByType(type: any, code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -96,7 +96,7 @@ export default class digifinex extends Exchange {
         toAccount: any;
         status: string;
     };
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;
@@ -107,7 +107,7 @@ export default class digifinex extends Exchange {
         toAccount: any;
         status: string;
     }>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -127,7 +127,7 @@ export default class digifinex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         account: any;
         currency: any;
@@ -138,7 +138,7 @@ export default class digifinex extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchBorrowRate(code: any, params?: {}): Promise<{
+    fetchBorrowRate(code: string, params?: {}): Promise<{
         currency: any;
         rate: number;
         period: number;
@@ -235,7 +235,7 @@ export default class digifinex extends Exchange {
         percentage: any;
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    fetchTransfers(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;

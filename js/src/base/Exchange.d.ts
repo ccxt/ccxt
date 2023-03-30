@@ -507,7 +507,7 @@ export default class Exchange {
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    createDepositAddress(code: any, params?: {}): Promise<DepositAddressResponse>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
     getDefaultOptions(): {
@@ -619,10 +619,10 @@ export default class Exchange {
     fetchStatus(params?: {}): Promise<any>;
     fetchFundingFee(code: string, params?: {}): Promise<any>;
     fetchFundingFees(codes?: string[], params?: {}): Promise<any>;
-    fetchTransactionFee(code: any, params?: {}): Promise<any>;
+    fetchTransactionFee(code: string, params?: {}): Promise<any>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
-    fetchDepositWithdrawFee(code: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
     getSupportedMapping(key: any, mapping?: {}): any;
     fetchBorrowRate(code: string, params?: {}): Promise<any>;
     handleOptionAndParams(params: any, methodName: any, optionName: any, defaultValue?: any): any[];

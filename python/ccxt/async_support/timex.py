@@ -345,7 +345,7 @@ class timex(Exchange):
             result.append(self.parse_currency(currency))
         return self.index_by(result, 'code')
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -376,7 +376,7 @@ class timex(Exchange):
         #
         return self.parse_transactions(response, code, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made to an account
         :param str|None code: unified currency code

@@ -721,7 +721,7 @@ class bitmart extends Exchange {
         return $result;
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         /**
          * *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} $code unified $currency $code
@@ -780,7 +780,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
         /**
          * fetch the fee for deposits and withdrawals
          * @param {string} $code unified $currency $code
@@ -2110,7 +2110,7 @@ class bitmart extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -2172,7 +2172,7 @@ class bitmart extends Exchange {
         return $networkId;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2226,7 +2226,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function fetch_transactions_by_type($type, $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_by_type($type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit === null) {
             $limit = 50; // max 50
@@ -2283,7 +2283,7 @@ class bitmart extends Exchange {
         return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -2323,7 +2323,7 @@ class bitmart extends Exchange {
         return $this->parse_transaction($record);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -2335,7 +2335,7 @@ class bitmart extends Exchange {
         return $this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -2375,7 +2375,7 @@ class bitmart extends Exchange {
         return $this->parse_transaction($record);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -2472,7 +2472,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
@@ -2514,7 +2514,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
@@ -2582,7 +2582,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         /**
          * fetch the rate of interest to borrow a $currency for margin trading
          * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
@@ -2767,7 +2767,7 @@ class bitmart extends Exchange {
         return $rates;
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account, currently only supports transfer between spot and margin
          * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
@@ -2846,7 +2846,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated

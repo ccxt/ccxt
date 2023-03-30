@@ -38,15 +38,15 @@ export default class whitebit extends Exchange {
     parseOrderType(type: any): string;
     parseOrder(order: any, market?: any): any;
     fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         network: any;
         info: any;
     }>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: any;
         timestamp: any;
@@ -68,7 +68,7 @@ export default class whitebit extends Exchange {
         toAccount: any;
         status: any;
     };
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         id: string;
         txid: string;
@@ -94,7 +94,7 @@ export default class whitebit extends Exchange {
         info: any;
     };
     parseTransactionStatus(status: any): string;
-    fetchDeposit(id: any, code?: any, params?: {}): Promise<{
+    fetchDeposit(id: any, code?: string, params?: {}): Promise<{
         id: string;
         txid: string;
         timestamp: number;
@@ -118,8 +118,8 @@ export default class whitebit extends Exchange {
         };
         info: any;
     }>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: any;
         marginMode: string;

@@ -599,7 +599,7 @@ class idex(ccxt.async_support.idex):
         client.resolve(orders, symbolSpecificMessageHash)
         client.resolve(orders, type)
 
-    async def watch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         name = 'balances'
         subscribeObject = {

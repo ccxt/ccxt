@@ -1429,7 +1429,7 @@ class cex(Exchange):
         response = self.privatePostCancelReplaceOrderPair(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code

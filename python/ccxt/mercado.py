@@ -585,7 +585,7 @@ class mercado(Exchange):
         order = self.safe_value(responseData, 'order')
         return self.parse_order(order, market)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

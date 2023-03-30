@@ -895,7 +895,7 @@ class bithumb(Exchange):
         }
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

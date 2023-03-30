@@ -5923,7 +5923,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -5966,7 +5966,7 @@ class bybit extends Exchange {
         return $this->index_by($parsed, 'network');
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -6012,7 +6012,7 @@ class bybit extends Exchange {
         return $this->parse_deposit_address($addressObject, $currency);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @see https://bybit-exchange.github.io/docs/v5/asset/deposit-record
@@ -6076,7 +6076,7 @@ class bybit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
@@ -6253,7 +6253,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
@@ -6512,7 +6512,7 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw
@@ -7552,7 +7552,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         /**
          * fetch the rate of interest to borrow a $currency for margin trading
          * @see https://bybit-exchange.github.io/docs/spot/v3/#t-queryinterestquota
@@ -7605,7 +7605,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          * @param {string|null} $code unified currency $code
@@ -7673,7 +7673,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
          * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
@@ -7739,7 +7739,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal $transfers made on an account
          * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
@@ -7790,7 +7790,7 @@ class bybit extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
@@ -7830,7 +7830,7 @@ class bybit extends Exchange {
         ));
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan

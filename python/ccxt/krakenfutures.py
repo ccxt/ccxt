@@ -1793,7 +1793,7 @@ class krakenfutures(Exchange):
         else:
             return account
 
-    def transfer_out(self, code, amount, params={}):
+    def transfer_out(self, code: str, amount, params={}):
         """
         transfer from futures wallet to spot wallet
         :param str code: Unified currency code
@@ -1803,7 +1803,7 @@ class krakenfutures(Exchange):
         """
         return self.transfer(code, amount, 'future', 'spot', params)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfers currencies between sub-accounts
         :param str code: Unified currency code

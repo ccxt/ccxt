@@ -4683,7 +4683,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -4785,7 +4785,7 @@ class binance extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -5155,7 +5155,7 @@ class binance extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -5244,7 +5244,7 @@ class binance extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
@@ -5306,7 +5306,7 @@ class binance extends Exchange {
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -5614,7 +5614,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -5866,7 +5866,7 @@ class binance extends Exchange {
         }
     }
 
-    public function futures_transfer($code, $amount, $type, $params = array ()) {
+    public function futures_transfer(string $code, $amount, $type, $params = array ()) {
         /**
          * transfer between futures account
          * @param {string} $code unified $currency $code
@@ -7019,7 +7019,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
@@ -7430,7 +7430,7 @@ class binance extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         /**
          * fetch the $rate of interest to borrow a $currency for margin trading
          * @param {string} $code unified $currency $code
@@ -7458,7 +7458,7 @@ class binance extends Exchange {
         return $this->parse_borrow_rate($rate);
     }
 
-    public function fetch_borrow_rate_history($code, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} $code unified $currency $code
@@ -7531,7 +7531,7 @@ class binance extends Exchange {
         );
     }
 
-    public function create_gift_code($code, $amount, $params = array ()) {
+    public function create_gift_code(string $code, $amount, $params = array ()) {
         /**
          * create gift $code
          * @param {string} $code gift $code
@@ -7614,7 +7614,7 @@ class binance extends Exchange {
         return $response;
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @param {string|null} $code unified $currency $code
@@ -7681,7 +7681,7 @@ class binance extends Exchange {
         );
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
@@ -7714,7 +7714,7 @@ class binance extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin

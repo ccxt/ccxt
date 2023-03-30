@@ -42,14 +42,14 @@ class binanceusdm extends binance {
         ));
     }
 
-    public function transfer_in($code, $amount, $params = array ()) {
+    public function transfer_in(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             // transfer from spot wallet to usdm futures wallet
             return Async\await($this->futuresTransfer ($code, $amount, 1, $params));
         }) ();
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             // transfer from usdm futures wallet to spot wallet
             return Async\await($this->futuresTransfer ($code, $amount, 2, $params));

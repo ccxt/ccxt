@@ -1199,7 +1199,7 @@ class coinbasepro(Exchange):
     def fetch_payment_methods(self, params={}):
         return self.privateGetPaymentMethods(params)
 
-    def deposit(self, code, amount, address, params={}):
+    def deposit(self, code: str, amount, address, params={}):
         """
         Creates a new deposit address, by coinbasepro
         :param str code: Unified CCXT currency code(e.g. `"USDT"`)
@@ -1234,7 +1234,7 @@ class coinbasepro(Exchange):
             'id': response['id'],
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1347,7 +1347,7 @@ class coinbasepro(Exchange):
             'info': item,
         }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -1384,7 +1384,7 @@ class coinbasepro(Exchange):
             response[i]['currency'] = code
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
@@ -1481,7 +1481,7 @@ class coinbasepro(Exchange):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1492,7 +1492,7 @@ class coinbasepro(Exchange):
         """
         return self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1592,7 +1592,7 @@ class coinbasepro(Exchange):
             'fee': fee,
         }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address

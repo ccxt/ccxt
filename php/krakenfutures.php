@@ -1872,7 +1872,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         /**
          * transfer from futures wallet to spot wallet
          * @param {str} $code Unified currency $code
@@ -1883,7 +1883,7 @@ class krakenfutures extends Exchange {
         return $this->transfer($code, $amount, 'future', 'spot', $params);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfers currencies between sub-accounts
          * @param {string} $code Unified $currency $code

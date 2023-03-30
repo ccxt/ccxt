@@ -1027,7 +1027,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit address
          * @param {string} $code unified $currency $code of the $currency for the deposit address
@@ -1051,7 +1051,7 @@ class bitpanda extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1076,7 +1076,7 @@ class bitpanda extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made $to an account
          * @param {string|null} $code unified $currency $code
@@ -1139,7 +1139,7 @@ class bitpanda extends Exchange {
         return $this->parse_transactions($depositHistory, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -1203,7 +1203,7 @@ class bitpanda extends Exchange {
         return $this->parse_transactions($withdrawalHistory, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

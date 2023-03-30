@@ -796,7 +796,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_balance(result)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -831,7 +831,7 @@ class deribit(Exchange):
             'info': response,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1955,7 +1955,7 @@ class deribit(Exchange):
         trades = self.safe_value(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1998,7 +1998,7 @@ class deribit(Exchange):
         data = self.safe_value(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2281,7 +2281,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_positions(result, symbols)
 
-    def fetch_historical_volatility(self, code, params={}):
+    def fetch_historical_volatility(self, code: str, params={}):
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2315,7 +2315,7 @@ class deribit(Exchange):
             })
         return result
 
-    def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -2371,7 +2371,7 @@ class deribit(Exchange):
         transfers = self.safe_value(result, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2454,7 +2454,7 @@ class deribit(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

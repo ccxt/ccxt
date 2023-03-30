@@ -1371,7 +1371,7 @@ class cryptocom(Exchange):
             address = addressString
         return [address, tag]
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1411,7 +1411,7 @@ class cryptocom(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_transaction(result, currency)
 
-    async def fetch_deposit_addresses_by_network(self, code, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
@@ -1473,7 +1473,7 @@ class cryptocom(Exchange):
             }
         return result
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1501,7 +1501,7 @@ class cryptocom(Exchange):
         }
         return self.safe_string(networksById, networkId, networkId)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1545,7 +1545,7 @@ class cryptocom(Exchange):
         depositList = self.safe_value(data, 'deposit_list', [])
         return self.parse_transactions(depositList, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1593,7 +1593,7 @@ class cryptocom(Exchange):
         withdrawalList = self.safe_value(data, 'withdrawal_list', [])
         return self.parse_transactions(withdrawalList, currency, since, limit)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1629,7 +1629,7 @@ class cryptocom(Exchange):
         #
         return self.parse_transfer(response, currency)
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -2102,7 +2102,7 @@ class cryptocom(Exchange):
             'fee': fee,
         }
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
@@ -2134,7 +2134,7 @@ class cryptocom(Exchange):
             'amount': amount,
         })
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
@@ -2194,7 +2194,7 @@ class cryptocom(Exchange):
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {}
         market = None

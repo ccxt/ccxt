@@ -606,7 +606,7 @@ class hitbtc3(Exchange):
         else:
             return networkId.upper()
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -638,7 +638,7 @@ class hitbtc3(Exchange):
             'info': response,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1112,7 +1112,7 @@ class hitbtc3(Exchange):
             'fee': fee,
         }
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1123,7 +1123,7 @@ class hitbtc3(Exchange):
         """
         return await self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1134,7 +1134,7 @@ class hitbtc3(Exchange):
         """
         return await self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1859,7 +1859,7 @@ class hitbtc3(Exchange):
             'fee': None,
         }, market)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1915,7 +1915,7 @@ class hitbtc3(Exchange):
             'info': transfer,
         }
 
-    async def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
+    async def convert_currency_network(self, code: str, amount, fromNetwork, toNetwork, params):
         await self.load_markets()
         if code != 'USDT':
             raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
@@ -1940,7 +1940,7 @@ class hitbtc3(Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

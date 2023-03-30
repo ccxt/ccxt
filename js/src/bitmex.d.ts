@@ -32,8 +32,8 @@ export default class bitmex extends Exchange {
             currency: any;
         };
     };
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -79,7 +79,7 @@ export default class bitmex extends Exchange {
     parsePosition(position: any, market?: any): any;
     convertValue(value: any, market?: any): any;
     isFiat(currency: any): boolean;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -134,8 +134,8 @@ export default class bitmex extends Exchange {
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: any;
         tag: any;
         network: string;

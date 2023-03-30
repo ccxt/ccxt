@@ -1189,7 +1189,7 @@ class probit(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1257,7 +1257,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

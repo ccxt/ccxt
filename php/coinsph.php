@@ -1460,7 +1460,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal to coins_ph account
          * @param {string} $code unified $currency $code
@@ -1488,7 +1488,7 @@ class coinsph extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function deposit($code, $amount, $address, $tag = null, $params = array ()) {
+    public function deposit(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a deposit from coins_ph account to exchange account
          * @param {string} $code unified $currency $code
@@ -1516,7 +1516,7 @@ class coinsph extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -1543,7 +1543,7 @@ class coinsph extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code

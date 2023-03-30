@@ -181,7 +181,7 @@ class upbit extends Exchange {
         ));
     }
 
-    public function fetch_currency($code, $params = array ()) {
+    public function fetch_currency(string $code, $params = array ()) {
         // this method is for retrieving funding fees and limits per $currency
         // it requires private access and API keys properly set up
         $this->load_markets();
@@ -1107,7 +1107,7 @@ class upbit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -1149,7 +1149,7 @@ class upbit extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -1602,7 +1602,7 @@ class upbit extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1624,7 +1624,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit address
          * @param {string} $code unified $currency $code of the $currency for the deposit address
@@ -1660,7 +1660,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

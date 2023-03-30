@@ -2245,7 +2245,7 @@ class digifinex(Exchange):
             'fee': None,
         }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
@@ -2346,7 +2346,7 @@ class digifinex(Exchange):
             'network': None,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2379,7 +2379,7 @@ class digifinex(Exchange):
             raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
         return address
 
-    def fetch_transactions_by_type(self, type, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions_by_type(self, type, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         currency = None
         request = {
@@ -2418,7 +2418,7 @@ class digifinex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': type})
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2429,7 +2429,7 @@ class digifinex(Exchange):
         """
         return self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2558,7 +2558,7 @@ class digifinex(Exchange):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
         }
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2587,7 +2587,7 @@ class digifinex(Exchange):
         #
         return self.parse_transfer(response, currency)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2618,7 +2618,7 @@ class digifinex(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -2682,7 +2682,7 @@ class digifinex(Exchange):
             'info': info,
         }
 
-    def fetch_borrow_rate(self, code, params={}):
+    def fetch_borrow_rate(self, code: str, params={}):
         self.load_markets()
         request = {}
         response = self.privateSpotGetMarginAssets(self.extend(request, params))
@@ -3254,7 +3254,7 @@ class digifinex(Exchange):
         #     }
         #
 
-    def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the transfer history, only transfers between spot and swap accounts are supported
         see https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord

@@ -1221,7 +1221,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
@@ -1275,7 +1275,7 @@ class bitget extends Exchange {
         return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1346,7 +1346,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
@@ -1455,7 +1455,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -3133,7 +3133,7 @@ class bitget extends Exchange {
         return $this->safe_value($data, 'orderList', $data);
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -3990,7 +3990,7 @@ class bitget extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
@@ -4043,7 +4043,7 @@ class bitget extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
          * transfer $currency internally between wallets on the same account

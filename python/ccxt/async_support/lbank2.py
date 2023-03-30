@@ -1448,7 +1448,7 @@ class lbank2(Exchange):
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         return network
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1463,7 +1463,7 @@ class lbank2(Exchange):
             method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
         return await getattr(self, method)(code, params)
 
-    async def fetch_deposit_address_default(self, code, params={}):
+    async def fetch_deposit_address_default(self, code: str, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1501,7 +1501,7 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    async def fetch_deposit_address_supplement(self, code, params={}):
+    async def fetch_deposit_address_supplement(self, code: str, params={}):
         # returns the address for whatever the default network is...
         await self.load_markets()
         currency = self.currency(code)
@@ -1540,7 +1540,7 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1696,7 +1696,7 @@ class lbank2(Exchange):
             'fee': fee,
         }
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1744,7 +1744,7 @@ class lbank2(Exchange):
         deposits = self.safe_value(data, 'depositOrders', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code

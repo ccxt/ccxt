@@ -791,7 +791,7 @@ class luno(Exchange):
         }
         return self.privatePostStoporder(self.extend(request, params))
 
-    def fetch_ledger_by_entries(self, code=None, entry=-1, limit=1, params={}):
+    def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=-1, limit=1, params={}):
         # by default without entry number or limit number, return most recent entry
         since = None
         request = {
@@ -800,7 +800,7 @@ class luno(Exchange):
         }
         return self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
