@@ -4134,7 +4134,7 @@ export default class coinex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             await this.loadMarkets();
-            const currency = this.currency(code);
+            currency = this.currency(code);
             request['coin_type'] = currency['id'];
         }
         if (limit !== undefined) {
@@ -4201,7 +4201,7 @@ export default class coinex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             await this.loadMarkets();
-            const currency = this.currency(code);
+            currency = this.currency(code);
             request['coin_type'] = currency['id'];
         }
         if (limit !== undefined) {
