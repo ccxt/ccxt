@@ -1380,7 +1380,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
-    async watchOrderBook (symbol, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
