@@ -2825,7 +2825,7 @@ export default class binance extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchBidsAsks (symbols = undefined, params = {}) {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchBidsAsks
@@ -2857,7 +2857,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchLastPrices (symbols = undefined, params = {}) {
+    async fetchLastPrices (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchLastPrices
@@ -2956,7 +2956,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchTickers
@@ -6077,7 +6077,7 @@ export default class binance extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchFundingRates
@@ -6593,7 +6593,7 @@ export default class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchLeverageTiers
@@ -6698,7 +6698,7 @@ export default class binance extends Exchange {
         return tiers;
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchPositions
@@ -6717,7 +6717,7 @@ export default class binance extends Exchange {
         }
     }
 
-    async fetchAccountPositions (symbols = undefined, params = {}) {
+    async fetchAccountPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchAccountPositions
@@ -6752,7 +6752,7 @@ export default class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionsRisk (symbols = undefined, params = {}) {
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchPositionsRisk

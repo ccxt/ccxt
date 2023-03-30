@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from typing import Optional
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -933,7 +934,7 @@ class phemex(ccxt.async_support.phemex):
         id = self.safe_integer(message, 'id')
         if id is not None:
             # not every method stores its subscription
-            # object so we can't do indeById here
+            # object so we can't do indexById here
             subs = client.subscriptions
             values = list(subs.values())
             for i in range(0, len(values)):
@@ -971,9 +972,16 @@ class phemex(ccxt.async_support.phemex):
         #     }
         # }
         #
-        future = client.futures['authenticated']
-        future.resolve(1)
-        return message
+        result = self.safe_value(message, 'result')
+        status = self.safe_string(result, 'status')
+        if status == 'success':
+            client.resolve(message, 'authenticated')
+        else:
+            error = AuthenticationError(self.id + ' ' + self.json(message))
+            client.reject(error, 'authenticated')
+            subscriptionHash = 'user.auth'
+            if subscriptionHash in client.subscriptions:
+                del client.subscriptions[subscriptionHash]
 
     async def subscribe_private(self, type, messageHash, params={}):
         await self.load_markets()
@@ -999,15 +1007,15 @@ class phemex(ccxt.async_support.phemex):
         client = self.client(url)
         time = self.seconds()
         messageHash = 'authenticated'
-        future = client.future(messageHash)
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
             expiryDelta = self.safe_integer(self.options, 'expires', 120)
             expiration = self.seconds() + expiryDelta
             payload = self.apiKey + str(expiration)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
+            method = 'user.auth'
             request = {
-                'method': 'user.auth',
+                'method': method,
                 'params': ['API', self.apiKey, signature, expiration],
                 'id': time,
             }
@@ -1015,5 +1023,6 @@ class phemex(ccxt.async_support.phemex):
                 'id': time,
                 'method': self.handle_authenticate,
             }
-            self.spawn(self.watch, url, messageHash, request, messageHash, subscription)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message, method, subscription)
+        return future

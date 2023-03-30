@@ -991,7 +991,7 @@ export default class ascendex extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchTickers
@@ -2462,7 +2462,7 @@ export default class ascendex extends Exchange {
         };
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchPositions
@@ -2562,7 +2562,7 @@ export default class ascendex extends Exchange {
         if (marginMode === 'isolated') {
             collateral = this.safeString (position, 'isolatedMargin');
         }
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
@@ -2575,10 +2575,12 @@ export default class ascendex extends Exchange {
             'contracts': this.safeNumber (position, 'position'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
             'side': this.safeStringLower (position, 'side'),
             'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
@@ -2586,7 +2588,7 @@ export default class ascendex extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger (position, 'leverage'),
             'marginRatio': undefined,
-        };
+        });
     }
 
     parseFundingRate (contract, market = undefined) {
@@ -2627,7 +2629,7 @@ export default class ascendex extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchFundingRates
@@ -2802,7 +2804,7 @@ export default class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchLeverageTiers

@@ -276,7 +276,7 @@ export default class coinfalcon extends Exchange {
         return tickers[symbol];
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchTickers

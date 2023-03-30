@@ -1686,14 +1686,14 @@ export default class btcex extends Exchange {
         const notionalString = Precise.stringMul (markPrice, size);
         const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         const marginType = this.safeString (position, 'margin_type');
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
@@ -1707,11 +1707,12 @@ export default class btcex extends Exchange {
             'marginRatio': this.parseNumber (riskLevel),
             'liquidationPrice': this.safeNumber (position, 'liquid_price'),
             'markPrice': this.parseNumber (markPrice),
+            'lastPrice': undefined,
             'collateral': this.parseNumber (collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
     async fetchPosition (symbol: string, params = {}) {
@@ -1761,7 +1762,7 @@ export default class btcex extends Exchange {
         return this.parsePosition (result);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const request = {
@@ -2096,7 +2097,7 @@ export default class btcex extends Exchange {
         return tiers;
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name btcex#fetchLeverageTiers
@@ -2134,7 +2135,7 @@ export default class btcex extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response, symbols: string[] = undefined, marketIdKey = undefined) {
         //
         //     {
         //         "WAVES-USDT-PERPETUAL": [
@@ -2255,7 +2256,7 @@ export default class btcex extends Exchange {
         return response;
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name btcex#fetchFundingRates

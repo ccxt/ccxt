@@ -1869,7 +1869,7 @@ export default class bybit extends Exchange {
         return this.parseTicker (rawTicker, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTickers
@@ -2140,7 +2140,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchFundingRates
@@ -6810,7 +6810,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async fetchUnifiedPositions (symbols = undefined, params = {}) {
+    async fetchUnifiedPositions (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let type = undefined;
@@ -6898,7 +6898,7 @@ export default class bybit extends Exchange {
         return this.filterByArray (results, 'symbol', symbols, false);
     }
 
-    async fetchUSDCPositions (symbols = undefined, params = {}) {
+    async fetchUSDCPositions (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {};
@@ -6974,7 +6974,7 @@ export default class bybit extends Exchange {
         return this.filterByArray (results, 'symbol', symbols, false);
     }
 
-    async fetchDerivativesPositions (symbols = undefined, params = {}) {
+    async fetchDerivativesPositions (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -7043,7 +7043,7 @@ export default class bybit extends Exchange {
         return this.parsePositions (positions, symbols, params);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchPositions
@@ -7259,14 +7259,14 @@ export default class bybit extends Exchange {
             }
         }
         const maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notional);
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateralString, 4);
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
@@ -7280,11 +7280,12 @@ export default class bybit extends Exchange {
             'marginRatio': this.parseNumber (marginRatio),
             'liquidationPrice': this.parseNumber (liquidationPrice),
             'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
             'collateral': this.parseNumber (collateralString),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
     async setMarginMode (marginMode, symbol: string = undefined, params = {}) {

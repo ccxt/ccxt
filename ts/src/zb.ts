@@ -1328,7 +1328,7 @@ export default class zb extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchTickers
@@ -3266,7 +3266,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchFundingRates
@@ -3544,7 +3544,7 @@ export default class zb extends Exchange {
         return this.parsePosition (firstPosition, market);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchPositions
@@ -3676,7 +3676,7 @@ export default class zb extends Exchange {
         const notional = this.safeNumber (position, 'nominalValue');
         const percentage = Precise.stringMul (this.safeString (position, 'returnRate'), '100');
         const timestamp = this.safeNumber (position, 'createTime');
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3691,6 +3691,7 @@ export default class zb extends Exchange {
             'marginMode': marginMode,
             'notional': notional,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': undefined,
@@ -3699,7 +3700,8 @@ export default class zb extends Exchange {
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
 
     parseLedgerEntryType (type) {

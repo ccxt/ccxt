@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.45 (2023-03-30)
+
+
+### Bug Fixes
+
+* **types:** python3.7 support ([0487925](https://github.com/ccxt/ccxt/commit/0487925f69dd62e1adc63f527d4cf054d474176d))
+
 ### 3.0.44 (2023-03-30)
 
 ### 3.0.43 (2023-03-29)

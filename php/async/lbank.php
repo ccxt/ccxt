@@ -825,7 +825,7 @@ class lbank extends Exchange {
                 'api_key' => $this->apiKey,
             ), $params));
             $queryString = $this->rawencode($query);
-            $message = strtoupper($this->hash($this->encode($queryString), 'sha256'));
+            $message = strtoupper($this->hash($this->encode($queryString), 'md5'));
             $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
             $pem = null;
             if ($cacheSecretAsPem) {

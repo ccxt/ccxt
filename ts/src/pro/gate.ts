@@ -283,7 +283,7 @@ export default class gate extends gateRest {
         return await this.subscribePublic (url, messageHash, payload, channel, undefined, query);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchTickers

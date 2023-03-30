@@ -557,7 +557,7 @@ class kucoin extends kucoin$1 {
         const amount = this.safeString(order, 'size');
         const rawType = this.safeString(order, 'type');
         const status = this.parseWsOrderStatus(rawType);
-        const timestamp = this.safeIntegerProduct(order, 'orderTime', 0.000001);
+        const timestamp = this.safeInteger(order, 'orderTime');
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];

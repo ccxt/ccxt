@@ -4,6 +4,7 @@ var phemex$1 = require('../phemex.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
+var errors = require('../base/errors.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -986,7 +987,7 @@ class phemex extends phemex$1 {
         const id = this.safeInteger(message, 'id');
         if (id !== undefined) {
             // not every method stores its subscription
-            // as an object so we can't do indeById here
+            // as an object so we can't do indexById here
             const subs = client.subscriptions;
             const values = Object.values(subs);
             for (let i = 0; i < values.length; i++) {
@@ -1035,9 +1036,19 @@ class phemex extends phemex$1 {
         //     }
         // }
         //
-        const future = client.futures['authenticated'];
-        future.resolve(1);
-        return message;
+        const result = this.safeValue(message, 'result');
+        const status = this.safeString(result, 'status');
+        if (status === 'success') {
+            client.resolve(message, 'authenticated');
+        }
+        else {
+            const error = new errors.AuthenticationError(this.id + ' ' + this.json(message));
+            client.reject(error, 'authenticated');
+            const subscriptionHash = 'user.auth';
+            if (subscriptionHash in client.subscriptions) {
+                delete client.subscriptions[subscriptionHash];
+            }
+        }
     }
     async subscribePrivate(type, messageHash, params = {}) {
         await this.loadMarkets();
@@ -1063,15 +1074,15 @@ class phemex extends phemex$1 {
         const client = this.client(url);
         const time = this.seconds();
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
-        const authenticated = this.safeValue(client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        let future = this.safeValue(client.subscriptions, messageHash);
+        if (future === undefined) {
             const expiryDelta = this.safeInteger(this.options, 'expires', 120);
             const expiration = this.seconds() + expiryDelta;
             const payload = this.apiKey + expiration.toString();
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
+            const method = 'user.auth';
             const request = {
-                'method': 'user.auth',
+                'method': method,
                 'params': ['API', this.apiKey, signature, expiration],
                 'id': time,
             };
@@ -1079,9 +1090,10 @@ class phemex extends phemex$1 {
                 'id': time,
                 'method': this.handleAuthenticate,
             };
-            this.spawn(this.watch, url, messageHash, request, messageHash, subscription);
+            const message = this.extend(request, params);
+            future = this.watch(url, messageHash, message, method, subscription);
         }
-        return await future;
+        return future;
     }
 }
 

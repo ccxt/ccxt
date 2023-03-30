@@ -583,7 +583,7 @@ class kucoin extends \ccxt\async\kucoin {
         $amount = $this->safe_string($order, 'size');
         $rawType = $this->safe_string($order, 'type');
         $status = $this->parse_ws_order_status($rawType);
-        $timestamp = $this->safe_integer_product($order, 'orderTime', 0.000001);
+        $timestamp = $this->safe_integer($order, 'orderTime');
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];

@@ -941,7 +941,7 @@ export default class bitrue extends Exchange {
         ];
     }
 
-    async fetchBidsAsks (symbols = undefined, params = {}) {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchBidsAsks
@@ -966,7 +966,7 @@ export default class bitrue extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchTickers
