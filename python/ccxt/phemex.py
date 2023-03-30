@@ -1865,7 +1865,8 @@ class phemex(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         price = self.from_ep(self.safe_string(order, 'priceEp'), market)
         amount = self.from_ev(self.safe_string(order, 'baseQtyEv'), market)
         remaining = self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), market))
