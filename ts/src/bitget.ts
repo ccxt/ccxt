@@ -2619,11 +2619,8 @@ export default class bitget extends Exchange {
         this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = this.safeString (params, 'type', market['type']);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrders() requires a type parameter (one of 'spot', 'swap').");
-        }
-        params = this.omit (params, 'type');
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const request = {};
         let method = undefined;
         if (type === 'spot') {
