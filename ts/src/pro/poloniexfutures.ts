@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest } from '../base/errors';
+import { AuthenticationError } from '../base/errors';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache';
 import { Precise } from '../base/Precise';
 
@@ -14,10 +14,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchOHLCV': true,
+                'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchTicker': true,
-                'watchTickers': true,
+                'watchTickers': false,
                 'watchTrades': true,
                 'watchBalance': true,
                 'watchStatus': false,
@@ -32,42 +32,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'options': {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
-                'OHLCVLimit': 1000,
                 'watchOrderBookMethod': '/contractMarket/level3v2', // can also be '/contractMarket/level2'
-                'connectionsLimit': 2000, // 2000 public, 2000 private, 4000 total, only for subscribe events, unsubscribe not restricted
-                'requestsLimit': 500, // per second, only for subscribe events, unsubscribe not restricted
-                'channelToTimeframe': {
-                    'candles_minute_1': '1m',
-                    'candles_minute_5': '5m',
-                    'candles_minute_10': '10m',
-                    'candles_minute_15': '15m',
-                    'candles_minute_30': '30m',
-                    'candles_hour_1': '1h',
-                    'candles_hour_2': '2h',
-                    'candles_hour_4': '4h',
-                    'candles_hour_6': '6h',
-                    'candles_hour_12': '12h',
-                    'candles_day_1': '1d',
-                    'candles_day_3': '3d',
-                    'candles_week_1': '1w',
-                    'candles_month_1': '1m',
-                },
-                'ohlcvChannels': {
-                    '1m': 'candles_minute_1',
-                    '5m': 'candles_minute_5',
-                    '10m': 'candles_minute_10',
-                    '15m': 'candles_minute_15',
-                    '30m': 'candles_minute_30',
-                    '1h': 'candles_hour_1',
-                    '2h': 'candles_hour_2',
-                    '4h': 'candles_hour_4',
-                    '6h': 'candles_hour_6',
-                    '12h': 'candles_hour_12',
-                    '1d': 'candles_day_1',
-                    '3d': 'candles_day_3',
-                    '1w': 'candles_week_1',
-                    '1M': 'candles_month_1',
-                },
             },
         });
     }
