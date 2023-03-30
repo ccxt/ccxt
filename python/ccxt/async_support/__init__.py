@@ -13,11 +13,25 @@ from ccxt.async_support.base.exchange import Exchange                   # noqa: 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
 from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND_UP              # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND_DOWN            # noqa: F401 
 from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa: F401
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa: F401
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
+
+Exchange.constants = {
+    'TRUNCATE': TRUNCATE,
+    'ROUND': ROUND,
+    'ROUND_UP': ROUND_UP,
+    'ROUND_DOWN': ROUND_DOWN,
+    'DECIMAL_PLACES': DECIMAL_PLACES,
+    'SIGNIFICANT_DIGITS': SIGNIFICANT_DIGITS,
+    'TICK_SIZE': TICK_SIZE,
+    'NO_PADDING': NO_PADDING,
+    'PAD_WITH_ZERO': PAD_WITH_ZERO,
+}
 
 from ccxt.base import errors                                # noqa: F401
 from ccxt.base.errors import BaseError                                # noqa: F401
