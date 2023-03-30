@@ -27,15 +27,36 @@ export default class poloniexfutures extends poloniexfuturesRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://futures-apiws.poloniex.com',
+                    'ws': 'wss://futures-apiws.poloniex.com/endpoint',
                 },
             },
             'options': {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'watchOrderBookMethod': '/contractMarket/level3v2', // can also be '/contractMarket/level2'
+                'publicToken': undefined,
+                'privateToken': undefined,
             },
         });
+    }
+
+    async getPublicToken (params = {}) {
+        if (this.options['publicToken'] === undefined) {
+            const response = await this.publicPostBulletPublic ();
+            //
+            //    {
+            //        code: '200000',
+            //        data: {
+            //            instanceServers: [ [Object] ],
+            //            token: 'DcXijCbKcWFew_i0BS8y6UNmBtlHW3UAvR4Nx4VADIn15tt-jDqMbYWNZ2II5fSnrClCBBv6dTDc8PMFHz-H6tSnN_vkspYYmOImrn5NXLlsFbcpggjU6mMGfZAja_q_-wgHjBcT7RhvJVwiLf8PgR2VF0_UPbEwl-RWj6JCmic=.9NqWNqQVILOkGiD1RL1AoQ=='
+            //        }
+            //    }
+            //
+            const data = this.safeValue (response, 'data');
+            this.options['publicToken'] = this.safeString (data, 'token');
+        }
+        return this.options['publicToken'];
+        // TODO: deal with expired token?
     }
 
     async authenticate (params = {}) {
@@ -108,7 +129,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {Object} data from the websocket stream
          */
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
+        const token = await this.getPublicToken ();
+        const url = this.urls['api']['ws'] + '?token=' + token;
         const subscribe = {
             'id': this.milliseconds () + name + symbol,   // ID is a unique string to mark the request which is same as the id property of ack.
             'type': 'subscribe',
@@ -646,7 +668,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //            "bestAskPrice": 3600.00,                   // Best ask size
         //            "bestAskSize": 284,                        // Best ask
         //            "ts": 1553846081210004941                  // Filled time - nanosecond
-        //        }
+        //        },
+        //        "type": "message",
         //    }
         //
         const data = this.safeValue (message, 'data', {});
@@ -655,7 +678,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             const ticker = this.parseTicker (data);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const messageHash = 'ticker:' + marketId;
+            const messageHash = '/contractMarket/ticker:' + marketId;
             client.resolve (ticker, messageHash);
         }
         return message;
@@ -802,26 +825,13 @@ export default class poloniexfutures extends poloniexfuturesRest {
     }
 
     handleMessage (client, message) {
-        const type = this.safeString (message, 'channel');
+        const subject = this.safeString (message, 'subject');
+        // const type = this.safeString (message, 'type');
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             return this.handlePong (client, message);
         }
         const methods = {
-            'candles_minute_1': this.handleOHLCV,
-            'candles_minute_5': this.handleOHLCV,
-            'candles_minute_10': this.handleOHLCV,
-            'candles_minute_15': this.handleOHLCV,
-            'candles_minute_30': this.handleOHLCV,
-            'candles_hour_1': this.handleOHLCV,
-            'candles_hour_2': this.handleOHLCV,
-            'candles_hour_4': this.handleOHLCV,
-            'candles_hour_6': this.handleOHLCV,
-            'candles_hour_12': this.handleOHLCV,
-            'candles_day_1': this.handleOHLCV,
-            'candles_day_3': this.handleOHLCV,
-            'candles_week_1': this.handleOHLCV,
-            'candles_month_1': this.handleOHLCV,
             'book': this.handleOrderBook,
             'book_lv2': this.handleOrderBook,
             'ticker': this.handleTicker,
@@ -829,13 +839,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'orders': this.handleOrder,
             'balances': this.handleBalance,
         };
-        const method = this.safeValue (methods, type);
-        if (type === 'auth') {
+        const method = this.safeValue (methods, subject);
+        if (subject === 'auth') {
             this.handleAuthenticate (client, message);
         } else {
-            const data = this.safeValue (message, 'data', []);
-            const dataLength = data.length;
-            if (dataLength > 0) {
+            if (subject !== undefined) {
                 return method.call (this, client, message);
             }
         }
@@ -867,7 +875,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     ping (client) {
         return {
-            'event': 'ping',
+            'type': 'ping',
+            'id': this.milliseconds (),
         };
     }
 
