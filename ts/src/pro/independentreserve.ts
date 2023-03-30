@@ -3,6 +3,7 @@
 import independentreserveRest from '../independentreserve.js';
 import { NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -35,7 +36,7 @@ export default class independentreserve extends independentreserveRest {
         });
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#watchTrades
@@ -122,7 +123,7 @@ export default class independentreserve extends independentreserveRest {
         }, market);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#watchOrderBook

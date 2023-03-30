@@ -1,15 +1,16 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
+import { Int } from '../base/types.js';
 export default class kucoinfutures extends kucoinfuturesRest {
     describe(): any;
     negotiate(privateChannel: any, params?: {}): any;
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
     subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
-    watchTicker(symbol: any, params?: {}): Promise<any>;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): any;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: any, message: any): any;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleDelta(orderbook: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: any, message: any): void;
@@ -17,7 +18,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handleOrderBookSubscription(client: any, message: any, subscription: any): void;
     handleSubscriptionStatus(client: any, message: any): any;
     handleSystemStatus(client: any, message: any): any;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrderStatus(status: any): string;
     parseWsOrder(order: any, market?: any): any;
     handleOrder(client: any, message: any): void;

@@ -3,6 +3,7 @@
 import alpacaRest from '../alpaca.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -47,7 +48,7 @@ export default class alpaca extends alpacaRest {
         });
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name alpaca#watchTicker
@@ -125,7 +126,7 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOHLCV
@@ -183,7 +184,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOrderBook
@@ -265,7 +266,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchTrades
@@ -319,7 +320,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchMyTrades
@@ -352,7 +353,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#watchOrders

@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -365,7 +366,7 @@ class wavesexchange(Exchange):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
         return super(wavesexchange, self).set_sandbox_mode(enabled)
 
-    async def get_fees_for_asset(self, symbol, side, amount, price, params={}):
+    async def get_fees_for_asset(self, symbol: str, side, amount, price, params={}):
         await self.load_markets()
         market = self.market(symbol)
         amount = self.custom_amount_to_precision(symbol, amount)
@@ -379,7 +380,7 @@ class wavesexchange(Exchange):
         }, params)
         return await self.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee(request)
 
-    async def custom_calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+    async def custom_calculate_fee(self, symbol: str, type, side, amount, price, takerOrMaker='taker', params={}):
         response = await self.get_fees_for_asset(symbol, side, amount, price)
         # {
         #     "base":{
@@ -573,7 +574,7 @@ class wavesexchange(Exchange):
             })
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -600,7 +601,7 @@ class wavesexchange(Exchange):
             'nonce': None,
         }
 
-    def parse_order_book_side(self, bookSide, market=None, limit=None):
+    def parse_order_book_side(self, bookSide, market=None, limit: Optional[int] = None):
         precision = market['precision']
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
         amountPrecision = math.pow(10, precision['amount'])
@@ -792,7 +793,7 @@ class wavesexchange(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -872,7 +873,7 @@ class wavesexchange(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1186,7 +1187,7 @@ class wavesexchange(Exchange):
             return {'WAVES': 1}
         return rates
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1333,7 +1334,7 @@ class wavesexchange(Exchange):
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1379,7 +1380,7 @@ class wavesexchange(Exchange):
             'trades': None,
         }
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1409,7 +1410,7 @@ class wavesexchange(Exchange):
         response = await self.matcherGetMatcherOrderbookPublicKeyOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1458,7 +1459,7 @@ class wavesexchange(Exchange):
         #     avgWeighedPrice: 0}, ...]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1480,7 +1481,7 @@ class wavesexchange(Exchange):
         response = await self.forwardGetMatcherOrdersAddress(request)
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1798,7 +1799,7 @@ class wavesexchange(Exchange):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1887,7 +1888,7 @@ class wavesexchange(Exchange):
         #
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for

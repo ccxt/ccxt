@@ -407,7 +407,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -461,7 +461,7 @@ class lbank2 extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -587,7 +587,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -656,7 +656,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -903,7 +903,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
@@ -934,7 +934,7 @@ class lbank2 extends Exchange {
         return $result;
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1159,7 +1159,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the market the order was made in
@@ -1176,7 +1176,7 @@ class lbank2 extends Exchange {
         return $result;
     }
 
-    public function fetch_order_supplement($id, $symbol = null, $params = array ()) {
+    public function fetch_order_supplement($id, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder () requires a $symbol argument');
@@ -1212,7 +1212,7 @@ class lbank2 extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function fetch_order_default($id, $symbol = null, $params = array ()) {
+    public function fetch_order_default($id, ?string $symbol = null, $params = array ()) {
         // Id can be a list of ids delimited by a comma
         $this->load_markets();
         if ($symbol === null) {
@@ -1258,7 +1258,7 @@ class lbank2 extends Exchange {
         }
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -1276,12 +1276,12 @@ class lbank2 extends Exchange {
         $params = $this->omit($params, 'start_date');
         $request = array(
             'symbol' => $market['id'],
-            // 'start_date' => 'strval' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            // 'end_date' => 'strval' Finish time yyyy-mm-dd, the maximum is today, the default is today
+            // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
             // 'The start' => and end date of the query window is up to 2 days
-            // 'from' => 'strval' Initial transaction number inquiring
-            // 'direct' => 'strval' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            // 'size' => 'strval' Query the number of defaults to 100
+            // 'from' Initial transaction number inquiring
+            // 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            // 'size' Query the number of defaults to 100
         );
         if ($limit !== null) {
             $request['size'] = $limit;
@@ -1314,7 +1314,7 @@ class lbank2 extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple $orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
@@ -1372,7 +1372,7 @@ class lbank2 extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open $orders
          * @param {string} $symbol unified $market $symbol
@@ -1427,7 +1427,7 @@ class lbank2 extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1467,7 +1467,7 @@ class lbank2 extends Exchange {
         return $result;
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders in a $market
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
@@ -1776,7 +1776,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -1827,7 +1827,7 @@ class lbank2 extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -2264,7 +2264,7 @@ class lbank2 extends Exchange {
                 'timestamp' => $timestamp,
             ), $query)));
             $encoded = $this->encode($auth);
-            $hash = $this->hash($encoded, 'sha256');
+            $hash = $this->hash($encoded, 'md5');
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {

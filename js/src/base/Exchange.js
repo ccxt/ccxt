@@ -548,7 +548,7 @@ export default class Exchange {
         this.throttler = new Throttler(this.tokenBucket);
     }
     throttle(cost = undefined) {
-        this.throttler.throttle(cost);
+        return this.throttler.throttle(cost);
     }
     setSandboxMode(enabled) {
         if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
@@ -1926,7 +1926,6 @@ export default class Exchange {
         if (!this.has['fetchTrades']) {
             throw new NotSupported(this.id + ' fetchOHLCV() is not supported yet');
         }
-        await this.loadMarkets();
         const trades = await this.fetchTrades(symbol, since, limit, params);
         const ohlcvc = this.buildOHLCVC(trades, timeframe, since, limit);
         const result = [];
@@ -2854,6 +2853,9 @@ export default class Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
+    async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrderTrades() is not supported yet');
+    }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchOrders() is not supported yet');
     }
@@ -3019,8 +3021,8 @@ export default class Exchange {
         const value = this.safeString(obj, key);
         return this.parseNumber(value, defaultNumber);
     }
-    safeNumberN(object, arr, defaultNumber = undefined) {
-        const value = this.safeStringN(object, arr);
+    safeNumberN(obj, arr, defaultNumber = undefined) {
+        const value = this.safeStringN(obj, arr);
         return this.parseNumber(value, defaultNumber);
     }
     parsePrecision(precision) {

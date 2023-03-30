@@ -5,6 +5,7 @@ import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -530,7 +531,7 @@ export default class latoken extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchOrderBook
@@ -611,7 +612,7 @@ export default class latoken extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name latoken#fetchTicker
@@ -642,7 +643,7 @@ export default class latoken extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchTickers
@@ -756,7 +757,7 @@ export default class latoken extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchTrades
@@ -789,7 +790,7 @@ export default class latoken extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name latoken#fetchTradingFee
@@ -807,7 +808,7 @@ export default class latoken extends Exchange {
         return await this[method] (symbol, params);
     }
 
-    async fetchPublicTradingFee (symbol, params = {}) {
+    async fetchPublicTradingFee (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -831,7 +832,7 @@ export default class latoken extends Exchange {
         };
     }
 
-    async fetchPrivateTradingFee (symbol, params = {}) {
+    async fetchPrivateTradingFee (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -855,7 +856,7 @@ export default class latoken extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchMyTrades
@@ -1038,7 +1039,7 @@ export default class latoken extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchOpenOrders
@@ -1084,7 +1085,7 @@ export default class latoken extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchOrders
@@ -1176,7 +1177,7 @@ export default class latoken extends Exchange {
         return this.parseOrder (response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name latoken#createOrder
@@ -1282,7 +1283,7 @@ export default class latoken extends Exchange {
         return response;
     }
 
-    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchTransactions
@@ -1410,7 +1411,7 @@ export default class latoken extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchTransfers
@@ -1562,7 +1563,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = undefined, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));

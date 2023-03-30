@@ -3,6 +3,7 @@
 
 import ndaxRest from '../ndax.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,7 +39,7 @@ export default class ndax extends ndaxRest {
         return requestId;
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name ndax#watchTicker
@@ -105,7 +106,7 @@ export default class ndax extends ndaxRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchTrades
@@ -188,7 +189,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchOHLCV
@@ -320,7 +321,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchOrderBook

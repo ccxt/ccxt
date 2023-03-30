@@ -5,6 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
 
 // -----------------------------------------------------------------------------
 
@@ -109,7 +110,7 @@ export default class binance extends binanceRest {
         return stream;
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOrderBook
@@ -396,7 +397,7 @@ export default class binance extends binanceRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchTrades
@@ -621,7 +622,7 @@ export default class binance extends binanceRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOHLCV
@@ -735,7 +736,7 @@ export default class binance extends binanceRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name binance#watchTicker
@@ -772,7 +773,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchTickers
@@ -1277,7 +1278,7 @@ export default class binance extends binanceRest {
         client.resolve (this.balance[accountType], messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOrders
@@ -1556,7 +1557,7 @@ export default class binance extends binanceRest {
         this.handleOrder (client, message);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchMyTrades

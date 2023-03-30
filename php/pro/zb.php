@@ -38,7 +38,7 @@ class zb extends \ccxt\async\zb {
         ));
     }
 
-    public function watch_public($url, $messageHash, $symbol, $method, $limit = null, $params = array ()) {
+    public function watch_public($url, $messageHash, $symbol, $method, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($url, $messageHash, $symbol, $method, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -75,7 +75,7 @@ class zb extends \ccxt\async\zb {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -187,7 +187,7 @@ class zb extends \ccxt\async\zb {
         return $message;
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -255,7 +255,7 @@ class zb extends \ccxt\async\zb {
         return $message;
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -342,7 +342,7 @@ class zb extends \ccxt\async\zb {
         $client->resolve ($array, $channel);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             if ($limit !== null) {
                 if (($limit !== 5) && ($limit !== 10)) {

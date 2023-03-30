@@ -1,17 +1,18 @@
 import Exchange from './abstract/ndax.js';
+import { Int } from './base/types.js';
 export default class ndax extends Exchange {
     describe(): any;
     signIn(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number): any;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchAccounts(params?: {}): Promise<any[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
@@ -33,18 +34,18 @@ export default class ndax extends Exchange {
         datetime: string;
         fee: any;
     };
-    fetchLedger(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOrderTrades(id: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDepositAddress(code: any, params?: {}): Promise<{
         currency: any;
         address: string;
@@ -66,8 +67,8 @@ export default class ndax extends Exchange {
         network: any;
         info: any;
     }>;
-    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatusByType(status: any, type?: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -108,7 +109,7 @@ export default class ndax extends Exchange {
         fee: any;
     }>;
     nonce(): number;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

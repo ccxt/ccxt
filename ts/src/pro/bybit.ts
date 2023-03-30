@@ -5,6 +5,7 @@ import bybitRest from '../bybit.js';
 import { AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -160,7 +161,7 @@ export default class bybit extends bybitRest {
         return params;
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bybit#watchTicker
@@ -316,7 +317,7 @@ export default class bybit extends bybitRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOHLCV
@@ -423,7 +424,7 @@ export default class bybit extends bybitRest {
         ];
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrderBook
@@ -533,7 +534,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchTrades
@@ -683,7 +684,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchMyTrades
@@ -811,7 +812,7 @@ export default class bybit extends bybitRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrders

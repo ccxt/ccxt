@@ -1889,8 +1889,7 @@ class tokocrypto extends tokocrypto$1 {
         };
         const endTime = this.safeInteger2(params, 'until', 'endTime');
         if (since !== undefined) {
-            const startTime = parseInt(since);
-            request['startTime'] = startTime;
+            request['startTime'] = since;
         }
         if (endTime !== undefined) {
             request['endTime'] = endTime;

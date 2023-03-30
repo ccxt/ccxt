@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import json
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -738,7 +739,7 @@ class bitrue(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -815,7 +816,7 @@ class bitrue(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -858,7 +859,7 @@ class bitrue(Exchange):
             raise ExchangeError(self.id + ' fetchTicker() could not find the ticker for ' + market['symbol'])
         return self.parse_ticker(ticker, market)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1070,7 +1071,7 @@ class bitrue(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1232,7 +1233,7 @@ class bitrue(Exchange):
             'trades': fills,
         }, market)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1283,7 +1284,7 @@ class bitrue(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1306,7 +1307,7 @@ class bitrue(Exchange):
         response = self.v1PrivateGetOrder(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1355,7 +1356,7 @@ class bitrue(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1396,7 +1397,7 @@ class bitrue(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1431,7 +1432,7 @@ class bitrue(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1480,7 +1481,7 @@ class bitrue(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1546,7 +1547,7 @@ class bitrue(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code

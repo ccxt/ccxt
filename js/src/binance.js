@@ -4576,7 +4576,7 @@ export default class binance extends Exchange {
         }
         let endTime = this.safeInteger2(params, 'until', 'endTime');
         if (since !== undefined) {
-            const startTime = parseInt(since);
+            const startTime = since;
             request['startTime'] = startTime;
             // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
             // If startTime and endTime are both not sent, then the last 7 days' data will be returned.

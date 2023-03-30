@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
@@ -85,7 +86,7 @@ class gate(ccxt.async_support.gate):
             },
         })
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -247,7 +248,7 @@ class gate(ccxt.async_support.gate):
         self.handle_bid_asks(storedBids, bids)
         self.handle_bid_asks(storedAsks, asks)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -344,7 +345,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(parsed, messageHash)
             client.resolve(parsed, 'tickers')
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -400,7 +401,7 @@ class gate(ccxt.async_support.gate):
             hash = 'trades:' + symbol
             client.resolve(cachedTrades, hash)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -475,7 +476,7 @@ class gate(ccxt.async_support.gate):
             stored = self.safe_value(self.ohlcvs, symbol)
             client.resolve(stored, hash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -670,7 +671,7 @@ class gate(ccxt.async_support.gate):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in

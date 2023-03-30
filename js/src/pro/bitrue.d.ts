@@ -1,13 +1,14 @@
 import bitrueRest from '../bitrue.js';
+import { Int } from '../base/types.js';
 export default class bitrue extends bitrueRest {
     describe(): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: any, message: any): void;
     parseWSBalances(balances: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     parseWSOrder(order: any, market?: any): any;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: any, message: any): void;
     parseWSOrderType(typeId: any): string;
     parseWSOrderStatus(status: any): string;

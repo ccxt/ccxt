@@ -1336,7 +1336,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -1437,7 +1437,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -1620,7 +1620,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -1680,7 +1680,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks
@@ -1761,7 +1761,7 @@ class okx extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding $rate prices
          * @param {string|null} $symbol unified $symbol of the $market to fetch the funding $rate history for
@@ -1900,7 +1900,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
@@ -2069,7 +2069,7 @@ class okx extends Exchange {
         return $this->parse_balance_by_type($marketType, $response);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -2321,7 +2321,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -2371,7 +2371,7 @@ class okx extends Exchange {
         }
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          * @param {[string]} $ids order $ids
@@ -2666,7 +2666,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an $order by the $id
          * @param {string} $id the $order $id
@@ -2807,7 +2807,7 @@ class okx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Fetch orders that are still open
          * fetch all unfilled currently open orders
@@ -2955,7 +2955,7 @@ class okx extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
@@ -3127,7 +3127,7 @@ class okx extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
@@ -3290,7 +3290,7 @@ class okx extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string|null} $symbol unified $market $symbol
@@ -3349,7 +3349,7 @@ class okx extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit, $query);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -3369,7 +3369,7 @@ class okx extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
@@ -3860,7 +3860,7 @@ class okx extends Exchange {
         return $this->parse_transaction($transaction, $currency);
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -3956,7 +3956,7 @@ class okx extends Exchange {
         return $this->parse_transaction($deposit, $currency);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -4123,9 +4123,9 @@ class okx extends Exchange {
         //         "ccy" => "ETH",
         //         "from" => "13426335357",
         //         "to" => "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        //         'tag' => string,
-        //         'pmtId' => string,
-        //         'memo' => string,
+        //         'tag',
+        //         'pmtId',
+        //         'memo',
         //         "ts" => "1597026383085",
         //         "state" => "2"
         //     }
@@ -4197,7 +4197,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_leverage($symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()) {
         /**
          * fetch the set leverage for a $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
@@ -4238,7 +4238,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function fetch_position($symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch $data on a single open contract trade $position
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
@@ -4760,7 +4760,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
@@ -4797,7 +4797,7 @@ class okx extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
          * @param {string|null} $symbol unified $market $symbol
@@ -4953,7 +4953,7 @@ class okx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-set-$leverage
@@ -5014,7 +5014,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a market
          * @param {bool} $hedged set to true to use long_short_mode, false for net_mode
@@ -5046,7 +5046,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @param {string} $marginMode 'cross' or 'isolated'
@@ -5226,7 +5226,7 @@ class okx extends Exchange {
         return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
     }
 
-    public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_histories($codes = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
          * @param {[string]|null} $codes list of unified currency $codes, default is null
@@ -5267,7 +5267,7 @@ class okx extends Exchange {
         return $this->parse_borrow_rate_histories($data, $codes, $since, $limit);
     }
 
-    public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history($code, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} $code unified $currency $code
@@ -5309,7 +5309,7 @@ class okx extends Exchange {
         return $this->parse_borrow_rate_history($data, $code, $since, $limit);
     }
 
-    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $posSide = $this->safe_string($params, 'posSide', 'net');
@@ -5359,7 +5359,7 @@ class okx extends Exchange {
         );
     }
 
-    public function reduce_margin($symbol, $amount, $params = array ()) {
+    public function reduce_margin(string $symbol, $amount, $params = array ()) {
         /**
          * remove margin from a position
          * @param {string} $symbol unified market $symbol
@@ -5370,7 +5370,7 @@ class okx extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function add_margin($symbol, $amount, $params = array ()) {
+    public function add_margin(string $symbol, $amount, $params = array ()) {
         /**
          * add margin
          * @param {string} $symbol unified market $symbol
@@ -5381,7 +5381,7 @@ class okx extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-position-tiers
@@ -5478,7 +5478,7 @@ class okx extends Exchange {
         return $tiers;
     }
 
-    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$interest-accrued-$data
@@ -5559,7 +5559,7 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a $loan to borrow margin
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
@@ -5602,7 +5602,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
@@ -5669,7 +5669,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_open_interest($symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array ()) {
         /**
          * Retrieves the open interest of a currency
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-open-interest
@@ -5709,7 +5709,7 @@ class okx extends Exchange {
         return $this->parse_open_interest($data[0], $market);
     }
 
-    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Retrieves the open interest history of a $currency
          * @param {string} $symbol Unified CCXT $currency code instead of a unified $symbol

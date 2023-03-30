@@ -1063,7 +1063,7 @@ class kucoin extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -1124,7 +1124,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1332,7 +1332,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -1401,7 +1401,7 @@ class kucoin extends Exchange {
         return $orderbook;
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -1503,7 +1503,7 @@ class kucoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1534,7 +1534,7 @@ class kucoin extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
          * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
@@ -1561,7 +1561,7 @@ class kucoin extends Exchange {
         return $this->$method (array_merge($request, $query));
     }
 
-    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a list of $orders
          * @param {string} $status *not used for $stop $orders* 'open' or 'closed'
@@ -1660,7 +1660,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string|null} $symbol unified market $symbol of the market orders were made in
@@ -1676,7 +1676,7 @@ class kucoin extends Exchange {
         return $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified market $symbol
@@ -1695,7 +1695,7 @@ class kucoin extends Exchange {
         return $this->fetch_orders_by_status('active', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an order
          * @param {string} $id Order $id
@@ -1888,7 +1888,7 @@ class kucoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -1904,7 +1904,7 @@ class kucoin extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
          * @param {string|null} $symbol unified $market $symbol
@@ -1997,7 +1997,7 @@ class kucoin extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -2168,7 +2168,7 @@ class kucoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
@@ -2383,7 +2383,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -2455,7 +2455,7 @@ class kucoin extends Exchange {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -2962,7 +2962,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -3048,7 +3048,7 @@ class kucoin extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history($code, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @see https://docs.kucoin.com/#margin-trade-$data
@@ -3118,7 +3118,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the interest owed by the user for borrowing $currency for margin trading
          * @see https://docs.kucoin.com/#get-repay-record
@@ -3293,7 +3293,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://docs.kucoin.com/#post-borrow-order
@@ -3356,7 +3356,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://docs.kucoin.com/#one-click-repayment

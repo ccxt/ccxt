@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -617,7 +618,7 @@ class bitmex(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -655,7 +656,7 @@ class bitmex(Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -673,7 +674,7 @@ class bitmex(Exchange):
             return response[0]
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -701,7 +702,7 @@ class bitmex(Exchange):
         response = await self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -717,7 +718,7 @@ class bitmex(Exchange):
         }
         return await self.fetch_orders(symbol, since, limit, self.deep_extend(request, params))
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -730,7 +731,7 @@ class bitmex(Exchange):
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -916,7 +917,7 @@ class bitmex(Exchange):
             'fee': fee,
         }
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -962,7 +963,7 @@ class bitmex(Exchange):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1067,7 +1068,7 @@ class bitmex(Exchange):
             },
         }
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1373,7 +1374,7 @@ class bitmex(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1652,7 +1653,7 @@ class bitmex(Exchange):
             'trades': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1704,7 +1705,7 @@ class bitmex(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1767,7 +1768,7 @@ class bitmex(Exchange):
         response = await self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1792,7 +1793,7 @@ class bitmex(Exchange):
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
         return self.parse_order(order)
 
-    async def cancel_orders(self, ids, symbol=None, params={}):
+    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         :param [str] ids: order ids
@@ -1813,7 +1814,7 @@ class bitmex(Exchange):
         response = await self.privateDeleteOrder(self.extend(request, params))
         return self.parse_orders(response)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -2427,7 +2428,7 @@ class bitmex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Fetches the history of funding rates
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
@@ -2500,7 +2501,7 @@ class bitmex(Exchange):
             'datetime': datetime,
         }
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2522,7 +2523,7 @@ class bitmex(Exchange):
         }
         return await self.privatePostPositionLeverage(self.extend(request, params))
 
-    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'

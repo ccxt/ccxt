@@ -1298,7 +1298,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
@@ -1371,7 +1371,7 @@ class huobi extends Exchange {
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
-    public function parse_trading_limits($limits, $symbol = null, $params = array ()) {
+    public function parse_trading_limits($limits, ?string $symbol = null, $params = array ()) {
         //
         //   {                                  $symbol => "aidocbtc",
         //                  'buy-limit-must-less-than' =>  1.1,
@@ -1831,7 +1831,7 @@ class huobi extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -2058,7 +2058,7 @@ class huobi extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -2282,7 +2282,7 @@ class huobi extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -2306,7 +2306,7 @@ class huobi extends Exchange {
         return $this->$method ($id, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_spot_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_spot_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order-id' => $id,
@@ -2315,7 +2315,7 @@ class huobi extends Exchange {
         return $this->parse_trades($response['data'], null, $since, $limit);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
          * @param {string|null} $symbol unified $market $symbol
@@ -2471,7 +2471,7 @@ class huobi extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, $limit = 1000, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -2568,7 +2568,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -3178,7 +3178,7 @@ class huobi extends Exchange {
         return $result;
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in
@@ -3398,7 +3398,7 @@ class huobi extends Exchange {
         return $account;
     }
 
-    public function fetch_spot_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_spot_orders_by_states($states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if ($method === 'spot_private_get_v1_order_orders') {
             if ($symbol === null) {
@@ -3466,15 +3466,15 @@ class huobi extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_spot_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_spot_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return $this->fetch_spot_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_spot_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_spot_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return $this->fetch_spot_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_contract_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a $symbol argument');
         }
@@ -3573,14 +3573,14 @@ class huobi extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_contract_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $request = array(
             'status' => '5,6,7', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         );
         return $this->fetch_contract_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
@@ -3611,7 +3611,7 @@ class huobi extends Exchange {
         return $this->$method ($symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
@@ -3638,7 +3638,7 @@ class huobi extends Exchange {
         return $this->$method ($symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open $orders
          * @param {string|null} $symbol unified $market $symbol
@@ -4069,7 +4069,7 @@ class huobi extends Exchange {
         ), $market);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -4098,7 +4098,7 @@ class huobi extends Exchange {
         return $this->$method ($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_spot_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
@@ -4206,7 +4206,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function create_contract_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_contract_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $offset = $this->safe_string($params, 'offset');
         $stopPrice = $this->safe_string($params, 'stopPrice');
         if ($stopPrice !== null) {
@@ -4340,7 +4340,7 @@ class huobi extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -4436,7 +4436,7 @@ class huobi extends Exchange {
         ));
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          * @param {[string]} $ids order $ids
@@ -4569,7 +4569,7 @@ class huobi extends Exchange {
         return $response;
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
          * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
@@ -4752,7 +4752,7 @@ class huobi extends Exchange {
         return $addresses;
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -4810,7 +4810,7 @@ class huobi extends Exchange {
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -5273,7 +5273,7 @@ class huobi extends Exchange {
         return $rates;
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
          * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
@@ -5383,7 +5383,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
@@ -5468,7 +5468,7 @@ class huobi extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @param {string|null} $code unified $currency $code
@@ -5729,7 +5729,7 @@ class huobi extends Exchange {
         }
     }
 
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$query-account-financial-records-via-multiple-fields-new   // linear swaps
@@ -5817,7 +5817,7 @@ class huobi extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
@@ -6129,7 +6129,7 @@ class huobi extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
-    public function fetch_position($symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch $data on a single open contract trade $position
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
@@ -6442,7 +6442,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -6553,7 +6553,7 @@ class huobi extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'contract_code');
     }
 
-    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @param {string} $symbol unified $market $symbol
@@ -6638,7 +6638,7 @@ class huobi extends Exchange {
         return $result;
     }
 
-    public function fetch_open_interest_history($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Retrieves the open interest history of a currency
          * @see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
@@ -6755,7 +6755,7 @@ class huobi extends Exchange {
         return $this->parse_open_interests($tick, $market, $since, $limit);
     }
 
-    public function fetch_open_interest($symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array ()) {
         /**
          * Retrieves the open interest of a currency
          * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
@@ -6926,7 +6926,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
@@ -6979,7 +6979,7 @@ class huobi extends Exchange {
         ));
     }
 
-    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
@@ -7057,7 +7057,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_settlement_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Fetches historical settlement records
          * @param {string} $symbol unified $symbol of the $market to fetch the settlement history for

@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import json
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -780,7 +781,7 @@ class tokocrypto(Exchange):
             result.append(entry)
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -959,7 +960,7 @@ class tokocrypto(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1123,7 +1124,7 @@ class tokocrypto(Exchange):
         response = await getattr(self, method)(params)
         return self.parse_tickers(response, symbols)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1196,7 +1197,7 @@ class tokocrypto(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1477,7 +1478,7 @@ class tokocrypto(Exchange):
             'trades': fills,
         }, market)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1623,7 +1624,7 @@ class tokocrypto(Exchange):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1669,7 +1670,7 @@ class tokocrypto(Exchange):
         rawOrder = self.safe_value(list, 0, {})
         return self.parse_order(rawOrder)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1734,7 +1735,7 @@ class tokocrypto(Exchange):
         orders = self.safe_value(data, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1746,7 +1747,7 @@ class tokocrypto(Exchange):
         request = {'type': 1}  # -1 = all, 1 = open, 2 = closed
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1758,7 +1759,7 @@ class tokocrypto(Exchange):
         request = {'type': 2}  # -1 = all, 1 = open, 2 = closed
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1800,7 +1801,7 @@ class tokocrypto(Exchange):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1818,8 +1819,7 @@ class tokocrypto(Exchange):
         }
         endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
-            startTime = int(since)
-            request['startTime'] = startTime
+            request['startTime'] = since
         if endTime is not None:
             request['endTime'] = endTime
             params = self.omit(params, ['endTime', 'until'])
@@ -1906,7 +1906,7 @@ class tokocrypto(Exchange):
             'info': response,
         }
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1960,7 +1960,7 @@ class tokocrypto(Exchange):
         deposits = self.safe_value(data, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code

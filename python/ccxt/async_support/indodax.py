@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
@@ -343,7 +344,7 @@ class indodax(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -400,7 +401,7 @@ class indodax(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -477,7 +478,7 @@ class indodax(Exchange):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -575,7 +576,7 @@ class indodax(Exchange):
             'trades': None,
         })
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -595,7 +596,7 @@ class indodax(Exchange):
         order = self.parse_order(self.extend({'id': id}, orders['order']), market)
         return self.extend({'info': response}, order)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -629,7 +630,7 @@ class indodax(Exchange):
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
         return exchangeOrders
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -652,7 +653,7 @@ class indodax(Exchange):
         orders = self.filter_by(orders, 'status', 'closed')
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -686,7 +687,7 @@ class indodax(Exchange):
             'id': id,
         }, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -739,7 +740,7 @@ class indodax(Exchange):
             'currency': self.safe_currency_code(currencyId, currency),
         }
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None

@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -726,7 +727,7 @@ class currencycom(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -839,7 +840,7 @@ class currencycom(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -923,7 +924,7 @@ class currencycom(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1028,7 +1029,7 @@ class currencycom(Exchange):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1212,7 +1213,7 @@ class currencycom(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1299,7 +1300,7 @@ class currencycom(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1341,7 +1342,7 @@ class currencycom(Exchange):
         #
         return self.parse_orders(response, market, since, limit, params)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1379,7 +1380,7 @@ class currencycom(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1418,7 +1419,7 @@ class currencycom(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1429,7 +1430,7 @@ class currencycom(Exchange):
         """
         return await self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1440,7 +1441,7 @@ class currencycom(Exchange):
         """
         return await self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1451,7 +1452,7 @@ class currencycom(Exchange):
         """
         return await self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
 
-    async def fetch_transactions_by_method(self, method, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions_by_method(self, method, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {}
         currency = None
@@ -1544,7 +1545,7 @@ class currencycom(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1639,7 +1640,7 @@ class currencycom(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_leverage(self, symbol, params={}):
+    async def fetch_leverage(self, symbol: str, params={}):
         """
         fetch the set leverage for a market
         :param str symbol: unified market symbol

@@ -492,7 +492,7 @@ class bkex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-1
@@ -598,7 +598,7 @@ class bkex extends Exchange {
         );
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
@@ -811,7 +811,7 @@ class bkex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-4
@@ -879,7 +879,7 @@ class bkex extends Exchange {
         return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bid', 'ask');
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-5
@@ -1101,7 +1101,7 @@ class bkex extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -1157,7 +1157,7 @@ class bkex extends Exchange {
         return $this->parse_transactions($dataInner, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -1266,7 +1266,7 @@ class bkex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1301,7 +1301,7 @@ class bkex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1325,7 +1325,7 @@ class bkex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          * @param {[string]} $ids order $ids
@@ -1356,7 +1356,7 @@ class bkex extends Exchange {
         return $this->parse_orders($results, $market, null, null, $params);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -1413,7 +1413,7 @@ class bkex extends Exchange {
         return $this->parse_orders($innerData, $market, $since, $limit, $params);
     }
 
-    public function fetch_open_order($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open order by it's $id
          * @param {string} $id order $id
@@ -1452,7 +1452,7 @@ class bkex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
@@ -1749,7 +1749,7 @@ class bkex extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-fundingRate
          * fetches historical funding rate prices
@@ -1800,7 +1800,7 @@ class bkex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         /**
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-riskLimit
          * retrieve information on the maximum leverage, for different trade sizes for a single $market

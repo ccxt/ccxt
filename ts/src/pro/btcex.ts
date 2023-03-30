@@ -3,6 +3,8 @@
 import btcexRest from '../btcex.js';
 import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+
 //  ---------------------------------------------------------------------------
 
 export default class btcex extends btcexRest {
@@ -125,7 +127,7 @@ export default class btcex extends btcexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchOHLCV
@@ -207,7 +209,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#watchTicker
@@ -279,7 +281,7 @@ export default class btcex extends btcexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchTrades
@@ -356,7 +358,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchMyTrades
@@ -440,7 +442,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcex#fetchOrders
@@ -519,7 +521,7 @@ export default class btcex extends btcexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchOrderBook

@@ -1,4 +1,5 @@
 import exmoRest from '../exmo.js';
+import { Int } from '../base/types.js';
 export default class exmo extends exmoRest {
     describe(): any;
     requestId(): any;
@@ -6,13 +7,13 @@ export default class exmo extends exmoRest {
     handleBalance(client: any, message: any): void;
     parseSpotBalance(message: any): void;
     parseMarginBalance(message: any): void;
-    watchTicker(symbol: any, params?: {}): Promise<any>;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any): void;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: any, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;

@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
@@ -121,7 +122,7 @@ class bybit(ccxt.async_support.bybit):
         self.options['requestId'] = requestId
         return requestId
 
-    def get_url_by_market_type(self, symbol=None, isPrivate=False, method=None, params={}):
+    def get_url_by_market_type(self, symbol: Optional[str] = None, isPrivate=False, method=None, params={}):
         accessibility = 'private' if isPrivate else 'public'
         isUsdcSettled = None
         isSpot = None
@@ -157,7 +158,7 @@ class bybit(ccxt.async_support.bybit):
         params = self.omit(params, ['type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin'])
         return params
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
@@ -307,7 +308,7 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
@@ -405,7 +406,7 @@ class bybit(ccxt.async_support.bybit):
             self.safe_number_2(ohlcv, 'volume', 'turnover'),
         ]
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
@@ -502,7 +503,7 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made in a market
         see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
@@ -640,7 +641,7 @@ class bybit(ccxt.async_support.bybit):
         else:
             return 'usdc'
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
         see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
@@ -758,7 +759,7 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         see https://bybit-exchange.github.io/docs/v5/websocket/private/order

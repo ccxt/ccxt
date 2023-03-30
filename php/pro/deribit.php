@@ -147,7 +147,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.deribit.com/#ticker-instrument_name-$interval
@@ -219,7 +219,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -298,7 +298,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->trades[$symbol], $channel);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
@@ -385,7 +385,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($cachedTrades, $channel);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
@@ -519,7 +519,7 @@ class deribit extends \ccxt\async\deribit {
         }
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
@@ -613,7 +613,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->orders, $channel);
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution

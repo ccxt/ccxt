@@ -572,7 +572,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_my_sells($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch $sells
@@ -591,7 +591,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_my_buys($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch $buys
@@ -610,7 +610,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions_with_method($method, $code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_with_method($method, $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($method, $code, $since, $limit, $params) {
             $request = Async\await($this->prepare_account_request_with_currency_code($code, $limit, $params));
             Async\await($this->load_markets());
@@ -620,7 +620,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -635,7 +635,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1304,7 +1304,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -1320,7 +1320,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker_v2($symbol, $params = array ()) {
+    public function fetch_ticker_v2(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1351,7 +1351,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker_v3($symbol, $params = array ()) {
+    public function fetch_ticker_v3(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1555,7 +1555,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1925,7 +1925,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function prepare_account_request($limit = null, $params = array ()) {
+    public function prepare_account_request(?int $limit = null, $params = array ()) {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' prepareAccountRequest() method requires an account_id (or $accountId) parameter');
@@ -1939,7 +1939,7 @@ class coinbase extends Exchange {
         return $request;
     }
 
-    public function prepare_account_request_with_currency_code($code = null, $limit = null, $params = array ()) {
+    public function prepare_account_request_with_currency_code($code = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $limit, $params) {
             $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
             if ($accountId === null) {
@@ -1961,7 +1961,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2282,7 +2282,7 @@ class coinbase extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -2298,7 +2298,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders
@@ -2339,7 +2339,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -2402,7 +2402,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -2476,7 +2476,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = null;
@@ -2544,7 +2544,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on all currently open orders
@@ -2559,7 +2559,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -2574,7 +2574,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -2589,7 +2589,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -2659,7 +2659,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -2700,7 +2700,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user

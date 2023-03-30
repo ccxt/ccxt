@@ -388,7 +388,7 @@ class woo extends Exchange {
         return $result;
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -708,7 +708,7 @@ class woo extends Exchange {
         return $result;
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -840,7 +840,7 @@ class woo extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -880,7 +880,7 @@ class woo extends Exchange {
         return array_merge($this->parse_order($response), $extendParams);
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders in a $market
          * @param {string|null} $symbol unified $market $symbol
@@ -905,7 +905,7 @@ class woo extends Exchange {
         return $response;
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -963,7 +963,7 @@ class woo extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
@@ -1101,7 +1101,7 @@ class woo extends Exchange {
         return $status;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -1139,7 +1139,7 @@ class woo extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1205,7 +1205,7 @@ class woo extends Exchange {
         );
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
          * @param {string} $id order $id
@@ -1246,7 +1246,7 @@ class woo extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
          * @param {string|null} $symbol unified $market $symbol
@@ -1425,7 +1425,7 @@ class woo extends Exchange {
         );
     }
 
-    public function get_asset_history_rows($code = null, $since = null, $limit = null, $params = array ()) {
+    public function get_asset_history_rows($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array( );
         $currency = null;
@@ -1482,7 +1482,7 @@ class woo extends Exchange {
         return array( $currency, $this->safe_value($response, 'rows', array()) );
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -1547,7 +1547,7 @@ class woo extends Exchange {
         return $currency;
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -1562,7 +1562,7 @@ class woo extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1577,7 +1577,7 @@ class woo extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
@@ -1683,7 +1683,7 @@ class woo extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
@@ -1814,7 +1814,7 @@ class woo extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://docs.woo.org/#repay-interest
@@ -1968,7 +1968,7 @@ class woo extends Exchange {
         );
     }
 
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -2045,7 +2045,7 @@ class woo extends Exchange {
         );
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2092,7 +2092,7 @@ class woo extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($symbol !== null) {
@@ -2141,7 +2141,7 @@ class woo extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_leverage($symbol, $params = array ()) {
+    public function fetch_leverage(string $symbol, $params = array ()) {
         $this->load_markets();
         $response = $this->v3PrivateGetAccountinfo ($params);
         //
@@ -2180,7 +2180,7 @@ class woo extends Exchange {
         );
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         if (($leverage < 1) || ($leverage > 20)) {
             throw new BadRequest($this->id . ' $leverage should be between 1 and 20');
@@ -2191,7 +2191,7 @@ class woo extends Exchange {
         return $this->v1PrivatePostClientLeverage (array_merge($request, $params));
     }
 
-    public function fetch_position($symbol = null, $params = array ()) {
+    public function fetch_position(?string $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

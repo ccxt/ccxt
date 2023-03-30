@@ -1,24 +1,25 @@
 import Exchange from './abstract/cryptocom.js';
+import { Int } from './base/types.js';
 export default class cryptocom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchDerivativesMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseSwapBalance(response: any): import("./base/types.js").Balances;
     parseSpotBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<any>;
     fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseAddress(addressString: any): any[];
     withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
@@ -44,8 +45,8 @@ export default class cryptocom extends Exchange {
     fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<{}>;
     fetchDepositAddress(code: any, params?: {}): Promise<any>;
     safeNetwork(networkId: any): string;
-    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -57,7 +58,7 @@ export default class cryptocom extends Exchange {
         toAccount: any;
         status: any;
     }>;
-    fetchTransfers(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchTransfers(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
@@ -110,7 +111,7 @@ export default class cryptocom extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchBorrowInterest(code?: string, symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: any;
         marginMode: any;
@@ -137,9 +138,9 @@ export default class cryptocom extends Exchange {
         };
         networks: {};
     };
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
     nonce(): number;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

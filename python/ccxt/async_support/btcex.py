@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -535,7 +536,7 @@ class btcex(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -571,7 +572,7 @@ class btcex(Exchange):
         ticker = self.safe_value(result, 0)
         return self.parse_ticker(ticker, market)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -622,7 +623,7 @@ class btcex(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -731,7 +732,7 @@ class btcex(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1184,7 +1185,7 @@ class btcex(Exchange):
             'trades': trades,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         await self.sign_in()
         await self.load_markets()
         request = {
@@ -1224,7 +1225,7 @@ class btcex(Exchange):
         #
         return self.parse_order(result)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1356,7 +1357,7 @@ class btcex(Exchange):
         order = self.safe_value(result, 'order')
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         await self.sign_in()
         await self.load_markets()
         request = {
@@ -1378,7 +1379,7 @@ class btcex(Exchange):
         #
         return self.parse_order(result)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.sign_in()
@@ -1400,7 +1401,7 @@ class btcex(Exchange):
         #
         return response
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.sign_in()
@@ -1442,7 +1443,7 @@ class btcex(Exchange):
         #
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.sign_in()
@@ -1487,7 +1488,7 @@ class btcex(Exchange):
         #
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if id is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a id argument')
         await self.load_markets()
@@ -1532,7 +1533,7 @@ class btcex(Exchange):
         trades = self.safe_value(result, 'trades', [])
         return self.parse_trades(trades, None, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a id argument')
         await self.sign_in()
@@ -1656,7 +1657,7 @@ class btcex(Exchange):
             'percentage': self.parse_number(percentage),
         }
 
-    async def fetch_position(self, symbol, params={}):
+    async def fetch_position(self, symbol: str, params={}):
         await self.sign_in()
         await self.load_markets()
         market = self.market(symbol)
@@ -1819,7 +1820,7 @@ class btcex(Exchange):
             'fee': None,
         }
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires the code argument')
         await self.sign_in()
@@ -1852,7 +1853,7 @@ class btcex(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires the code argument')
         await self.sign_in()
@@ -1920,7 +1921,7 @@ class btcex(Exchange):
         record = self.safe_value(records, 0)
         return self.parse_transaction(record, currency)
 
-    async def fetch_leverage(self, symbol, params={}):
+    async def fetch_leverage(self, symbol: str, params={}):
         """
         see https://docs.btcex.com/#get-perpetual-instrument-config
         fetch the set leverage for a market
@@ -1952,7 +1953,7 @@ class btcex(Exchange):
         data = self.safe_value(response, 'result', {})
         return self.safe_number(data, 'leverage')
 
-    async def fetch_market_leverage_tiers(self, symbol, params={}):
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
         see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
         retrieve information on the maximum leverage, for different trade sizes for a single market
@@ -2088,7 +2089,7 @@ class btcex(Exchange):
                 result[symbol] = self.parse_market_leverage_tiers(entry, market)
         return result
 
-    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         see https://docs.btcex.com/#modify-perpetual-instrument-margin-type
@@ -2123,7 +2124,7 @@ class btcex(Exchange):
         #
         return result
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the leverage amount for a market
         see https://docs.btcex.com/#modify-perpetual-instrument-leverage
@@ -2217,7 +2218,7 @@ class btcex(Exchange):
                 result[symbol] = self.parse_funding_rate(entry, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         see https://docs.btcex.com/#contracts
@@ -2376,7 +2377,7 @@ class btcex(Exchange):
             'status': None,
         }
 
-    async def fetch_open_interest(self, symbol, params={}):
+    async def fetch_open_interest(self, symbol: str, params={}):
         """
         fetch the open interest of a market
         see https://docs.btcex.com/#contracts

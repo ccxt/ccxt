@@ -5,6 +5,7 @@ import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -348,7 +349,7 @@ export default class currencycom extends currencycomRest {
         return await this.watchPrivate ('/api/v1/account', params);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name currencycom#watchTicker
@@ -378,7 +379,7 @@ export default class currencycom extends currencycomRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchTrades
@@ -398,7 +399,7 @@ export default class currencycom extends currencycomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchOrderBook
@@ -414,7 +415,7 @@ export default class currencycom extends currencycomRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchOHLCV

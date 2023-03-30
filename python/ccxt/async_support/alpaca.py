@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
@@ -308,7 +309,7 @@ class alpaca(Exchange):
             })
         return markets
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -326,7 +327,7 @@ class alpaca(Exchange):
         if since is not None:
             request['start'] = self.iso8601(since)
         if limit is not None:
-            request['limit'] = int(limit)
+            request['limit'] = limit
         method = self.safe_string(self.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades')
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -349,7 +350,7 @@ class alpaca(Exchange):
         symbolTrades = self.safe_value(trades, market['id'], {})
         return self.parse_trades(symbolTrades, market, since, limit)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -406,7 +407,7 @@ class alpaca(Exchange):
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -485,7 +486,7 @@ class alpaca(Exchange):
             self.safe_number(ohlcv, 'v'),  # volume
         ]
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -567,7 +568,7 @@ class alpaca(Exchange):
         #
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -587,7 +588,7 @@ class alpaca(Exchange):
         #
         return self.safe_value(response, 'message', {})
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -603,7 +604,7 @@ class alpaca(Exchange):
         market = self.safe_market(marketId)
         return self.parse_order(order, market)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol

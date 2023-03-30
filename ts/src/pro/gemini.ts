@@ -4,6 +4,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -32,7 +33,7 @@ export default class gemini extends geminiRest {
         });
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#watchTrades
@@ -187,7 +188,7 @@ export default class gemini extends geminiRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOHLCV
@@ -280,7 +281,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#watchOrderBook
@@ -378,7 +379,7 @@ export default class gemini extends geminiRest {
         this.handleTrades (client, message);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrders

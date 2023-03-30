@@ -1,16 +1,17 @@
 import Exchange from './abstract/blockchaincom.js';
+import { Int } from './base/types.js';
 export default class blockchaincom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchL3OrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchL2OrderBook(symbol: any, limit?: any, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: any, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickers(symbols?: any, params?: {}): Promise<any>;
     parseOrderState(state: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<{
         id: any;
         info: any;
@@ -20,12 +21,12 @@ export default class blockchaincom extends Exchange {
         info: any;
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchCanceledOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrdersByState(state: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrdersByState(state: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDepositAddress(code: any, params?: {}): Promise<{
         info: any;
     }>;
@@ -74,7 +75,7 @@ export default class blockchaincom extends Exchange {
         comment: any;
         fee: any;
     }>;
-    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
         info: any;
         id: any;
@@ -96,7 +97,7 @@ export default class blockchaincom extends Exchange {
         comment: any;
         fee: any;
     }>;
-    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposit(id: any, code?: any, params?: {}): Promise<{
         info: any;
         id: any;
@@ -120,7 +121,7 @@ export default class blockchaincom extends Exchange {
     }>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

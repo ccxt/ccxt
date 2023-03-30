@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -160,7 +161,7 @@ class wazirx(ccxt.async_support.wazirx):
             'fee': fee,
         }, market)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://docs.wazirx.com/#all-market-tickers-stream
@@ -277,7 +278,7 @@ class wazirx(ccxt.async_support.wazirx):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -337,7 +338,7 @@ class wazirx(ccxt.async_support.wazirx):
             trades.append(parsedTrade)
         client.resolve(trades, messageHash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watch trades by user
         see https://docs.wazirx.com/#trade-update
@@ -365,7 +366,7 @@ class wazirx(ccxt.async_support.wazirx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -449,7 +450,7 @@ class wazirx(ccxt.async_support.wazirx):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://docs.wazirx.com/#depth-stream
@@ -518,7 +519,7 @@ class wazirx(ccxt.async_support.wazirx):
             self.orderbooks[symbol] = currentOrderBook
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)

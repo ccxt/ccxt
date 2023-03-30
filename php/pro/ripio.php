@@ -30,7 +30,7 @@ class ripio extends \ccxt\async\ripio {
         ));
     }
 
-    public function watch_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -94,7 +94,7 @@ class ripio extends \ccxt\async\ripio {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -155,7 +155,7 @@ class ripio extends \ccxt\async\ripio {
         return $message;
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
