@@ -106,6 +106,7 @@
     "as-table": "1.0.37",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
+    "ast-transpiler": "^0.0.5",
     "eslint": "^8.8.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",

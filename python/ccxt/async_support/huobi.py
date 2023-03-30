@@ -4054,7 +4054,7 @@ class huobi(Exchange):
             #     optimal_5_ioc
             #     optimal_10_ioc
             #     optimal_20_ioc
-            #     opponent_fok  # FOR order using the BBO price
+            #     opponent_fok  # FOK order using the BBO price
             #     optimal_5_fok
             #     optimal_10_fok
             #     optimal_20_fok
