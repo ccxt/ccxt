@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
@@ -674,7 +675,7 @@ class bitflyer(Exchange):
         response = await self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str] symbols: list of unified market symbols
@@ -708,7 +709,7 @@ class bitflyer(Exchange):
         # todo unify parsePosition/parsePositions
         return response
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -736,7 +737,7 @@ class bitflyer(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -769,7 +770,7 @@ class bitflyer(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code

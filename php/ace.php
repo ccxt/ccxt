@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\ace as Exchange;
 
 class ace extends Exchange {
 
@@ -303,7 +304,7 @@ class ace extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data

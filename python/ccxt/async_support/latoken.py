@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -625,7 +626,7 @@ class latoken(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1210,7 +1211,7 @@ class latoken(Exchange):
         #
         return response
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1330,7 +1331,7 @@ class latoken(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -1376,7 +1377,7 @@ class latoken(Exchange):
         transfers = self.safe_value(response, 'content', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code

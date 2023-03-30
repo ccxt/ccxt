@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\coinsph as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidAddress;
@@ -571,7 +572,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1504,7 +1505,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal to coins_ph account
@@ -1534,7 +1535,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function deposit($code, $amount, $address, $tag = null, $params = array ()) {
+    public function deposit(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a deposit from coins_ph account to exchange account
@@ -1564,7 +1565,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1593,7 +1594,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account

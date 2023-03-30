@@ -193,7 +193,7 @@ class wazirx extends \ccxt\async\wazirx {
         }) ();
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list

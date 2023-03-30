@@ -4,9 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -634,7 +633,7 @@ class bitpanda(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1006,7 +1005,7 @@ class bitpanda(Exchange):
             'info': depositAddress,
         }
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1029,7 +1028,7 @@ class bitpanda(Exchange):
         #
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1053,7 +1052,7 @@ class bitpanda(Exchange):
         #
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1111,7 +1110,7 @@ class bitpanda(Exchange):
         depositHistory = self.safe_value(response, 'deposit_history', [])
         return self.parse_transactions(depositHistory, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1170,7 +1169,7 @@ class bitpanda(Exchange):
         withdrawalHistory = self.safe_value(response, 'withdrawal_history', [])
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1432,7 +1431,7 @@ class bitpanda(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

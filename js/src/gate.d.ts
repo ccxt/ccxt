@@ -83,7 +83,7 @@ export default class gate extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
-    fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     parseFundingRate(contract: any, market?: any): {
         info: any;
         symbol: any;
@@ -103,19 +103,19 @@ export default class gate extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    fetchNetworkDepositAddress(code: any, params?: {}): Promise<{}>;
-    createDepositAddress(code: any, params?: {}): Promise<{
+    fetchNetworkDepositAddress(code: string, params?: {}): Promise<{}>;
+    createDepositAddress(code: string, params?: {}): Promise<{
         info: any;
-        code: any;
-        currency: any;
+        code: string;
+        currency: string;
         address: any;
         tag: any;
         network: any;
     }>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
-        code: any;
-        currency: any;
+        code: string;
+        currency: string;
         address: any;
         tag: any;
         network: any;
@@ -162,7 +162,7 @@ export default class gate extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     fetchBalance(params?: {}): Promise<{
         info: any;
@@ -174,9 +174,9 @@ export default class gate extends Exchange {
     fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -234,7 +234,7 @@ export default class gate extends Exchange {
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: any;
         timestamp: number;
         datetime: string;
@@ -257,34 +257,11 @@ export default class gate extends Exchange {
         info: any;
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): {
-        info: any;
-        id: any;
-        symbol: string;
-        timestamp: any;
-        datetime: any;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        entryPrice: number;
-        notional: number;
-        leverage: number;
-        unrealizedPnl: number;
-        contracts: number;
-        contractSize: any;
-        marginRatio: any;
-        liquidationPrice: number;
-        markPrice: number;
-        collateral: number;
-        marginMode: any;
-        side: any;
-        percentage: number;
-    };
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchLeverageTiers(symbols?: any, params?: {}): Promise<{}>;
+    parsePosition(position: any, market?: any): any;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
-    repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<{
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
         id: number;
         currency: any;
         amount: number;
@@ -293,7 +270,7 @@ export default class gate extends Exchange {
         datetime: string;
         info: any;
     }>;
-    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<{
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
         id: number;
         currency: any;
         amount: number;

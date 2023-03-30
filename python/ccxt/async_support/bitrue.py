@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import json
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -919,7 +920,7 @@ class bitrue(Exchange):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def fetch_bids_asks(self, symbols=None, params={}):
+    async def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -940,7 +941,7 @@ class bitrue(Exchange):
         response = await getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1481,7 +1482,7 @@ class bitrue(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1547,7 +1548,7 @@ class bitrue(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1725,7 +1726,7 @@ class bitrue(Exchange):
             'fee': fee,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

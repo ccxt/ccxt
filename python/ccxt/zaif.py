@@ -558,7 +558,7 @@ class zaif(Exchange):
         response = self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\stex as Exchange;
 
 class stex extends Exchange {
 
@@ -687,7 +688,7 @@ class stex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
@@ -1508,7 +1509,7 @@ class stex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
@@ -1589,7 +1590,7 @@ class stex extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1828,7 +1829,7 @@ class stex extends Exchange {
         );
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -1877,7 +1878,7 @@ class stex extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -1933,7 +1934,7 @@ class stex extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -1989,7 +1990,7 @@ class stex extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -2056,7 +2057,7 @@ class stex extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -2290,7 +2291,7 @@ class stex extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

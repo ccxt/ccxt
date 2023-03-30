@@ -7319,14 +7319,14 @@ class bybit extends bybit$1 {
             }
         }
         const maintenanceMarginPercentage = Precise["default"].stringDiv(maintenanceMarginString, notional);
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealisedPnl, initialMarginString), '100');
         const marginRatio = Precise["default"].stringDiv(maintenanceMarginString, collateralString, 4);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -7340,11 +7340,12 @@ class bybit extends bybit$1 {
             'marginRatio': this.parseNumber(marginRatio),
             'liquidationPrice': this.parseNumber(liquidationPrice),
             'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': undefined,
             'collateral': this.parseNumber(collateralString),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         await this.loadMarkets();

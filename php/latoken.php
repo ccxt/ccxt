@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\latoken as Exchange;
 
 class latoken extends Exchange {
 
@@ -630,7 +631,7 @@ class latoken extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1250,7 +1251,7 @@ class latoken extends Exchange {
         return $response;
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
@@ -1376,7 +1377,7 @@ class latoken extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal $transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
@@ -1423,7 +1424,7 @@ class latoken extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code

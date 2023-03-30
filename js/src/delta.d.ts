@@ -15,7 +15,7 @@ export default class delta extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -48,7 +48,7 @@ export default class delta extends Exchange {
         leverage: any;
         marginRatio: any;
     }>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): {
         info: any;
         id: any;
@@ -84,7 +84,7 @@ export default class delta extends Exchange {
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrdersWithMethod(method: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
         info: any;
@@ -103,7 +103,7 @@ export default class delta extends Exchange {
         datetime: string;
         fee: any;
     };
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;

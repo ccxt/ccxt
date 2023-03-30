@@ -296,7 +296,7 @@ export default class krakenfutures extends Exchange {
             let symbol = id;
             const split = id.split ('_');
             const splitMarket = this.safeString (split, 1);
-            const baseId = splitMarket.replace ('usd', '');
+            const baseId = splitMarket.slice (0, splitMarket.length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1893,7 +1893,7 @@ export default class krakenfutures extends Exchange {
         }
     }
 
-    async transferOut (code, amount, params = {}) {
+    async transferOut (code: string, amount, params = {}) {
         /**
          * @description transfer from futures wallet to spot wallet
          * @param {str} code Unified currency code
@@ -1904,7 +1904,7 @@ export default class krakenfutures extends Exchange {
         return await this.transfer (code, amount, 'future', 'spot', params);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name krakenfutures#transfer

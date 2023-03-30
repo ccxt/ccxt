@@ -735,7 +735,7 @@ export default class bitfinex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bitfinex#transfer
@@ -1352,7 +1352,7 @@ export default class bitfinex extends Exchange {
         throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitfinex#createDepositAddress
@@ -1368,7 +1368,7 @@ export default class bitfinex extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchDepositAddress
@@ -1402,7 +1402,7 @@ export default class bitfinex extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchTransactions
@@ -1539,7 +1539,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#withdraw

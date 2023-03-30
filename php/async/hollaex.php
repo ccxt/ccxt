@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\hollaex as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
@@ -402,7 +403,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_books($symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
@@ -495,7 +496,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -525,7 +526,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_tickers($response, $symbols = null, $params = array ()) {
+    public function parse_tickers($response, ?array $symbols = null, $params = array ()) {
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1411,7 +1412,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1471,7 +1472,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch $data on a $currency withdrawal via the withdrawal $id
@@ -1519,7 +1520,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1676,7 +1677,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

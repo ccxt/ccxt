@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -1841,7 +1842,7 @@ class bybit(Exchange):
         rawTicker = self.safe_value(tickers, 0)
         return self.parse_ticker(rawTicker, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://bybit-exchange.github.io/docs/v5/market/tickers
@@ -2094,7 +2095,7 @@ class bybit(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_rates(self, symbols=None, params={}):
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches funding rates for multiple markets
         see https://bybit-exchange.github.io/docs/v5/market/tickers
@@ -5601,7 +5602,7 @@ class bybit(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -5643,7 +5644,7 @@ class bybit(Exchange):
         })
         return self.index_by(parsed, 'network')
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -5687,7 +5688,7 @@ class bybit(Exchange):
         addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
         return self.parse_deposit_address(addressObject, currency)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         see https://bybit-exchange.github.io/docs/v5/asset/deposit-record
@@ -5747,7 +5748,7 @@ class bybit(Exchange):
         data = self.safe_value(result, 'rows', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         see https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
@@ -5917,7 +5918,7 @@ class bybit(Exchange):
             'fee': fee,
         }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         see https://bybit-exchange.github.io/docs/v5/account/transaction-log
@@ -6166,7 +6167,7 @@ class bybit(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         see https://bybit-exchange.github.io/docs/v5/asset/withdraw
@@ -6397,7 +6398,7 @@ class bybit(Exchange):
             'datetime': self.iso8601(timestamp),
         })
 
-    def fetch_unified_positions(self, symbols=None, params={}):
+    def fetch_unified_positions(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         request = {}
         type = None
@@ -6477,7 +6478,7 @@ class bybit(Exchange):
             results.append(self.parse_position(rawPosition))
         return self.filter_by_array(results, 'symbol', symbols, False)
 
-    def fetch_usdc_positions(self, symbols=None, params={}):
+    def fetch_usdc_positions(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
@@ -6548,7 +6549,7 @@ class bybit(Exchange):
             results.append(self.parse_position(rawPosition, market))
         return self.filter_by_array(results, 'symbol', symbols, False)
 
-    def fetch_derivatives_positions(self, symbols=None, params={}):
+    def fetch_derivatives_positions(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -6612,7 +6613,7 @@ class bybit(Exchange):
         positions = self.safe_value(result, 'list', [])
         return self.parse_positions(positions, symbols, params)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -6812,14 +6813,14 @@ class bybit(Exchange):
                     if entryPrice is not None:
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
-        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -6833,11 +6834,12 @@ class bybit(Exchange):
             'marginRatio': self.parse_number(marginRatio),
             'liquidationPrice': self.parse_number(liquidationPrice),
             'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': None,
             'collateral': self.parse_number(collateralString),
             'marginMode': marginMode,
             'side': side,
-            'percentage': self.parse_number(percentage),
-        }
+            'percentage': None,
+        })
 
     def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         self.load_markets()
@@ -7133,7 +7135,7 @@ class bybit(Exchange):
             'info': interest,
         }
 
-    def fetch_borrow_rate(self, code, params={}):
+    def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         see https://bybit-exchange.github.io/docs/spot/v3/#t-queryinterestquota
@@ -7184,7 +7186,7 @@ class bybit(Exchange):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
@@ -7250,7 +7252,7 @@ class bybit(Exchange):
             'info': info,
         }
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
@@ -7314,7 +7316,7 @@ class bybit(Exchange):
             'status': status,
         })
 
-    def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
@@ -7361,7 +7363,7 @@ class bybit(Exchange):
         transfers = self.safe_value(data, 'list', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
@@ -7399,7 +7401,7 @@ class bybit(Exchange):
             'amount': amount,
         })
 
-    def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan

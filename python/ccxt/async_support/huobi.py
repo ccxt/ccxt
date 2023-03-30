@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -1341,7 +1342,7 @@ class huobi(Exchange):
         first = self.safe_value(data, 0, {})
         return self.parse_trading_fee(first, market)
 
-    async def fetch_trading_limits(self, symbols=None, params={}):
+    async def fetch_trading_limits(self, symbols: Optional[List[str]] = None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define symbols = ['ETH/BTC', 'LTC/BTC'] in args it will only load those
@@ -1879,7 +1880,7 @@ class huobi(Exchange):
         ticker['datetime'] = self.iso8601(timestamp)
         return ticker
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
@@ -4436,7 +4437,7 @@ class huobi(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
@@ -4466,7 +4467,7 @@ class huobi(Exchange):
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -4480,7 +4481,7 @@ class huobi(Exchange):
         selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
         return indexedAddresses[selectedNetworkCode]
 
-    async def fetch_withdraw_addresses(self, code, note=None, networkCode=None, params={}):
+    async def fetch_withdraw_addresses(self, code: str, note=None, networkCode=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -4512,7 +4513,7 @@ class huobi(Exchange):
                 addresses.append(address)
         return addresses
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -4565,7 +4566,7 @@ class huobi(Exchange):
         #
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -4724,7 +4725,7 @@ class huobi(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -4800,7 +4801,7 @@ class huobi(Exchange):
             'status': None,
         }
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
@@ -5143,7 +5144,7 @@ class huobi(Exchange):
         result = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(result, market)
 
-    async def fetch_funding_rates(self, symbols=None, params={}):
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param [str]|None symbols: list of unified market symbols
@@ -5187,7 +5188,7 @@ class huobi(Exchange):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
@@ -5657,7 +5658,7 @@ class huobi(Exchange):
         maintenanceMarginPercentage = Precise.string_div(adjustmentFactor, leverage)
         maintenanceMargin = Precise.string_mul(maintenanceMarginPercentage, notional)
         marginRatio = Precise.string_div(maintenanceMargin, collateral)
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -5672,6 +5673,7 @@ class huobi(Exchange):
             'marginMode': marginMode,
             'notional': self.parse_number(notional),
             'markPrice': None,
+            'lastPrice': None,
             'liquidationPrice': liquidationPrice,
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': self.parse_number(intialMarginPercentage),
@@ -5680,9 +5682,10 @@ class huobi(Exchange):
             'marginRatio': self.parse_number(marginRatio),
             'timestamp': None,
             'datetime': None,
-        }
+            'lastUpdateTimestamp': None,
+        })
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -6108,7 +6111,7 @@ class huobi(Exchange):
             'info': item,
         }
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -6173,7 +6176,7 @@ class huobi(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ledger(data, currency, since, limit)
 
-    async def fetch_leverage_tiers(self, symbols=None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param [str]|None symbols: list of unified market symbols
@@ -6262,7 +6265,7 @@ class huobi(Exchange):
         tiers = self.parse_leverage_tiers(data, [symbol], 'contract_code')
         return self.safe_value(tiers, symbol)
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
         result = {}
         for i in range(0, len(response)):
             item = response[i]
@@ -6569,7 +6572,7 @@ class huobi(Exchange):
             'info': interest,
         }
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
@@ -6619,7 +6622,7 @@ class huobi(Exchange):
             'symbol': symbol,
         })
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated

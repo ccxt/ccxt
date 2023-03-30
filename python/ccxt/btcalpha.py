@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -232,7 +233,7 @@ class btcalpha(Exchange):
             })
         return result
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://btc-alpha.github.io/api-docs/#tickers
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -426,7 +427,7 @@ class btcalpha(Exchange):
         trades = self.publicGetExchanges(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -452,7 +453,7 @@ class btcalpha(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code

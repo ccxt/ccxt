@@ -602,7 +602,7 @@ export default class hitbtc3 extends Exchange {
         }
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name hitbtc3#createDepositAddress
@@ -639,7 +639,7 @@ export default class hitbtc3 extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchDepositAddress
@@ -1158,7 +1158,7 @@ export default class hitbtc3 extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTransactions
@@ -1172,7 +1172,7 @@ export default class hitbtc3 extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchDeposits
@@ -1186,7 +1186,7 @@ export default class hitbtc3 extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchWithdrawals
@@ -1996,7 +1996,7 @@ export default class hitbtc3 extends Exchange {
         }, market);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name hitbtc3#transfer
@@ -2057,7 +2057,7 @@ export default class hitbtc3 extends Exchange {
         };
     }
 
-    async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
+    async convertCurrencyNetwork (code: string, amount, fromNetwork, toNetwork, params) {
         await this.loadMarkets ();
         if (code !== 'USDT') {
             throw new ExchangeError (this.id + ' convertCurrencyNetwork() only supports USDT currently');
@@ -2086,7 +2086,7 @@ export default class hitbtc3 extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#withdraw

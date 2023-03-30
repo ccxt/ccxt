@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\gemini as Exchange;
 
 class gemini extends Exchange {
 
@@ -736,7 +737,7 @@ class gemini extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1354,7 +1355,7 @@ class gemini extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1412,7 +1413,7 @@ class gemini extends Exchange {
         return $this->seconds();
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code not used by gemini.fetchTransactions
@@ -1516,7 +1517,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $network = $this->safe_string($params, 'network');
@@ -1598,7 +1599,7 @@ class gemini extends Exchange {
         }
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address

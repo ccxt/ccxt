@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\cryptocom as Exchange;
 
 class cryptocom extends Exchange {
 
@@ -587,7 +588,7 @@ class cryptocom extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
@@ -1417,7 +1418,7 @@ class cryptocom extends Exchange {
         return array( $address, $tag );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1459,7 +1460,7 @@ class cryptocom extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of $addresses for a $currency, indexed by $network
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
@@ -1524,7 +1525,7 @@ class cryptocom extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
          * @param {string} $code unified currency $code
@@ -1555,7 +1556,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -1603,7 +1604,7 @@ class cryptocom extends Exchange {
         return $this->parse_transactions($depositList, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -1655,7 +1656,7 @@ class cryptocom extends Exchange {
         return $this->parse_transactions($withdrawalList, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -1693,7 +1694,7 @@ class cryptocom extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
@@ -2196,7 +2197,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
@@ -2229,7 +2230,7 @@ class cryptocom extends Exchange {
         ));
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
@@ -2291,7 +2292,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;

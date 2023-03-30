@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -638,7 +639,7 @@ class zonda(Exchange):
         stats = self.safe_value(response, 'stats')
         return self.parse_ticker(stats, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -664,7 +665,7 @@ class zonda(Exchange):
         items = self.safe_value(response, 'items')
         return self.parse_tickers(items, symbols)
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1347,7 +1348,7 @@ class zonda(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1403,7 +1404,7 @@ class zonda(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_addresses(data, codes)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1511,7 +1512,7 @@ class zonda(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

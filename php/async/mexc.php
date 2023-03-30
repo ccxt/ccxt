@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\mexc as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -1444,7 +1445,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1722,7 +1723,7 @@ class mexc extends Exchange {
         ), $market);
     }
 
-    public function fetch_bids_asks($symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
@@ -3746,7 +3747,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -3897,7 +3898,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by $network
@@ -3932,7 +3933,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -3961,7 +3962,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -4022,7 +4023,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -4218,7 +4219,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -4300,7 +4301,7 @@ class mexc extends Exchange {
         $leverage = $this->safe_number($position, 'leverage');
         $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
         $timestamp = $this->safe_number($position, 'updateTime');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -4315,6 +4316,7 @@ class mexc extends Exchange {
             'marginType' => $marginType,
             'notional' => null,
             'markPrice' => null,
+            'lastPrice' => null,
             'liquidationPrice' => $liquidationPrice,
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => null,
@@ -4323,7 +4325,8 @@ class mexc extends Exchange {
             'marginRatio' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+            'lastUpdateTimestamp' => null,
+        ));
     }
 
     public function fetch_transfer($id, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -4356,7 +4359,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -4443,7 +4446,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -4579,7 +4582,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4654,7 +4657,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a loan to borrow margin
@@ -4690,7 +4693,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest

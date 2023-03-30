@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\hitbtc3 as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -613,7 +614,7 @@ class hitbtc3 extends Exchange {
         }
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
@@ -650,7 +651,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -756,7 +757,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1171,7 +1172,7 @@ class hitbtc3 extends Exchange {
         );
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1185,7 +1186,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1199,7 +1200,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1213,7 +1214,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_order_books($symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
@@ -1307,12 +1308,12 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($symbols = null, $params = array ()) {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_trading_fees($params = array ()) {
+        return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
@@ -2011,7 +2012,7 @@ class hitbtc3 extends Exchange {
         ), $market);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -2072,7 +2073,7 @@ class hitbtc3 extends Exchange {
         );
     }
 
-    public function convert_currency_network($code, $amount, $fromNetwork, $toNetwork, $params) {
+    public function convert_currency_network(string $code, $amount, $fromNetwork, $toNetwork, $params) {
         return Async\async(function () use ($code, $amount, $fromNetwork, $toNetwork, $params) {
             Async\await($this->load_markets());
             if ($code !== 'USDT') {
@@ -2103,7 +2104,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2218,7 +2219,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2398,7 +2399,7 @@ class hitbtc3 extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -2412,10 +2413,12 @@ class hitbtc3 extends Exchange {
             'contracts' => $contracts,
             'contractSize' => null,
             'markPrice' => null,
+            'lastPrice' => null,
             'side' => null,
             'hedged' => null,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
+            'lastUpdateTimestamp' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'collateral' => $collateral,
@@ -2423,7 +2426,7 @@ class hitbtc3 extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $leverage,
             'marginRatio' => null,
-        );
+        ));
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()) {

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitrue as Exchange;
 
 class bitrue extends Exchange {
 
@@ -923,7 +924,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function fetch_bids_asks($symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -946,7 +947,7 @@ class bitrue extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
@@ -1526,7 +1527,7 @@ class bitrue extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -1596,7 +1597,7 @@ class bitrue extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -1786,7 +1787,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

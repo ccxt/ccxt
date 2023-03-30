@@ -1460,7 +1460,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
-    async createDepositAddress (code, params = {}): Promise<DepositAddressResponse> {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddressResponse> {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
@@ -2985,7 +2985,7 @@ export default class Exchange {
         return await this.fetchTransactionFees (codes, params);
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchTransactionFee (code: string, params = {}) {
         if (!this.has['fetchTransactionFees']) {
             throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
         }
@@ -3000,7 +3000,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
 
-    async fetchDepositWithdrawFee (code, params = {}) {
+    async fetchDepositWithdrawFee (code: string, params = {}) {
         if (!this.has['fetchDepositWithdrawFees']) {
             throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }

@@ -4,11 +4,11 @@ export default class hollaex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchOrderBooks(symbols?: any, limit?: Int, params?: {}): Promise<{}>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
-    parseTickers(response: any, symbols?: any, params?: {}): any;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    parseTickers(response: any, symbols?: string[], params?: {}): any;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -36,8 +36,8 @@ export default class hollaex extends Exchange {
         info: any;
     };
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawal(id: any, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -57,7 +57,7 @@ export default class hollaex extends Exchange {
         updated: number;
         fee: any;
     }>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -78,7 +78,7 @@ export default class hollaex extends Exchange {
         updated: number;
         fee: any;
     };
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;

@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -399,7 +400,7 @@ class hollaex(Exchange):
             }
         return result
 
-    async def fetch_order_books(self, symbols=None, limit: Optional[int] = None, params={}):
+    async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param [str]|None symbols: not used by hollaex fetchOrderBooks()
@@ -482,7 +483,7 @@ class hollaex(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -509,7 +510,7 @@ class hollaex(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, response, symbols=None, params={}):
+    def parse_tickers(self, response, symbols: Optional[List[str]] = None, params={}):
         result = {}
         keys = list(response.keys())
         for i in range(0, len(keys)):
@@ -1326,7 +1327,7 @@ class hollaex(Exchange):
         addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
         return self.parse_deposit_addresses(addresses, codes)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1380,7 +1381,7 @@ class hollaex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1424,7 +1425,7 @@ class hollaex(Exchange):
         transaction = self.safe_value(data, 0, {})
         return self.parse_transaction(transaction, currency)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1571,7 +1572,7 @@ class hollaex(Exchange):
             'fee': fee,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

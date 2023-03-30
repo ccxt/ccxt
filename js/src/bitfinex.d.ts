@@ -21,7 +21,7 @@ export default class bitfinex extends Exchange {
     amountToPrecision(symbol: any, amount: any): any;
     priceToPrecision(symbol: any, price: any): any;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
         id: any;
@@ -36,7 +36,7 @@ export default class bitfinex extends Exchange {
     parseTransferStatus(status: any): string;
     convertDerivativesId(currencyId: any, type: any): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -53,21 +53,21 @@ export default class bitfinex extends Exchange {
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     getCurrencyName(code: any): any;
-    createDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    createDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: any;
         tag: any;
         network: any;
         info: any;
     }>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: any;
         tag: any;
         network: any;
         info: any;
     }>;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -94,7 +94,7 @@ export default class bitfinex extends Exchange {
         };
     };
     parseTransactionStatus(status: any): string;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -119,7 +119,7 @@ export default class bitfinex extends Exchange {
             rate: any;
         };
     }>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -489,7 +490,7 @@ class coinbase(Exchange):
             'info': account,
         }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -589,14 +590,14 @@ class coinbase(Exchange):
         buys = self.v2PrivateGetAccountsAccountIdBuys(self.extend(request, query))
         return self.parse_trades(buys['data'], None, since, limit)
 
-    def fetch_transactions_with_method(self, method, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions_with_method(self, method, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         request = self.prepare_account_request_with_currency_code(code, limit, params)
         self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_transactions(response['data'], None, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -608,7 +609,7 @@ class coinbase(Exchange):
         # fiat only, for crypto transactions use fetchLedger
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1137,7 +1138,7 @@ class coinbase(Exchange):
             }
         return result
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1149,7 +1150,7 @@ class coinbase(Exchange):
             return self.fetch_tickers_v3(symbols, params)
         return self.fetch_tickers_v2(symbols, params)
 
-    def fetch_tickers_v2(self, symbols=None, params={}):
+    def fetch_tickers_v2(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
@@ -1182,7 +1183,7 @@ class coinbase(Exchange):
             result[symbol] = self.parse_ticker(rates[baseId], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_tickers_v3(self, symbols=None, params={}):
+    def fetch_tickers_v3(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.v3PrivateGetBrokerageProducts(params)
@@ -1465,7 +1466,7 @@ class coinbase(Exchange):
         #
         return self.parse_balance(response, params)
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1830,7 +1831,7 @@ class coinbase(Exchange):
             request['limit'] = limit
         return request
 
-    def prepare_account_request_with_currency_code(self, code=None, limit: Optional[int] = None, params={}):
+    def prepare_account_request_with_currency_code(self, code: Optional[str] = None, limit: Optional[int] = None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             if code is None:

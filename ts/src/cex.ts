@@ -1510,7 +1510,7 @@ export default class cex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name cex#fetchDepositAddress

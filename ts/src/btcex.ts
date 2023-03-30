@@ -1882,7 +1882,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires the code argument');
         }
@@ -1917,7 +1917,7 @@ export default class btcex extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires the code argument');
         }
@@ -1952,7 +1952,7 @@ export default class btcex extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id, code: string = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
         }
@@ -2426,7 +2426,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name btcex#transfer

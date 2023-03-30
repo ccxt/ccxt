@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -1469,7 +1470,7 @@ class okx(Exchange):
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
 
-    async def fetch_tickers_by_type(self, type, symbols=None, params={}):
+    async def fetch_tickers_by_type(self, type, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
         request = {
             'instType': self.convert_to_instrument_type(type),
@@ -1511,7 +1512,7 @@ class okx(Exchange):
         tickers = self.safe_value(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -3241,7 +3242,7 @@ class okx(Exchange):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
@@ -3572,7 +3573,7 @@ class okx(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
@@ -3611,7 +3612,7 @@ class okx(Exchange):
         parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -3643,7 +3644,7 @@ class okx(Exchange):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
         return result
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3705,7 +3706,7 @@ class okx(Exchange):
         transaction = self.safe_value(data, 0)
         return self.parse_transaction(transaction, currency)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -3773,7 +3774,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_deposit(self, id, code=None, params={}):
+    async def fetch_deposit(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -3795,7 +3796,7 @@ class okx(Exchange):
         deposit = self.safe_value(data, 0, {})
         return self.parse_transaction(deposit, currency)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -3855,7 +3856,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -4136,7 +4137,7 @@ class okx(Exchange):
             return position
         return self.parse_position(position)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
         fetch all open positions
@@ -4317,7 +4318,7 @@ class okx(Exchange):
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
         timestamp = self.safe_integer(position, 'uTime')
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -4330,10 +4331,12 @@ class okx(Exchange):
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': self.parse_number(markPriceString),
+            'lastPrice': None,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': None,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': self.parse_number(collateralString),
@@ -4341,9 +4344,9 @@ class okx(Exchange):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': self.parse_number(leverageString),
             'marginRatio': marginRatio,
-        }
+        })
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -4450,7 +4453,7 @@ class okx(Exchange):
             'status': status,
         }
 
-    async def fetch_transfer(self, id, code=None, params={}):
+    async def fetch_transfer(self, id, code: Optional[str] = None, params={}):
         await self.load_markets()
         request = {
             'transId': id,
@@ -4902,7 +4905,7 @@ class okx(Exchange):
             }
         return rates
 
-    async def fetch_borrow_rate(self, code, params={}):
+    async def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
@@ -5026,7 +5029,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_borrow_rate_histories(data, codes, since, limit)
 
-    async def fetch_borrow_rate_history(self, code, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
         :param str code: unified currency code
@@ -5223,7 +5226,7 @@ class okx(Exchange):
             })
         return tiers
 
-    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
@@ -5296,7 +5299,7 @@ class okx(Exchange):
             'info': info,
         }
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
@@ -5338,7 +5341,7 @@ class okx(Exchange):
             'symbol': symbol,
         })
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay

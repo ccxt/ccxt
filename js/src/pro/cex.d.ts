@@ -10,7 +10,7 @@ export default class cex extends cexRest {
     parseWsOldTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleTrade(client: any, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: any, params?: {}): any;
+    watchTickers(symbols?: string[], params?: {}): any;
     handleTicker(client: any, message: any): void;
     parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

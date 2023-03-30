@@ -728,7 +728,7 @@ export default class lbank extends Exchange {
         return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as any;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lbank#withdraw

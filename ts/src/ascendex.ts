@@ -2232,7 +2232,7 @@ export default class ascendex extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name ascendex#fetchDepositAddress
@@ -2304,7 +2304,7 @@ export default class ascendex extends Exchange {
         });
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchDeposits
@@ -2321,7 +2321,7 @@ export default class ascendex extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchWithdrawals
@@ -2338,7 +2338,7 @@ export default class ascendex extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchTransactions
@@ -2896,7 +2896,7 @@ export default class ascendex extends Exchange {
         return tiers;
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name ascendex#transfer

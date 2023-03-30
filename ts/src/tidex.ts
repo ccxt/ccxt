@@ -881,7 +881,7 @@ export default class tidex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name tidex#withdraw

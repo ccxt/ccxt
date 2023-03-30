@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\hitbtc as Exchange;
 use ccxt\ExchangeError;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
@@ -370,7 +371,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -708,7 +709,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -832,7 +833,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1368,7 +1369,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit $address
@@ -1394,7 +1395,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1428,7 +1429,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function convert_currency_network($code, $amount, $fromNetwork, $toNetwork, $params) {
+    public function convert_currency_network(string $code, $amount, $fromNetwork, $toNetwork, $params) {
         return Async\async(function () use ($code, $amount, $fromNetwork, $toNetwork, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1450,7 +1451,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

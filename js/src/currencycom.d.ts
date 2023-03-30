@@ -13,7 +13,7 @@ export default class currencycom extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -27,10 +27,10 @@ export default class currencycom extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactionsByMethod(method: any, code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactionsByMethod(method: any, code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -58,7 +58,7 @@ export default class currencycom extends Exchange {
     };
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
         timestamp: number;
@@ -79,7 +79,7 @@ export default class currencycom extends Exchange {
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     fetchLeverage(symbol: string, params?: {}): Promise<number>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: any;
@@ -99,30 +99,7 @@ export default class currencycom extends Exchange {
         body: any;
         headers: any;
     };
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): {
-        symbol: any;
-        timestamp: number;
-        datetime: string;
-        contracts: number;
-        contractSize: any;
-        entryPrice: number;
-        collateral: any;
-        side: string;
-        unrealizedProfit: number;
-        leverage: string;
-        percentage: any;
-        marginMode: any;
-        notional: any;
-        markPrice: any;
-        liquidationPrice: any;
-        initialMargin: any;
-        initialMarginPercentage: any;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: any;
-        marginRatio: any;
-        info: any;
-        id: any;
-    };
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
 }

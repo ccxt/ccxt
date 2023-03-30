@@ -12,7 +12,7 @@ export default class coinsph extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
@@ -50,7 +50,7 @@ export default class coinsph extends Exchange {
         maker: number;
         taker: number;
     };
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -71,7 +71,7 @@ export default class coinsph extends Exchange {
         internal: any;
         fee: any;
     }>;
-    deposit(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    deposit(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -92,8 +92,8 @@ export default class coinsph extends Exchange {
         internal: any;
         fee: any;
     }>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;

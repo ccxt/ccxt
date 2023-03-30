@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -461,7 +462,7 @@ class lykke(Exchange):
         #
         return self.parse_ticker(self.safe_value(ticker, 0, {}), market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1028,7 +1029,7 @@ class lykke(Exchange):
         amount = Precise.string_abs(self.safe_string(bidask, amountKey))
         return [self.parse_number(price), self.parse_number(amount)]
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1119,7 +1120,7 @@ class lykke(Exchange):
             'fee': fee,
         }
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1157,7 +1158,7 @@ class lykke(Exchange):
             currency = self.currency(code)
         return self.parse_transactions(payload, currency, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

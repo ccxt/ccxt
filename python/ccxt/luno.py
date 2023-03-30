@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -506,7 +507,7 @@ class luno(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -790,7 +791,7 @@ class luno(Exchange):
         }
         return self.privatePostStoporder(self.extend(request, params))
 
-    def fetch_ledger_by_entries(self, code=None, entry=-1, limit=1, params={}):
+    def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=-1, limit=1, params={}):
         # by default without entry number or limit number, return most recent entry
         since = None
         request = {
@@ -799,7 +800,7 @@ class luno(Exchange):
         }
         return self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None

@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 import math
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -428,7 +429,7 @@ class bitopro(Exchange):
         #
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1320,7 +1321,7 @@ class bitopro(Exchange):
             },
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1366,7 +1367,7 @@ class bitopro(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1411,7 +1412,7 @@ class bitopro(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1447,7 +1448,7 @@ class bitopro(Exchange):
         #
         return self.parse_transaction(result, currency)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\idex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\InvalidAddress;
@@ -25,7 +26,7 @@ class idex extends Exchange {
             'rateLimit' => 200,
             'version' => 'v3',
             'pro' => true,
-            'certified' => true,
+            'certified' => false,
             'requiresWeb3' => true,
             'has' => array(
                 'CORS' => null,
@@ -355,7 +356,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1343,7 +1344,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1489,7 +1490,7 @@ class idex extends Exchange {
         }
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a deposit
@@ -1510,7 +1511,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -1540,7 +1541,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch data on a currency withdrawal via the withdrawal $id
@@ -1561,7 +1562,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1576,7 +1577,7 @@ class idex extends Exchange {
         return $this->fetch_transactions_helper($code, $since, $limit, $params);
     }
 
-    public function fetch_transactions_helper($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             Async\await($this->load_markets());
             $nonce = $this->uuidv1();

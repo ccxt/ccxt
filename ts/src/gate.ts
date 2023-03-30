@@ -1562,7 +1562,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchNetworkDepositAddress (code, params = {}) {
+    async fetchNetworkDepositAddress (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1602,7 +1602,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name gate#createDepositAddress
@@ -1615,7 +1615,7 @@ export default class gate extends Exchange {
         return await this.fetchDepositAddress (code, params);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name gate#fetchDepositAddress
@@ -2950,7 +2950,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchDeposits
@@ -2980,7 +2980,7 @@ export default class gate extends Exchange {
         return this.parseTransactions (response, currency);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchWithdrawals
@@ -3010,7 +3010,7 @@ export default class gate extends Exchange {
         return this.parseTransactions (response, currency);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name gate#withdraw
@@ -4216,7 +4216,7 @@ export default class gate extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name gate#transfer
@@ -4749,7 +4749,7 @@ export default class gate extends Exchange {
         return tiers;
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gate#repayMargin
@@ -4833,7 +4833,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gate#borrowMargin

@@ -23,6 +23,7 @@ export default class bitmex extends Exchange {
             // 120 per minute => 2 per second => weight = 5 (authenticated)
             // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
             'rateLimit': 100,
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -955,7 +956,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchLedger
@@ -1006,7 +1007,7 @@ export default class bitmex extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchTransactions
@@ -2264,7 +2265,7 @@ export default class bitmex extends Exchange {
         return false;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#withdraw
@@ -2704,7 +2705,7 @@ export default class bitmex extends Exchange {
         return await this.privatePostPositionIsolate (this.extend (request, params));
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitmex#fetchDepositAddress

@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -35,7 +36,7 @@ class idex(Exchange):
             'rateLimit': 200,
             'version': 'v3',
             'pro': True,
-            'certified': True,
+            'certified': False,
             'requiresWeb3': True,
             'has': {
                 'CORS': None,
@@ -355,7 +356,7 @@ class idex(Exchange):
         ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1255,7 +1256,7 @@ class idex(Exchange):
         response = self.privatePostOrders(request)
         return self.parse_order(response, market)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1386,7 +1387,7 @@ class idex(Exchange):
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
 
-    def fetch_deposit(self, id, code=None, params={}):
+    def fetch_deposit(self, id, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1404,7 +1405,7 @@ class idex(Exchange):
         response = self.privateGetDeposits(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1430,7 +1431,7 @@ class idex(Exchange):
         #
         return self.safe_number(response, 'serverTime')
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1448,7 +1449,7 @@ class idex(Exchange):
         response = self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1462,7 +1463,7 @@ class idex(Exchange):
         }, params)
         return self.fetch_transactions_helper(code, since, limit, params)
 
-    def fetch_transactions_helper(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         nonce = self.uuidv1()
         request = {

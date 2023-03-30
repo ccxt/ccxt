@@ -18,7 +18,7 @@ export default class bit2c extends Exchange {
     removeCommaFromValue(str: any): string;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     isFiat(code: any): boolean;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         network: any;
         address: string;

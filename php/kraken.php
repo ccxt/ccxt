@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\kraken as Exchange;
 
 class kraken extends Exchange {
 
@@ -755,7 +756,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
@@ -945,7 +946,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -988,7 +989,7 @@ class kraken extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function fetch_ledger_entries_by_ids($ids, $code = null, $params = array ()) {
+    public function fetch_ledger_entries_by_ids($ids, ?string $code = null, $params = array ()) {
         // https://www.kraken.com/features/api#query-ledgers
         $this->load_markets();
         $ids = implode(',', $ids);
@@ -1017,7 +1018,7 @@ class kraken extends Exchange {
         return $this->parse_ledger($items);
     }
 
-    public function fetch_ledger_entry($id, $code = null, $params = array ()) {
+    public function fetch_ledger_entry($id, ?string $code = null, $params = array ()) {
         $items = $this->fetch_ledger_entries_by_ids(array( $id ), $code, $params);
         return $items[0];
     }
@@ -2055,7 +2056,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type($type, $transactions, $code = null, ?int $since = null, ?int $limit = null) {
+    public function parse_transactions_by_type($type, $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction(array_merge(array(
@@ -2066,7 +2067,7 @@ class kraken extends Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -2122,7 +2123,7 @@ class kraken extends Exchange {
         return $this->safe_timestamp($result, 'unixtime');
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -2157,7 +2158,7 @@ class kraken extends Exchange {
         return $this->parse_transactions_by_type('withdrawal', $response['result'], $code, $since, $limit);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
          * @param {string} $code unified currency $code of the currency for the deposit address
@@ -2170,7 +2171,7 @@ class kraken extends Exchange {
         return $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
-    public function fetch_deposit_methods($code, $params = array ()) {
+    public function fetch_deposit_methods(string $code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2203,7 +2204,7 @@ class kraken extends Exchange {
         return $this->safe_value($response, 'result');
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -2284,7 +2285,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2319,7 +2320,7 @@ class kraken extends Exchange {
         throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, up on your account)");
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols not used by kraken fetchPositions ()

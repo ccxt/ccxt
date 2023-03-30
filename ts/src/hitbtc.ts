@@ -365,7 +365,7 @@ export default class hitbtc extends Exchange {
         return result;
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name hitbtc#transfer
@@ -827,7 +827,7 @@ export default class hitbtc extends Exchange {
         }, market);
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchTransactions
@@ -1361,7 +1361,7 @@ export default class hitbtc extends Exchange {
         throw new OrderNotFound (this.id + ' order ' + id + ' not found, ' + this.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]');
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name hitbtc#createDepositAddress
@@ -1387,7 +1387,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchDepositAddress
@@ -1421,7 +1421,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
+    async convertCurrencyNetwork (code: string, amount, fromNetwork, toNetwork, params) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networks = this.safeValue (this.options, 'networks', {});
@@ -1441,7 +1441,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#withdraw

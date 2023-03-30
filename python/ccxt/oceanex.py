@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -266,7 +267,7 @@ class oceanex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -386,7 +387,7 @@ class oceanex(Exchange):
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, symbol, timestamp)
 
-    def fetch_order_books(self, symbols=None, limit: Optional[int] = None, params={}):
+    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None

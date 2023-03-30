@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
@@ -245,7 +246,7 @@ class cex(ccxt.async_support.cex):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, subscriptionHash)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://cex.io/websocket-api#ticker-subscription
         watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market

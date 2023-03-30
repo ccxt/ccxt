@@ -4,7 +4,7 @@ export default class krakenfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -23,8 +23,8 @@ export default class krakenfutures extends Exchange {
     fetchBalance(params?: {}): Promise<any>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
-    parsePositions(response: any, symbols?: any, params?: {}): any[];
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePositions(response: any, symbols?: string[], params?: {}): any[];
     parsePosition(position: any, market?: any): {
         info: any;
         symbol: any;
@@ -48,7 +48,7 @@ export default class krakenfutures extends Exchange {
         side: string;
         percentage: any;
     };
-    fetchLeverageTiers(symbols?: any, params?: {}): Promise<{}>;
+    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
     parseTransfer(transfer: any, currency?: any): {
         info: any;
@@ -62,8 +62,8 @@ export default class krakenfutures extends Exchange {
         status: string;
     };
     parseAccount(account: any): any;
-    transferOut(code: any, amount: any, params?: {}): Promise<any>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    transferOut(code: string, amount: any, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

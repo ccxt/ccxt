@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -305,7 +306,7 @@ class ace(Exchange):
         #
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data

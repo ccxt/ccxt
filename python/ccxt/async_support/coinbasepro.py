@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -603,7 +604,7 @@ class coinbasepro(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1198,7 +1199,7 @@ class coinbasepro(Exchange):
     async def fetch_payment_methods(self, params={}):
         return await self.privateGetPaymentMethods(params)
 
-    async def deposit(self, code, amount, address, params={}):
+    async def deposit(self, code: str, amount, address, params={}):
         """
         Creates a new deposit address, by coinbasepro
         :param str code: Unified CCXT currency code(e.g. `"USDT"`)
@@ -1233,7 +1234,7 @@ class coinbasepro(Exchange):
             'id': response['id'],
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1346,7 +1347,7 @@ class coinbasepro(Exchange):
             'info': item,
         }
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -1383,7 +1384,7 @@ class coinbasepro(Exchange):
             response[i]['currency'] = code
         return self.parse_ledger(response, currency, since, limit)
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
@@ -1480,7 +1481,7 @@ class coinbasepro(Exchange):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1491,7 +1492,7 @@ class coinbasepro(Exchange):
         """
         return await self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1591,7 +1592,7 @@ class coinbasepro(Exchange):
             'fee': fee,
         }
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address

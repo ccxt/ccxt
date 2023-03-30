@@ -682,7 +682,7 @@ export default class zonda extends Exchange {
         return this.parseTickers (items, symbols);
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchLedger
@@ -1402,7 +1402,7 @@ export default class zonda extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name zonda#fetchDepositAddress
@@ -1464,7 +1464,7 @@ export default class zonda extends Exchange {
         return this.parseDepositAddresses (data, codes);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name zonda#transfer
@@ -1578,7 +1578,7 @@ export default class zonda extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name zonda#withdraw

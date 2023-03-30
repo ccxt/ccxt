@@ -2295,6 +2295,21 @@ export default class Exchange {
         }
         return this.markets;
     }
+    safePosition(position) {
+        // simplified version of: /pull/12765/
+        const unrealizedPnlString = this.safeString(position, 'unrealisedPnl');
+        const initialMarginString = this.safeString(position, 'initialMargin');
+        //
+        // PERCENTAGE
+        //
+        const percentage = this.safeValue(position, 'percentage');
+        if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            const percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), '100');
+            position['percentage'] = this.parseNumber(percentageString);
+        }
+        return position;
+    }
     parsePositions(positions, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols);
         positions = this.toArray(positions);
@@ -3312,7 +3327,7 @@ export default class Exchange {
         }
         return [false, params];
     }
-    async fetchLastPrices(params = {}) {
+    async fetchLastPrices(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchLastPrices() is not supported yet');
     }
     async fetchTradingFees(params = {}) {

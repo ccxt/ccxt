@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\coinex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -743,7 +744,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -2554,7 +2555,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
@@ -2587,7 +2588,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2822,7 +2823,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -3067,7 +3068,7 @@ class coinex extends Exchange {
         $maintenanceMarginPercentage = $this->safe_string($position, 'mainten_margin');
         $collateral = $this->safe_string($position, 'margin_amount');
         $leverage = $this->safe_number($position, 'leverage');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => $positionId,
             'symbol' => $symbol,
@@ -3080,10 +3081,12 @@ class coinex extends Exchange {
             'contracts' => null,
             'contractSize' => $contractSize,
             'markPrice' => null,
+            'lastPrice' => null,
             'side' => $side,
             'hedged' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => null,
             'maintenanceMargin' => $maintenanceMargin,
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
             'collateral' => $collateral,
@@ -3091,7 +3094,7 @@ class coinex extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $leverage,
             'marginRatio' => null,
-        );
+        ));
     }
 
     public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
@@ -3183,7 +3186,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -3215,7 +3218,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
         //
         //     {
         //         "BTCUSD" => [
@@ -3566,7 +3569,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              *  @method
@@ -3637,7 +3640,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3874,7 +3877,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -3985,7 +3988,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
@@ -4070,7 +4073,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -4138,7 +4141,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -4235,7 +4238,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
@@ -4332,7 +4335,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array();
@@ -4423,7 +4426,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a loan to borrow margin
@@ -4464,7 +4467,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest

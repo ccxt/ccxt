@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -720,7 +721,7 @@ class bitfinex(Exchange):
                     result[code] = account
         return self.safe_balance(result)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -820,7 +821,7 @@ class bitfinex(Exchange):
         response = await self.publicGetBookSymbol(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1262,7 +1263,7 @@ class bitfinex(Exchange):
             return self.options['currencyNames'][code]
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1275,7 +1276,7 @@ class bitfinex(Exchange):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1305,7 +1306,7 @@ class bitfinex(Exchange):
             'info': response,
         }
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1433,7 +1434,7 @@ class bitfinex(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1478,7 +1479,7 @@ class bitfinex(Exchange):
             raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
         return self.parse_transaction(response, currency)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols

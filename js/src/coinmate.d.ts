@@ -28,7 +28,7 @@ export default class coinmate extends Exchange {
         quoteVolume: any;
         info: any;
     }>;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         id: string;
@@ -52,7 +52,7 @@ export default class coinmate extends Exchange {
         };
         info: any;
     };
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         timestamp: number;
         datetime: string;

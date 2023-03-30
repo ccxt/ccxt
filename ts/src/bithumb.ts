@@ -954,7 +954,7 @@ export default class bithumb extends Exchange {
         return this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#withdraw

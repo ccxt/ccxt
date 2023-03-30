@@ -35,7 +35,7 @@ export default class binance extends binanceRest {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: any, params?: {}): any;
+    watchTickers(symbols?: string[], params?: {}): any;
     parseWsTicker(message: any, marketType: any): {
         symbol: any;
         timestamp: any;

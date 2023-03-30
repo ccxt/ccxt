@@ -175,7 +175,7 @@ class btcmarkets(Exchange):
             },
         })
 
-    async def fetch_transactions_with_method(self, method, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions_with_method(self, method, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {}
         if limit is not None:
@@ -188,7 +188,7 @@ class btcmarkets(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -199,7 +199,7 @@ class btcmarkets(Exchange):
         """
         return await self.fetch_transactions_with_method('privateGetTransfers', code, since, limit, params)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -210,7 +210,7 @@ class btcmarkets(Exchange):
         """
         return await self.fetch_transactions_with_method('privateGetDeposits', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1055,7 +1055,7 @@ class btcmarkets(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

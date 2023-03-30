@@ -5,7 +5,7 @@ import Exchange from './abstract/bitpanda.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { OrderType, OrderSide, Int } from './base/types.js';
+import { Int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1046,7 +1046,7 @@ export default class bitpanda extends Exchange {
         };
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitpanda#createDepositAddress
@@ -1072,7 +1072,7 @@ export default class bitpanda extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchDepositAddress
@@ -1099,7 +1099,7 @@ export default class bitpanda extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchDeposits
@@ -1164,7 +1164,7 @@ export default class bitpanda extends Exchange {
         return this.parseTransactions (depositHistory, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchWithdrawals
@@ -1230,7 +1230,7 @@ export default class bitpanda extends Exchange {
         return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#withdraw
@@ -1503,7 +1503,7 @@ export default class bitpanda extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#createOrder

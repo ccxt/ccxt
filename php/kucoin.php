@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\kucoin as Exchange;
 
 class kucoin extends Exchange {
 
@@ -789,7 +790,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         /**
          * *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
@@ -821,7 +822,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
         /**
          * fetch the fee for deposits and withdrawals
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
@@ -1010,7 +1011,7 @@ class kucoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
@@ -1173,7 +1174,7 @@ class kucoin extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * @see https://docs.kucoin.com/#create-deposit-$address
          * create a $currency deposit $address
@@ -1219,7 +1220,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1270,7 +1271,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * @see https://docs.kucoin.com/#get-deposit-addresses-v2
          * fetch the deposit address for a $currency associated with this account
@@ -2206,7 +2207,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2383,7 +2384,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -2455,7 +2456,7 @@ class kucoin extends Exchange {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -2679,7 +2680,7 @@ class kucoin extends Exchange {
         return $isolated ? $result : $this->safe_balance($result);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.kucoin.com/#inner-transfer
@@ -2962,7 +2963,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -3048,7 +3049,7 @@ class kucoin extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function fetch_borrow_rate_history($code, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @see https://docs.kucoin.com/#margin-trade-$data
@@ -3118,7 +3119,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the interest owed by the user for borrowing $currency for margin trading
          * @see https://docs.kucoin.com/#get-repay-record
@@ -3293,7 +3294,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://docs.kucoin.com/#post-borrow-order
@@ -3356,7 +3357,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_loan($data, $currency);
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://docs.kucoin.com/#one-click-repayment

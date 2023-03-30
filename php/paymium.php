@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\paymium as Exchange;
 
 class paymium extends Exchange {
 
@@ -281,7 +282,7 @@ class paymium extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
          * @param {string} $code unified currency $code of the currency for the deposit address
@@ -301,7 +302,7 @@ class paymium extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
          * @param {string} $code unified currency $code
@@ -409,7 +410,7 @@ class paymium extends Exchange {
         return $this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params));
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code

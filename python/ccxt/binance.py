@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 import json
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -2753,7 +2754,7 @@ class binance(Exchange):
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
-    def fetch_bids_asks(self, symbols=None, params={}):
+    def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -2780,7 +2781,7 @@ class binance(Exchange):
         response = getattr(self, method)(params)
         return self.parse_tickers(response, symbols)
 
-    def fetch_last_prices(self, symbols=None, params={}):
+    def fetch_last_prices(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the last price for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the last prices
@@ -2874,7 +2875,7 @@ class binance(Exchange):
             'info': info,
         }
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -4477,7 +4478,7 @@ class binance(Exchange):
             'info': trade,
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -4569,7 +4570,7 @@ class binance(Exchange):
             response[i]['type'] = 'deposit'
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -4917,7 +4918,7 @@ class binance(Exchange):
             'amount': amount,
         }
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
@@ -4995,7 +4996,7 @@ class binance(Exchange):
         #
         return self.parse_transfer(response, currency)
 
-    def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -5050,7 +5051,7 @@ class binance(Exchange):
         rows = self.safe_value(response, 'rows', [])
         return self.parse_transfers(rows, currency, since, limit)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -5344,7 +5345,7 @@ class binance(Exchange):
             }
         return result
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -5583,7 +5584,7 @@ class binance(Exchange):
                     }
             return result
 
-    def futures_transfer(self, code, amount, type, params={}):
+    def futures_transfer(self, code: str, amount, type, params={}):
         """
         transfer between futures account
         :param str code: unified currency code
@@ -5706,7 +5707,7 @@ class binance(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_funding_rates(self, symbols=None, params={}):
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param [str]|None symbols: list of unified market symbols
@@ -6182,7 +6183,7 @@ class binance(Exchange):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    def fetch_leverage_tiers(self, symbols=None, params={}):
+    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param [str]|None symbols: list of unified market symbols
@@ -6280,7 +6281,7 @@ class binance(Exchange):
             })
         return tiers
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -6295,7 +6296,7 @@ class binance(Exchange):
         else:
             raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
-    def fetch_account_positions(self, symbols=None, params={}):
+    def fetch_account_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch account positions
         :param [str]|None symbols: list of unified market symbols
@@ -6324,7 +6325,7 @@ class binance(Exchange):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
-    def fetch_positions_risk(self, symbols=None, params={}):
+    def fetch_positions_risk(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch positions risk
         :param [str]|None symbols: list of unified market symbols
@@ -6641,7 +6642,7 @@ class binance(Exchange):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
@@ -7001,7 +7002,7 @@ class binance(Exchange):
         """
         return self.modify_margin_helper(symbol, amount, 1, params)
 
-    def fetch_borrow_rate(self, code, params={}):
+    def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
@@ -7028,7 +7029,7 @@ class binance(Exchange):
         rate = self.safe_value(response, 0)
         return self.parse_borrow_rate(rate)
 
-    def fetch_borrow_rate_history(self, code, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_rate_history(self, code: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
         :param str code: unified currency code
@@ -7095,7 +7096,7 @@ class binance(Exchange):
             'info': info,
         }
 
-    def create_gift_code(self, code, amount, params={}):
+    def create_gift_code(self, code: str, amount, params={}):
         """
         create gift code
         :param str code: gift code
@@ -7175,7 +7176,7 @@ class binance(Exchange):
         #
         return response
 
-    def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
@@ -7236,7 +7237,7 @@ class binance(Exchange):
             'info': info,
         }
 
-    def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
@@ -7267,7 +7268,7 @@ class binance(Exchange):
         #
         return self.parse_margin_loan(response, currency)
 
-    def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin

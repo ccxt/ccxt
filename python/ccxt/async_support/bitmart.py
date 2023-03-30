@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -727,7 +728,7 @@ class bitmart(Exchange):
             }
         return result
 
-    async def fetch_transaction_fee(self, code, params={}):
+    async def fetch_transaction_fee(self, code: str, params={}):
         """
         *DEPRECATED* please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
@@ -784,7 +785,7 @@ class bitmart(Exchange):
             'networks': {},
         }
 
-    async def fetch_deposit_withdraw_fee(self, code, params={}):
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}):
         """
         fetch the fee for deposits and withdrawals
         :param str code: unified currency code
@@ -974,7 +975,7 @@ class bitmart(Exchange):
         ticker = self.safe_value(tickersById, market['id'])
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
@@ -2030,7 +2031,7 @@ class bitmart(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2087,7 +2088,7 @@ class bitmart(Exchange):
         # TODO: parse
         return networkId
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2137,7 +2138,7 @@ class bitmart(Exchange):
             'tag': tag,
         })
 
-    async def fetch_transactions_by_type(self, type, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions_by_type(self, type, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         if limit is None:
             limit = 50  # max 50
@@ -2189,7 +2190,7 @@ class bitmart(Exchange):
         records = self.safe_value(data, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
-    async def fetch_deposit(self, id, code=None, params={}):
+    async def fetch_deposit(self, id, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -2228,7 +2229,7 @@ class bitmart(Exchange):
         record = self.safe_value(data, 'record', {})
         return self.parse_transaction(record)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2239,7 +2240,7 @@ class bitmart(Exchange):
         """
         return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -2278,7 +2279,7 @@ class bitmart(Exchange):
         record = self.safe_value(data, 'record', {})
         return self.parse_transaction(record)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2370,7 +2371,7 @@ class bitmart(Exchange):
             'fee': fee,
         }
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
@@ -2410,7 +2411,7 @@ class bitmart(Exchange):
             'symbol': symbol,
         })
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
@@ -2475,7 +2476,7 @@ class bitmart(Exchange):
             'info': info,
         }
 
-    async def fetch_borrow_rate(self, code, params={}):
+    async def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
@@ -2653,7 +2654,7 @@ class bitmart(Exchange):
             })
         return rates
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
         see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
@@ -2728,7 +2729,7 @@ class bitmart(Exchange):
             'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'message')),
         }
 
-    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated

@@ -9,7 +9,7 @@ export default class gate extends gateRest {
     handleBidAsks(bookSide: any, bidAsks: any): void;
     handleDelta(orderbook: any, delta: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: any, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;

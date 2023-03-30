@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\krakenfutures as Exchange;
 
 class krakenfutures extends Exchange {
 
@@ -292,7 +293,7 @@ class krakenfutures extends Exchange {
             $symbol = $id;
             $split = explode('_', $id);
             $splitMarket = $this->safe_string($split, 1);
-            $baseId = str_replace('usd', '', $splitMarket);
+            $baseId = mb_substr($splitMarket, 0, strlen($splitMarket) - 3 - 0);
             $quoteId = 'usd'; // always USD
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
@@ -433,7 +434,7 @@ class krakenfutures extends Exchange {
         return $this->parse_order_book($response['orderBook'], $symbol, $timestamp);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         //
@@ -1610,7 +1611,7 @@ class krakenfutures extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * Fetches current contract trading positions
          * @param {[string]} $symbols List of unified $symbols
@@ -1640,7 +1641,7 @@ class krakenfutures extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
-    public function parse_positions($response, $symbols = null, $params = array ()) {
+    public function parse_positions($response, ?array $symbols = null, $params = array ()) {
         $result = array();
         $positions = $this->safe_value($response, 'openPositions');
         for ($i = 0; $i < count($positions); $i++) {
@@ -1706,7 +1707,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetInstruments ($params);
         //
@@ -1872,7 +1873,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         /**
          * transfer from futures wallet to spot wallet
          * @param {str} $code Unified currency $code
@@ -1883,7 +1884,7 @@ class krakenfutures extends Exchange {
         return $this->transfer($code, $amount, 'future', 'spot', $params);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfers currencies between sub-accounts
          * @param {string} $code Unified $currency $code

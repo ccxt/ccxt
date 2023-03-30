@@ -1562,7 +1562,7 @@ export default class bitrue extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchDeposits
@@ -1634,7 +1634,7 @@ export default class bitrue extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchWithdrawals
@@ -1826,7 +1826,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#withdraw

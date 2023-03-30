@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\btcmarkets as Exchange;
 
 class btcmarkets extends Exchange {
 
@@ -166,7 +167,7 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_transactions_with_method($method, $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_with_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         if ($limit !== null) {
@@ -183,7 +184,7 @@ class btcmarkets extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified currency $code for the currency of the transactions, default is null
@@ -195,7 +196,7 @@ class btcmarkets extends Exchange {
         return $this->fetch_transactions_with_method('privateGetTransfers', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -207,7 +208,7 @@ class btcmarkets extends Exchange {
         return $this->fetch_transactions_with_method('privateGetDeposits', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1105,7 +1106,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

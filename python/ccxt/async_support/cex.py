@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import json
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
@@ -583,7 +584,7 @@ class cex(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1428,7 +1429,7 @@ class cex(Exchange):
         response = await self.privatePostCancelReplaceOrderPair(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code

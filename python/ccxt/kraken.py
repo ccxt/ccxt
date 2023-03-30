@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -754,7 +755,7 @@ class kraken(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -929,7 +930,7 @@ class kraken(Exchange):
             },
         }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -968,7 +969,7 @@ class kraken(Exchange):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    def fetch_ledger_entries_by_ids(self, ids, code=None, params={}):
+    def fetch_ledger_entries_by_ids(self, ids, code: Optional[str] = None, params={}):
         # https://www.kraken.com/features/api#query-ledgers
         self.load_markets()
         ids = ','.join(ids)
@@ -995,7 +996,7 @@ class kraken(Exchange):
             items.append(value)
         return self.parse_ledger(items)
 
-    def fetch_ledger_entry(self, id, code=None, params={}):
+    def fetch_ledger_entry(self, id, code: Optional[str] = None, params={}):
         items = self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
@@ -1950,7 +1951,7 @@ class kraken(Exchange):
             },
         }
 
-    def parse_transactions_by_type(self, type, transactions, code=None, since: Optional[int] = None, limit: Optional[int] = None):
+    def parse_transactions_by_type(self, type, transactions, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
         result = []
         for i in range(0, len(transactions)):
             transaction = self.parse_transaction(self.extend({
@@ -1959,7 +1960,7 @@ class kraken(Exchange):
             result.append(transaction)
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2012,7 +2013,7 @@ class kraken(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.safe_timestamp(result, 'unixtime')
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2045,7 +2046,7 @@ class kraken(Exchange):
         #
         return self.parse_transactions_by_type('withdrawal', response['result'], code, since, limit)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -2057,7 +2058,7 @@ class kraken(Exchange):
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
 
-    def fetch_deposit_methods(self, code, params={}):
+    def fetch_deposit_methods(self, code: str, params={}):
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2089,7 +2090,7 @@ class kraken(Exchange):
         #
         return self.safe_value(response, 'result')
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2161,7 +2162,7 @@ class kraken(Exchange):
             'info': depositAddress,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2194,7 +2195,7 @@ class kraken(Exchange):
             return self.parse_transaction(result, currency)
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, up on your account)")
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: not used by kraken fetchPositions()

@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1210,7 +1211,7 @@ class zb(Exchange):
         datas = self.safe_value(message, 'datas', [])
         return self.parse_deposit_addresses(datas, codes)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1312,7 +1313,7 @@ class zb(Exchange):
             timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(result, symbol, timestamp)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -3101,7 +3102,7 @@ class zb(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rates(self, symbols=None, params={}):
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param [str]|None symbols: list of unified market symbols
@@ -3130,7 +3131,7 @@ class zb(Exchange):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3177,7 +3178,7 @@ class zb(Exchange):
             'amount': amount,
         })
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -3230,7 +3231,7 @@ class zb(Exchange):
         withdrawals = self.safe_value(datas, 'list', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -3356,7 +3357,7 @@ class zb(Exchange):
         firstPosition = self.safe_value(data, 0)
         return self.parse_position(firstPosition, market)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -3485,7 +3486,7 @@ class zb(Exchange):
         notional = self.safe_number(position, 'nominalValue')
         percentage = Precise.string_mul(self.safe_string(position, 'returnRate'), '100')
         timestamp = self.safe_number(position, 'createTime')
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -3500,6 +3501,7 @@ class zb(Exchange):
             'marginMode': marginMode,
             'notional': notional,
             'markPrice': None,
+            'lastPrice': None,
             'liquidationPrice': liquidationPrice,
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': None,
@@ -3508,7 +3510,8 @@ class zb(Exchange):
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+            'lastUpdateTimestamp': None,
+        })
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -3605,7 +3608,7 @@ class zb(Exchange):
             'fee': fee,
         }
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -3659,7 +3662,7 @@ class zb(Exchange):
         list = self.safe_value(data, 'list', [])
         return self.parse_ledger(list, currency, since, limit)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -3846,7 +3849,7 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
         return await self.modify_margin_helper(symbol, amount, 0, params)
 
-    async def fetch_borrow_rate(self, code, params={}):
+    async def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
@@ -3979,7 +3982,7 @@ class zb(Exchange):
         #
         return response
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         :param str code: unified currency code of the currency to borrow

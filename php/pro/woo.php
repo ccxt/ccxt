@@ -214,7 +214,7 @@ class woo extends \ccxt\async\woo {
         return $message;
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $name = 'tickers';

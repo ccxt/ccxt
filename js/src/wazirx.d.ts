@@ -7,7 +7,7 @@ export default class wazirx extends Exchange {
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<{}>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<{}>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchStatus(params?: {}): Promise<{

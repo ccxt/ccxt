@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
@@ -394,7 +395,7 @@ class blockchaincom(Exchange):
         response = await self.publicGetTickersSymbol(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -706,7 +707,7 @@ class blockchaincom(Exchange):
         trades = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit, params)  # need to define
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -829,7 +830,7 @@ class blockchaincom(Exchange):
             })
         return result
 
-    async def fetch_withdrawal_whitelist_by_currency(self, code, params={}):
+    async def fetch_withdrawal_whitelist_by_currency(self, code: str, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -847,7 +848,7 @@ class blockchaincom(Exchange):
             })
         return result
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -879,7 +880,7 @@ class blockchaincom(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -901,7 +902,7 @@ class blockchaincom(Exchange):
         response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -916,7 +917,7 @@ class blockchaincom(Exchange):
         response = await self.privateGetWithdrawalsWithdrawalId(self.extend(request, params))
         return self.parse_transaction(response)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -938,7 +939,7 @@ class blockchaincom(Exchange):
         response = await self.privateGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposit(self, id, code=None, params={}):
+    async def fetch_deposit(self, id, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id

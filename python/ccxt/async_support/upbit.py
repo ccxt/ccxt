@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
@@ -190,7 +191,7 @@ class upbit(Exchange):
             },
         })
 
-    async def fetch_currency(self, code, params={}):
+    async def fetch_currency(self, code: str, params={}):
         # self method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
         await self.load_markets()
@@ -507,7 +508,7 @@ class upbit(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_books(self, symbols=None, limit: Optional[int] = None, params={}):
+    async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
@@ -641,7 +642,7 @@ class upbit(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1072,7 +1073,7 @@ class upbit(Exchange):
         #
         return self.parse_order(response)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1111,7 +1112,7 @@ class upbit(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1540,7 +1541,7 @@ class upbit(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1561,7 +1562,7 @@ class upbit(Exchange):
         #
         return self.parse_deposit_address(response)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1595,7 +1596,7 @@ class upbit(Exchange):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

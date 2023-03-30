@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\ascendex as Exchange;
 
 class ascendex extends Exchange {
 
@@ -975,7 +976,7 @@ class ascendex extends Exchange {
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://ascendex.github.io/ascendex-pro-api/#ticker
@@ -2196,7 +2197,7 @@ class ascendex extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -2266,7 +2267,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -2281,7 +2282,7 @@ class ascendex extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -2296,7 +2297,7 @@ class ascendex extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
@@ -2418,7 +2419,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -2516,7 +2517,7 @@ class ascendex extends Exchange {
         if ($marginMode === 'isolated') {
             $collateral = $this->safe_string($position, 'isolatedMargin');
         }
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $market['symbol'],
@@ -2529,10 +2530,12 @@ class ascendex extends Exchange {
             'contracts' => $this->safe_number($position, 'position'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
+            'lastPrice' => null,
             'side' => $this->safe_string_lower($position, 'side'),
             'hedged' => null,
             'timestamp' => null,
             'datetime' => null,
+            'lastUpdateTimestamp' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'collateral' => $collateral,
@@ -2540,7 +2543,7 @@ class ascendex extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_integer($position, 'leverage'),
             'marginRatio' => null,
-        );
+        ));
     }
 
     public function parse_funding_rate($contract, $market = null) {
@@ -2581,7 +2584,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
          * fetch the funding rate for multiple markets
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -2746,7 +2749,7 @@ class ascendex extends Exchange {
         return $this->v2PrivateAccountGroupPostFuturesMarginType (array_merge($request, $params));
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -2836,7 +2839,7 @@ class ascendex extends Exchange {
         return $tiers;
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same $account
          * @param {string} $code unified $currency $code

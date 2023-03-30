@@ -9,7 +9,7 @@ export default class woo extends wooRest {
     watchTicker(symbol: string, params?: {}): Promise<any>;
     parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     handleTicker(client: any, message: any): any;
-    watchTickers(symbols?: any, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTickers(client: any, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;

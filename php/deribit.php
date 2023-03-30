@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\deribit as Exchange;
 
 class deribit extends Exchange {
 
@@ -794,7 +795,7 @@ class deribit extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
@@ -830,7 +831,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -993,7 +994,7 @@ class deribit extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
@@ -2018,7 +2019,7 @@ class deribit extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -2064,7 +2065,7 @@ class deribit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -2224,14 +2225,14 @@ class deribit extends Exchange {
         $initialMarginString = $this->safe_string($position, 'initial_margin');
         $notionalString = $this->safe_string($position, 'size_currency');
         $maintenanceMarginString = $this->safe_string($position, 'maintenance_margin');
-        $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMarginString), '100');
         $currentTime = $this->milliseconds();
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
+            'lastUpdateTimestamp' => null,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($initialMarginString, $notionalString), '100')),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
@@ -2245,11 +2246,12 @@ class deribit extends Exchange {
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
+            'lastPrice' => null,
             'collateral' => null,
             'marginMode' => null,
             'side' => $side,
-            'percentage' => $this->parse_number($percentage),
-        );
+            'percentage' => null,
+        ));
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -2295,7 +2297,7 @@ class deribit extends Exchange {
         return $this->parse_position($result);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified $market $symbols
@@ -2358,7 +2360,7 @@ class deribit extends Exchange {
         return $this->parse_positions($result, $symbols);
     }
 
-    public function fetch_historical_volatility($code, $params = array ()) {
+    public function fetch_historical_volatility(string $code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2394,7 +2396,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal $transfers made on an account
          * @param {string} $code unified $currency $code of the $currency transferred
@@ -2453,7 +2455,7 @@ class deribit extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -2540,7 +2542,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

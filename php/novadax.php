@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\novadax as Exchange;
 
 class novadax extends Exchange {
 
@@ -381,7 +382,7 @@ class novadax extends Exchange {
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
@@ -1073,7 +1074,7 @@ class novadax extends Exchange {
         ), $market);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -1148,7 +1149,7 @@ class novadax extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1217,7 +1218,7 @@ class novadax extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -1232,7 +1233,7 @@ class novadax extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -1247,7 +1248,7 @@ class novadax extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null

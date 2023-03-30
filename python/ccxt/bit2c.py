@@ -753,7 +753,7 @@ class bit2c(Exchange):
     def is_fiat(self, code):
         return code == 'NIS'
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code

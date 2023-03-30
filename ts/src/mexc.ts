@@ -3875,7 +3875,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDepositAddressesByNetwork
@@ -3910,7 +3910,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDepositAddress
@@ -3939,7 +3939,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDeposits
@@ -4000,7 +4000,7 @@ export default class mexc extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchWithdrawals
@@ -4334,7 +4334,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchTransfers
@@ -4421,7 +4421,7 @@ export default class mexc extends Exchange {
         return this.parseTransfers (resultList, currency, since, limit);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name mexc3#transfer
@@ -4557,7 +4557,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#withdraw
@@ -4628,7 +4628,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#borrowMargin
@@ -4664,7 +4664,7 @@ export default class mexc extends Exchange {
         });
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#repayMargin

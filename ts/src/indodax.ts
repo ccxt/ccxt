@@ -762,7 +762,7 @@ export default class indodax extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchTransactionFee (code: string, params = {}) {
         /**
          * @method
          * @name indodax#fetchTransactionFee
@@ -796,7 +796,7 @@ export default class indodax extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchTransactions
@@ -897,7 +897,7 @@ export default class indodax extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name indodax#withdraw

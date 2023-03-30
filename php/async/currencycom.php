@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\currencycom as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
@@ -909,7 +910,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1497,7 +1498,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1511,7 +1512,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1525,7 +1526,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1539,7 +1540,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions_by_method($method, $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_by_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($method, $code, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array();
@@ -1642,7 +1643,7 @@ class currencycom extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1771,7 +1772,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1838,7 +1839,7 @@ class currencycom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -1896,10 +1897,11 @@ class currencycom extends Exchange {
         $unrealizedProfit = $this->safe_number($position, 'upl');
         $marginCoeff = $this->safe_string($position, 'margin');
         $leverage = Precise::string_div('1', $marginCoeff);
-        return array(
+        return $this->safe_position(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => null,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
             'entryPrice' => $entryPrice,
@@ -1912,6 +1914,7 @@ class currencycom extends Exchange {
             'marginMode' => null,
             'notional' => null,
             'markPrice' => null,
+            'lastPrice' => null,
             'liquidationPrice' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => null,
@@ -1920,7 +1923,7 @@ class currencycom extends Exchange {
             'marginRatio' => null,
             'info' => $position,
             'id' => null,
-        );
+        ));
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

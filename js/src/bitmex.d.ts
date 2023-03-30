@@ -32,8 +32,8 @@ export default class bitmex extends Exchange {
             currency: any;
         };
     };
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -61,7 +61,7 @@ export default class bitmex extends Exchange {
         };
     };
     fetchTicker(symbol: string, params?: {}): Promise<any>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
@@ -75,35 +75,11 @@ export default class bitmex extends Exchange {
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): {
-        info: any;
-        id: string;
-        symbol: any;
-        timestamp: number;
-        datetime: string;
-        hedged: any;
-        side: any;
-        contracts: any;
-        contractSize: any;
-        entryPrice: number;
-        markPrice: number;
-        notional: any;
-        leverage: number;
-        collateral: any;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: any;
-        maintenanceMarginPercentage: number;
-        unrealizedPnl: any;
-        liquidationPrice: number;
-        marginMode: string;
-        marginRatio: any;
-        percentage: number;
-    };
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
     convertValue(value: any, market?: any): any;
     isFiat(currency: any): boolean;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -128,7 +104,7 @@ export default class bitmex extends Exchange {
             rate: any;
         };
     }>;
-    fetchFundingRates(symbols?: any, params?: {}): Promise<{}>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<{}>;
     parseFundingRate(contract: any, market?: any): {
         info: any;
         symbol: any;
@@ -158,8 +134,8 @@ export default class bitmex extends Exchange {
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: any;
         tag: any;
         network: string;

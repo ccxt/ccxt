@@ -13,7 +13,7 @@ export default class bybit extends Exchange {
     fetchDerivativesMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseFundingRate(ticker: any, market?: any): {
@@ -35,7 +35,7 @@ export default class bybit extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     parseSpotTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -105,16 +105,16 @@ export default class bybit extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<{}>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
         tag: string;
         network: string;
         info: any;
     }>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -136,7 +136,7 @@ export default class bybit extends Exchange {
         updated: number;
         fee: any;
     };
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
         currency: any;
@@ -155,7 +155,7 @@ export default class bybit extends Exchange {
         info: any;
     };
     parseLedgerEntryType(type: any): string;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -176,34 +176,11 @@ export default class bybit extends Exchange {
         fee: any;
     }>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchUnifiedPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchUSDCPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchDerivativesPositions(symbols?: any, params?: {}): Promise<any>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): {
-        info: any;
-        id: any;
-        symbol: any;
-        timestamp: number;
-        datetime: string;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        entryPrice: number;
-        notional: number;
-        leverage: number;
-        unrealizedPnl: number;
-        contracts: number;
-        contractSize: number;
-        marginRatio: number;
-        liquidationPrice: number;
-        markPrice: number;
-        collateral: number;
-        marginMode: string;
-        side: string;
-        percentage: number;
-    };
+    fetchUnifiedPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchUSDCPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchDerivativesPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setUnifiedMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setDerivativesMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
@@ -227,7 +204,7 @@ export default class bybit extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowRate(code: any, params?: {}): Promise<{
+    fetchBorrowRate(code: string, params?: {}): Promise<{
         currency: any;
         rate: number;
         period: number;
@@ -243,7 +220,7 @@ export default class bybit extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: any;
         marginMode: string;
@@ -255,10 +232,10 @@ export default class bybit extends Exchange {
         datetime: any;
         info: any;
     };
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
-    fetchTransfers(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
-    repayMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
         id: string;
         currency: string;

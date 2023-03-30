@@ -4,8 +4,8 @@ export default class timex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     getCurrencyByAddress(address: any): any;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -27,7 +27,7 @@ export default class timex extends Exchange {
         updated: any;
         fee: any;
     };
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

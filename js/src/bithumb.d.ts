@@ -9,7 +9,7 @@ export default class bithumb extends Exchange {
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
@@ -22,7 +22,7 @@ export default class bithumb extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: any;
         txid: any;
         timestamp: any;

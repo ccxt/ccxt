@@ -4715,7 +4715,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchDepositAddressesByNetwork
@@ -4748,7 +4748,7 @@ export default class huobi extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchDepositAddress
@@ -4765,7 +4765,7 @@ export default class huobi extends Exchange {
         return indexedAddresses[selectedNetworkCode];
     }
 
-    async fetchWithdrawAddresses (code, note = undefined, networkCode = undefined, params = {}) {
+    async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -4800,7 +4800,7 @@ export default class huobi extends Exchange {
         return addresses;
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchDeposits
@@ -4860,7 +4860,7 @@ export default class huobi extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchWithdrawals
@@ -5030,7 +5030,7 @@ export default class huobi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name huobi#withdraw
@@ -5115,7 +5115,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name huobi#transfer
@@ -5534,7 +5534,7 @@ export default class huobi extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchBorrowInterest
@@ -6520,7 +6520,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchLedger
@@ -7014,7 +7014,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobi#borrowMargin
@@ -7069,7 +7069,7 @@ export default class huobi extends Exchange {
         });
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobi#repayMargin

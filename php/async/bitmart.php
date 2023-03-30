@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitmart as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
@@ -739,7 +740,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * *DEPRECATED* please use fetchDepositWithdrawFee instead
@@ -800,7 +801,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the fee for deposits and withdrawals
@@ -1001,7 +1002,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -2166,7 +2167,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -2230,7 +2231,7 @@ class bitmart extends Exchange {
         return $networkId;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2286,7 +2287,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions_by_type($type, $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_by_type($type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             Async\await($this->load_markets());
             if ($limit === null) {
@@ -2345,7 +2346,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a deposit
@@ -2387,7 +2388,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2401,7 +2402,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch $data on a currency withdrawal via the withdrawal $id
@@ -2443,7 +2444,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2542,7 +2543,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest
@@ -2586,7 +2587,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a loan to borrow margin
@@ -2656,7 +2657,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading
@@ -2845,7 +2846,7 @@ class bitmart extends Exchange {
         return $rates;
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account, currently only supports transfer between spot and margin
@@ -2926,7 +2927,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading

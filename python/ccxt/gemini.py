@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -719,7 +720,7 @@ class gemini(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1304,7 +1305,7 @@ class gemini(Exchange):
         response = self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1358,7 +1359,7 @@ class gemini(Exchange):
             return self.milliseconds()
         return self.seconds()
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: not used by gemini.fetchTransactions
@@ -1455,7 +1456,7 @@ class gemini(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
         self.load_markets()
         currency = self.currency(code)
         network = self.safe_string(params, 'network')
@@ -1526,7 +1527,7 @@ class gemini(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address

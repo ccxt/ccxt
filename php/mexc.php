@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\mexc as Exchange;
 
 class mexc extends Exchange {
 
@@ -1418,7 +1419,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
@@ -1692,7 +1693,7 @@ class mexc extends Exchange {
         ), $market);
     }
 
-    public function fetch_bids_asks($symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -3662,7 +3663,7 @@ class mexc extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -3811,7 +3812,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by $network
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-$address-supporting-$network
@@ -3844,7 +3845,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
@@ -3871,7 +3872,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
@@ -3930,7 +3931,7 @@ class mexc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
@@ -4122,7 +4123,7 @@ class mexc extends Exchange {
         return $this->safe_value($response, 0);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -4202,7 +4203,7 @@ class mexc extends Exchange {
         $leverage = $this->safe_number($position, 'leverage');
         $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
         $timestamp = $this->safe_number($position, 'updateTime');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -4217,6 +4218,7 @@ class mexc extends Exchange {
             'marginType' => $marginType,
             'notional' => null,
             'markPrice' => null,
+            'lastPrice' => null,
             'liquidationPrice' => $liquidationPrice,
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => null,
@@ -4225,7 +4227,8 @@ class mexc extends Exchange {
             'marginRatio' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+            'lastUpdateTimestamp' => null,
+        ));
     }
 
     public function fetch_transfer($id, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -4256,7 +4259,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
@@ -4341,7 +4344,7 @@ class mexc extends Exchange {
         return $this->parse_transfers($resultList, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
@@ -4475,7 +4478,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
@@ -4544,7 +4547,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
@@ -4578,7 +4581,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment

@@ -1936,7 +1936,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchDepositAddress
@@ -1992,7 +1992,7 @@ export default class tokocrypto extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchDeposits
@@ -2053,7 +2053,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchWithdrawals
@@ -2246,7 +2246,7 @@ export default class tokocrypto extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bybit#withdraw

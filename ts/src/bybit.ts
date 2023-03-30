@@ -5968,7 +5968,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
          * @name bybit#fetchDepositAddressesByNetwork
@@ -6013,7 +6013,7 @@ export default class bybit extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bybit#fetchDepositAddress
@@ -6061,7 +6061,7 @@ export default class bybit extends Exchange {
         return this.parseDepositAddress (addressObject, currency);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchDeposits
@@ -6127,7 +6127,7 @@ export default class bybit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchWithdrawals
@@ -6306,7 +6306,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchLedger
@@ -6567,7 +6567,7 @@ export default class bybit extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bybit#withdraw
@@ -7619,7 +7619,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchBorrowRate (code, params = {}) {
+    async fetchBorrowRate (code: string, params = {}) {
         /**
          * @method
          * @name bybit#fetchBorrowRate
@@ -7674,7 +7674,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchBorrowInterest
@@ -7744,7 +7744,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bybit#transfer
@@ -7812,7 +7812,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTransfers
@@ -7865,7 +7865,7 @@ export default class bybit extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bybit#borrowMargin
@@ -7907,7 +7907,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bybit#repayMargin

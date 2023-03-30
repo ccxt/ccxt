@@ -336,7 +336,7 @@ export default class timex extends Exchange {
         return this.indexBy (result, 'code');
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchDeposits
@@ -371,7 +371,7 @@ export default class timex extends Exchange {
         return this.parseTransactions (response, code, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchWithdrawals

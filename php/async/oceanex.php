@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\oceanex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
@@ -269,7 +270,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -399,7 +400,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_books($symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data for multiple markets

@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\luno as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
@@ -548,7 +549,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -867,7 +868,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger_by_entries($code = null, $entry = -1, $limit = 1, $params = array ()) {
+    public function fetch_ledger_by_entries(?string $code = null, $entry = -1, $limit = 1, $params = array ()) {
         return Async\async(function () use ($code, $entry, $limit, $params) {
             // by default without $entry number or $limit number, return most recent $entry
             $since = null;
@@ -879,7 +880,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user

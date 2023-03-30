@@ -906,7 +906,7 @@ export default class bitvavo extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchDepositAddress
@@ -1510,7 +1510,7 @@ export default class bitvavo extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#withdraw
@@ -1547,7 +1547,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchWithdrawals
@@ -1594,7 +1594,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchDeposits

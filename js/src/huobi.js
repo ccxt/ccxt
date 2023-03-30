@@ -6111,7 +6111,7 @@ export default class huobi extends Exchange {
         const maintenanceMarginPercentage = Precise.stringDiv(adjustmentFactor, leverage);
         const maintenanceMargin = Precise.stringMul(maintenanceMarginPercentage, notional);
         const marginRatio = Precise.stringDiv(maintenanceMargin, collateral);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -6126,6 +6126,7 @@ export default class huobi extends Exchange {
             'marginMode': marginMode,
             'notional': this.parseNumber(notional),
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': this.parseNumber(intialMarginPercentage),
@@ -6134,7 +6135,8 @@ export default class huobi extends Exchange {
             'marginRatio': this.parseNumber(marginRatio),
             'timestamp': undefined,
             'datetime': undefined,
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**

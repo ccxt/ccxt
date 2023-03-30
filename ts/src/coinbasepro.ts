@@ -1287,7 +1287,7 @@ export default class coinbasepro extends Exchange {
         return await this.privateGetPaymentMethods (params);
     }
 
-    async deposit (code, amount, address, params = {}) {
+    async deposit (code: string, amount, address, params = {}) {
         /**
          * @method
          * @name coinbasepro#deposit
@@ -1327,7 +1327,7 @@ export default class coinbasepro extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#withdraw
@@ -1450,7 +1450,7 @@ export default class coinbasepro extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchLedger
@@ -1495,7 +1495,7 @@ export default class coinbasepro extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchTransactions
@@ -1603,7 +1603,7 @@ export default class coinbasepro extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchDeposits
@@ -1617,7 +1617,7 @@ export default class coinbasepro extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'deposit' }, params));
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchWithdrawals
@@ -1727,7 +1727,7 @@ export default class coinbasepro extends Exchange {
         };
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name coinbasepro#createDepositAddress

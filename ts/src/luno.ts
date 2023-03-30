@@ -862,7 +862,7 @@ export default class luno extends Exchange {
         return await this.privatePostStoporder (this.extend (request, params));
     }
 
-    async fetchLedgerByEntries (code = undefined, entry = -1, limit = 1, params = {}) {
+    async fetchLedgerByEntries (code: string = undefined, entry = -1, limit = 1, params = {}) {
         // by default without entry number or limit number, return most recent entry
         const since = undefined;
         const request = {
@@ -872,7 +872,7 @@ export default class luno extends Exchange {
         return await this.fetchLedger (code, since, limit, this.extend (request, params));
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name luno#fetchLedger

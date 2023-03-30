@@ -731,7 +731,7 @@ export default class bitmart extends Exchange {
         return result;
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchTransactionFee (code: string, params = {}) {
         /**
          * @method
          * @name bitmart#fetchTransactionFee
@@ -792,7 +792,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFee (code, params = {}) {
+    async fetchDepositWithdrawFee (code: string, params = {}) {
         /**
          * @method
          * @name bitmart#fetchDepositWithdrawFee
@@ -2156,7 +2156,7 @@ export default class bitmart extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitmart#fetchDepositAddress
@@ -2220,7 +2220,7 @@ export default class bitmart extends Exchange {
         return networkId;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#withdraw
@@ -2276,7 +2276,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    async fetchTransactionsByType (type, code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsByType (type, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 50; // max 50
@@ -2333,7 +2333,7 @@ export default class bitmart extends Exchange {
         return this.parseTransactions (records, currency, since, limit);
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchDeposit
@@ -2375,7 +2375,7 @@ export default class bitmart extends Exchange {
         return this.parseTransaction (record);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchDeposits
@@ -2389,7 +2389,7 @@ export default class bitmart extends Exchange {
         return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchWithdrawal
@@ -2431,7 +2431,7 @@ export default class bitmart extends Exchange {
         return this.parseTransaction (record);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchWithdrawals
@@ -2530,7 +2530,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#repayMargin
@@ -2574,7 +2574,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#borrowMargin
@@ -2644,7 +2644,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchBorrowRate (code, params = {}) {
+    async fetchBorrowRate (code: string, params = {}) {
         /**
          * @method
          * @name bitmart#fetchBorrowRate
@@ -2833,7 +2833,7 @@ export default class bitmart extends Exchange {
         return rates;
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bitmart#transfer
@@ -2914,7 +2914,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchBorrowInterest

@@ -7,9 +7,9 @@ export default class tidex extends Exchange {
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchOrderBooks(symbols?: any, limit?: Int, params?: {}): Promise<{}>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): {
         id: string;
@@ -34,7 +34,7 @@ export default class tidex extends Exchange {
     fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         txid: any;
         timestamp: any;

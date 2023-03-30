@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\mercado as Exchange;
 
 class mercado extends Exchange {
 
@@ -606,7 +607,7 @@ class mercado extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a $withdrawal
          * @param {string} $code unified $currency $code

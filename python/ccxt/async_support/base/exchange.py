@@ -549,7 +549,7 @@ class Exchange(BaseExchange):
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         raise NotSupported(self.id + ' createDepositAddress() is not supported yet')
 
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
@@ -1486,6 +1486,20 @@ class Exchange(BaseExchange):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
+    def safe_position(self, position):
+        # simplified version of: /pull/12765/
+        unrealizedPnlString = self.safe_string(position, 'unrealisedPnl')
+        initialMarginString = self.safe_string(position, 'initialMargin')
+        #
+        # PERCENTAGE
+        #
+        percentage = self.safe_value(position, 'percentage')
+        if (percentage is None) and (unrealizedPnlString is not None) and (initialMarginString is not None):
+            # was done in all implementations( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
+            position['percentage'] = self.parse_number(percentageString)
+        return position
+
     def parse_positions(self, positions, symbols: Optional[List[str]] = None, params={}):
         symbols = self.market_symbols(symbols)
         positions = self.to_array(positions)
@@ -1796,7 +1810,7 @@ class Exchange(BaseExchange):
             raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
         return await self.fetch_transaction_fees(codes, params)
 
-    async def fetch_transaction_fee(self, code, params={}):
+    async def fetch_transaction_fee(self, code: str, params={}):
         if not self.has['fetchTransactionFees']:
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
         return await self.fetch_transaction_fees([code], params)
@@ -1807,7 +1821,7 @@ class Exchange(BaseExchange):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositWithdrawFees() is not supported yet')
 
-    async def fetch_deposit_withdraw_fee(self, code, params={}):
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}):
         if not self.has['fetchDepositWithdrawFees']:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = await self.fetchDepositWithdrawFees([code], params)
@@ -2368,7 +2382,7 @@ class Exchange(BaseExchange):
                 return [True, params]
         return [False, params]
 
-    async def fetch_last_prices(self, params={}):
+    async def fetch_last_prices(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')
 
     async def fetch_trading_fees(self, params={}):

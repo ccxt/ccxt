@@ -275,7 +275,7 @@ class paymium(Exchange):
         response = self.publicGetDataCurrencyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -294,7 +294,7 @@ class paymium(Exchange):
         #
         return self.parse_deposit_address(response)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -396,7 +396,7 @@ class paymium(Exchange):
         }
         return self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
