@@ -5,9 +5,9 @@ export default class hollaex extends hollaexRest {
     handleOrderBook(client: any, message: any): void;
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any, subscription?: any): number;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any, subscription?: any): number;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: any, message: any): void;

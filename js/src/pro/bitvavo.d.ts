@@ -17,8 +17,8 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSnapshot(client: any, message: any): any;
     handleOrderBookSubscription(client: any, message: any, subscription: any): void;
     handleOrderBookSubscriptions(client: any, message: any, marketIds: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     handleMyTrade(client: any, message: any): void;
     handleSubscriptionStatus(client: any, message: any): any;

@@ -23,10 +23,10 @@ export default class hitbtc3 extends Exchange {
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchTicker(symbol: any, params?: {}): Promise<any>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: any, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any[]>;
-    fetchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTransactionsHelper(types: any, code: any, since: any, limit: any, params: any): Promise<any>;
     parseTransactionStatus(status: any): string;
@@ -57,10 +57,10 @@ export default class hitbtc3 extends Exchange {
             rate: any;
         };
     };
-    fetchTransactions(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchDeposits(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchOrderBooks(symbols?: string[], limit?: any, params?: {}): Promise<{}>;
+    fetchTransactions(code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchDeposits(code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchOrderBooks(symbols?: any, limit?: any, params?: {}): Promise<{}>;
     fetchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     parseTradingFee(fee: any, market?: any): {
         info: any;
@@ -74,16 +74,16 @@ export default class hitbtc3 extends Exchange {
         taker: number;
         maker: number;
     }>;
-    fetchTradingFees(symbols?: string[], params?: {}): Promise<{}>;
+    fetchTradingFees(symbols?: any, params?: {}): Promise<{}>;
     fetchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchClosedOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOrderTrades(id: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOpenOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchClosedOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    fetchOrderTrades(id: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOpenOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: any, params?: {}): Promise<import("./base/types.js").Order[]>;
+    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
@@ -139,8 +139,8 @@ export default class hitbtc3 extends Exchange {
             rate: any;
         };
     }>;
-    fetchFundingRateHistory(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any[]>;
+    fetchFundingRateHistory(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    fetchPositions(symbols?: any, params?: {}): Promise<any[]>;
     fetchPosition(symbol: any, params?: {}): Promise<{
         info: any;
         id: any;
@@ -243,12 +243,12 @@ export default class hitbtc3 extends Exchange {
     reduceMargin(symbol: any, amount: any, params?: {}): Promise<any>;
     addMargin(symbol: any, amount: any, params?: {}): Promise<any>;
     fetchLeverage(symbol: any, params?: {}): Promise<number>;
-    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    setLeverage(leverage: any, symbol?: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

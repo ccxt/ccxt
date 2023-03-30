@@ -34,7 +34,7 @@ export default class binance extends binanceRest {
     watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
     watchTicker(symbol: any, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): any;
+    watchTickers(symbols?: any, params?: {}): any;
     parseWsTicker(message: any, marketType: any): {
         symbol: any;
         timestamp: any;
@@ -65,10 +65,10 @@ export default class binance extends binanceRest {
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     parseWsOrder(order: any, market?: any): any;
     handleOrderUpdate(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleMyTrade(client: any, message: any): void;
     handleOrder(client: any, message: any): void;
     handleMessage(client: any, message: any): any;

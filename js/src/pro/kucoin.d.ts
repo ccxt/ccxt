@@ -19,11 +19,11 @@ export default class kucoin extends kucoinRest {
     handleOrderBookSubscription(client: any, message: any, subscription: any): void;
     handleSubscriptionStatus(client: any, message: any): any;
     handleSystemStatus(client: any, message: any): any;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     parseWsOrderStatus(status: any): string;
     parseWsOrder(order: any, market?: any): any;
     handleOrder(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleMyTrade(client: any, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchBalance(params?: {}): Promise<any>;

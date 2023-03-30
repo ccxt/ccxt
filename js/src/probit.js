@@ -1055,21 +1055,21 @@ export default class probit extends Exchange {
     parseOrder(order, market = undefined) {
         //
         //     {
-        //         id: string,
-        //         user_id: string,
-        //         market_id: string,
+        //         id,
+        //         user_id,
+        //         market_id,
         //         type: 'orderType',
         //         side: 'side',
-        //         quantity: string,
-        //         limit_price: string,
+        //         quantity,
+        //         limit_price,
         //         time_in_force: 'timeInForce',
-        //         filled_cost: string,
-        //         filled_quantity: string,
-        //         open_quantity: string,
-        //         cancelled_quantity: string,
+        //         filled_cost,
+        //         filled_quantity,
+        //         open_quantity,
+        //         cancelled_quantity,
         //         status: 'orderStatus',
         //         time: 'date',
-        //         client_order_id: string,
+        //         client_order_id,
         //     }
         //
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
@@ -1183,21 +1183,21 @@ export default class probit extends Exchange {
         //
         //     {
         //         data: {
-        //             id: string,
-        //             user_id: string,
-        //             market_id: string,
+        //             id,
+        //             user_id,
+        //             market_id,
         //             type: 'orderType',
         //             side: 'side',
-        //             quantity: string,
-        //             limit_price: string,
+        //             quantity,
+        //             limit_price,
         //             time_in_force: 'timeInForce',
-        //             filled_cost: string,
-        //             filled_quantity: string,
-        //             open_quantity: string,
-        //             cancelled_quantity: string,
+        //             filled_cost,
+        //             filled_quantity,
+        //             open_quantity,
+        //             cancelled_quantity,
         //             status: 'orderStatus',
         //             time: 'date',
-        //             client_order_id: string,
+        //             client_order_id,
         //         }
         //     }
         //

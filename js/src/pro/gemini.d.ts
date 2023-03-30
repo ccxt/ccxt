@@ -10,7 +10,7 @@ export default class gemini extends geminiRest {
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleOrderBook(client: any, message: any): void;
     handleL2Updates(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleHeartbeat(client: any, message: any): any;
     handleSubscription(client: any, message: any): any;
     handleOrder(client: any, message: any): void;

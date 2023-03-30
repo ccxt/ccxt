@@ -1,7 +1,7 @@
 import ripioRest from '../ripio.js';
 export default class ripio extends ripioRest {
     describe(): any;
-    watchTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrade(client: any, message: any, subscription: any): any;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any, subscription: any): any;

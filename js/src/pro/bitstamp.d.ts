@@ -9,7 +9,7 @@ export default class bitstamp extends bitstampRest {
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleTrade(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any): void;
     parseWsOrder(order: any, market?: any): any;
     handleOrderBookSubscription(client: any, message: any): void;

@@ -28,8 +28,8 @@ export default class bitfinex extends bitfinexRest {
     handleSubscriptionStatus(client: any, message: any): any;
     authenticate(params?: {}): Promise<any>;
     handleAuthenticationMessage(client: any, message: any): void;
-    watchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrder(id: any, symbol?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any, subscription: any): void;
     parseWsOrderStatus(status: any): string;
     handleOrder(client: any, order: any): any;

@@ -3,7 +3,7 @@ export default class okcoin extends okcoinRest {
     describe(): any;
     subscribe(channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any, subscription?: any): void;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTrade(client: any, message: any): any;

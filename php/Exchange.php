@@ -38,7 +38,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.43';
+$version = '3.0.44';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -57,7 +57,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.43';
+    const VERSION = '3.0.44';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3983,7 +3983,7 @@ class Exchange {
         return array( $price, $amount );
     }
 
-    public function safe_currency(string $currencyId, ?string $currency = null) {
+    public function safe_currency(?string $currencyId, ?string $currency = null) {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
@@ -4578,7 +4578,7 @@ class Exchange {
         return $this->parse_number($value, $defaultNumber);
     }
 
-    public function parse_precision(string $precision) {
+    public function parse_precision(?string $precision) {
         /**
          * @ignore
          * @param {string} $precision The number of digits to the right of the decimal
@@ -4665,7 +4665,7 @@ class Exchange {
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
 
-    public function safe_currency_code(string $currencyId, ?string $currency = null) {
+    public function safe_currency_code(?string $currencyId, ?string $currency = null) {
         $currency = $this->safe_currency($currencyId, $currency);
         return $currency['code'];
     }

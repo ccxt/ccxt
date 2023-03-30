@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
@@ -578,7 +579,7 @@ class bitmex(ccxt.async_support.bitmex):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since=None, limit=None, params={}):
         """
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -784,7 +785,7 @@ class bitmex(ccxt.async_support.bitmex):
                 symbol = keys[i]
                 client.resolve(self.orders, messageHash + ':' + symbol)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since=None, limit=None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in

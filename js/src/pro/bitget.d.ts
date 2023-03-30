@@ -16,11 +16,11 @@ export default class bitget extends bitgetRest {
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any, subscription?: any): void;
     parseWsOrder(order: any, market?: any): any;
     parseWsOrderStatus(status: any): string;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any): void;
     parseWsMyTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchBalance(params?: {}): Promise<any>;

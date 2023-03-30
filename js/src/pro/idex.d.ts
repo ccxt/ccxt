@@ -35,9 +35,9 @@ export default class idex extends idexRest {
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     authenticate(params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
-    watchTransactions(code?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchTransactions(code?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTransaction(client: any, message: any): void;
     handleMessage(client: any, message: any): void;
 }

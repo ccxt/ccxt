@@ -31,7 +31,7 @@ export default class bittrex extends bittrexRest {
     createSignalRQuery(params?: {}): any;
     negotiate(params?: {}): Promise<any>;
     start(negotiation: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     subscribeToOrders(authentication: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     watchBalance(params?: {}): Promise<any>;
@@ -49,7 +49,7 @@ export default class bittrex extends bittrexRest {
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     subscribeToTrades(negotiation: any, symbol: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     subscribeToMyTrades(authentication: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any): void;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.43'
+__version__ = '3.0.44'
 
 # -----------------------------------------------------------------------------
 
@@ -2930,7 +2930,7 @@ class Exchange(object):
         amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
-    def safe_currency(self, currencyId: str, currency: Optional[str] = None):
+    def safe_currency(self, currencyId: Optional[str], currency: Optional[str] = None):
         if (currencyId is None) and (currency is not None):
             return currency
         if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
@@ -3398,7 +3398,7 @@ class Exchange(object):
         value = self.safe_string_n(obj, arr)
         return self.parse_number(value, defaultNumber)
 
-    def parse_precision(self, precision: str):
+    def parse_precision(self, precision: Optional[str]):
         """
          * @ignore
         :param str precision: The number of digits to the right of the decimal
@@ -3465,7 +3465,7 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
-    def safe_currency_code(self, currencyId: str, currency: Optional[str] = None):
+    def safe_currency_code(self, currencyId: Optional[str], currency: Optional[str] = None):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 

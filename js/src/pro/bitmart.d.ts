@@ -5,7 +5,7 @@ export default class bitmart extends bitmartRest {
     subscribePrivate(channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any): void;
     parseWsOrder(order: any, market?: any): any;
     handleTrade(client: any, message: any): any;

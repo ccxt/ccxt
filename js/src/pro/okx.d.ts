@@ -16,7 +16,7 @@ export default class okx extends okxRest {
     authenticate(params?: {}): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any, subscription?: any): void;
     handleSubscriptionStatus(client: any, message: any): any;
     handleAuthenticate(client: any, message: any): void;

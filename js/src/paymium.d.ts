@@ -22,7 +22,7 @@ export default class paymium extends Exchange {
         tag: any;
         network: any;
     }>;
-    fetchDepositAddresses(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         info: any;
         currency: any;
@@ -31,7 +31,7 @@ export default class paymium extends Exchange {
         network: any;
     };
     createOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: any, symbol?: any, params?: {}): Promise<any>;
     transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -55,7 +55,7 @@ export default class paymium extends Exchange {
         status: string;
     };
     parseTransferStatus(status: any): string;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
         body: any;

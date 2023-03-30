@@ -16,9 +16,9 @@ export default class huobi extends huobiRest {
     handleOrderBookMessage(client: any, message: any, orderbook: any): any;
     handleOrderBook(client: any, message: any): void;
     handleOrderBookSubscription(client: any, message: any, subscription: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     getOrderChannelAndMessageHash(type: any, subType: any, market?: any, params?: {}): any[];
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     parseWsOrder(order: any, market?: any): any;
     parseOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;

@@ -12,8 +12,8 @@ export default class alpaca extends alpacaRest {
     handleDeltas(bookside: any, deltas: any): void;
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleTradeUpdate(client: any, message: any): void;
     handleOrder(client: any, message: any): void;
     handleMyTrade(client: any, message: any): void;

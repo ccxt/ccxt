@@ -10,8 +10,8 @@ export default class coinbasepro extends coinbaseproRest {
     subscribe(name: any, symbol: any, messageHashStart: any, params?: {}): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
     handleTrade(client: any, message: any): any;
     handleMyTrade(client: any, message: any): any;

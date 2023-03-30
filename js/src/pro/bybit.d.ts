@@ -2,7 +2,7 @@ import bybitRest from '../bybit.js';
 export default class bybit extends bybitRest {
     describe(): any;
     requestId(): any;
-    getUrlByMarketType(symbol?: string, isPrivate?: boolean, method?: any, params?: {}): any;
+    getUrlByMarketType(symbol?: any, isPrivate?: boolean, method?: any, params?: {}): any;
     cleanParams(params: any): any;
     watchTicker(symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
@@ -17,9 +17,9 @@ export default class bybit extends bybitRest {
     handleTrades(client: any, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     getPrivateType(url: any): "spot" | "unified" | "usdc";
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any, subscription?: any): void;
     parseWsSpotOrder(order: any, market?: any): any;
     watchBalance(params?: {}): Promise<any>;

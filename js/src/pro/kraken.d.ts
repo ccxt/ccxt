@@ -18,8 +18,8 @@ export default class kraken extends krakenRest {
     handleDeltas(bookside: any, deltas: any, timestamp?: any): any;
     handleSystemStatus(client: any, message: any): any;
     authenticate(params?: {}): Promise<string>;
-    watchPrivate(name: any, symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchPrivate(name: any, symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any, subscription?: any): void;
     parseWsTrade(trade: any, market?: any): {
         id: string;
@@ -36,7 +36,7 @@ export default class kraken extends krakenRest {
         cost: any;
         fee: any;
     };
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrders(client: any, message: any, subscription?: any): void;
     parseWsOrder(order: any, market?: any): any;
     handleSubscriptionStatus(client: any, message: any): void;

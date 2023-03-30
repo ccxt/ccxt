@@ -16,7 +16,7 @@ export default class ascendex extends ascendexRest {
     handleOrderBookMessage(client: any, message: any, orderbook: any): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     parseWsOrder(order: any, market?: any): any;
     handleErrorMessage(client: any, message: any): boolean;

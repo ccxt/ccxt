@@ -1076,21 +1076,21 @@ class probit extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {
-        //         $id => string,
-        //         user_id => string,
-        //         market_id => string,
+        //         $id,
+        //         user_id,
+        //         market_id,
         //         $type => 'orderType',
         //         $side => 'side',
-        //         quantity => string,
-        //         limit_price => string,
+        //         quantity,
+        //         limit_price,
         //         time_in_force => 'timeInForce',
-        //         filled_cost => string,
-        //         filled_quantity => string,
-        //         open_quantity => string,
-        //         cancelled_quantity => string,
+        //         filled_cost,
+        //         filled_quantity,
+        //         open_quantity,
+        //         cancelled_quantity,
         //         $status => 'orderStatus',
         //         time => 'date',
-        //         client_order_id => string,
+        //         client_order_id,
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -1201,21 +1201,21 @@ class probit extends Exchange {
             //
             //     {
             //         $data => {
-            //             id => string,
-            //             user_id => string,
-            //             market_id => string,
+            //             id,
+            //             user_id,
+            //             market_id,
             //             $type => 'orderType',
             //             $side => 'side',
-            //             quantity => string,
-            //             limit_price => string,
+            //             quantity,
+            //             limit_price,
             //             time_in_force => 'timeInForce',
-            //             filled_cost => string,
-            //             filled_quantity => string,
-            //             open_quantity => string,
-            //             cancelled_quantity => string,
+            //             filled_cost,
+            //             filled_quantity,
+            //             open_quantity,
+            //             cancelled_quantity,
             //             status => 'orderStatus',
             //             time => 'date',
-            //             client_order_id => string,
+            //             client_order_id,
             //         }
             //     }
             //

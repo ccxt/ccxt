@@ -4425,14 +4425,14 @@ class bybit(Exchange):
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
-            # 'category': string, Type of derivatives product: spot, linear or option.
-            # 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            # 'orderId': string, Order ID
-            # 'orderLinkId': string, Unique user-set order ID
-            # 'orderStatus': string,  # Return all status orders if not passed
-            # 'orderFilter': string, Conditional order or active order
+            # 'category', Type of derivatives product: spot, linear or option.
+            # 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            # 'orderId', Order ID
+            # 'orderLinkId', Unique user-set order ID
+            # 'orderStatus',  # Return all status orders if not passed
+            # 'orderFilter', Conditional order or active order
             # 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            # 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            # 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         }
         market = None
         if symbol is None:
@@ -4523,15 +4523,15 @@ class bybit(Exchange):
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
-            # 'category': string, Type of derivatives product: linear or option.
-            # 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            # 'orderId': string, Order ID
-            # 'orderLinkId': string, Unique user-set order ID
-            # 'orderStatus': string, Query list of orders in designated states. If self parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
-            # 'orderFilter': string, Conditional order or active order
-            # 'direction': string, prev: prev, next: next.
+            # 'category', Type of derivatives product: linear or option.
+            # 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            # 'orderId', Order ID
+            # 'orderLinkId', Unique user-set order ID
+            # 'orderStatus', Query list of orders in designated states. If self parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
+            # 'orderFilter', Conditional order or active order
+            # 'direction', prev: prev, next: next.
             # 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            # 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            # 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         }
         market = None
         if symbol is None:
@@ -4606,14 +4606,14 @@ class bybit(Exchange):
         market = None
         request = {
             # 'symbol': market['id'],
-            # 'category': string, Type of derivatives product: spot, linear or option.
-            # 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            # 'orderId': string, Order ID
-            # 'orderLinkId': string, Unique user-set order ID
-            # 'orderStatus': string,  # Return all status orders if not passed
-            # 'orderFilter': string, Conditional order or active order
+            # 'category', Type of derivatives product: spot, linear or option.
+            # 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            # 'orderId', Order ID
+            # 'orderLinkId', Unique user-set order ID
+            # 'orderStatus',  # Return all status orders if not passed
+            # 'orderFilter', Conditional order or active order
             # 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            # 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            # 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         }
         if symbol is None:
             type = None
@@ -4826,14 +4826,14 @@ class bybit(Exchange):
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
-            # 'category': string, Type of derivatives product: linear or option.
-            # 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            # 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-            # 'orderId': string, Order ID
-            # 'orderLinkId': string, Unique user-set order ID
-            # 'orderFilter': string, Conditional order or active order
+            # 'category', Type of derivatives product: linear or option.
+            # 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            # 'settleCoin', Settle coin. For linear, either symbol or settleCoin is required
+            # 'orderId', Order ID
+            # 'orderLinkId', Unique user-set order ID
+            # 'orderFilter', Conditional order or active order
             # 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            # 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            # 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
             # 'openOnly': 0,
         }
         market = None
@@ -5050,14 +5050,14 @@ class bybit(Exchange):
         settle = None
         request = {
             # 'symbol': market['id'],
-            # 'category': string, Type of derivatives product: linear or option.
-            # 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            # 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-            # 'orderId': string, Order ID
-            # 'orderLinkId': string, Unique user-set order ID
-            # 'orderFilter': string, Conditional order or active order
+            # 'category', Type of derivatives product: linear or option.
+            # 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            # 'settleCoin', Settle coin. For linear, either symbol or settleCoin is required
+            # 'orderId', Order ID
+            # 'orderLinkId', Unique user-set order ID
+            # 'orderFilter', Conditional order or active order
             # 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-            # 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            # 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
             # 'openOnly': 0,
         }
         if symbol is not None:

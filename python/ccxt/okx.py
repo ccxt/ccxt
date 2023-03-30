@@ -3953,9 +3953,9 @@ class okx(Exchange):
         #         "ccy": "ETH",
         #         "from": "13426335357",
         #         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        #         'tag': string,
-        #         'pmtId': string,
-        #         'memo': string,
+        #         'tag',
+        #         'pmtId',
+        #         'memo',
         #         "ts": "1597026383085",
         #         "state": "2"
         #     }
