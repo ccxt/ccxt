@@ -2584,12 +2584,8 @@ export default class Exchange {
         return this.markets;
     }
 
-    safePosition (position, market = undefined) {
+    safePosition (position) {
         // simplified version of: /pull/12765/
-        if (market === undefined) {
-            const symbol = this.safeString (position, 'symbol');
-            market = this.market (symbol);
-        }
         const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
         const initialMarginString = this.safeString (position, 'initialMargin');
         //
