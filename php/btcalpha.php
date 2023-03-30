@@ -227,7 +227,7 @@ class btcalpha extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * @see https://btc-alpha.github.io/api-docs/#tickers
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market

@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -1630,14 +1631,14 @@ class btcex(Exchange):
         notionalString = Precise.string_mul(markPrice, size)
         unrealisedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
-        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         marginType = self.safe_string(position, 'margin_type')
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notionalString)),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -1651,11 +1652,12 @@ class btcex(Exchange):
             'marginRatio': self.parse_number(riskLevel),
             'liquidationPrice': self.safe_number(position, 'liquid_price'),
             'markPrice': self.parse_number(markPrice),
+            'lastPrice': None,
             'collateral': self.parse_number(collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': self.parse_number(percentage),
-        }
+            'percentage': None,
+        })
 
     async def fetch_position(self, symbol: str, params={}):
         await self.sign_in()
@@ -1703,7 +1705,7 @@ class btcex(Exchange):
         #
         return self.parse_position(result)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         await self.sign_in()
         await self.load_markets()
         request = {
@@ -2020,7 +2022,7 @@ class btcex(Exchange):
             })
         return tiers
 
-    async def fetch_leverage_tiers(self, symbols=None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
         retrieve information on the maximum leverage, for different trade sizes
@@ -2055,7 +2057,7 @@ class btcex(Exchange):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
         #
         #     {
         #         "WAVES-USDT-PERPETUAL": [
@@ -2160,7 +2162,7 @@ class btcex(Exchange):
         #
         return response
 
-    async def fetch_funding_rates(self, symbols=None, params={}):
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the current funding rates
         see https://docs.btcex.com/#contracts

@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1312,7 +1313,7 @@ class zb(Exchange):
             timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(result, symbol, timestamp)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -3101,7 +3102,7 @@ class zb(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rates(self, symbols=None, params={}):
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param [str]|None symbols: list of unified market symbols
@@ -3356,7 +3357,7 @@ class zb(Exchange):
         firstPosition = self.safe_value(data, 0)
         return self.parse_position(firstPosition, market)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -3485,7 +3486,7 @@ class zb(Exchange):
         notional = self.safe_number(position, 'nominalValue')
         percentage = Precise.string_mul(self.safe_string(position, 'returnRate'), '100')
         timestamp = self.safe_number(position, 'createTime')
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -3500,6 +3501,7 @@ class zb(Exchange):
             'marginMode': marginMode,
             'notional': notional,
             'markPrice': None,
+            'lastPrice': None,
             'liquidationPrice': liquidationPrice,
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': None,
@@ -3508,7 +3510,8 @@ class zb(Exchange):
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+            'lastUpdateTimestamp': None,
+        })
 
     def parse_ledger_entry_type(self, type):
         types = {

@@ -2538,7 +2538,7 @@ class ascendex extends ascendex$1 {
         if (marginMode === 'isolated') {
             collateral = this.safeString(position, 'isolatedMargin');
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
@@ -2551,10 +2551,12 @@ class ascendex extends ascendex$1 {
             'contracts': this.safeNumber(position, 'position'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': undefined,
             'side': this.safeStringLower(position, 'side'),
             'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
@@ -2562,7 +2564,7 @@ class ascendex extends ascendex$1 {
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger(position, 'leverage'),
             'marginRatio': undefined,
-        };
+        });
     }
     parseFundingRate(contract, market = undefined) {
         //

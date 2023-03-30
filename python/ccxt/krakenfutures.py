@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -441,7 +442,7 @@ class krakenfutures(Exchange):
         timestamp = self.parse8601(response['serverTime'])
         return self.parse_order_book(response['orderBook'], symbol, timestamp)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         response = self.publicGetTickers(params)
         #
@@ -1543,7 +1544,7 @@ class krakenfutures(Exchange):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         Fetches current contract trading positions
         :param [str] symbols: List of unified symbols
@@ -1572,7 +1573,7 @@ class krakenfutures(Exchange):
         result = self.parse_positions(response)
         return self.filter_by_array(result, 'symbol', symbols, False)
 
-    def parse_positions(self, response, symbols=None, params={}):
+    def parse_positions(self, response, symbols: Optional[List[str]] = None, params={}):
         result = []
         positions = self.safe_value(response, 'openPositions')
         for i in range(0, len(positions)):
@@ -1634,7 +1635,7 @@ class krakenfutures(Exchange):
             'percentage': None,
         }
 
-    def fetch_leverage_tiers(self, symbols=None, params={}):
+    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         response = self.publicGetInstruments(params)
         #

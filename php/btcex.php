@@ -1686,14 +1686,14 @@ class btcex extends Exchange {
         $notionalString = Precise::string_mul($markPrice, $size);
         $unrealisedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
-        $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         $marginType = $this->safe_string($position, 'margin_type');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,
+            'lastUpdateTimestamp' => null,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notionalString)),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
@@ -1707,11 +1707,12 @@ class btcex extends Exchange {
             'marginRatio' => $this->parse_number($riskLevel),
             'liquidationPrice' => $this->safe_number($position, 'liquid_price'),
             'markPrice' => $this->parse_number($markPrice),
+            'lastPrice' => null,
             'collateral' => $this->parse_number($collateral),
             'marginType' => $marginType,
             'side' => $side,
-            'percentage' => $this->parse_number($percentage),
-        );
+            'percentage' => null,
+        ));
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -1761,7 +1762,7 @@ class btcex extends Exchange {
         return $this->parse_position($result);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         $this->sign_in();
         $this->load_markets();
         $request = array(
@@ -2092,7 +2093,7 @@ class btcex extends Exchange {
         return $tiers;
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
          * retrieve information on the maximum leverage, for different trade sizes
@@ -2128,7 +2129,7 @@ class btcex extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
         //
         //     {
         //         "WAVES-USDT-PERPETUAL" => array(
@@ -2245,7 +2246,7 @@ class btcex extends Exchange {
         return $response;
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
          * fetch the current funding rates
          * @see https://docs.btcex.com/#contracts

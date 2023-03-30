@@ -736,7 +736,7 @@ class hitbtc3 extends Exchange {
         return $this->safe_value($response, $symbol);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
@@ -1179,7 +1179,7 @@ class hitbtc3 extends Exchange {
         return $this->fetch_transactions_helper('WITHDRAW', $code, $since, $limit, $params);
     }
 
-    public function fetch_order_books($symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
@@ -1267,11 +1267,11 @@ class hitbtc3 extends Exchange {
         return $this->parse_trading_fee($response, $market);
     }
 
-    public function fetch_trading_fees($symbols = null, $params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
          * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
          */
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
@@ -2148,7 +2148,7 @@ class hitbtc3 extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols not used by hitbtc3 fetchPositions ()
@@ -2324,7 +2324,7 @@ class hitbtc3 extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -2338,10 +2338,12 @@ class hitbtc3 extends Exchange {
             'contracts' => $contracts,
             'contractSize' => null,
             'markPrice' => null,
+            'lastPrice' => null,
             'side' => null,
             'hedged' => null,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
+            'lastUpdateTimestamp' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'collateral' => $collateral,
@@ -2349,7 +2351,7 @@ class hitbtc3 extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $leverage,
             'marginRatio' => null,
-        );
+        ));
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()) {

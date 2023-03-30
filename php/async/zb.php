@@ -1337,7 +1337,7 @@ class zb extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -3275,7 +3275,7 @@ class zb extends Exchange {
         );
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -3553,7 +3553,7 @@ class zb extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -3685,7 +3685,7 @@ class zb extends Exchange {
         $notional = $this->safe_number($position, 'nominalValue');
         $percentage = Precise::string_mul($this->safe_string($position, 'returnRate'), '100');
         $timestamp = $this->safe_number($position, 'createTime');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -3700,6 +3700,7 @@ class zb extends Exchange {
             'marginMode' => $marginMode,
             'notional' => $notional,
             'markPrice' => null,
+            'lastPrice' => null,
             'liquidationPrice' => $liquidationPrice,
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => null,
@@ -3708,7 +3709,8 @@ class zb extends Exchange {
             'marginRatio' => $marginRatio,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+            'lastUpdateTimestamp' => null,
+        ));
     }
 
     public function parse_ledger_entry_type($type) {

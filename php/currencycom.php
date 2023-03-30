@@ -887,7 +887,7 @@ class currencycom extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1788,7 +1788,7 @@ class currencycom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -1844,10 +1844,11 @@ class currencycom extends Exchange {
         $unrealizedProfit = $this->safe_number($position, 'upl');
         $marginCoeff = $this->safe_string($position, 'margin');
         $leverage = Precise::string_div('1', $marginCoeff);
-        return array(
+        return $this->safe_position(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => null,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
             'entryPrice' => $entryPrice,
@@ -1860,6 +1861,7 @@ class currencycom extends Exchange {
             'marginMode' => null,
             'notional' => null,
             'markPrice' => null,
+            'lastPrice' => null,
             'liquidationPrice' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => null,
@@ -1868,7 +1870,7 @@ class currencycom extends Exchange {
             'marginRatio' => null,
             'info' => $position,
             'id' => null,
-        );
+        ));
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

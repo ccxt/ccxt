@@ -1314,7 +1314,7 @@ class zb extends Exchange {
         return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
@@ -3222,7 +3222,7 @@ class zb extends Exchange {
         );
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
          * fetch the funding rate for multiple markets
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -3490,7 +3490,7 @@ class zb extends Exchange {
         return $this->parse_position($firstPosition, $market);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -3620,7 +3620,7 @@ class zb extends Exchange {
         $notional = $this->safe_number($position, 'nominalValue');
         $percentage = Precise::string_mul($this->safe_string($position, 'returnRate'), '100');
         $timestamp = $this->safe_number($position, 'createTime');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -3635,6 +3635,7 @@ class zb extends Exchange {
             'marginMode' => $marginMode,
             'notional' => $notional,
             'markPrice' => null,
+            'lastPrice' => null,
             'liquidationPrice' => $liquidationPrice,
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => null,
@@ -3643,7 +3644,8 @@ class zb extends Exchange {
             'marginRatio' => $marginRatio,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+            'lastUpdateTimestamp' => null,
+        ));
     }
 
     public function parse_ledger_entry_type($type) {

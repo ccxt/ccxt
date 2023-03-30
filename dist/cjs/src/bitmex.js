@@ -2179,18 +2179,20 @@ class bitmex extends bitmex$1 {
         const maintenanceMargin = this.safeNumber(position, 'maintMargin');
         const unrealisedPnl = this.safeNumber(position, 'unrealisedPnl');
         const contracts = this.omitZero(this.safeNumber(position, 'currentQty'));
-        return {
+        return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'account'),
             'symbol': symbol,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': undefined,
             'hedged': undefined,
             'side': undefined,
             'contracts': this.convertValue(contracts, market),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(position, 'avgEntryPrice'),
             'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': undefined,
             'notional': notional,
             'leverage': this.safeNumber(position, 'leverage'),
             'collateral': undefined,
@@ -2203,7 +2205,7 @@ class bitmex extends bitmex$1 {
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber(position, 'unrealisedPnlPcnt'),
-        };
+        });
     }
     convertValue(value, market = undefined) {
         if ((value === undefined) || (market === undefined)) {

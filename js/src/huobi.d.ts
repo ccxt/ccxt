@@ -22,7 +22,7 @@ export default class huobi extends Exchange {
         maker: number;
         taker: number;
     }>;
-    fetchTradingLimits(symbols?: any, params?: {}): Promise<{}>;
+    fetchTradingLimits(symbols?: string[], params?: {}): Promise<{}>;
     fetchTradingLimitsById(id: any, params?: {}): Promise<{
         info: any;
         limits: {
@@ -46,7 +46,7 @@ export default class huobi extends Exchange {
     fetchMarketsByTypeAndSubType(type: any, subType: any, params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -231,7 +231,7 @@ export default class huobi extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
-    fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     fetchBorrowInterest(code?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         account: string;
@@ -263,31 +263,8 @@ export default class huobi extends Exchange {
         id: string;
         amount: number;
     };
-    parsePosition(position: any, market?: any): {
-        info: any;
-        id: any;
-        symbol: any;
-        contracts: number;
-        contractSize: any;
-        entryPrice: number;
-        collateral: number;
-        side: string;
-        unrealizedProfit: number;
-        leverage: number;
-        percentage: number;
-        marginMode: string;
-        notional: number;
-        markPrice: any;
-        liquidationPrice: number;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        marginRatio: number;
-        timestamp: any;
-        datetime: any;
-    };
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
@@ -308,9 +285,9 @@ export default class huobi extends Exchange {
         info: any;
     };
     fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchLeverageTiers(symbols?: any, params?: {}): Promise<{}>;
+    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;
-    parseLeverageTiers(response: any, symbols?: any, marketIdKey?: any): {};
+    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
     parseOpenInterest(interest: any, market?: any): {

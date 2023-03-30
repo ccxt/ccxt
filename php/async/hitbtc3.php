@@ -756,7 +756,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1213,7 +1213,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_order_books($symbols = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
@@ -1307,12 +1307,12 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_fees($symbols = null, $params = array ()) {
-        return Async\async(function () use ($symbols, $params) {
+    public function fetch_trading_fees($params = array ()) {
+        return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
@@ -2218,7 +2218,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2398,7 +2398,7 @@ class hitbtc3 extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -2412,10 +2412,12 @@ class hitbtc3 extends Exchange {
             'contracts' => $contracts,
             'contractSize' => null,
             'markPrice' => null,
+            'lastPrice' => null,
             'side' => null,
             'hedged' => null,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
+            'lastUpdateTimestamp' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'collateral' => $collateral,
@@ -2423,7 +2425,7 @@ class hitbtc3 extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => $leverage,
             'marginRatio' => null,
-        );
+        ));
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()) {

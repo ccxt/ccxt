@@ -1494,6 +1494,22 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function safe_position($position) {
+        // simplified version of => /pull/12765/
+        $unrealizedPnlString = $this->safe_string($position, 'unrealisedPnl');
+        $initialMarginString = $this->safe_string($position, 'initialMargin');
+        //
+        // PERCENTAGE
+        //
+        $percentage = $this->safe_value($position, 'percentage');
+        if (($percentage === null) && ($unrealizedPnlString !== null) && ($initialMarginString !== null)) {
+            // was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
+            $position['percentage'] = $this->parse_number($percentageString);
+        }
+        return $position;
+    }
+
     public function parse_positions($positions, ?array $symbols = null, $params = array ()) {
         $symbols = $this->market_symbols($symbols);
         $positions = $this->to_array($positions);
@@ -2669,7 +2685,7 @@ class Exchange extends \ccxt\Exchange {
         return array( false, $params );
     }
 
-    public function fetch_last_prices($params = array ()) {
+    public function fetch_last_prices(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchLastPrices() is not supported yet');
     }
 

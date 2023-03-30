@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -729,7 +730,7 @@ class hitbtc3(Exchange):
         response = await self.fetch_tickers([symbol], params)
         return self.safe_value(response, symbol)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1144,7 +1145,7 @@ class hitbtc3(Exchange):
         """
         return await self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
 
-    async def fetch_order_books(self, symbols=None, limit: Optional[int] = None, params={}):
+    async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
@@ -1225,7 +1226,7 @@ class hitbtc3(Exchange):
         #
         return self.parse_trading_fee(response, market)
 
-    async def fetch_trading_fees(self, symbols=None, params={}):
+    async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
         :param dict params: extra parameters specific to the hitbtc3 api endpoint
@@ -2040,7 +2041,7 @@ class hitbtc3(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: not used by hitbtc3 fetchPositions()
@@ -2209,7 +2210,7 @@ class hitbtc3(Exchange):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -2223,10 +2224,12 @@ class hitbtc3(Exchange):
             'contracts': contracts,
             'contractSize': None,
             'markPrice': None,
+            'lastPrice': None,
             'side': None,
             'hedged': None,
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
             'collateral': collateral,
@@ -2234,7 +2237,7 @@ class hitbtc3(Exchange):
             'initialMarginPercentage': None,
             'leverage': leverage,
             'marginRatio': None,
-        }
+        })
 
     async def fetch_funding_rate(self, symbol: str, params={}):
         """

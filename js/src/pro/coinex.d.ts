@@ -11,7 +11,7 @@ export default class coinex extends coinexRest {
     parseWSTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleOHLCV(client: any, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: any, params?: {}): any;
+    watchTickers(symbols?: string[], params?: {}): any;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

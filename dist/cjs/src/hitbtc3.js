@@ -1276,7 +1276,7 @@ class hitbtc3 extends hitbtc3$1 {
         //
         return this.parseTradingFee(response, market);
     }
-    async fetchTradingFees(symbols = undefined, params = {}) {
+    async fetchTradingFees(params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTradingFees
@@ -2344,7 +2344,7 @@ class hitbtc3 extends hitbtc3$1 {
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -2358,10 +2358,12 @@ class hitbtc3 extends hitbtc3$1 {
             'contracts': contracts,
             'contractSize': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'side': undefined,
             'hedged': undefined,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
@@ -2369,7 +2371,7 @@ class hitbtc3 extends hitbtc3$1 {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
-        };
+        });
     }
     async fetchFundingRate(symbol, params = {}) {
         /**

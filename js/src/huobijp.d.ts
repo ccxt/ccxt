@@ -3,7 +3,7 @@ import { Int } from './base/types.js';
 export default class huobijp extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchTradingLimits(symbols?: any, params?: {}): Promise<{}>;
+    fetchTradingLimits(symbols?: string[], params?: {}): Promise<{}>;
     fetchTradingLimitsById(id: any, params?: {}): Promise<{
         info: any;
         limits: {
@@ -27,7 +27,7 @@ export default class huobijp extends Exchange {
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): {
         id: string;
         info: any;

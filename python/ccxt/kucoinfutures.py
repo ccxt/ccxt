@@ -5,6 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from typing import Optional
+from typing import List
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -822,7 +823,7 @@ class kucoinfutures(kucoin):
             })
         return fees
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -944,12 +945,13 @@ class kucoinfutures(kucoin):
         crossMode = self.safe_value(position, 'crossMode')
         # currently crossMode is always set to False and only isolated positions are supported
         marginMode = 'cross' if crossMode else 'isolated'
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'maintenanceMargin': self.safe_number(position, 'posMaint'),
@@ -964,11 +966,12 @@ class kucoinfutures(kucoin):
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': None,
             'collateral': self.safe_number(position, 'maintMargin'),
             'marginMode': marginMode,
             'side': side,
-            'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
-        }
+            'percentage': None,
+        })
 
     def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
