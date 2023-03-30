@@ -1,12 +1,14 @@
-import { binance } from '../../ts/ccxt.js'
+import ccxt from '../../ts/ccxt.js';
 
-async function main() {
-    const exchange = new binance();
-    const ob = await exchange.fetchOrderBook('BTC/USDT')
-    const asks = ob.asks;
-    const bids = ob.bids;
-    console.log(asks);
-    console.log(bids);
+// AUTO-TRANSPILE //
+
+async function example () {
+    const exchange = new ccxt.binance ({});
+    const ob = await exchange.fetchOrderBook ('BTC/USDT', 3);
+    const asks = ob['asks'];
+    const bids = ob['bids'];
+    console.log (asks);
+    console.log (bids);
 }
 
-main();
+example ();
