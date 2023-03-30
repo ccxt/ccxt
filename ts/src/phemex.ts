@@ -1934,7 +1934,8 @@ export default class phemex extends Exchange {
             clientOrderId = undefined;
         }
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const price = this.fromEp (this.safeString (order, 'priceEp'), market);
         const amount = this.fromEv (this.safeString (order, 'baseQtyEv'), market);
         const remaining = this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
