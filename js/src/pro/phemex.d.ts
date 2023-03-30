@@ -1,4 +1,5 @@
 import phemexRest from '../phemex.js';
+import { Int } from '../base/types.js';
 export default class phemex extends phemexRest {
     describe(): any;
     fromEn(en: any, scale: any): string;
@@ -33,16 +34,16 @@ export default class phemex extends phemexRest {
     handleBalance(type: any, client: any, message: any): void;
     handleTrades(client: any, message: any): void;
     handleOHLCV(client: any, message: any): void;
-    watchTicker(symbol: any, params?: {}): Promise<any>;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any, market?: any): void;
     handleDeltas(bookside: any, deltas: any, market?: any): void;
     handleOrderBook(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: any, message: any): void;
     parseWSSwapOrder(order: any, market?: any): any;
     handleMessage(client: any, message: any): void;

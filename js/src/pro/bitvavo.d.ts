@@ -1,14 +1,15 @@
 import bitvavoRest from '../bitvavo.js';
+import { Int } from '../base/types.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
     watchPublic(name: any, symbol: any, params?: {}): Promise<any>;
-    watchTicker(symbol: any, params?: {}): Promise<any>;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): any;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: any, message: any): void;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: any, message: any, orderbook: any): any;
@@ -17,8 +18,8 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSnapshot(client: any, message: any): any;
     handleOrderBookSubscription(client: any, message: any, subscription: any): void;
     handleOrderBookSubscriptions(client: any, message: any, marketIds: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     handleMyTrade(client: any, message: any): void;
     handleSubscriptionStatus(client: any, message: any): any;

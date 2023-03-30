@@ -858,7 +858,7 @@ class tidex extends tidex$1 {
             request['pair'] = market['id'];
         }
         if (limit !== undefined) {
-            request['count'] = parseInt(limit);
+            request['count'] = limit;
         }
         if (since !== undefined) {
             request['since'] = this.parseToInt(since / 1000);

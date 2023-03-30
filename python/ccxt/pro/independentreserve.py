@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from typing import Optional
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 
@@ -38,7 +39,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             },
         })
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -119,7 +120,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             'datetime': datetime,
         }, market)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for

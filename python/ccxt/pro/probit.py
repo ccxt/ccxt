@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -115,7 +116,7 @@ class probit(ccxt.async_support.probit):
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://docs-en.probit.com/reference/marketdata
@@ -156,7 +157,7 @@ class probit(ccxt.async_support.probit):
         self.tickers[symbol] = parsedTicker
         client.resolve(parsedTicker, messageHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://docs-en.probit.com/reference/trade_history
@@ -213,7 +214,7 @@ class probit(ccxt.async_support.probit):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of trades associated with the user
         :param str symbol: unified symbol of the market to fetch trades for
@@ -284,7 +285,7 @@ class probit(ccxt.async_support.probit):
             client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, messageHash)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on an order made by the user
         see https://docs-en.probit.com/reference/open_order
@@ -362,7 +363,7 @@ class probit(ccxt.async_support.probit):
             client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://docs-en.probit.com/reference/marketdata
@@ -376,7 +377,7 @@ class probit(ccxt.async_support.probit):
         orderbook = await self.subscribe_order_book(symbol, 'orderbook', filter, params)
         return orderbook.limit()
 
-    async def subscribe_order_book(self, symbol, messageHash, filter, params={}):
+    async def subscribe_order_book(self, symbol: str, messageHash, filter, params={}):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']

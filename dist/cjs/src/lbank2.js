@@ -1289,12 +1289,12 @@ class lbank2 extends lbank2$1 {
         params = this.omit(params, 'start_date');
         const request = {
             'symbol': market['id'],
-            // 'start_date': String Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            // 'end_date': String Finish time yyyy-mm-dd, the maximum is today, the default is today
+            // 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            // 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
             // 'The start': and end date of the query window is up to 2 days
-            // 'from': String Initial transaction number inquiring
-            // 'direct': String inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            // 'size': String Query the number of defaults to 100
+            // 'from' Initial transaction number inquiring
+            // 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            // 'size' Query the number of defaults to 100
         };
         if (limit !== undefined) {
             request['size'] = limit;

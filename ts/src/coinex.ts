@@ -7,6 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
+import { Int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -658,7 +659,7 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinex#fetchTicker
@@ -731,7 +732,7 @@ export default class coinex extends Exchange {
         return this.parseTicker (response['data'], market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchTickers
@@ -848,7 +849,7 @@ export default class coinex extends Exchange {
         return this.safeNumber (response, 'data');
     }
 
-    async fetchOrderBook (symbol, limit = 20, params = {}) {
+    async fetchOrderBook (symbol: string, limit = 20, params = {}) {
         /**
          * @method
          * @name coinex#fetchOrderBook
@@ -1046,7 +1047,7 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchTrades
@@ -1089,7 +1090,7 @@ export default class coinex extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name coinex#fetchTradingFee
@@ -1199,7 +1200,7 @@ export default class coinex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchOHLCV
@@ -1727,7 +1728,7 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinex#createOrder
@@ -2300,7 +2301,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         limit = (limit === undefined) ? 100 : limit;
         const request = {
@@ -2506,7 +2507,7 @@ export default class coinex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchOpenOrders
@@ -2520,7 +2521,7 @@ export default class coinex extends Exchange {
         return await this.fetchOrdersByStatus ('pending', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchClosedOrders
@@ -2664,7 +2665,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchMyTrades
@@ -2802,7 +2803,7 @@ export default class coinex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchPositions
@@ -2897,7 +2898,7 @@ export default class coinex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    async fetchPosition (symbol, params = {}) {
+    async fetchPosition (symbol: string, params = {}) {
         /**
          * @method
          * @name coinex#fetchPosition
@@ -3163,7 +3164,7 @@ export default class coinex extends Exchange {
         return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchLeverageTiers
@@ -3195,7 +3196,7 @@ export default class coinex extends Exchange {
         return this.parseLeverageTiers (data, symbols, undefined);
     }
 
-    parseLeverageTiers (response, symbols: string[] = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
         //
         //     {
         //         "BTCUSD": [
@@ -3246,7 +3247,7 @@ export default class coinex extends Exchange {
         return tiers;
     }
 
-    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3332,7 +3333,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async addMargin (symbol, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}) {
         /**
          * @method
          * @name coinex#addMargin
@@ -3345,7 +3346,7 @@ export default class coinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async reduceMargin (symbol, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}) {
         /**
          * @method
          * @name coinex#reduceMargin
@@ -3358,7 +3359,7 @@ export default class coinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingHistory
@@ -3434,7 +3435,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingRate
@@ -3544,7 +3545,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
         /**
          *  @method
          * @name coinex#fetchFundingRates
@@ -3676,7 +3677,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingRateHistory
@@ -3962,7 +3963,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchTransfers
@@ -4047,7 +4048,7 @@ export default class coinex extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchWithdrawals
@@ -4115,7 +4116,7 @@ export default class coinex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchDeposits
@@ -4309,7 +4310,7 @@ export default class coinex extends Exchange {
         return rates;
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -4509,7 +4510,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchDepositWithdrawFees
@@ -4557,7 +4558,7 @@ export default class coinex extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         const depositWithdrawFees = {};
         codes = this.marketCodes (codes);
         const data = this.safeValue (response, 'data');
@@ -4610,7 +4611,7 @@ export default class coinex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));

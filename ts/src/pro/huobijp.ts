@@ -4,6 +4,7 @@
 import huobijpRest from '../huobijp.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -46,7 +47,7 @@ export default class huobijp extends huobijpRest {
         return requestId.toString ();
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name huobijp#watchTicker
@@ -110,7 +111,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchTrades
@@ -189,7 +190,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchOHLCV
@@ -265,7 +266,7 @@ export default class huobijp extends huobijpRest {
         client.resolve (stored, ch);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchOrderBook

@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -1308,7 +1309,7 @@ class huobi(Exchange):
             'taker': self.safe_number(fee, 'actualTakerRate'),
         }
 
-    async def fetch_trading_fee(self, symbol, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -1376,7 +1377,7 @@ class huobi(Exchange):
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
-    def parse_trading_limits(self, limits, symbol=None, params={}):
+    def parse_trading_limits(self, limits, symbol: Optional[str] = None, params={}):
         #
         #   {                                 symbol: "aidocbtc",
         #                  'buy-limit-must-less-than':  1.1,
@@ -1805,7 +1806,7 @@ class huobi(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -2019,7 +2020,7 @@ class huobi(Exchange):
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -2229,7 +2230,7 @@ class huobi(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -2251,7 +2252,7 @@ class huobi(Exchange):
         })
         return await getattr(self, method)(id, symbol, since, limit, params)
 
-    async def fetch_spot_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_spot_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {
             'order-id': id,
@@ -2259,7 +2260,7 @@ class huobi(Exchange):
         response = await self.spotPrivateGetV1OrderOrdersOrderIdMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], None, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -2402,7 +2403,7 @@ class huobi(Exchange):
             trades = self.safe_value(trades, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trades(self, symbol, since=None, limit=1000, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=1000, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -2491,7 +2492,7 @@ class huobi(Exchange):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -3057,7 +3058,7 @@ class huobi(Exchange):
             result = self.safe_balance(result)
         return result
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -3263,7 +3264,7 @@ class huobi(Exchange):
             account['used'] = self.safe_string(balance, 'balance')
         return account
 
-    async def fetch_spot_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
+    async def fetch_spot_orders_by_states(self, states, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
             if symbol is None:
@@ -3325,13 +3326,13 @@ class huobi(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_spot_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_spot_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         return await self.fetch_spot_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    async def fetch_closed_spot_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_spot_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         return await self.fetch_spot_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    async def fetch_contract_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_contract_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchContractOrders() requires a symbol argument')
         await self.load_markets()
@@ -3424,13 +3425,13 @@ class huobi(Exchange):
         orders = self.safe_value(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_contract_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_contract_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         request = {
             'status': '5,6,7',  # comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         }
         return await self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -3457,7 +3458,7 @@ class huobi(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders')
         return await getattr(self, method)(symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -3481,7 +3482,7 @@ class huobi(Exchange):
             raise NotSupported(self.id + ' fetchClosedOrders() does not support ' + marketType + ' markets yet')
         return await getattr(self, method)(symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -3890,7 +3891,7 @@ class huobi(Exchange):
             'trades': trades,
         }, market)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -3917,7 +3918,7 @@ class huobi(Exchange):
             raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' markets yet')
         return await getattr(self, method)(symbol, type, side, amount, price, query)
 
-    async def create_spot_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
@@ -4014,7 +4015,7 @@ class huobi(Exchange):
             'average': None,
         }
 
-    async def create_contract_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         offset = self.safe_string(params, 'offset')
         stopPrice = self.safe_string(params, 'stopPrice')
         if stopPrice is not None:
@@ -4133,7 +4134,7 @@ class huobi(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -4220,7 +4221,7 @@ class huobi(Exchange):
             'status': 'canceled',
         })
 
-    async def cancel_orders(self, ids, symbol=None, params={}):
+    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         :param [str] ids: order ids
@@ -4342,7 +4343,7 @@ class huobi(Exchange):
         #
         return response
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -4511,7 +4512,7 @@ class huobi(Exchange):
                 addresses.append(address)
         return addresses
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -4564,7 +4565,7 @@ class huobi(Exchange):
         #
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -4999,7 +5000,7 @@ class huobi(Exchange):
                 }
         return rates
 
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
@@ -5104,7 +5105,7 @@ class huobi(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         :param str symbol: unified market symbol
@@ -5186,7 +5187,7 @@ class huobi(Exchange):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
@@ -5421,7 +5422,7 @@ class huobi(Exchange):
             code = self.safe_string(response, 'code')
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
 
-    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
@@ -5504,7 +5505,7 @@ class huobi(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -5804,7 +5805,7 @@ class huobi(Exchange):
             }))
         return self.filter_by_array(result, 'symbol', symbols, False)
 
-    async def fetch_position(self, symbol, params={}):
+    async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
         :param str symbol: unified market symbol of the market the position is held in, default is None
@@ -6107,7 +6108,7 @@ class huobi(Exchange):
             'info': item,
         }
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -6213,7 +6214,7 @@ class huobi(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
-    async def fetch_market_leverage_tiers(self, symbol, params={}):
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
         :param str symbol: unified market symbol
@@ -6290,7 +6291,7 @@ class huobi(Exchange):
                 result[symbol] = tiers
         return result
 
-    async def fetch_open_interest_history(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
         see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
@@ -6402,7 +6403,7 @@ class huobi(Exchange):
         tick = self.safe_value(data, 'tick')
         return self.parse_open_interests(tick, market, since, limit)
 
-    async def fetch_open_interest(self, symbol, params={}):
+    async def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a currency
         see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
@@ -6568,7 +6569,7 @@ class huobi(Exchange):
             'info': interest,
         }
 
-    async def borrow_margin(self, code, amount, symbol=None, params={}):
+    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
@@ -6618,7 +6619,7 @@ class huobi(Exchange):
             'symbol': symbol,
         })
 
-    async def repay_margin(self, code, amount, symbol=None, params={}):
+    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
@@ -6694,7 +6695,7 @@ class huobi(Exchange):
             'info': info,
         }
 
-    async def fetch_settlement_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Fetches historical settlement records
         :param str symbol: unified symbol of the market to fetch the settlement history for

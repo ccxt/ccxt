@@ -323,7 +323,7 @@ class alpaca extends alpaca$1 {
             request['start'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
         const response = await this[method](this.extend(request, params));

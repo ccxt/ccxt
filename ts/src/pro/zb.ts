@@ -4,6 +4,7 @@
 import zbRest from '../zb.js';
 import { ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,7 +34,7 @@ export default class zb extends zbRest {
         });
     }
 
-    async watchPublic (url, messageHash, symbol, method, limit = undefined, params = {}) {
+    async watchPublic (url, messageHash, symbol, method, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = market['spot'] ? 'spot' : 'contract';
@@ -68,7 +69,7 @@ export default class zb extends zbRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;
@@ -178,7 +179,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -244,7 +245,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;
@@ -329,7 +330,7 @@ export default class zb extends zbRest {
         client.resolve (array, channel);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         if (limit !== undefined) {
             if ((limit !== 5) && (limit !== 10)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, or 10');

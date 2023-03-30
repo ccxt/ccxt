@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -1336,7 +1337,7 @@ class gate(Exchange):
             }
         return result
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         :param str symbol: unified market symbol
@@ -1624,7 +1625,7 @@ class gate(Exchange):
             'network': None,
         }
 
-    async def fetch_trading_fee(self, symbol, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -1839,7 +1840,7 @@ class gate(Exchange):
                 }
         return result
 
-    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :param str|None symbol: unified market symbol
@@ -1912,7 +1913,7 @@ class gate(Exchange):
             'amount': self.safe_number(info, 'change'),
         }
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -2015,7 +2016,7 @@ class gate(Exchange):
         result['nonce'] = nonce
         return result
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -2335,7 +2336,7 @@ class gate(Exchange):
                 result[code] = self.parse_balance_helper(entry)
         return result if isolated else self.safe_balance(result)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         see https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       # spot
@@ -2393,7 +2394,7 @@ class gate(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
@@ -2478,7 +2479,7 @@ class gate(Exchange):
                 self.safe_number(ohlcv, 'v'),    # trading volume, None for mark or index price
             ]
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -2552,7 +2553,7 @@ class gate(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -2587,7 +2588,7 @@ class gate(Exchange):
         response = await self.fetch_my_trades(symbol, since, limit, {'order_id': id})
         return response
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Fetch personal trading history
         :param str|None symbol: unified market symbol
@@ -2804,7 +2805,7 @@ class gate(Exchange):
             'fees': fees,
         }, market)
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2828,7 +2829,7 @@ class gate(Exchange):
         response = await self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2981,7 +2982,7 @@ class gate(Exchange):
             },
         }
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
@@ -3588,7 +3589,7 @@ class gate(Exchange):
             'info': order,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         Retrieves information on an order
         :param str id: Order id
@@ -3625,7 +3626,7 @@ class gate(Exchange):
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -3639,7 +3640,7 @@ class gate(Exchange):
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -3653,7 +3654,7 @@ class gate(Exchange):
         """
         return await self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
-    async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -3811,7 +3812,7 @@ class gate(Exchange):
         orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         Cancels an open order
         :param str id: Order id
@@ -3918,7 +3919,7 @@ class gate(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -4036,7 +4037,7 @@ class gate(Exchange):
             'info': transfer,
         }
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -4467,7 +4468,7 @@ class gate(Exchange):
             floor = cap
         return tiers
 
-    async def repay_margin(self, code, amount, symbol=None, params={}):
+    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
@@ -4545,7 +4546,7 @@ class gate(Exchange):
             response = response[0]
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_margin(self, code, amount, symbol=None, params={}):
+    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
@@ -4725,7 +4726,7 @@ class gate(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def modify_margin_helper(self, symbol, amount, params={}):
+    async def modify_margin_helper(self, symbol: str, amount, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request, query = self.prepare_request(market, None, params)
@@ -4777,7 +4778,7 @@ class gate(Exchange):
             'status': 'ok',
         }
 
-    async def reduce_margin(self, symbol, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}):
         """
         remove margin from a position
         :param str symbol: unified market symbol
@@ -4787,7 +4788,7 @@ class gate(Exchange):
         """
         return await self.modify_margin_helper(symbol, -amount, params)
 
-    async def add_margin(self, symbol, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}):
         """
         add margin
         :param str symbol: unified market symbol
@@ -4797,7 +4798,7 @@ class gate(Exchange):
         """
         return await self.modify_margin_helper(symbol, amount, params)
 
-    async def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest of a currency
         see https://www.gate.io/docs/developers/apiv4/en/#futures-stats

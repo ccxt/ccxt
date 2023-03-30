@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -120,7 +121,7 @@ class huobi(ccxt.async_support.huobi):
         self.options['requestId'] = requestId
         return str(requestId)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -185,7 +186,7 @@ class huobi(ccxt.async_support.huobi):
         client.resolve(ticker, ch)
         return message
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -243,7 +244,7 @@ class huobi(ccxt.async_support.huobi):
         client.resolve(tradesCache, ch)
         return message
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -299,7 +300,7 @@ class huobi(ccxt.async_support.huobi):
         stored.append(parsed)
         client.resolve(stored, ch)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
         see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
@@ -599,7 +600,7 @@ class huobi(ccxt.async_support.huobi):
         if self.markets[symbol]['spot'] is True:
             self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -685,7 +686,7 @@ class huobi(ccxt.async_support.huobi):
                 channel = prefix + '.' + '*'
         return [channel, messageHash]
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in

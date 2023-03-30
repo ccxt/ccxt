@@ -1,4 +1,5 @@
 import bittrexRest from '../bittrex.js';
+import { Int } from '../base/types.js';
 export default class bittrex extends bittrexRest {
     describe(): any;
     getSignalRUrl(negotiation: any): string;
@@ -31,7 +32,7 @@ export default class bittrex extends bittrexRest {
     createSignalRQuery(params?: {}): any;
     negotiate(params?: {}): Promise<any>;
     start(negotiation: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     subscribeToOrders(authentication: any, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
     watchBalance(params?: {}): Promise<any>;
@@ -40,20 +41,20 @@ export default class bittrex extends bittrexRest {
     watchHeartbeat(params?: {}): Promise<any>;
     subscribeToHeartbeat(negotiation: any, params?: {}): Promise<any>;
     handleHeartbeat(client: any, message: any): void;
-    watchTicker(symbol: any, params?: {}): Promise<any>;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
     subscribeToTicker(negotiation: any, symbol: any, params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     subscribeToOHLCV(negotiation: any, symbol: any, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: any, message: any): void;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     subscribeToTrades(negotiation: any, symbol: any, params?: {}): Promise<any>;
     handleTrades(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     subscribeToMyTrades(authentication: any, params?: {}): Promise<any>;
     handleMyTrades(client: any, message: any): void;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
-    subscribeToOrderBook(negotiation: any, symbol: any, limit?: any, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    subscribeToOrderBook(negotiation: any, symbol: any, limit?: Int, params?: {}): Promise<any>;
     fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
     handleSubscribeToOrderBook(client: any, message: any, subscription: any): void;
     handleDelta(bookside: any, delta: any): void;

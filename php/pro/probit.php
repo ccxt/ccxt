@@ -124,7 +124,7 @@ class probit extends \ccxt\async\probit {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -169,7 +169,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($parsedTicker, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -233,7 +233,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
@@ -314,7 +314,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on an order made by the user
@@ -402,7 +402,7 @@ class probit extends \ccxt\async\probit {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -419,7 +419,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function subscribe_order_book($symbol, $messageHash, $filter, $params = array ()) {
+    public function subscribe_order_book(string $symbol, $messageHash, $filter, $params = array ()) {
         return Async\async(function () use ($symbol, $messageHash, $filter, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);

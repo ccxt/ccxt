@@ -2,15 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import gateRest from '../gate.js';
-import {
-    AuthenticationError,
-    BadRequest,
-    ArgumentsRequired,
-    NotSupported,
-    InvalidNonce,
-} from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -86,7 +81,7 @@ export default class gate extends gateRest {
         });
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOrderBook
@@ -266,7 +261,7 @@ export default class gate extends gateRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name gate#watchTicker
@@ -288,7 +283,7 @@ export default class gate extends gateRest {
         return await this.subscribePublic (url, messageHash, payload, channel, undefined, query);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchTickers
@@ -374,7 +369,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchTrades
@@ -438,7 +433,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOHLCV
@@ -522,7 +517,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchMyTrades
@@ -733,7 +728,7 @@ export default class gate extends gateRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOrders
