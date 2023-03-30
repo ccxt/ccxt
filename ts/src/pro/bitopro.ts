@@ -346,10 +346,8 @@ export default class bitopro extends bitoproRest {
         const event = this.safeString (message, 'event');
         const data = this.safeValue (message, 'data');
         const symbols = Object.keys (data);
-        if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
-        }
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        const orders = new ArrayCacheBySymbolById (limit);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const rawOrders = data[symbol];
@@ -357,12 +355,11 @@ export default class bitopro extends bitoproRest {
                 const order = rawOrders[j];
                 const parsed = this.parseOrder (order);
                 const id = parsed['id'];
-                const orders = this.orders;
                 orders.append (parsed);
                 client.resolve (parsed, id);
             }
         }
-        client.resolve (this.orders, event);
+        client.resolve (orders, event);
     }
 
     async watchBalance (params = {}) {
