@@ -3,9 +3,10 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError } from '../base/errors';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache';
-import { Precise } from '../base/Precise';
+import { AuthenticationError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,6 +39,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     }
 
     async authenticate (params = {}) {
+        // TODO
         /**
          * @ignore
          * @method
@@ -53,17 +55,16 @@ export default class poloniexfutures extends poloniexfuturesRest {
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             const accessPath = '/ws';
-            const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
+            const auth = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
             // let expires = this.milliseconds () + 10000;
             // expires = expires.toString ();
-            const signature = this.hmac (this.encode (requestString), this.encode (this.secret), 'sha256', 'base64');
             const request = {
                 'event': 'subscribe',
                 'channel': [ 'auth' ],
                 'params': {
                     'key': this.apiKey,
                     'signTimestamp': timestamp,
-                    'signature': signature,
+                    'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64'),
                     'signatureMethod': 'HmacSHA256',  // optional
                     'signatureVersion': '2',          // optional
                 },
@@ -451,7 +452,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "topic": "/contractMarket/level2:BTCUSDTPERP",
         //        "type": "message",
         //        "data": {
-        //          "sequence": 18,                     // Sequence number which is used to judge the continuity of pushed messages 
+        //          "sequence": 18,                     // Sequence number which is used to judge the continuity of pushed messages
         //          "change": "5000.0,sell,83"          // Price, side, quantity
         //          "timestamp": 1551770400000
         //        }
@@ -464,7 +465,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "subject": "match",
         //        "data": {
         //             "symbol": "BTCUSDTPERP",                       // Symbol
-        //             "sequence": 36,                                // Sequence number which is used to judge the continuity of the pushed messages  
+        //             "sequence": 36,                                // Sequence number which is used to judge the continuity of the pushed messages
         //             "side": "buy",                                 // Side of liquidity taker
         //             "matchSize": 1,                                // Filled quantity
         //             "size": 1,                                     // unFilled quantity
