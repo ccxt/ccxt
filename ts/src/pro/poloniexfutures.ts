@@ -22,7 +22,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'watchBalance': true,
                 'watchStatus': false,
                 'watchOrders': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
             },
             'urls': {
                 'api': {
@@ -33,7 +33,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'watchOrderBookMethod': 'book_lv2', // can also be 'book'
+                'watchOrderBookMethod': '/contractMarket/level3v2', // can also be '/contractMarket/level2'
                 'connectionsLimit': 2000, // 2000 public, 2000 private, 4000 total, only for subscribe events, unsubscribe not restricted
                 'requestsLimit': 500, // per second, only for subscribe events, unsubscribe not restricted
                 'channelToTimeframe': {
@@ -77,7 +77,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @ignore
          * @method
          * @description authenticates the user to access private web socket channels
-         * @see https://docs.poloniex.com/#authenticated-channels-market-data-authentication
+         * @see https://futures-docs.poloniex.com/#apply-for-connection-token
          * @returns {object} response from exchange
          */
         this.checkRequiredCredentials ();
@@ -173,39 +173,14 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.watch (url, messageHash, request, name);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniex#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.poloniex.com/#public-channels-market-data-candlesticks
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the poloniex api endpoint
-         * @returns [[int]] A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        const channels = this.options['ohlcvChannels'];
-        const channel = this.safeString (channels, timeframe);
-        if (channel === undefined) {
-            throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
-        }
-        const ohlcv = await this.subscribe (channel, false, [ symbol ], params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
-    }
-
     async watchTicker (symbol, params = {}) {
         /**
          * @method
-         * @name poloniex#watchTicker
+         * @name poloniexfutures#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.poloniex.com/#public-channels-market-data-ticker
+         * @see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker';
@@ -215,11 +190,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
     async watchTickers (symbols = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#watchTicker
+         * @name poloniexfutures#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const name = 'ticker';
@@ -229,13 +204,13 @@ export default class poloniexfutures extends poloniexfuturesRest {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#watchTrades
+         * @name poloniexfutures#watchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.poloniex.com/#public-channels-market-data-trades
+         * @see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
@@ -250,12 +225,12 @@ export default class poloniexfutures extends poloniexfuturesRest {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#watchOrderBook
+         * @name poloniexfutures#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
+         * @see https://futures-docs.poloniex.com/#level-2-market-data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit not used by poloniex watchOrderBook
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {int|undefined} limit not used by poloniexfutures watchOrderBook
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         let name = this.safeString (this.options, 'watchOrderBookMethod', 'book_lv2');
@@ -267,13 +242,35 @@ export default class poloniexfutures extends poloniexfuturesRest {
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#watchOrders
+         * @name poloniexfutures#watchOrders
          * @description watches information on multiple orders made by the user
-         * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+         * @see https://futures-docs.poloniex.com/#private-messages
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since not used by poloniex watchOrders
-         * @param {int|undefined} limit not used by poloniex watchOrders
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @param {int|undefined} since not used by poloniexfutures watchOrders
+         * @param {int|undefined} limit not used by poloniexfutures watchOrders
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const name = 'orders';
+        await this.authenticate ();
+        const orders = await this.subscribe (name, true, [ symbol ], params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#watchMyTrades
+         * @description watches information on multiple orders made by the user
+         * @see https://futures-docs.poloniex.com/#private-messages
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since not used by poloniexfutures watchMyTrades
+         * @param {int|undefined} limit not used by poloniexfutures watchMyTrades
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -289,13 +286,13 @@ export default class poloniexfutures extends poloniexfuturesRest {
     async watchBalance (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name poloniex#watchOrders
+         * @name poloniexfutures#watchOrders
          * @description watches information on multiple orders made by the user
-         * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-         * @param {string|undefined} symbol not used by poloniex watchBalance
-         * @param {int|undefined} since not used by poloniex watchBalance
-         * @param {int|undefined} limit not used by poloniex watchBalance
-         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @see https://futures-docs.poloniex.com/#account-balance-events
+         * @param {string|undefined} symbol not used by poloniexfutures watchBalance
+         * @param {int|undefined} since not used by poloniexfutures watchBalance
+         * @param {int|undefined} limit not used by poloniexfutures watchBalance
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -507,38 +504,36 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleOrder (client, message) {
         //
-        // Order is created
+        // level2
         //
         //    {
-        //        channel: 'orders',
-        //        data: [
-        //            {
-        //                "symbol": "BTC_USDT",
-        //                "type": "LIMIT",
-        //                "quantity": "1",
-        //                "orderId": "32471407854219264",
-        //                "tradeFee": "0",
-        //                "clientOrderId": "",
-        //                "accountType": "SPOT",
-        //                "feeCurrency": "",
-        //                "eventType": "place",
-        //                "source": "API",
-        //                "side": "BUY",
-        //                "filledQuantity": "0",
-        //                "filledAmount": "0",
-        //                "matchRole": "MAKER",
-        //                "state": "NEW",
-        //                "tradeTime": 0,
-        //                "tradeAmount": "0",
-        //                "orderAmount": "0",
-        //                "createTime": 1648708186922,
-        //                "price": "47112.1",
-        //                "tradeQty": "0",
-        //                "tradePrice": "0",
-        //                "tradeId": "0",
-        //                "ts": 1648708187469
-        //            }
-        //        ]
+        //        "subject": "level2",
+        //        "topic": "/contractMarket/level2:BTCUSDTPERP",
+        //        "type": "message",
+        //        "data": {
+        //          "sequence": 18,                     // Sequence number which is used to judge the continuity of pushed messages 
+        //          "change": "5000.0,sell,83"          // Price, side, quantity
+        //          "timestamp": 1551770400000
+        //        }
+        //    }
+        //
+        // level3
+        //
+        //    {
+        //        "topic": "/contractMarket/execution:BTCUSDTPERP",
+        //        "subject": "match",
+        //        "data": {
+        //             "symbol": "BTCUSDTPERP",                       // Symbol
+        //             "sequence": 36,                                // Sequence number which is used to judge the continuity of the pushed messages  
+        //             "side": "buy",                                 // Side of liquidity taker
+        //             "matchSize": 1,                                // Filled quantity
+        //             "size": 1,                                     // unFilled quantity
+        //             "price": 3200.00,                              // Filled price
+        //             "takerOrderId": "5c9dd00870744d71c43f5e25",    // Taker order ID
+        //             "ts": 1553846281766256031,                     // Filled time - nanosecond
+        //             "makerOrderId": "5c9d852070744d0976909a0c",    // Maker order ID
+        //             "tradeId": "5c9dd00970744d6f5a3d32fc"          // Transaction ID
+        //        }
         //    }
         //
         const data = this.safeValue (message, 'data');
@@ -697,18 +692,18 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "subject": "ticker",
         //        "topic": "/contractMarket/ticker:BTCUSDTPERP",
         //        "data": {
-        //            "symbol": "BTCUSDTPERP",                    // Market of the symbol
-        //            "sequence": 45,                             // Sequence number which is used to judge the continuity of the pushed messages
-        //            "side": "sell",                             // Transaction side of the last traded taker order
-        //            "price": 3600.00,                           // Filled price
-        //            "size": 16,                                 // Filled quantity
-        //            "tradeId": "5c9dcf4170744d6f5a3d32fb",      // Order ID
-        //            "bestBidSize": 795,                         // Best bid size
-        //            "bestBidPrice": 3200.00,                    // Best bid
-        //            "bestAskPrice": 3600.00,                    // Best ask size
-        //            "bestAskSize": 284,                         // Best ask
-        //            "ts": 1553846081210004941                   // Filled time - nanosecond
-        //       }
+        //            "symbol": "BTCUSDTPERP",                   // Market of the symbol
+        //            "sequence": 45,                            // Sequence number which is used to judge the continuity of the pushed messages
+        //            "side": "sell",                            // Transaction side of the last traded taker order
+        //            "price": 3600.00,                          // Filled price
+        //            "size": 16,                                // Filled quantity
+        //            "tradeId": "5c9dcf4170744d6f5a3d32fb",     // Order ID
+        //            "bestBidSize": 795,                        // Best bid size
+        //            "bestBidPrice": 3200.00,                   // Best bid
+        //            "bestAskPrice": 3600.00,                   // Best ask size
+        //            "bestAskSize": 284,                        // Best ask
+        //            "ts": 1553846081210004941                  // Filled time - nanosecond
+        //        }
         //    }
         //
         const data = this.safeValue (message, 'data', {});
@@ -815,14 +810,15 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleBalance (client, message) {
         //
+        // Order Margin Event
+        //
         //    {
         //        "topic": "/contractAccount/wallet",
         //        "subject": "orderMargin.change",
         //        "channelType": "private",
         //        "data": {
-        //            "orderMargin": 5923,              // not present if availableBalance is present
-        //            "availableBalance": 5923,         // not present if orderMargin is present
-        //            "currency": "USDT",               // Currency
+        //            "orderMargin": 5923,              // Current order margin
+        //            "currency":"USDT",                // Currency
         //            "timestamp": 1553842862614
         //        }
         //    }
