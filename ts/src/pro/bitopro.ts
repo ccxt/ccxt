@@ -3,7 +3,7 @@
 
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
 
@@ -18,7 +18,7 @@ export default class bitopro extends bitoproRest {
                 'watchMyTrades': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
@@ -261,6 +261,110 @@ export default class bitopro extends bitoproRest {
         this.options['ws']['options']['headers'] = originalHeaders;
     }
 
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bitopro api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const messageHash = 'ACTIVE_ORDERS';
+        const url = this.urls['ws']['private'] + '/' + 'orders';
+        this.authenticate (url);
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
+        const orders = await await this.watch (url, messageHash, undefined, messageHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client, message) {
+        //
+        //     {
+        //         "event": "ACTIVE_ORDERS",
+        //         "timestamp": 1639552073346,
+        //         "datetime": "2021-12-15T07:07:53.346Z",
+        //         "data": {
+        //             "sol_usdt": [
+        //                 {
+        //                     "id": "8917255503",
+        //                     "pair": "sol_usdt",
+        //                     "price": "107",
+        //                     "avgExecutionPrice": "0",
+        //                     "action": "SELL",
+        //                     "type": "LIMIT",
+        //                     "timestamp": 1639386803663,
+        //                     "updatedTimestamp": 1639386803663,
+        //                     "createdTimestamp": 1639386803663,
+        //                     "status": 0,
+        //                     "originalAmount": "0.02",
+        //                     "remainingAmount": "0.02",
+        //                     "executedAmount": "0",
+        //                     "fee": "0",
+        //                     "feeSymbol": "usdt",
+        //                     "bitoFee": "0",
+        //                     "total": "0",
+        //                     "seq": "SOLUSDT3273528249",
+        //                     "timeInForce": "GTC"
+        //                 }
+        //             ],
+        //             "usdc_twd": [
+        //                 {
+        //                     "id": "3452766477",
+        //                     "pair": "usdc_twd",
+        //                     "price": "10",
+        //                     "avgExecutionPrice": "0",
+        //                     "action": "BUY",
+        //                     "type": "LIMIT",
+        //                     "timestamp": 1638258713957,
+        //                     "updatedTimestamp": 1639386803663,
+        //                     "createdTimestamp": 1639386803663,
+        //                     "status": 0,
+        //                     "originalAmount": "0.01",
+        //                     "remainingAmount": "0.01",
+        //                     "executedAmount": "0",
+        //                     "fee": "0",
+        //                     "feeSymbol": "usdc",
+        //                     "bitoFee": "0",
+        //                     "total": "0",
+        //                     "seq": "USDCTWD2310459465"
+        //                     "timeInForce": "GTC"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const event = this.safeString (message, 'event');
+        const data = this.safeValue (message, 'data');
+        const symbols = Object.keys (data);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const rawOrders = data[symbol];
+            for (let j = 0; j < rawOrders.length; j++) {
+                const order = rawOrders[j];
+                const parsed = this.parseOrder (order);
+                const id = parsed['id'];
+                const orders = this.orders;
+                orders.append (parsed);
+                client.resolve (parsed, id);
+            }
+        }
+        client.resolve (this.orders, event);
+    }
+
     async watchBalance (params = {}) {
         /**
          * @method
@@ -324,6 +428,7 @@ export default class bitopro extends bitoproRest {
             'TICKER': this.handleTicker,
             'ORDER_BOOK': this.handleOrderBook,
             'ACCOUNT_BALANCE': this.handleBalance,
+            'ACTIVE_ORDERS': this.handleOrders,
         };
         const event = this.safeString (message, 'event');
         const method = this.safeValue (methods, event);
