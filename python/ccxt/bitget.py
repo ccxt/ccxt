@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import json
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -196,6 +197,7 @@ class bitget(Exchange):
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
                             'trade/cancel-batch-orders': 4,
+                            'trade/cancel-batch-orders-v2': 4,
                             'trade/orderInfo': 1,
                             'trade/open-orders': 1,
                             'trade/history': 1,
@@ -2125,6 +2127,7 @@ class bitget(Exchange):
             'new': 'open',
             'init': 'open',
             'not_trigger': 'open',
+            'partial_fill': 'open',
             'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
@@ -2494,18 +2497,14 @@ class bitget(Exchange):
         self.check_required_symbol('cancelOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
-        type = self.safe_string(params, 'type', market['type'])
-        if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrders() requires a type parameter(one of 'spot', 'swap').")
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('cancelOrders', market, params)
         request = {}
         method = None
         if type == 'spot':
-            method = 'apiPostOrderOrdersBatchcancel'
-            request['method'] = 'batchcancel'
-            jsonIds = self.json(ids)
-            parts = jsonIds.split('"')
-            request['order_ids'] = ''.join(parts)
+            method = 'privateSpotPostTradeCancelBatchOrdersV2'
+            request['symbol'] = market['id']
+            request['orderIds'] = ids
         elif type == 'swap':
             method = 'privateMixPostOrderCancelBatchOrders'
             request['symbol'] = market['id']
@@ -2516,18 +2515,17 @@ class bitget(Exchange):
         #     spot
         #
         #     {
-        #         "status": "ok",
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": "1680008815965",
         #         "data": {
-        #             "success": [
-        #                 "673451224205135872",
-        #             ],
-        #             "failed": [
+        #             "resultList": [
         #                 {
-        #                 "err-msg": "invalid record",
-        #                 "order-id": "673451224205135873",
-        #                 "err-code": "base record invalid"
-        #                 }
-        #             ]
+        #                     "orderId": "1024598257429823488",
+        #                     "clientOrderId": "876493ce-c287-4bfc-9f4a-8b1905881313"
+        #                 },
+        #             ],
+        #             "failed": []
         #         }
         #     }
         #
@@ -2823,6 +2821,8 @@ class bitget(Exchange):
         #         }
         #     }
         #
+        if isinstance(response, str):
+            response = json.loads(response)
         data = self.safe_value(response, 'data', [])
         if not isinstance(data, list):
             data = self.safe_value(data, 'orderList', [])

@@ -182,6 +182,7 @@ class bitget extends Exchange {
                             'trade/batch-orders' => 4,
                             'trade/cancel-order' => 2,
                             'trade/cancel-batch-orders' => 4,
+                            'trade/cancel-batch-orders-v2' => 4,
                             'trade/orderInfo' => 1,
                             'trade/open-orders' => 1,
                             'trade/history' => 1,
@@ -2212,6 +2213,7 @@ class bitget extends Exchange {
             'new' => 'open',
             'init' => 'open',
             'not_trigger' => 'open',
+            'partial_fill' => 'open',
             'triggered' => 'closed',
             'full_fill' => 'closed',
             'filled' => 'closed',
@@ -2626,19 +2628,14 @@ class bitget extends Exchange {
             $this->check_required_symbol('cancelOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $type = $this->safe_string($params, 'type', $market['type']);
-            if ($type === null) {
-                throw new ArgumentsRequired($this->id . " cancelOrders() requires a $type parameter (one of 'spot', 'swap').");
-            }
-            $params = $this->omit($params, 'type');
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
             $request = array();
             $method = null;
             if ($type === 'spot') {
-                $method = 'apiPostOrderOrdersBatchcancel';
-                $request['method'] = 'batchcancel';
-                $jsonIds = $this->json($ids);
-                $parts = explode('"', $jsonIds);
-                $request['order_ids'] = implode('', $parts);
+                $method = 'privateSpotPostTradeCancelBatchOrdersV2';
+                $request['symbol'] = $market['id'];
+                $request['orderIds'] = $ids;
             } elseif ($type === 'swap') {
                 $method = 'privateMixPostOrderCancelBatchOrders';
                 $request['symbol'] = $market['id'];
@@ -2650,18 +2647,17 @@ class bitget extends Exchange {
             //     spot
             //
             //     {
-            //         "status" => "ok",
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => "1680008815965",
             //         "data" => {
-            //             "success" => array(
-            //                 "673451224205135872",
+            //             "resultList" => array(
+            //                 array(
+            //                     "orderId" => "1024598257429823488",
+            //                     "clientOrderId" => "876493ce-c287-4bfc-9f4a-8b1905881313"
+            //                 ),
             //             ),
-            //             "failed" => array(
-            //                 {
-            //                 "err-msg" => "invalid record",
-            //                 "order-id" => "673451224205135873",
-            //                 "err-code" => "base record invalid"
-            //                 }
-            //             )
+            //             "failed" => array()
             //         }
             //     }
             //
@@ -2975,6 +2971,9 @@ class bitget extends Exchange {
             //         }
             //     }
             //
+            if (gettype($response) === 'string') {
+                $response = json_decode($response, $as_associative_array = true);
+            }
             $data = $this->safe_value($response, 'data', array());
             if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
                 $data = $this->safe_value($data, 'orderList', array());

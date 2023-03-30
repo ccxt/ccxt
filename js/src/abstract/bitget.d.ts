@@ -38,6 +38,7 @@ interface Exchange {
     privateSpotPostTradeBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTradeCancelOrder(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTradeCancelBatchOrders(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostTradeCancelBatchOrdersV2(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTradeOrderInfo(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTradeOpenOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTradeHistory(params?: {}): Promise<implicitReturnType>;
