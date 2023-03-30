@@ -4130,14 +4130,13 @@ export default class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            await this.loadMarkets();
+            const currency = this.currency(code);
+            request['coin_type'] = currency['id'];
         }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'coin_type': currency['id'],
-        };
         if (limit !== undefined) {
             request['Limit'] = limit;
         }
@@ -4198,14 +4197,13 @@ export default class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            await this.loadMarkets();
+            const currency = this.currency(code);
+            request['coin_type'] = currency['id'];
         }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'coin_type': currency['id'],
-        };
         if (limit !== undefined) {
             request['Limit'] = limit;
         }
