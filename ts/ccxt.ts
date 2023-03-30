@@ -42,7 +42,8 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 
 const version = '3.0.45';
 
-(Exchange as any).ccxtVersion = version
+(Exchange as any).ccxtVersion = version;
+(Exchange as any).constants = functions.precisionConstants;
 
 //-----------------------------------------------------------------------------
 

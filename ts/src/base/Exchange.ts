@@ -150,6 +150,7 @@ export default class Exchange {
     options: {
         [key: string]: any;
     }
+    constants: any;
     userAgents: any;
     headers: any;
 
