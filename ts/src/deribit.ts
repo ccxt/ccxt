@@ -9,7 +9,6 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
 import { Int } from './base/types.js';
 
-
 //  ---------------------------------------------------------------------------
 
 export default class deribit extends Exchange {
