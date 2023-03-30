@@ -29,6 +29,7 @@ export default class xt extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -56,6 +57,7 @@ export default class xt extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'withdraw': true,
             },
@@ -3303,6 +3305,72 @@ export default class xt extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name xt#addMargin
+         * @description add margin to a position
+         * @see https://doc.xt.com/#futures_useradjustMargin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {string} params.positionSide 'LONG' or 'SHORT'
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name xt#reduceMargin
+         * @description remove margin from a position
+         * @see https://doc.xt.com/#futures_useradjustMargin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {string} params.positionSide 'LONG' or 'SHORT'
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
+    }
+
+    async modifyMarginHelper (symbol, amount, addOrReduce, params = {}) {
+        const positionSide = this.safeString (params, 'positionSide');
+        this.checkRequiredArgument ('setLeverage', positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'margin': amount,
+            'type': addOrReduce,
+            'positionSide': positionSide,
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('modifyMarginHelper', market, params);
+        const response = (subType === 'inverse') ? await this.privateInversePostFutureUserV1PositionMargin (this.extend (request, params)) : await this.privateLinearPostFutureUserV1PositionMargin (this.extend (request, params));
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": null
+        //     }
+        //
+        return this.parseMarginModification (response, market);
+    }
+
+    parseMarginModification (data, market = undefined) {
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': undefined,
+            'symbol': this.safeSymbol (undefined, market),
+            'status': undefined,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
