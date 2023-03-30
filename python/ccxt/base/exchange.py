@@ -1493,9 +1493,6 @@ class Exchange(object):
             'funding': funding,
         }
 
-    def fetch_order_trades(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetch_order_trades() is not supported yet')
-
     def build_ohlcvc(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
         ohlcvs = []
@@ -1766,7 +1763,7 @@ class Exchange(object):
     def fetch_deposit_addresses(self, codes: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
-    def fetch_order_book(self, symbol, limit: Optional[IntegerType] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[IntegerType] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     def watch_order_book(self, symbol, limit: Optional[IntegerType] = None, params={}):
@@ -2913,7 +2910,7 @@ class Exchange(object):
     def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
-    def fetch_position(self, symbol, params={}):
+    def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
@@ -3237,7 +3234,7 @@ class Exchange(object):
     def fetch_unified_order(self, order, params={}):
         return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
-    def create_order(self, symbol, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
     def cancel_order(self, id, symbol: Optional[str] = None, params={}):
@@ -3251,6 +3248,9 @@ class Exchange(object):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
+
+    def fetch_order_trades(self, id, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
     def watch_orders(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
@@ -3651,7 +3651,7 @@ class Exchange(object):
     def fetch_trading_fees(self, params={}):
         raise NotSupported(self.id + ' fetchTradingFees() is not supported yet')
 
-    def fetch_trading_fee(self, symbol, params={}):
+    def fetch_trading_fee(self, symbol: str, params={}):
         if not self.has['fetchTradingFees']:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         return self.fetch_trading_fees(params)
@@ -3669,7 +3669,7 @@ class Exchange(object):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_funding_rate(self, symbol, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}):
         if self.has['fetchFundingRates']:
             self.load_markets()
             market = self.market(symbol)
