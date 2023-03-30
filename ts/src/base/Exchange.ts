@@ -2591,13 +2591,11 @@ export default class Exchange {
         //
         // PERCENTAGE
         //
-        const percentage = this.safeNumber (position, 'percentage');
-        if (percentage === undefined) {
-            if (unrealizedPnlString !== undefined && initialMarginString !== undefined) {
-                // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
-                const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
-                position['percentage'] = this.parseNumber (percentageString);
-            }
+        const percentage = this.safeValue (position, 'percentage');
+        if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
+            position['percentage'] = this.parseNumber (percentageString);
         }
         return position;
     }
