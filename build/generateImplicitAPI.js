@@ -5,6 +5,7 @@ import log from 'ololog'
 
 const TS_PATH = './ts/src/abstract/';
 const PHP_PATH = './php/abstract/'
+const ASYNC_PHP_PATH = './php/async/abstract/'
 const IDEN = '    ';
 
 const promisedWriteFile = promisify (fs.writeFile);
@@ -160,7 +161,14 @@ namespace ccxt\\abstract;
     await editFiles (TS_PATH, storedTypeScriptMethods, '.ts');
     log.bright.cyan ('TypeScript implicit api methods completed!')
     await editFiles (PHP_PATH, storedPhpMethods, '.php');
-    log.bright.cyan ('PHP implicit api methods completed!')
+    log.bright.cyan ('PHP sync implicit api methods completed!')
+    // one more time for the async php
+    Object.values (storedPhpMethods).forEach (x => {
+        x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
+        x[2] = x[2].replace (/ccxt\\Exchange/, 'ccxt\\async\\Exchange')
+    })
+    await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
+    log.bright.cyan ('PHP async implicit api methods completed!')
 }
 
 let storedTypeScriptResult = {};

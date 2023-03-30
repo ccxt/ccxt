@@ -938,7 +938,7 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
-            "use ccxt\\abstract\\" + className + " as " + baseClass + ';',
+            "use " + namespace + "\\abstract\\" + className + " as " + baseClass + ';',
         ]
     }
 
