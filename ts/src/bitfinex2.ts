@@ -820,7 +820,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeBalance (result);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bitfinex2#transfer
@@ -1909,7 +1909,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitfinex2#createDepositAddress
@@ -1925,7 +1925,7 @@ export default class bitfinex2 extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchDepositAddress
@@ -2246,7 +2246,7 @@ export default class bitfinex2 extends Exchange {
         return result;
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchTransactions
@@ -2304,7 +2304,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#withdraw
@@ -2565,7 +2565,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchLedger

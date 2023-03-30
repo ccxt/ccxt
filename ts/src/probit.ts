@@ -1266,7 +1266,7 @@ export default class probit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name probit#fetchDepositAddress
@@ -1344,7 +1344,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddresses (data, codes);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name probit#withdraw

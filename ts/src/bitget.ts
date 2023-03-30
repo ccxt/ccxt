@@ -1229,7 +1229,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchDeposits
@@ -1285,7 +1285,7 @@ export default class bitget extends Exchange {
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitget#withdraw
@@ -1358,7 +1358,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchWithdrawals
@@ -1469,7 +1469,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitget#fetchDepositAddress
@@ -3183,7 +3183,7 @@ export default class bitget extends Exchange {
         return this.safeValue (data, 'orderList', data);
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchLedger
@@ -4070,7 +4070,7 @@ export default class bitget extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchTransfers
@@ -4125,7 +4125,7 @@ export default class bitget extends Exchange {
         return this.parseTransfers (data, currency, since, limit);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bitget#transfer

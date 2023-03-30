@@ -3419,7 +3419,7 @@ export default class okx extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchLedger
@@ -3764,7 +3764,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
          * @name okx#fetchDepositAddressesByNetwork
@@ -3806,7 +3806,7 @@ export default class okx extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name okx#fetchDepositAddress
@@ -3847,7 +3847,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name okx#withdraw
@@ -3918,7 +3918,7 @@ export default class okx extends Exchange {
         return this.parseTransaction (transaction, currency);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchDeposits
@@ -3992,7 +3992,7 @@ export default class okx extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id, code: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchDeposit
@@ -4018,7 +4018,7 @@ export default class okx extends Exchange {
         return this.parseTransaction (deposit, currency);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchWithdrawals
@@ -4084,7 +4084,7 @@ export default class okx extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id, code: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchWithdrawal
@@ -4610,7 +4610,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name okx#transfer
@@ -4722,7 +4722,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchTransfer (id, code = undefined, params = {}) {
+    async fetchTransfer (id, code: string = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'transId': id,
@@ -5219,7 +5219,7 @@ export default class okx extends Exchange {
         return rates;
     }
 
-    async fetchBorrowRate (code, params = {}) {
+    async fetchBorrowRate (code: string, params = {}) {
         /**
          * @method
          * @name okx#fetchBorrowRate
@@ -5359,7 +5359,7 @@ export default class okx extends Exchange {
         return this.parseBorrowRateHistories (data, codes, since, limit);
     }
 
-    async fetchBorrowRateHistory (code, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchBorrowRateHistory
@@ -5579,7 +5579,7 @@ export default class okx extends Exchange {
         return tiers;
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchBorrowInterest
@@ -5662,7 +5662,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#borrowMargin
@@ -5707,7 +5707,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#repayMargin

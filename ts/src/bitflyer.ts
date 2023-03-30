@@ -775,7 +775,7 @@ export default class bitflyer extends Exchange {
         return response;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#withdraw
@@ -807,7 +807,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchDeposits
@@ -845,7 +845,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchWithdrawals

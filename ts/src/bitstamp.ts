@@ -1447,7 +1447,7 @@ export default class bitstamp extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactions
@@ -1498,7 +1498,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchWithdrawals
@@ -1864,7 +1864,7 @@ export default class bitstamp extends Exchange {
         }
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchLedger
@@ -1938,7 +1938,7 @@ export default class bitstamp extends Exchange {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchDepositAddress
@@ -1965,7 +1965,7 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#withdraw

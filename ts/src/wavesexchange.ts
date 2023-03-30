@@ -1030,7 +1030,7 @@ export default class wavesexchange extends Exchange {
         ];
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchDepositAddress
@@ -2222,7 +2222,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#withdraw

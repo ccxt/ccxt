@@ -1549,7 +1549,7 @@ export default class lbank2 extends Exchange {
         return network;
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDepositAddress
@@ -1568,7 +1568,7 @@ export default class lbank2 extends Exchange {
         return await this[method] (code, params);
     }
 
-    async fetchDepositAddressDefault (code, params = {}) {
+    async fetchDepositAddressDefault (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1608,7 +1608,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDepositAddressSupplement (code, params = {}) {
+    async fetchDepositAddressSupplement (code: string, params = {}) {
         // returns the address for whatever the default network is...
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1649,7 +1649,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#withdraw
@@ -1816,7 +1816,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDeposits
@@ -1869,7 +1869,7 @@ export default class lbank2 extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchWithdrawals

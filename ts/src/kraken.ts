@@ -962,7 +962,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchLedger
@@ -1007,7 +1007,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    async fetchLedgerEntriesByIds (ids, code = undefined, params = {}) {
+    async fetchLedgerEntriesByIds (ids, code: string = undefined, params = {}) {
         // https://www.kraken.com/features/api#query-ledgers
         await this.loadMarkets ();
         ids = ids.join (',');
@@ -1036,7 +1036,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items);
     }
 
-    async fetchLedgerEntry (id, code = undefined, params = {}) {
+    async fetchLedgerEntry (id, code: string = undefined, params = {}) {
         const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }
@@ -2098,7 +2098,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    parseTransactionsByType (type, transactions, code = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseTransactionsByType (type, transactions, code: string = undefined, since: Int = undefined, limit: Int = undefined) {
         const result = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = this.parseTransaction (this.extend ({
@@ -2109,7 +2109,7 @@ export default class kraken extends Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchDeposits
@@ -2169,7 +2169,7 @@ export default class kraken extends Exchange {
         return this.safeTimestamp (result, 'unixtime');
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchWithdrawals
@@ -2206,7 +2206,7 @@ export default class kraken extends Exchange {
         return this.parseTransactionsByType ('withdrawal', response['result'], code, since, limit);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name kraken#createDepositAddress
@@ -2221,7 +2221,7 @@ export default class kraken extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDepositMethods (code, params = {}) {
+    async fetchDepositMethods (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -2254,7 +2254,7 @@ export default class kraken extends Exchange {
         return this.safeValue (response, 'result');
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name kraken#fetchDepositAddress
@@ -2337,7 +2337,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name kraken#withdraw

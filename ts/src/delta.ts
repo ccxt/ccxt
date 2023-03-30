@@ -1713,7 +1713,7 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchLedger
@@ -1839,7 +1839,7 @@ export default class delta extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name delta#fetchDepositAddress

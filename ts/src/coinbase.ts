@@ -488,7 +488,7 @@ export default class coinbase extends Exchange {
         };
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name coinbase#createDepositAddress
@@ -601,7 +601,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
-    async fetchTransactionsWithMethod (method, code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsWithMethod (method, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
@@ -609,7 +609,7 @@ export default class coinbase extends Exchange {
         return this.parseTransactions (response['data'], undefined, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchWithdrawals
@@ -624,7 +624,7 @@ export default class coinbase extends Exchange {
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchDeposits
@@ -1530,7 +1530,7 @@ export default class coinbase extends Exchange {
         return this.parseBalance (response, params);
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchLedger
@@ -1912,7 +1912,7 @@ export default class coinbase extends Exchange {
         return request;
     }
 
-    async prepareAccountRequestWithCurrencyCode (code = undefined, limit: Int = undefined, params = {}) {
+    async prepareAccountRequestWithCurrencyCode (code: string = undefined, limit: Int = undefined, params = {}) {
         let accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
             if (code === undefined) {

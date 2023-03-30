@@ -806,7 +806,7 @@ export default class bit2c extends Exchange {
         return code === 'NIS';
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bit2c#fetchDepositAddress

@@ -358,7 +358,7 @@ export default class itbit extends Exchange {
         return result;
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name itbit#fetchTransactions

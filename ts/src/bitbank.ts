@@ -745,7 +745,7 @@ export default class bitbank extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitbank#fetchDepositAddress
@@ -774,7 +774,7 @@ export default class bitbank extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#withdraw

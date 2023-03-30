@@ -1283,7 +1283,7 @@ export default class latoken extends Exchange {
         return response;
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchTransactions
@@ -1411,7 +1411,7 @@ export default class latoken extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchTransfers
@@ -1460,7 +1460,7 @@ export default class latoken extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name latoken#transfer
