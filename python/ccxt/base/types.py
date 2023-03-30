@@ -1,6 +1,11 @@
 import sys
 import enum
-from typing import TypedDict, Union
+from typing import Union
+
+if sys.version_info.minor > 7:
+    from typing import TypedDict
+else:
+    TypedDict = dict
 
 if sys.version_info.minor >= 11:
     StrEnum = enum.StrEnum
