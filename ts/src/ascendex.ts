@@ -259,6 +259,18 @@ export default class ascendex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'timeInForceMap': {
+                    'spotAndFutures': {
+                        'exchangeSpecificTifKey': 'time_in_f',  // note, actual value for ascendex is (by coincidence) same as CCXT's unified string 'timeInForce', however, just for demonstraional purposes we can assume that ascendex's TIF key is "tim_in_foo", so that `tif-test.ts` gives more visually convincing results
+                        'exchangeSpecificPostOnlyKey': 'is_pos', // same as above, however real key for this exchange is `postOnly` by coincidence
+                        'unifiedToExchange': {
+                            'GTC': 'GTC',
+                            'IOC': 'IOC',
+                            'FOK': 'FOK',
+                            'PO': undefined,
+                        },
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1470,8 +1482,11 @@ export default class ascendex extends Exchange {
         };
         const isMarketOrder = ((type === 'market') || (type === 'stop_market'));
         const isLimitOrder = ((type === 'limit') || (type === 'stop_limit'));
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        const handledTif = this.handleRequestTif ('spotAndFutures', type, params);
+        params = handledTif['params'];
+        if (handledTif['requestKey'] !== undefined) {
+            request[handledTif['requestKey']] = handledTif['requestValue'];
+        }
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice' ]);
@@ -1483,15 +1498,6 @@ export default class ascendex extends Exchange {
         }
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
-        }
-        if (timeInForce === 'IOC') {
-            request['timeInForce'] = 'IOC';
-        }
-        if (timeInForce === 'FOK') {
-            request['timeInForce'] = 'FOK';
-        }
-        if (postOnly) {
-            request['postOnly'] = true;
         }
         if (stopPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
