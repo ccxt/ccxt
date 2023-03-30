@@ -260,8 +260,8 @@ export default class ascendex extends Exchange {
                 },
                 'timeInForceMap': {
                     'spotAndFutures': {
-                        'exchangeSpecificTifKey': 'timeInForce', // by coincidence, exchange-specific key matches to CCXT unified key
-                        'exchangeSpecificPostOnlyKey': 'postOnly', // same coincidence here
+                        'exchangeSpecificTifKey': 'time_in_f', // by coincidence, exchange-specific key matches to CCXT unified key, however, for demonstrational purposes only to test it well in `tif-test.ts` I've set here
+                        'exchangeSpecificPostOnlyKey': 'is_pos', // same as above, however real key for this exchange is `postOnly` by coincidence
                         'unifiedToExchange': {
                             'GTC': 'GTC',
                             'IOC': 'IOC',

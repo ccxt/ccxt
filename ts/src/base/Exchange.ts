@@ -1518,7 +1518,6 @@ export default class Exchange {
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
             },
-            'unifiedTimeInForceKeys': [ 'GTC', 'IOC', 'FOK', 'PO' ],
         };
     }
 
@@ -3758,107 +3757,70 @@ export default class Exchange {
         const tifOptions = this.safeValue (tifOptionsAllMarkets, groupTitle, {});
         // get exchangeSpecific TIF & POSTONLY keys
         const exchangeSpecificKeyForTif = this.safeString (tifOptions, 'exchangeSpecificTifKey');
-        const exchangeSpecificKeyForPo = this.safeString (tifOptions, 'exchangeSpecificPostonlyKey');
+        const exchangeSpecificKeyForPo = this.safeString (tifOptions, 'exchangeSpecificPostOnlyKey');
         // get unified-to-exchangeSpecific TIF values map
         const tifsUnifiedToEx = this.safeValue (tifOptions, 'unifiedToExchange');
-        const tifsExToUnified = this.invertStringDictionary (tifsUnifiedToEx);
         // PARAMS: BOOLEAN CHECK
         const providedPostonlyValue = this.safeValue2 (params, 'postOnly', exchangeSpecificKeyForPo);
         params = this.omit (params, [ 'postOnly', exchangeSpecificKeyForPo ]);
         // PARAMS: TIF CHECK
         const providedTifValue = this.safeString2 (params, 'timeInForce', exchangeSpecificKeyForTif);
         params = this.omit (params, [ 'timeInForce', exchangeSpecificKeyForTif ]);
-        // if (providedTifValue === undefined) {
-        // support for TIF values in orderType i.e. OKX, where you can `.createOrder ('BTC/USDT', 'ioc', 'buy', ...)`
-        // if (tifsExToUnified !== undefined && orderType in tifsExToUnified) {
-        //     providedTifValue = orderType;
-        // }
-        // }
-        //
         // set final values
-        //
-        let detectedUnifiedTif = undefined;
-        // if unified TIF was provided
-        if (providedTifValue in tifsUnifiedToEx) {
-            detectedUnifiedTif = providedTifValue;
-        // if exchangeSpecific TIF was provided
-        } else if (providedTifValue in tifsExToUnified) {
-            detectedUnifiedTif = tifsExToUnified[providedTifValue];
-        // throw error if user provides unified TIF, but exchange does not yet support, so user wont be misleaded
-        } else if (this.inArray (providedTifValue, this.options['unifiedTimeInForceKeys'])) {
-            throw new InvalidOrder (this.id + ' ' + providedTifValue + ' is not a valid timeInForce value for this exchange');
-        }
-        // if 'postOnly' was provided, then we set 'PO' as unified TIF. However, we also check if there was additionally (mistakenly) provided TIF value (which is not 'PO')
-        if (providedPostonlyValue === true) {
-            if (detectedUnifiedTif !== undefined && detectedUnifiedTif !== 'PO') {
+        let referenceUnifiedTif = undefined;
+        // check for exceptions
+        if (providedTifValue in tifsUnifiedToEx) { // if unified TIF was provided
+            referenceUnifiedTif = providedTifValue;
+        } else if (providedTifValue in this.values (tifsUnifiedToEx)) { // if exchangeSpecific TIF was provided
+            referenceUnifiedTif = this.getKeyByValue (tifsUnifiedToEx, providedTifValue);
+        } else if (providedPostonlyValue === true) {
+            if (referenceUnifiedTif !== undefined && referenceUnifiedTif !== 'PO') {
                 throw new InvalidOrder (this.id + ' conflict : postOnly is true, but timeInForce is set to something else than "PO"');
             }
-            detectedUnifiedTif = 'PO';
-        } else if ((providedPostonlyValue === false) && (detectedUnifiedTif === 'PO')) {
+            referenceUnifiedTif = 'PO';
+        } else if ((providedPostonlyValue === false) && (referenceUnifiedTif === 'PO')) {
             throw new InvalidOrder (this.id + ' conflict : postOnly is false, but timeInForce is "PO"');
-        } else if (detectedUnifiedTif === 'PO' && isMarketOrder) {
+        } else if (referenceUnifiedTif === 'PO' && isMarketOrder) {
             throw new InvalidOrder (this.id + ' market order can not be postOnly');
         }
-        //
         // ############### set final value ############### //
-        //
         // after we determined the target unified TIF, now get its exchange-specific value
-        const exchangeSpecificTifValueFound = this.safeString (tifsUnifiedToEx, detectedUnifiedTif);
-        let exPreparedRequestKey = undefined; // for exchange-specific key
-        let exPreparedRequestValue = undefined; // for exchange-specific value
-        // set eventual bool variable ("detectedUnifiedTif" variable also reiterates postOnly boolean input)
-        const isPo = detectedUnifiedTif === 'PO';
+        const exchangeSpecificTifValueFound = this.safeString (tifsUnifiedToEx, referenceUnifiedTif);
+        let requestKey = undefined; // prepare exchange-specific key
+        let requestValue = undefined; // prepare exchange-specific value
+        // set eventual bool variable ("referenceUnifiedTif" variable also considered postOnly boolean input)
+        const isPo = referenceUnifiedTif === 'PO';
         if (isPo) {
-            // if exchange has its own POSTONLY bool flag, then use it
+            // if exchange needs its own POSTONLY bool flag, then use it
             if (exchangeSpecificKeyForPo !== undefined) {
-                exPreparedRequestKey = exchangeSpecificKeyForPo;
-                exPreparedRequestValue = true;
+                requestKey = exchangeSpecificKeyForPo;
+                requestValue = true;
             // if exchange has no POSTONLY bool flag, then try to use TIF
             } else if (exchangeSpecificKeyForTif !== undefined) {
-                exPreparedRequestKey = exchangeSpecificKeyForTif;
-                exPreparedRequestValue = exchangeSpecificTifValueFound;
+                requestKey = exchangeSpecificKeyForTif;
+                requestValue = exchangeSpecificTifValueFound;
             } else {
-                throw new InvalidOrder (this.id + ' exchange does not support postOnly order');
+                throw new InvalidOrder (this.id + ' exchange does not support postOnly orders');
             }
         }
-        // returns: object, object, boolean, string
         return {
             'params': params,
-            'requestKey': exPreparedRequestKey,
-            'requestValue': exPreparedRequestValue,
+            'requestKey': requestKey,
+            'requestValue': requestValue,
             'isPostOnly': isPo,
-            'timeInForce': detectedUnifiedTif,
+            'timeInForce': referenceUnifiedTif,
         };
     }
 
-    invertStringDictionary (dict: any) {
-        const reversed = {};
-        const keys = Object.keys (dict);
+    getKeyByValue (object: any, value: any) {
+        const keys = Object.keys (object);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = dict[key];
-            // if key has a value of array i.e. 'a': [ 'b', 'c'] instead of a string i.e. 'a': 'b'
-            let checkKeys = [];
-            if (Array.isArray (value)) {
-                checkKeys = value;
-            } else if (typeof value === 'string') {
-                checkKeys.push (value);
-            }
-            for (let j = 0; j < checkKeys.length; j++) {
-                const currentKey = checkKeys[j];
-                // if it was already in keys
-                if (!(currentKey in reversed)) {
-                    reversed[currentKey] = key;
-                } else {
-                    if (Array.isArray (reversed[currentKey])) {
-                        reversed[currentKey].push (key);
-                    } else {
-                        reversed[currentKey] = [ reversed[currentKey], key ];
-                    }
-                }
+            if (object[key] === value) {
+                return key;
             }
         }
-        return reversed;
+        return undefined;
     }
 
     async fetchLastPrices (params = {}) {

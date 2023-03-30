@@ -1,53 +1,42 @@
 
-async function test(){ 
-    const exNames = [
-        'bybit' /* https://bybit-exchange.github.io/docs/spot/enum#timeinforce */
-    ];
-    for (const exName of exNames) { 
-        const e = await exchangeInit(exName, false) as any; 
-        const g = 'v5unified'; // target groupName under `options->timeInForceMap`
-        const exPoKey = 'tim_in_foo'; // exchange specific TIF prop name
-        const exPoStr = 'PostOnly'; // exchange specific PO tif string
-        let o = 'market'; // market order (change this to 'limit' too)
-        // mixed exchange-specific and unified key&value
-        exec(()=>e.handleRequestTif (g, o, {'postOnly': true }));
-        exec(()=>e.handleRequestTif (g, o, {'postOnly': false }));
-        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO'}));
-        exec(()=>e.handleRequestTif (g, o, {'timeInForce': exPoStr}));
-        exec(()=>e.handleRequestTif (g, o, {[exPoKey]: 'PO'}));
-        exec(()=>e.handleRequestTif (g, o, {[exPoKey]: exPoStr}));
-        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': false }));
-        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': true }));
-        // others
-        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'FOK', 'postOnly': true }));
-        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'FOK', 'postOnly': false }));
-        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'IOC', 'postOnly': true }));
-        exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'IOC', 'postOnly': false }));
-    }
-    //var o = await e.createOrder ('DOGE/USDT', 'limit', 'buy', 200, 0.061, {'triggerPrice':0.056, operator:'lte', 'timeInForce':'PO'});
+async function test(){
+    const ex = await import ('./ts/src/pro/'+'bybit'+'.js');
+    const e = new ex.default() as any; 
+
+    // ### ascendex ###
+    // const g        = 'spotAndFutures'; // target groupName under `options->timeInForceMap`
+    // const exTifKey = 'time_in_f';      // exchange specific TIF prop name
+    // const exPoStr  = undefined;        // exchange specific TIF PO string value
+    // const exPoKey  = 'is_pos';         // if exchange needs specific bool prop for postonly
+
+    // ### bybit ###
+    const g          = 'v5unified';
+    const exTifKey   = 'tim_in_foo'; 
+    const exPoStr    = 'PO';
+    const exPoKey    = undefined;
+    // ###################################
+
+    let o = 'market'; // market order (change this to 'limit' too)
+    // mixed exchange-specific and unified key&value
+    exec(()=>e.handleRequestTif (g, o, {'postOnly': true }));
+    exec(()=>e.handleRequestTif (g, o, {'postOnly': false }));
+        if (exPoKey) {
+    exec(()=>e.handleRequestTif (g, o, {[exPoKey]: true }));
+    exec(()=>e.handleRequestTif (g, o, {[exPoKey]: false }));
+        }
+    exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO'}));
+    exec(()=>e.handleRequestTif (g, o, {'timeInForce': exPoStr}));
+    exec(()=>e.handleRequestTif (g, o, {[exTifKey]: 'PO'}));
+    exec(()=>e.handleRequestTif (g, o, {[exTifKey]: exPoStr}));
+    exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': false }));
+    exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'PO', 'postOnly': true }));
+    // others
+    exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'FOK', 'postOnly': true }));
+    exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'FOK', 'postOnly': false }));
+    exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'IOC', 'postOnly': true }));
+    exec(()=>e.handleRequestTif (g, o, {'timeInForce': 'IOC', 'postOnly': false })); 
 }
 setTimeout(test, 1);
-
-
-
-
-import * as fs from 'fs'; 
-async function exchangeInit(exchangeId: string, verbose = false) {
-    let settingsFile: any = {};
-    try {
-        settingsFile = JSON.parse(fs.readFileSync('./keys.local.json').toString());
-    } catch {}
-    let settings = !(exchangeId in settingsFile) ? {} : settingsFile[exchangeId] as any;
-    try {
-        let exImport : any = null;
-        try       { exImport = await import ('./ts/src/pro/'+exchangeId+'.js'); }
-        catch (e) { exImport = await import ('./ts/src/'+exchangeId+'.js');     }
-        return new exImport.default({ ...settings, });
-    } catch (e) {
-        console.log(e);
-        process.exit();
-    }
-}
 
 
 
@@ -55,7 +44,7 @@ const exec = (func)=>{
     let result:any = undefined;
     let sign = '';
     try { 
-        result = JSON.stringify(func()); 
+        result = JSON.stringify(func(), (k, v) => v === undefined ? null : v); 
         sign = '🟢' ;
     }
     catch(e:any) { 
