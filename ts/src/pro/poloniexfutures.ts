@@ -95,44 +95,31 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return future;
     }
 
-    async subscribe (name, isPrivate, symbols = undefined, params = {}) {
+    async subscribe (name, isPrivate, symbol = undefined, params = {}) {
         /**
          * @ignore
          * @method
          * @description Connects to a websocket channel
          * @param {String} name name of the channel
          * @param {Bool} isPrivate true for the authenticated url, false for the public url
-         * @param {[String]|undefined} symbols CCXT market symbols
+         * @param {String|undefined} symbol is required for all public channels, not required for private channels (except position)
          * @param {Object} params extra parameters specific to the poloniex api
          * @returns {Object} data from the websocket stream
          */
         await this.loadMarkets ();
-        const publicOrPrivate = isPrivate ? 'private' : 'public';
-        const url = this.urls['api']['ws'][publicOrPrivate];
+        const url = this.urls['api']['ws'];
         const subscribe = {
-            'event': 'subscribe',
-            'channel': [
-                name,
-            ],
+            'id': this.milliseconds () + name + symbol,   // ID is a unique string to mark the request which is same as the id property of ack.
+            'type': 'subscribe',
+            'topic': name,                                // Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
+            'privateChannel': isPrivate,                  // Adopt the private channel or not. Set as false by default.
+            'response': true,                             // Whether the server needs to return the receipt information of this subscription or not. Set as false by default.
         };
-        const marketIds = [ ];
         let messageHash = name;
-        if (symbols !== undefined) {
-            if (symbols.length === 1) {
-                const symbol = symbols[0];
-                const marketId = this.marketId (symbol);
-                marketIds.push (marketId);
-                messageHash = messageHash + ':' + marketId;
-            }
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                marketIds.push (this.marketId (symbol));
-            }
-        } else {
-            marketIds.push ('all');
-        }
-        if (name !== 'balances') {
-            subscribe['symbols'] = marketIds;
+        if (symbol !== undefined) {
+            const marketId = this.marketId (symbol);
+            messageHash = name + ':' + marketId;
+            subscribe['topic'] = messageHash;
         }
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, name);
