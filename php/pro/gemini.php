@@ -11,8 +11,6 @@ use React\Async;
 
 class gemini extends \ccxt\async\gemini {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -26,7 +24,7 @@ class gemini extends \ccxt\async\gemini {
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
             ),
-            'hostname:' => 'api.gemini.com',
+            'hostname' => 'api.gemini.com',
             'urls' => array(
                 'api' => array(
                     'ws' => 'wss://api.gemini.com',
@@ -38,7 +36,7 @@ class gemini extends \ccxt\async\gemini {
         ));
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watch the list of most recent $trades for a particular $symbol
@@ -144,7 +142,7 @@ class gemini extends \ccxt\async\gemini {
         //             array( 'buy', '22252.37', '0.02' ),
         //             array( 'buy', '22251.61', '0.04' ),
         //             array( 'buy', '22251.60', '0.04' ),
-        //             // some asks as well
+        //             // some asks
         //         ),
         //         $trades => array(
         //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => '0.00004473', side => 'buy' ),
@@ -193,7 +191,7 @@ class gemini extends \ccxt\async\gemini {
         }
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -203,7 +201,7 @@ class gemini extends \ccxt\async\gemini {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -286,7 +284,7 @@ class gemini extends \ccxt\async\gemini {
         return $message;
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -294,7 +292,7 @@ class gemini extends \ccxt\async\gemini {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -351,7 +349,7 @@ class gemini extends \ccxt\async\gemini {
         //             array( 'buy', '22252.37', '0.02' ),
         //             array( 'buy', '22251.61', '0.04' ),
         //             array( 'buy', '22251.60', '0.04' ),
-        //             // some asks as well
+        //             // some asks
         //         ),
         //         trades => array(
         //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => '0.00004473', side => 'buy' ),
@@ -384,7 +382,7 @@ class gemini extends \ccxt\async\gemini {
         $this->handle_trades($client, $message);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -393,7 +391,7 @@ class gemini extends \ccxt\async\gemini {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the gemini api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
             Async\await($this->load_markets());
@@ -646,7 +644,7 @@ class gemini extends \ccxt\async\gemini {
             'request' => $request,
             'nonce' => $this->nonce(),
         );
-        $b64 = base64_encode($this->encode($this->json($payload)));
+        $b64 = base64_encode($this->json($payload));
         $signature = $this->hmac($b64, $this->encode($this->secret), 'sha384', 'hex');
         $defaultOptions = array(
             'ws' => array(
@@ -657,11 +655,12 @@ class gemini extends \ccxt\async\gemini {
         );
         $this->options = array_merge($defaultOptions, $this->options);
         $originalHeaders = $this->options['ws']['options']['headers'];
-        $this->options['ws']['options']['headers'] = array(
+        $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
-            'X-GEMINI-PAYLOAD' => $this->decode($b64),
+            'X-GEMINI-PAYLOAD' => $b64,
             'X-GEMINI-SIGNATURE' => $signature,
         );
+        $this->options['ws']['options']['headers'] = $headers;
         $this->client($url);
         $this->options['ws']['options']['headers'] = $originalHeaders;
     }

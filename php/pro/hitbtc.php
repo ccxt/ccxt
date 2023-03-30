@@ -10,8 +10,6 @@ use React\Async;
 
 class hitbtc extends \ccxt\async\hitbtc {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -40,7 +38,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ));
     }
 
-    public function watch_public($symbol, $channel, $timeframe = null, $params = array ()) {
+    public function watch_public(string $symbol, $channel, $timeframe = null, $params = array ()) {
         return Async\async(function () use ($symbol, $channel, $timeframe, $params) {
             Async\await($this->load_markets());
             $marketId = $this->market_id($symbol);
@@ -64,14 +62,14 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $orderbook = Async\await($this->watch_public($symbol, 'orderbook', null, $params));
             return $orderbook->limit ();
@@ -172,13 +170,13 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public($symbol, 'ticker', null, $params));
         }) ();
@@ -214,7 +212,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve ($result, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -283,7 +281,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -292,12 +290,12 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the hitbtc api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             // if ($limit === null) {
             //     $limit = 100;
             // }
-            $period = $this->timeframes[$timeframe];
+            $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
                 'params' => array(
                     'period' => $period,

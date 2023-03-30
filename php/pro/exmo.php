@@ -11,8 +11,6 @@ use React\Async;
 
 class exmo extends \ccxt\async\exmo {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -152,6 +150,7 @@ class exmo extends \ccxt\async\exmo {
         //
         $event = $this->safe_string($message, 'event');
         $data = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         if ($event === 'snapshot') {
             $balances = $this->safe_value($data, 'balances', array());
             $reserved = $this->safe_value($data, 'reserved', array());
@@ -193,6 +192,7 @@ class exmo extends \ccxt\async\exmo {
         //     }
         //
         $data = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         $currencies = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currencyId = $currencies[$i];
@@ -207,13 +207,13 @@ class exmo extends \ccxt\async\exmo {
         }
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -264,7 +264,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($parsedTicker, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -330,7 +330,7 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($this->trades[$symbol], $messageHash);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
@@ -459,14 +459,14 @@ class exmo extends \ccxt\async\exmo {
         $client->resolve ($myTrades, $messageHash);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the exmo api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

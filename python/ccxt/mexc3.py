@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -30,10 +31,10 @@ class mexc3(Exchange):
             'version': 'v3',
             'has': {
                 'CORS': None,
-                'spot': None,
+                'spot': True,
                 'margin': True,
-                'swap': None,
-                'future': None,
+                'swap': True,
+                'future': True,
                 'option': None,
                 'addMargin': True,
                 'borrowMargin': True,
@@ -107,8 +108,6 @@ class mexc3(Exchange):
                 'fetchTransfers': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
-                'privateAPI': True,
-                'publicAPI': True,
                 'reduceMargin': True,
                 'repayMargin': True,
                 'setLeverage': True,
@@ -178,6 +177,8 @@ class mexc3(Exchange):
                             'capital/deposit/address': 1,
                             'capital/transfer': 1,
                             'capital/sub-account/universalTransfer': 1,
+                            'capital/convert': 1,
+                            'capital/convert/list': 1,
                             'margin/loan': 1,
                             'margin/allOrders': 1,
                             'margin/myTrades': 1,
@@ -210,6 +211,7 @@ class mexc3(Exchange):
                             'capital/transfer': 1,
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
+                            'capital/convert': 1,
                             'margin/tradeMode': 1,
                             'margin/order': 1,
                             'margin/loan': 1,
@@ -441,6 +443,8 @@ class mexc3(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GAS': 'GASDAO',
+                'GASNEO': 'GAS',
                 'GMT': 'GMT Token',  # Conflict with GMT(STEPN)
                 'STEPN': 'GMT',  # Conflict with GMT Token
                 'HERO': 'Step Hero',  # conflict with Metahero
@@ -466,6 +470,7 @@ class mexc3(Exchange):
                     '30005': InvalidOrder,
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
+                    '400': BadRequest,  # {"msg":"The start time cannot be earlier than 90 days","code":400}
                     '600': BadRequest,
                     '70011': PermissionDenied,  # {"code":70011,"msg":"Pair user ban trade apikey."}
                     '88004': InsufficientFunds,  # {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
@@ -473,6 +478,81 @@ class mexc3(Exchange):
                     '88013': InvalidOrder,  # {"msg":"最小交易额不能小于：5USDT","code":88013}
                     '88015': InsufficientFunds,  # {"msg":"持仓不足","code":88015}
                     '700003': InvalidNonce,  # {"code":700003,"msg":"Timestamp for self request is outside of the recvWindow."}
+                    '26': ExchangeError,  # operation not allowed
+                    '602': AuthenticationError,  # Signature verification failed
+                    '10001': AuthenticationError,  # user does not exist
+                    '10007': BadSymbol,  # {"code":10007,"msg":"bad symbol"}
+                    '10015': BadRequest,  # user id cannot be null
+                    '10072': BadRequest,  # invalid access key
+                    '10073': BadRequest,  # invalid Request-Time
+                    '10095': InvalidOrder,  # amount cannot be null
+                    '10096': InvalidOrder,  # amount decimal places is too long
+                    '10097': InvalidOrder,  # amount is error
+                    '10098': InvalidOrder,  # risk control system detected abnormal
+                    '10099': BadRequest,  # user sub account does not open
+                    '10100': BadRequest,  # self currency transfer is not supported
+                    '10102': InvalidOrder,  # amount cannot be zero or negative
+                    '10103': ExchangeError,  # self account transfer is not supported
+                    '10200': BadRequest,  # transfer operation processing
+                    '10201': BadRequest,  # transfer in failed
+                    '10202': BadRequest,  # transfer out failed
+                    '10206': BadRequest,  # transfer is disabled
+                    '10211': BadRequest,  # transfer is forbidden
+                    '10212': BadRequest,  # This withdrawal address is not on the commonly used address list or has been invalidated
+                    '10216': ExchangeError,  # no address available. Please try again later
+                    '10219': ExchangeError,  # asset flow writing failed please try again
+                    '10222': BadRequest,  # currency cannot be null
+                    '10232': BadRequest,  # currency does not exist
+                    '10259': ExchangeError,  # Intermediate account does not configured in redisredis
+                    '10265': ExchangeError,  # Due to risk control, withdrawal is unavailable, please try again later
+                    '10268': BadRequest,  # remark length is too long
+                    '20001': ExchangeError,  # subsystem is not supported
+                    '20002': ExchangeError,  # Internal system error please contact support
+                    '22222': BadRequest,  # record does not exist
+                    '30000': ExchangeError,  # suspended transaction for the symbol
+                    '30001': InvalidOrder,  # The current transaction direction is not allowed to place an order
+                    '30002': InvalidOrder,  # The minimum transaction volume cannot be less than :
+                    '30003': InvalidOrder,  # The maximum transaction volume cannot be greater than :
+                    '30010': InvalidOrder,  # no valid trade price
+                    '30014': InvalidOrder,  # invalid symbol
+                    '30016': InvalidOrder,  # trading disabled
+                    '30018': InvalidOrder,  # market order is disabled
+                    '30020': AuthenticationError,  # no permission for the symbol
+                    '30021': BadRequest,  # invalid symbol
+                    '30025': InvalidOrder,  # no exist opponent order
+                    '30026': BadRequest,  # invalid order ids
+                    '30027': InvalidOrder,  # The currency has reached the maximum position limit, the buying is suspended
+                    '30028': InvalidOrder,  # The currency triggered the platform risk control, the selling is suspended
+                    '30029': InvalidOrder,  # Cannot exceed the maximum order limit
+                    '30032': InvalidOrder,  # Cannot exceed the maximum position
+                    '30041': InvalidOrder,  # current order type can not place order
+                    '60005': ExchangeError,  # your account is abnormal
+                    '700001': BadRequest,  # API-key format invalid
+                    '700002': AuthenticationError,  # Signature for self request is not valid
+                    '700004': BadRequest,  # Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
+                    '700005': InvalidNonce,  # recvWindow must less than 60000
+                    '700006': BadRequest,  # IP non white list
+                    '700007': AuthenticationError,  # No permission to access the endpoint
+                    '700008': BadRequest,  # Illegal characters found in parameter
+                    '730001': BadRequest,  # Pair not found
+                    '730002': BadRequest,  # Your input param is invalid
+                    '730000': ExchangeError,  # Request failed, please contact the customer service
+                    '730003': ExchangeError,  # Unsupported operation, please contact the customer service
+                    '730100': ExchangeError,  # Unusual user status
+                    '730600': BadRequest,  # Sub-account Name cannot be null
+                    '730601': BadRequest,  # Sub-account Name must be a combination of 8-32 letters and numbers
+                    '730602': BadRequest,  # Sub-account remarks cannot be null
+                    '730700': BadRequest,  # API KEY remarks cannot be null
+                    '730701': BadRequest,  # API KEY permission cannot be null
+                    '730702': BadRequest,  # API KEY permission does not exist
+                    '730703': BadRequest,  # The IP information is incorrect, and a maximum of 10 IPs are allowed to be bound only
+                    '730704': BadRequest,  # The bound IP format is incorrect, please refill
+                    '730705': BadRequest,  # At most 30 groups of Api Keys are allowed to be created only
+                    '730706': BadRequest,  # API KEY information does not exist
+                    '730707': BadRequest,  # accessKey cannot be null
+                    '730101': BadRequest,  # The user Name already exists
+                    '140001': BadRequest,  # sub account does not exist
+                    '140002': AuthenticationError,  # sub account is forbidden
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest,  # code:2011
@@ -493,7 +573,7 @@ class mexc3(Exchange):
         """
         the latest known information on the availability of the exchange API
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         marketType, query = self.handle_market_type_and_params('fetchStatus', None, params)
         response = None
@@ -831,7 +911,7 @@ class mexc3(Exchange):
         #                 "contractSize":0.0001,
         #                 "minLeverage":1,
         #                 "maxLeverage":125,
-        #                 "priceScale":2,  # seems useless atm, as it's just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+        #                 "priceScale":2,  # seems useless atm,'s just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
         #                 "volScale":0,  # probably: contract amount precision
         #                 "amountScale":4,  # probably: quote currency precision
         #                 "priceUnit":0.5,  # price tick size
@@ -929,7 +1009,7 @@ class mexc3(Exchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1220,7 +1300,7 @@ class mexc3(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1255,7 +1335,7 @@ class mexc3(Exchange):
             candles = response
         elif market['swap']:
             if since is not None:
-                request['start'] = int(since / 1000)
+                request['start'] = self.parse_to_int(since / 1000)
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
             method = self.get_supported_mapping(priceType, {
@@ -1298,7 +1378,7 @@ class mexc3(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         request = {}
@@ -1379,7 +1459,7 @@ class mexc3(Exchange):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1464,35 +1544,35 @@ class mexc3(Exchange):
         if isSwap or ('timestamp' in ticker):
             #
             #     {
-            #         "symbol":"ETH_USDT",
-            #         "lastPrice":3581.3,
-            #         "bid1":3581.25,
-            #         "ask1":3581.5,
-            #         "volume24":4045530,
-            #         "amount24":141331823.5755,
-            #         "holdVol":5832946,
-            #         "lower24Price":3413.4,
-            #         "high24Price":3588.7,
-            #         "riseFallRate":0.0275,
-            #         "riseFallValue":95.95,
-            #         "indexPrice":3580.7852,
-            #         "fairPrice":3581.08,
-            #         "fundingRate":0.000063,
-            #         "maxBidPrice":3938.85,
-            #         "minAskPrice":3222.7,
-            #         "timestamp":1634162885016
+            #         "symbol": "ETH_USDT",
+            #         "lastPrice": 3581.3,
+            #         "bid1": 3581.25,
+            #         "ask1": 3581.5,
+            #         "volume24": 4045530,
+            #         "amount24": 141331823.5755,
+            #         "holdVol": 5832946,
+            #         "lower24Price": 3413.4,
+            #         "high24Price": 3588.7,
+            #         "riseFallRate": 0.0275,
+            #         "riseFallValue": 95.95,
+            #         "indexPrice": 3580.7852,
+            #         "fairPrice": 3581.08,
+            #         "fundingRate": 0.000063,
+            #         "maxBidPrice": 3938.85,
+            #         "minAskPrice": 3222.7,
+            #         "timestamp": 1634162885016
             #     }
             #
             timestamp = self.safe_integer(ticker, 'timestamp')
-            bid = self.safe_number(ticker, 'bid1')
-            ask = self.safe_number(ticker, 'ask1')
+            bid = self.safe_string(ticker, 'bid1')
+            ask = self.safe_string(ticker, 'ask1')
             baseVolume = self.safe_string(ticker, 'volume24')
             quoteVolume = self.safe_string(ticker, 'amount24')
-            high = self.safe_number(ticker, 'high24Price')
-            low = self.safe_number(ticker, 'lower24Price')
+            high = self.safe_string(ticker, 'high24Price')
+            low = self.safe_string(ticker, 'lower24Price')
             changeValue = self.safe_string(ticker, 'riseFallValue')
             changePcnt = self.safe_string(ticker, 'riseFallRate')
-            changePcnt = self.parse_number(Precise.string_mul(changePcnt, '100'))
+            changePcnt = Precise.string_mul(changePcnt, '100')
         else:
             #
             #     {
@@ -1517,23 +1597,23 @@ class mexc3(Exchange):
             #     }
             #
             timestamp = self.safe_integer(ticker, 'closeTime')
-            bid = self.safe_number(ticker, 'bidPrice')
-            ask = self.safe_number(ticker, 'askPrice')
-            bidVolume = self.safe_number(ticker, 'bidQty')
-            askVolume = self.safe_number(ticker, 'askQty')
-            if bidVolume == 0:
+            bid = self.safe_string(ticker, 'bidPrice')
+            ask = self.safe_string(ticker, 'askPrice')
+            bidVolume = self.safe_string(ticker, 'bidQty')
+            askVolume = self.safe_string(ticker, 'askQty')
+            if Precise.string_eq(bidVolume, '0'):
                 bidVolume = None
-            if askVolume == 0:
+            if Precise.string_eq(askVolume, '0'):
                 askVolume = None
             baseVolume = self.safe_string(ticker, 'volume')
             quoteVolume = self.safe_string(ticker, 'quoteVolume')
             open = self.safe_string(ticker, 'openPrice')
-            high = self.safe_number(ticker, 'highPrice')
-            low = self.safe_number(ticker, 'lowPrice')
+            high = self.safe_string(ticker, 'highPrice')
+            low = self.safe_string(ticker, 'lowPrice')
             prevClose = self.safe_string(ticker, 'prevClosePrice')
             changeValue = self.safe_string(ticker, 'priceChange')
             changePcnt = self.safe_string(ticker, 'priceChangePercent')
-            changePcnt = self.parse_number(Precise.string_mul(changePcnt, '100'))
+            changePcnt = Precise.string_mul(changePcnt, '100')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1561,7 +1641,7 @@ class mexc3(Exchange):
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = None
@@ -1602,7 +1682,7 @@ class mexc3(Exchange):
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1767,7 +1847,7 @@ class mexc3(Exchange):
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :param str|None params['marginMode']: only 'isolated' is supported, for spot-margin trading
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -1881,7 +1961,7 @@ class mexc3(Exchange):
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :param str|None params['marginMode']: only 'isolated' is supported, for spot-margin trading
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -2093,7 +2173,7 @@ class mexc3(Exchange):
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :param str|None params['marginMode']: only 'isolated' is supported, for spot-margin trading
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -2163,7 +2243,7 @@ class mexc3(Exchange):
             #
             return self.parse_orders(response, market, since, limit)
         else:
-            # TO_DO: another possible way is through: open_orders/{symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
+            # TO_DO: another possible way is through: open_orders/{symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
             return self.fetch_orders_by_state(2, symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -2173,7 +2253,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_state(3, symbol, since, limit, params)
 
@@ -2184,7 +2264,7 @@ class mexc3(Exchange):
         :param int|None since: timestamp in ms of the earliest order, default is None
         :param int|None limit: max number of orders to return, default is None
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_state(4, symbol, since, limit, params)
 
@@ -2209,7 +2289,7 @@ class mexc3(Exchange):
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -2304,7 +2384,7 @@ class mexc3(Exchange):
         :param [str] ids: order ids
         :param str|None symbol: unified market symbol, default is None
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
@@ -2335,7 +2415,7 @@ class mexc3(Exchange):
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
@@ -2543,7 +2623,7 @@ class mexc3(Exchange):
         #         "price": "2.9",  # not present in stop-market, but in stop-limit order
         #         "executeCycle": "87600",
         #         "trend": "1",
-        #          # below keys are same as in regular order structure
+        #          # below keys are same regular order structure
         #         "symbol": "STEPN_USDT",
         #         "leverage": "20",
         #         "side": "1",
@@ -2695,7 +2775,7 @@ class mexc3(Exchange):
         """
         fetch all the accounts associated with a profile
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
         # TODO: is the below endpoints suitable for fetchAccounts?
         marketType, query = self.handle_market_type_and_params('fetchAccounts', None, params)
@@ -2719,7 +2799,7 @@ class mexc3(Exchange):
         """
         fetch the trading fees for multiple markets
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.fetch_account_helper('spot', params)
@@ -2984,7 +3064,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -3065,7 +3145,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         request = {}
@@ -3154,7 +3234,7 @@ class mexc3(Exchange):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
@@ -3164,7 +3244,7 @@ class mexc3(Exchange):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
@@ -3202,7 +3282,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch funding history for
         :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         self.load_markets()
         market = None
@@ -3310,7 +3390,7 @@ class mexc3(Exchange):
         fetch the current funding rate
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3404,7 +3484,7 @@ class mexc3(Exchange):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
         response = self.contractPublicGetDetail(params)
@@ -3456,7 +3536,7 @@ class mexc3(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         """
             @param info: Exchange response for 1 market
             {
@@ -3549,7 +3629,7 @@ class mexc3(Exchange):
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>` indexed by the network
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
         """
         self.load_markets()
         currency = self.currency(code)
@@ -3580,7 +3660,7 @@ class mexc3(Exchange):
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         :param str code: unified currency code
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         rawNetwork = self.safe_string_upper(params, 'network')
         params = self.omit(params, 'network')
@@ -3604,10 +3684,8 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         self.load_markets()
         request = {
             # 'coin': currency['id'] + network example: USDT-TRX,
@@ -3617,14 +3695,15 @@ class mexc3(Exchange):
             # 'limit': limit,  # default 1000, maximum 1000
         }
         currency = None
-        rawNetwork = self.safe_string(params, 'network')
-        params = self.omit(params, 'network')
-        if rawNetwork is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a network parameter when the currency is specified')
-        # currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
-        # due to that I'm applying the network parameter directly so the user can control it on its side
-        currency = self.currency(code)
-        request['coin'] = currency['id'] + '-' + rawNetwork
+        if code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
+            # currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
+            # due to that I'm applying the network parameter directly so the user can control it on its side
+            rawNetwork = self.safe_string(params, 'network')
+            if rawNetwork is not None:
+                params = self.omit(params, 'network')
+                request['coin'] += '-' + rawNetwork
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -3640,11 +3719,11 @@ class mexc3(Exchange):
         #         network: 'TRX',
         #         status: '5',
         #         address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        #         addressTag: null,
         #         txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         #         insertTime: '1664805021000',
         #         unlockConfirm: '200',
-        #         confirmTimes: '203'
+        #         confirmTimes: '203',
+        #         memo: 'xxyy1122'
         #     }
         # ]
         #
@@ -3658,10 +3737,8 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         self.load_markets()
         request = {
             # 'coin': currency['id'],
@@ -3670,8 +3747,10 @@ class mexc3(Exchange):
             # 'endTime': self.milliseconds(),
             # 'limit': limit,  # default 1000, maximum 1000
         }
-        currency = self.currency(code)
-        request['coin'] = currency['id']
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -3693,7 +3772,8 @@ class mexc3(Exchange):
         #       transactionFee: '1',
         #       confirmNo: null,
         #       applyTime: '1664882739000',
-        #       remark: ''
+        #       remark: '',
+        #       memo: null
         #     }
         # ]
         #
@@ -3709,11 +3789,11 @@ class mexc3(Exchange):
         #     network: 'TRX',
         #     status: '5',
         #     address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        #     addressTag: null,
         #     txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         #     insertTime: '1664805021000',
         #     unlockConfirm: '200',
-        #     confirmTimes: '203'
+        #     confirmTimes: '203',
+        #     memo: 'xxyy1122'
         # }
         #
         # fetchWithdrawals
@@ -3730,22 +3810,29 @@ class mexc3(Exchange):
         #     transactionFee: '1',
         #     confirmNo: null,
         #     applyTime: '1664882739000',
-        #     remark: ''
+        #     remark: '',
+        #     memo: null
         #   }
         #
         # withdraw
         #
         #     {
-        #         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        #         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         #     }
         #
         id = self.safe_string(transaction, 'id')
         type = 'deposit' if (id is None) else 'withdrawal'
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
-        currencyId = self.safe_string(transaction, 'currency')
-        network = self.safe_string(transaction, 'network')
+        currencyId = None
+        currencyWithNetwork = self.safe_string(transaction, 'coin')
+        if currencyWithNetwork is not None:
+            currencyId = currencyWithNetwork.split('-')[0]
+        network = None
+        rawNetwork = self.safe_string(transaction, 'network')
+        if rawNetwork is not None:
+            network = self.safe_network(rawNetwork)
         code = self.safe_currency_code(currencyId, currency)
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'txId')
@@ -3780,12 +3867,31 @@ class mexc3(Exchange):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
-        statuses = {
-            'WAIT': 'pending',
-            'WAIT_PACKAGING': 'pending',
-            'SUCCESS': 'ok',
+    def parse_transaction_status_by_type(self, status, type=None):
+        statusesByType = {
+            'deposit': {
+                '1': 'failed',  # SMALL
+                '2': 'pending',  # TIME_DELAY
+                '3': 'pending',  # LARGE_DELAY
+                '4': 'pending',  # PENDING
+                '5': 'ok',  # SUCCESS
+                '6': 'pending',  # AUDITING
+                '7': 'failed',  # REJECTED
+            },
+            'withdrawal': {
+                '1': 'pending',  # APPLY
+                '2': 'pending',  # AUDITING
+                '3': 'pending',  # WAIT
+                '4': 'pending',  # PROCESSING
+                '5': 'pending',  # WAIT_PACKAGING
+                '6': 'pending',  # WAIT_CONFIRM
+                '7': 'ok',  # SUCCESS
+                '8': 'failed',  # FAILED
+                '9': 'canceled',  # CANCEL
+                '10': 'pending',  # MANUAL
+            },
         }
+        statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
     def fetch_position(self, symbol, params={}):
@@ -3793,7 +3899,7 @@ class mexc3(Exchange):
         fetch data on a single open contract trade position
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3808,7 +3914,7 @@ class mexc3(Exchange):
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         response = self.contractPrivateGetPositionOpenPositions(params)
@@ -3940,7 +4046,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch transfers for
         :param int|None limit: the maximum number of  transfers structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         marketType, query = self.handle_market_type_and_params('fetchTransfers', None, params)
         self.load_markets()
@@ -4021,7 +4127,7 @@ class mexc3(Exchange):
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :param str|None params['symbol']: market symbol required for margin account transfers eg:BTCUSDT
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -4145,7 +4251,7 @@ class mexc3(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
@@ -4208,7 +4314,7 @@ class mexc3(Exchange):
         :param float amount: the amount to borrow
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
         if symbol is None:
@@ -4241,7 +4347,7 @@ class mexc3(Exchange):
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :param str params['borrowId']: transaction id '762407666453712896'
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
         if symbol is None:
@@ -4275,7 +4381,7 @@ class mexc3(Exchange):
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         :param [str]|None codes: returns fees for all currencies if None
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         response = self.spotPrivateGetCapitalConfigGetall(params)
@@ -4368,7 +4474,7 @@ class mexc3(Exchange):
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         :param [str]|None codes: returns fees for all currencies if None
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
         response = self.spotPrivateGetCapitalConfigGetall(params)

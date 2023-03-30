@@ -4,8 +4,9 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -15,6 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -36,7 +38,7 @@ class bitmex(Exchange):
             'pro': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': True,
@@ -397,38 +399,31 @@ class bitmex(Exchange):
             settle = self.safe_currency_code(settleId)
             basequote = baseId + quoteId
             swap = (id == basequote)
-            # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
+            # 'positionCurrency' may be empty("", currently returns for ETHUSD)
             # so let's take the settlCurrency first and then adjust if needed
             type = None
             future = False
-            prediction = False
-            index = False
             symbol = base + '/' + quote + ':' + settle
             expiryDatetime = self.safe_string(market, 'expiry')
             expiry = self.parse8601(expiryDatetime)
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'state')
             active = status != 'Unlisted'
+            contract = True
             if swap:
                 type = 'swap'
-            elif id.find('B_') >= 0:
-                prediction = True
-                type = 'prediction'
-                symbol = id
             elif expiry is not None:
                 future = True
                 type = 'future'
                 symbol = symbol + '-' + self.yymmdd(expiry)
             else:
-                index = True
-                type = 'index'
-                symbol = id
+                symbol = base + '/' + quote
                 active = False
+                contract = False
             positionId = self.safe_string_2(market, 'positionCurrency', 'underlying')
             position = self.safe_currency_code(positionId)
             positionIsQuote = (position == quote)
             maxOrderQty = self.safe_number(market, 'maxOrderQty')
-            contract = not index
             initMargin = self.safe_string(market, 'initMargin', '1')
             maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
             multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
@@ -447,8 +442,6 @@ class bitmex(Exchange):
                 'swap': swap,
                 'future': future,
                 'option': False,
-                'prediction': prediction,
-                'index': index,
                 'active': active,
                 'contract': contract,
                 'linear': not inverse if contract else None,
@@ -625,13 +618,13 @@ class bitmex(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -663,12 +656,12 @@ class bitmex(Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         filter = {
             'filter': {
@@ -681,14 +674,14 @@ class bitmex(Exchange):
             return response[0]
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -709,14 +702,14 @@ class bitmex(Exchange):
         response = self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'filter': {
@@ -725,27 +718,27 @@ class bitmex(Exchange):
         }
         return self.fetch_orders(symbol, since, limit, self.deep_extend(request, params))
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # Bitmex barfs if you set 'open': False in the filter...
         orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -924,14 +917,14 @@ class bitmex(Exchange):
             'fee': fee,
         }
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
         :param int|None since: timestamp in ms of the earliest ledger entry, default is None
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
         currency = None
@@ -970,14 +963,14 @@ class bitmex(Exchange):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {
@@ -1075,12 +1068,12 @@ class bitmex(Exchange):
             },
         }
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1095,7 +1088,7 @@ class bitmex(Exchange):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1381,7 +1374,7 @@ class bitmex(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1389,7 +1382,7 @@ class bitmex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
@@ -1401,7 +1394,7 @@ class bitmex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'binSize': self.timeframes[timeframe],
+            'binSize': self.safe_string(self.timeframes, timeframe, timeframe),
             'partial': True,     # True == include yet-incomplete current bins
             # 'filter': filter,  # filter by individual fields and do advanced queries
             # 'columns': [],    # will return all columns if omitted
@@ -1660,7 +1653,7 @@ class bitmex(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1712,7 +1705,7 @@ class bitmex(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1721,7 +1714,7 @@ class bitmex(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1730,14 +1723,14 @@ class bitmex(Exchange):
         if reduceOnly is not None:
             if (market['type'] != 'swap') and (market['type'] != 'future'):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
+        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': float(self.amount_to_precision(symbol, amount)),  # lot size multiplied by the number of contracts
             'ordType': orderType,
+            'text': brokerId,
         }
-        if reduceOnly:
-            request['execInst'] = 'ReduceOnly'
         if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
             stopPrice = self.safe_number_2(params, 'stopPx', 'stopPrice')
             if stopPrice is None:
@@ -1770,16 +1763,18 @@ class bitmex(Exchange):
             request['orderQty'] = amount
         if price is not None:
             request['price'] = price
+        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+        request['text'] = brokerId
         response = self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str|None symbol: not used by bitmex cancelOrder()
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
@@ -1798,13 +1793,13 @@ class bitmex(Exchange):
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
         return self.parse_order(order)
 
-    def cancel_orders(self, ids, symbol=None, params={}):
+    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         :param [str] ids: order ids
         :param str|None symbol: not used by bitmex cancelOrders()
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # return self.cancel_order(ids, symbol, params)
         self.load_markets()
@@ -1819,12 +1814,12 @@ class bitmex(Exchange):
         response = self.privateDeleteOrder(self.extend(request, params))
         return self.parse_orders(response)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1879,7 +1874,7 @@ class bitmex(Exchange):
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         response = self.privateGetPosition(params)
@@ -2151,7 +2146,7 @@ class bitmex(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -2175,7 +2170,7 @@ class bitmex(Exchange):
         fetch the funding rate for multiple markets
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
         self.load_markets()
         response = self.publicGetInstrumentActiveAndIndices(params)
@@ -2433,7 +2428,7 @@ class bitmex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Fetches the history of funding rates
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
@@ -2506,7 +2501,7 @@ class bitmex(Exchange):
             'datetime': datetime,
         }
 
-    def set_leverage(self, leverage, symbol=None, params={}):
+    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2528,7 +2523,7 @@ class bitmex(Exchange):
         }
         return self.privatePostPositionLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginMode, symbol=None, params={}):
+    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -2559,7 +2554,7 @@ class bitmex(Exchange):
         :param str code: unified currency code
         :param dict params: extra parameters specific to the bitmex api endpoint
         :param str params['network']: deposit chain, can view all chains via self.publicGetWalletAssets, default is eth, unless the currency has a default chain within self.options['networks']
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         networkCode = self.safe_string_upper(params, 'network')
@@ -2636,12 +2631,12 @@ class bitmex(Exchange):
                 'api-key': self.apiKey,
             }
             expires = self.sum(self.seconds(), expires)
-            expires = str(expires)
-            auth += expires
-            headers['api-expires'] = expires
+            stringExpires = str(expires)
+            auth += stringExpires
+            headers['api-expires'] = stringExpires
             if method == 'POST' or method == 'PUT' or method == 'DELETE':
                 if params:
                     body = self.json(params)
                     auth += body
-            headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

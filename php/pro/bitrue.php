@@ -11,8 +11,6 @@ use React\Async;
 
 class bitrue extends \ccxt\async\bitrue {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -149,6 +147,7 @@ class bitrue extends \ccxt\async\bitrue {
         //         t => 1657799510000
         //     )]
         //
+        $this->balance['info'] = $balances;
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'a');
@@ -173,16 +172,16 @@ class bitrue extends \ccxt\async\bitrue {
         $this->balance = $this->safe_balance($this->balance);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on user $orders
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-             * @param {Array} symbols unified symbols of the $market to watch the $orders for
+             * @param {[string]} symbols unified symbols of the $market to watch the $orders for
              * @param {int|null} $since timestamp in ms of the earliest order
              * @param {int|null} $limit the maximum amount of $orders to return
              * @param {array} $params extra parameters specific to the bitrue api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -301,7 +300,7 @@ class bitrue extends \ccxt\async\bitrue {
         ), $market);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrderBook() requires a $symbol argument');

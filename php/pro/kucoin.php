@@ -11,8 +11,6 @@ use React\Async;
 
 class kucoin extends \ccxt\async\kucoin {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -33,6 +31,7 @@ class kucoin extends \ccxt\async\kucoin {
                 ),
                 'watchOrderBook' => array(
                     'snapshotDelay' => 5,
+                    'maxRetries' => 3,
                 ),
             ),
             'streaming' => array(
@@ -129,13 +128,13 @@ class kucoin extends \ccxt\async\kucoin {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -219,7 +218,7 @@ class kucoin extends \ccxt\async\kucoin {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -228,13 +227,13 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(false));
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $period = $this->timeframes[$timeframe];
+            $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $topic = '/market/candles:' . $market['id'] . '_' . $period;
             $messageHash = 'candles:' . $symbol . ':' . $timeframe;
             $ohlcv = Async\await($this->subscribe($url, $messageHash, $topic, null, $params));
@@ -289,7 +288,7 @@ class kucoin extends \ccxt\async\kucoin {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -347,14 +346,14 @@ class kucoin extends \ccxt\async\kucoin {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             //
             // https://docs.kucoin.com/#level-2-$market-data
@@ -506,7 +505,7 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -517,7 +516,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $message;
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -525,7 +524,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
@@ -644,7 +643,7 @@ class kucoin extends \ccxt\async\kucoin {
         $client->resolve ($this->orders, $symbolSpecificMessageHash);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -652,7 +651,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
@@ -797,6 +796,10 @@ class kucoin extends \ccxt\async\kucoin {
         if (!(is_array($this->balance) && array_key_exists($uniformType, $this->balance))) {
             $this->balance[$uniformType] = array();
         }
+        $this->balance[$uniformType]['info'] = $data;
+        $timestamp = $this->safe_integer($data, 'time');
+        $this->balance[$uniformType]['timestamp'] = $timestamp;
+        $this->balance[$uniformType]['datetime'] = $this->iso8601($timestamp);
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_string($data, 'available');
@@ -857,8 +860,8 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_pong($client, $message) {
-        // https://docs.kucoin.com/#ping
         $client->lastPong = $this->milliseconds();
+        // https://docs.kucoin.com/#ping
     }
 
     public function handle_error_message($client, $message) {

@@ -7,13 +7,11 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\AuthenticationError;
 use ccxt\NotSupported;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class zb extends \ccxt\async\zb {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -40,7 +38,7 @@ class zb extends \ccxt\async\zb {
         ));
     }
 
-    public function watch_public($url, $messageHash, $symbol, $method, $limit = null, $params = array ()) {
+    public function watch_public($url, $messageHash, $symbol, $method, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($url, $messageHash, $symbol, $method, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -77,7 +75,7 @@ class zb extends \ccxt\async\zb {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -132,7 +130,7 @@ class zb extends \ccxt\async\zb {
             'baseVolume' => $this->safe_string($ticker, 4),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function handle_ticker($client, $message, $subscription) {
@@ -189,7 +187,7 @@ class zb extends \ccxt\async\zb {
         return $message;
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -199,7 +197,7 @@ class zb extends \ccxt\async\zb {
             if (($limit === null) || ($limit > 1440)) {
                 $limit = 100;
             }
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = $market['id'] . '.KLine' . '_' . $interval;
             $url = $this->implode_hostname($this->urls['api']['ws']['contract']);
             $ohlcv = Async\await($this->watch_public($url, $messageHash, $symbol, array($this, 'handle_ohlcv'), $limit, $params));
@@ -257,7 +255,7 @@ class zb extends \ccxt\async\zb {
         return $message;
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -344,7 +342,7 @@ class zb extends \ccxt\async\zb {
         $client->resolve ($array, $channel);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             if ($limit !== null) {
                 if (($limit !== 5) && ($limit !== 10)) {

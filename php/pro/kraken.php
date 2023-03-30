@@ -14,13 +14,11 @@ use React\Async;
 
 class kraken extends \ccxt\async\kraken {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'watchBalance' => false, // no such type of subscription as of 2021-01-05
+                'watchBalance' => false, // no such type of subscription 2021-01-05
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -40,9 +38,9 @@ class kraken extends \ccxt\async\kraken {
                     ),
                 ),
             ),
-            'versions' => array(
-                'ws' => '0.2.0',
-            ),
+            // 'versions' => array(
+            //     'ws' => '0.2.0',
+            // ),
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
@@ -88,26 +86,26 @@ class kraken extends \ccxt\async\kraken {
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName);
         $symbol = $market['symbol'];
         $ticker = $message[1];
-        $vwap = $this->safe_float($ticker['p'], 0);
+        $vwap = $this->safe_string($ticker['p'], 0);
         $quoteVolume = null;
-        $baseVolume = $this->safe_float($ticker['v'], 0);
+        $baseVolume = $this->safe_string($ticker['v'], 0);
         if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
+            $quoteVolume = Precise::string_mul($baseVolume, $vwap);
         }
-        $last = $this->safe_float($ticker['c'], 0);
+        $last = $this->safe_string($ticker['c'], 0);
         $timestamp = $this->milliseconds();
-        $result = array(
+        $result = $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker['h'], 0),
-            'low' => $this->safe_float($ticker['l'], 0),
-            'bid' => $this->safe_float($ticker['b'], 0),
-            'bidVolume' => $this->safe_float($ticker['b'], 2),
-            'ask' => $this->safe_float($ticker['a'], 0),
-            'askVolume' => $this->safe_float($ticker['a'], 2),
+            'high' => $this->safe_string($ticker['h'], 0),
+            'low' => $this->safe_string($ticker['l'], 0),
+            'bid' => $this->safe_string($ticker['b'], 0),
+            'bidVolume' => $this->safe_string($ticker['b'], 2),
+            'ask' => $this->safe_string($ticker['a'], 0),
+            'askVolume' => $this->safe_string($ticker['a'], 2),
             'vwap' => $vwap,
-            'open' => $this->safe_float($ticker['o'], 0),
+            'open' => $this->safe_string($ticker['o'], 0),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -117,7 +115,7 @@ class kraken extends \ccxt\async\kraken {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ));
         // todo add support for multiple tickers (may be tricky)
         // kraken confirms multi-pair subscriptions separately one by one
         // trigger correct watchTickers calls upon receiving any of symbols
@@ -188,8 +186,9 @@ class kraken extends \ccxt\async\kraken {
             $messageHash = $name . ':' . $timeframe . ':' . $wsName;
             $timestamp = $this->safe_float($candle, 1);
             $timestamp -= $duration;
+            $ts = $this->parse_to_int($timestamp * 1000);
             $result = array(
-                intval($timestamp * 1000),
+                $ts,
                 $this->safe_float($candle, 2),
                 $this->safe_float($candle, 3),
                 $this->safe_float($candle, 4),
@@ -238,19 +237,19 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public('ticker', $symbol, $params));
         }) ();
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -271,14 +270,14 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $name = 'book';
             $request = array();
@@ -296,7 +295,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -305,7 +304,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $name = 'ohlc';
@@ -323,7 +322,7 @@ class kraken extends \ccxt\async\kraken {
                 ),
                 'subscription' => array(
                     'name' => $name,
-                    'interval' => $this->timeframes[$timeframe],
+                    'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 ),
             );
             $request = $this->deep_extend($subscribe, $params);
@@ -534,13 +533,13 @@ class kraken extends \ccxt\async\kraken {
         }
     }
 
-    public function handle_deltas($bookside, $deltas, $timestamp) {
+    public function handle_deltas($bookside, $deltas, $timestamp = null) {
         for ($j = 0; $j < count($deltas); $j++) {
             $delta = $deltas[$j];
-            $price = floatval($delta[0]);
-            $amount = floatval($delta[1]);
+            $price = $this->parse_number($delta[0]);
+            $amount = $this->parse_number($delta[1]);
             $oldTimestamp = $timestamp ? $timestamp : 0;
-            $timestamp = max ($oldTimestamp, intval(floatval($delta[2]) * 1000));
+            $timestamp = max ($oldTimestamp, $this->parse_to_int(floatval($delta[2]) * 1000));
             $bookside->store ($price, $amount);
         }
         return $timestamp;
@@ -549,7 +548,7 @@ class kraken extends \ccxt\async\kraken {
     public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -586,7 +585,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_private($name, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_private($name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($name, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
@@ -615,7 +614,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple trades made by the user
@@ -623,7 +622,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
              */
             return Async\await($this->watch_private('ownTrades', $symbol, $since, $limit, $params));
         }) ();
@@ -779,7 +778,7 @@ class kraken extends \ccxt\async\kraken {
         );
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.kraken.com/websockets/#message-openOrders
@@ -788,7 +787,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the kraken api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->watch_private('openOrders', $symbol, $since, $limit, $params));
         }) ();

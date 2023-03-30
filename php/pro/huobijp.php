@@ -11,8 +11,6 @@ use React\Async;
 
 class huobijp extends \ccxt\async\huobijp {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -51,13 +49,13 @@ class huobijp extends \ccxt\async\huobijp {
         return (string) $requestId;
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the huobijp $api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -115,7 +113,7 @@ class huobijp extends \ccxt\async\huobijp {
         return $message;
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -194,7 +192,7 @@ class huobijp extends \ccxt\async\huobijp {
         return $message;
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -203,12 +201,12 @@ class huobijp extends \ccxt\async\huobijp {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the huobijp $api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
             $api = $this->safe_string($this->options, 'api', 'api');
             $hostname = array( 'hostname' => $this->hostname );
@@ -270,14 +268,14 @@ class huobijp extends \ccxt\async\huobijp {
         $client->resolve ($stored, $ch);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the huobijp $api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             if (($limit !== null) && ($limit !== 150)) {
                 throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
@@ -349,30 +347,35 @@ class huobijp extends \ccxt\async\huobijp {
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
-            $symbol = $this->safe_string($subscription, 'symbol');
-            $limit = $this->safe_integer($subscription, 'limit');
-            $params = $this->safe_value($subscription, 'params');
             $messageHash = $this->safe_string($subscription, 'messageHash');
-            $api = $this->safe_string($this->options, 'api', 'api');
-            $hostname = array( 'hostname' => $this->hostname );
-            $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-            $requestId = $this->request_id();
-            $request = array(
-                'req' => $messageHash,
-                'id' => $requestId,
-            );
-            // this is a temporary $subscription by a specific $requestId
-            // it has a very short lifetime until the snapshot is received over ws
-            $snapshotSubscription = array(
-                'id' => $requestId,
-                'messageHash' => $messageHash,
-                'symbol' => $symbol,
-                'limit' => $limit,
-                'params' => $params,
-                'method' => array($this, 'handle_order_book_snapshot'),
-            );
-            $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
-            return $orderbook->limit ();
+            try {
+                $symbol = $this->safe_string($subscription, 'symbol');
+                $limit = $this->safe_integer($subscription, 'limit');
+                $params = $this->safe_value($subscription, 'params');
+                $api = $this->safe_string($this->options, 'api', 'api');
+                $hostname = array( 'hostname' => $this->hostname );
+                $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+                $requestId = $this->request_id();
+                $request = array(
+                    'req' => $messageHash,
+                    'id' => $requestId,
+                );
+                // this is a temporary $subscription by a specific $requestId
+                // it has a very short lifetime until the snapshot is received over ws
+                $snapshotSubscription = array(
+                    'id' => $requestId,
+                    'messageHash' => $messageHash,
+                    'symbol' => $symbol,
+                    'limit' => $limit,
+                    'params' => $params,
+                    'method' => array($this, 'handle_order_book_snapshot'),
+                );
+                $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
+                return $orderbook->limit ();
+            } catch (Exception $e) {
+                unset($client->subscriptions[$messageHash]);
+                $client->reject ($e, $messageHash);
+            }
         }) ();
     }
 
@@ -501,7 +504,7 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_system_status($client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
+        // and unified for any usage pattern that
         // involves system status and maintenance updates
         //
         //     {
@@ -605,12 +608,20 @@ class huobijp extends \ccxt\async\huobijp {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
             //
-            if (is_array($message) && array_key_exists('id', $message)) {
+            //           ________________________
+            //
+            // sometimes huobijp responds with half of a JSON response like
+            //
+            //     ' {"ch":"market.ethbtc.m '
+            //
+            // this is passed to handleMessage string since it failed to be decoded
+            //
+            if ($this->safe_string($message, 'id') !== null) {
                 $this->handle_subscription_status($client, $message);
-            } elseif (is_array($message) && array_key_exists('ch', $message)) {
+            } elseif ($this->safe_string($message, 'ch') !== null) {
                 // route by channel aka topic aka subject
                 $this->handle_subject($client, $message);
-            } elseif (is_array($message) && array_key_exists('ping', $message)) {
+            } elseif ($this->safe_string($message, 'ping') !== null) {
                 $this->handle_ping($client, $message);
             }
         }

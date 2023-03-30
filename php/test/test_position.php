@@ -24,4 +24,3 @@ function test_position($exchange, $position, $symbol, $now) {
     assert ($position['info']);
 }
 
-
