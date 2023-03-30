@@ -282,7 +282,7 @@ export default class upbit extends Exchange {
         };
     }
 
-    async fetchMarket (symbol, params = {}) {
+    async fetchMarket (symbol: string, params = {}) {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         await this.loadMarkets ();
@@ -589,7 +589,7 @@ export default class upbit extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrderBook
@@ -724,7 +724,7 @@ export default class upbit extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name upbit#fetchTicker
@@ -809,7 +809,7 @@ export default class upbit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchTrades
@@ -855,7 +855,7 @@ export default class upbit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name upbit#fetchTradingFee
@@ -946,7 +946,7 @@ export default class upbit extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOHLCV
@@ -1014,7 +1014,7 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name upbit#createOrder
@@ -1095,7 +1095,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name upbit#cancelOrder
@@ -1446,7 +1446,7 @@ export default class upbit extends Exchange {
         return result;
     }
 
-    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'market': this.marketId (symbol),
@@ -1484,7 +1484,7 @@ export default class upbit extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOpenOrders
@@ -1498,7 +1498,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('wait', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchClosedOrders
@@ -1512,7 +1512,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('done', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchCanceledOrders
@@ -1526,7 +1526,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('cancel', symbol, since, limit, params);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrder

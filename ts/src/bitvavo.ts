@@ -468,7 +468,7 @@ export default class bitvavo extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchTicker
@@ -584,7 +584,7 @@ export default class bitvavo extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchTrades
@@ -760,7 +760,7 @@ export default class bitvavo extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOrderBook
@@ -821,7 +821,7 @@ export default class bitvavo extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOHLCV
@@ -938,7 +938,7 @@ export default class bitvavo extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#createOrder
@@ -1093,7 +1093,7 @@ export default class bitvavo extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#cancelOrder
@@ -1121,7 +1121,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#cancelAllOrders
@@ -1148,7 +1148,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOrder
@@ -1204,7 +1204,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOrders
@@ -1274,7 +1274,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOpenOrders
@@ -1458,7 +1458,7 @@ export default class bitvavo extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchMyTrades

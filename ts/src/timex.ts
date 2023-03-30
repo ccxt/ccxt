@@ -489,7 +489,7 @@ export default class timex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name timex#fetchTicker
@@ -527,7 +527,7 @@ export default class timex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOrderBook
@@ -574,7 +574,7 @@ export default class timex extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchTrades
@@ -622,7 +622,7 @@ export default class timex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOHLCV
@@ -710,7 +710,7 @@ export default class timex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name timex#createOrder
@@ -837,7 +837,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#cancelOrder
@@ -851,7 +851,7 @@ export default class timex extends Exchange {
         return await this.cancelOrders ([ id ], symbol, params);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#cancelOrders
@@ -893,7 +893,7 @@ export default class timex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOrder
@@ -945,7 +945,7 @@ export default class timex extends Exchange {
         return this.parseOrder (this.extend (order, { 'trades': trades }));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOpenOrders
@@ -1000,7 +1000,7 @@ export default class timex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchClosedOrders
@@ -1060,7 +1060,7 @@ export default class timex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchMyTrades
@@ -1140,7 +1140,7 @@ export default class timex extends Exchange {
         };
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name timex#fetchTradingFee

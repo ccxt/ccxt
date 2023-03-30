@@ -58,7 +58,7 @@ export default class whitebit extends whitebitRest {
         });
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchOHLCV
@@ -130,7 +130,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchOrderBook
@@ -236,7 +236,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name whitebit#watchTicker
@@ -304,7 +304,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchTrades
@@ -372,7 +372,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchMyTrades
@@ -474,7 +474,7 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#watchOrders

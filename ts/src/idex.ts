@@ -316,7 +316,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name idex#fetchTicker
@@ -431,7 +431,7 @@ export default class idex extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOHLCV
@@ -494,7 +494,7 @@ export default class idex extends Exchange {
         return [ timestamp, open, high, low, close, volume ];
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchTrades
@@ -655,7 +655,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOrderBook
@@ -830,7 +830,7 @@ export default class idex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchMyTrades
@@ -897,7 +897,7 @@ export default class idex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOrder
@@ -912,7 +912,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOpenOrders
@@ -929,7 +929,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchClosedOrders
@@ -946,7 +946,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrdersHelper (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersHelper (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'nonce': this.uuidv1 (),
@@ -1144,7 +1144,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name idex#createOrder
@@ -1391,7 +1391,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#cancelAllOrders
@@ -1431,7 +1431,7 @@ export default class idex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#cancelOrder

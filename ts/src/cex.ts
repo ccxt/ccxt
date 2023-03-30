@@ -479,7 +479,7 @@ export default class cex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrderBook
@@ -523,7 +523,7 @@ export default class cex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOHLCV
@@ -628,7 +628,7 @@ export default class cex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name cex#fetchTicker
@@ -682,7 +682,7 @@ export default class cex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchTrades
@@ -744,7 +744,7 @@ export default class cex extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name cex#createOrder
@@ -822,7 +822,7 @@ export default class cex extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrder
@@ -1097,7 +1097,7 @@ export default class cex extends Exchange {
         };
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOpenOrders
@@ -1124,7 +1124,7 @@ export default class cex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchClosedOrders
@@ -1146,7 +1146,7 @@ export default class cex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrder
@@ -1264,7 +1264,7 @@ export default class cex extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrders

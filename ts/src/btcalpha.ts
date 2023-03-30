@@ -261,7 +261,7 @@ export default class btcalpha extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchTicker
@@ -335,7 +335,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOrderBook
@@ -419,7 +419,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchTrades
@@ -584,7 +584,7 @@ export default class btcalpha extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOHLCV
@@ -728,7 +728,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#createOrder
@@ -761,7 +761,7 @@ export default class btcalpha extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#cancelOrder
@@ -778,7 +778,7 @@ export default class btcalpha extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOrder
@@ -795,7 +795,7 @@ export default class btcalpha extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOrders
@@ -820,7 +820,7 @@ export default class btcalpha extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOpenOrders
@@ -837,7 +837,7 @@ export default class btcalpha extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchClosedOrders
@@ -854,7 +854,7 @@ export default class btcalpha extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchMyTrades

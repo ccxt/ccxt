@@ -500,7 +500,7 @@ export default class bkex extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOHLCV
@@ -608,7 +608,7 @@ export default class bkex extends Exchange {
         ];
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bkex#fetchTicker
@@ -825,7 +825,7 @@ export default class bkex extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOrderBook
@@ -895,7 +895,7 @@ export default class bkex extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bid', 'ask');
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchTrades
@@ -1292,7 +1292,7 @@ export default class bkex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bkex#createOrder
@@ -1329,7 +1329,7 @@ export default class bkex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bkex#cancelOrder
@@ -1355,7 +1355,7 @@ export default class bkex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bkex#cancelOrders
@@ -1388,7 +1388,7 @@ export default class bkex extends Exchange {
         return this.parseOrders (results, market, undefined, undefined, params);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOpenOrders
@@ -1447,7 +1447,7 @@ export default class bkex extends Exchange {
         return this.parseOrders (innerData, market, since, limit, params);
     }
 
-    async fetchOpenOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOpenOrder
@@ -1488,7 +1488,7 @@ export default class bkex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchClosedOrders
@@ -1791,7 +1791,7 @@ export default class bkex extends Exchange {
         return result;
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchFundingRateHistory
@@ -1844,7 +1844,7 @@ export default class bkex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    async fetchMarketLeverageTiers (symbol, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         /**
          * @method
          * @name bkex#fetchMarketLeverageTiers

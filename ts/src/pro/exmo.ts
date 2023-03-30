@@ -205,7 +205,7 @@ export default class exmo extends exmoRest {
         }
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name exmo#watchTicker
@@ -262,7 +262,7 @@ export default class exmo extends exmoRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#watchTrades
@@ -328,7 +328,7 @@ export default class exmo extends exmoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#watchTrades
@@ -457,7 +457,7 @@ export default class exmo extends exmoRest {
         client.resolve (myTrades, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name exmo#watchOrderBook

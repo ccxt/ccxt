@@ -309,7 +309,7 @@ export default class poloniex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOHLCV
@@ -626,7 +626,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name poloniex#fetchTicker
@@ -753,7 +753,7 @@ export default class poloniex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchTrades
@@ -789,7 +789,7 @@ export default class poloniex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchMyTrades
@@ -994,7 +994,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOpenOrders
@@ -1042,7 +1042,7 @@ export default class poloniex extends Exchange {
         return this.parseOrders (response, market, since, limit, extension);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#createOrder
@@ -1152,7 +1152,7 @@ export default class poloniex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#cancelOrder
@@ -1173,7 +1173,7 @@ export default class poloniex extends Exchange {
         return await this.privateDeleteOrdersId (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#cancelAllOrders
@@ -1214,7 +1214,7 @@ export default class poloniex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrder
@@ -1255,14 +1255,14 @@ export default class poloniex extends Exchange {
         });
     }
 
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+    async fetchOrderStatus (id, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         const indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrderTrades
@@ -1390,7 +1390,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrderBook

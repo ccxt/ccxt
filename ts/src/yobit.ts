@@ -431,7 +431,7 @@ export default class yobit extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOrderBook
@@ -579,7 +579,7 @@ export default class yobit extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name yobit#fetchTicker
@@ -671,7 +671,7 @@ export default class yobit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchTrades
@@ -766,7 +766,7 @@ export default class yobit extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name yobit#createOrder
@@ -816,7 +816,7 @@ export default class yobit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name yobit#cancelOrder
@@ -968,7 +968,7 @@ export default class yobit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOrder
@@ -1003,7 +1003,7 @@ export default class yobit extends Exchange {
         return this.parseOrder (this.extend ({ 'id': id }, orders[id]));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOpenOrders
@@ -1052,7 +1052,7 @@ export default class yobit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchMyTrades

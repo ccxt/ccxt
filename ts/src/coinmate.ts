@@ -321,7 +321,7 @@ export default class coinmate extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#fetchOrderBook
@@ -343,7 +343,7 @@ export default class coinmate extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinmate#fetchTicker
@@ -559,7 +559,7 @@ export default class coinmate extends Exchange {
         return transaction;
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#fetchMyTrades
@@ -653,7 +653,7 @@ export default class coinmate extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#fetchTrades
@@ -691,7 +691,7 @@ export default class coinmate extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name coinmate#fetchTradingFee
@@ -728,7 +728,7 @@ export default class coinmate extends Exchange {
         };
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#fetchOpenOrders
@@ -744,7 +744,7 @@ export default class coinmate extends Exchange {
         return this.parseOrders (response['data'], undefined, since, limit, extension);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#fetchOrders
@@ -871,7 +871,7 @@ export default class coinmate extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#createOrder
@@ -910,7 +910,7 @@ export default class coinmate extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#fetchOrder
@@ -932,7 +932,7 @@ export default class coinmate extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinmate#cancelOrder

@@ -55,7 +55,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchTrades
@@ -75,7 +75,7 @@ export default class bitfinex extends bitfinexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitfinex#watchTicker
@@ -256,7 +256,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (result, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchOrderBook
@@ -458,14 +458,14 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    async watchOrder (id, symbol = undefined, params = {}) {
+    async watchOrder (id, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['private'];
         await this.authenticate ();
         return await this.watch (url, id, undefined, 1);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchOrders

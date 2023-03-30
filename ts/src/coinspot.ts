@@ -191,7 +191,7 @@ export default class coinspot extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchOrderBook
@@ -246,7 +246,7 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinspot#fetchTicker
@@ -321,7 +321,7 @@ export default class coinspot extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchTrades
@@ -386,7 +386,7 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#createOrder
@@ -414,7 +414,7 @@ export default class coinspot extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#cancelOrder

@@ -26,7 +26,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    async watchPublic (symbol, channel, params = {}) {
+    async watchPublic (symbol: string, channel, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -51,7 +51,7 @@ export default class upbit extends upbitRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name upbit#watchTicker
@@ -63,7 +63,7 @@ export default class upbit extends upbitRest {
         return await this.watchPublic (symbol, 'ticker');
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchTrades
@@ -83,7 +83,7 @@ export default class upbit extends upbitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchOrderBook

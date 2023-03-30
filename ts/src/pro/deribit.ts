@@ -143,7 +143,7 @@ export default class deribit extends deribitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name deribit#watchTicker
@@ -215,7 +215,7 @@ export default class deribit extends deribitRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchTrades
@@ -294,7 +294,7 @@ export default class deribit extends deribitRest {
         client.resolve (this.trades[symbol], channel);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchMyTrades
@@ -381,7 +381,7 @@ export default class deribit extends deribitRest {
         client.resolve (cachedTrades, channel);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchOrderBook
@@ -515,7 +515,7 @@ export default class deribit extends deribitRest {
         }
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchOrders
@@ -609,7 +609,7 @@ export default class deribit extends deribitRest {
         client.resolve (this.orders, channel);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchOHLCV

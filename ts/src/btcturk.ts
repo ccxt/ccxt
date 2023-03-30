@@ -310,7 +310,7 @@ export default class btcturk extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOrderBook
@@ -407,7 +407,7 @@ export default class btcturk extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btcturk#fetchTicker
@@ -484,7 +484,7 @@ export default class btcturk extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchTrades
@@ -547,7 +547,7 @@ export default class btcturk extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOHLCV
@@ -650,7 +650,7 @@ export default class btcturk extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#createOrder
@@ -684,7 +684,7 @@ export default class btcturk extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#cancelOrder
@@ -700,7 +700,7 @@ export default class btcturk extends Exchange {
         return await this.privateDeleteOrder (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOpenOrders
@@ -725,7 +725,7 @@ export default class btcturk extends Exchange {
         return this.parseOrders (this.arrayConcat (bids, asks), market, since, limit);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOrders
@@ -850,7 +850,7 @@ export default class btcturk extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchMyTrades

@@ -27,7 +27,7 @@ export default class ripio extends ripioRest {
         });
     }
 
-    async watchTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -89,7 +89,7 @@ export default class ripio extends ripioRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name ripio#watchTicker
@@ -150,7 +150,7 @@ export default class ripio extends ripioRest {
         return message;
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name ripio#watchOrderBook

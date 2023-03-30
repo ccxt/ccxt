@@ -43,7 +43,7 @@ export default class bitstamp extends bitstampRest {
         });
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchOrderBook
@@ -158,7 +158,7 @@ export default class bitstamp extends bitstampRest {
         return deltas.length;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchTrades
@@ -268,7 +268,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchOrders

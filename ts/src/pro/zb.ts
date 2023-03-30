@@ -68,7 +68,7 @@ export default class zb extends zbRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;
@@ -178,7 +178,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -244,7 +244,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;
@@ -329,7 +329,7 @@ export default class zb extends zbRest {
         client.resolve (array, channel);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         if (limit !== undefined) {
             if ((limit !== 5) && (limit !== 10)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, or 10');

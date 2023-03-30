@@ -497,7 +497,7 @@ export default class stex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name stex#fetchTicker
@@ -585,7 +585,7 @@ export default class stex extends Exchange {
         return this.parse8601 (this.safeString (serverDatetime, 'date'));
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOrderBook
@@ -778,7 +778,7 @@ export default class stex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOHLCV
@@ -884,7 +884,7 @@ export default class stex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchTrades
@@ -931,7 +931,7 @@ export default class stex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name stex#fetchTradingFee
@@ -1169,7 +1169,7 @@ export default class stex extends Exchange {
         return this.safeOrder (result, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name stex#createOrder
@@ -1221,7 +1221,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOrder
@@ -1262,7 +1262,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchClosedOrder (id, symbol = undefined, params = {}) {
+    async fetchClosedOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchClosedOrder
@@ -1320,7 +1320,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOrderTrades
@@ -1336,7 +1336,7 @@ export default class stex extends Exchange {
         return order['trades'];
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOpenOrders
@@ -1388,7 +1388,7 @@ export default class stex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#cancelOrder
@@ -1463,7 +1463,7 @@ export default class stex extends Exchange {
         }
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#cancelAllOrders
@@ -1494,7 +1494,7 @@ export default class stex extends Exchange {
         return response;
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchMyTrades

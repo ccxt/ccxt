@@ -121,7 +121,7 @@ export default class probit extends probitRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name probit#watchTicker
@@ -166,7 +166,7 @@ export default class probit extends probitRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchTrades
@@ -230,7 +230,7 @@ export default class probit extends probitRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchMyTrades
@@ -311,7 +311,7 @@ export default class probit extends probitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchOrders
@@ -399,7 +399,7 @@ export default class probit extends probitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchOrderBook
@@ -416,7 +416,7 @@ export default class probit extends probitRest {
         return orderbook.limit ();
     }
 
-    async subscribeOrderBook (symbol, messageHash, filter, params = {}) {
+    async subscribeOrderBook (symbol: string, messageHash, filter, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];

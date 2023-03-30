@@ -771,7 +771,7 @@ export default class tokocrypto extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchOrderBook
@@ -960,7 +960,7 @@ export default class tokocrypto extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchTrades
@@ -1134,7 +1134,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchTicker
@@ -1215,7 +1215,7 @@ export default class tokocrypto extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchOHLCV
@@ -1512,7 +1512,7 @@ export default class tokocrypto extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#createOrder
@@ -1679,7 +1679,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrder (rawOrder, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchOrder
@@ -1728,7 +1728,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrder (rawOrder);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchOrders
@@ -1799,7 +1799,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchOpenOrders
@@ -1814,7 +1814,7 @@ export default class tokocrypto extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchClosedOrders
@@ -1829,7 +1829,7 @@ export default class tokocrypto extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#cancelOrder
@@ -1874,7 +1874,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrder (rawOrder);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchMyTrades

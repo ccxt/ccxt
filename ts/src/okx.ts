@@ -1347,7 +1347,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOrderBook
@@ -1450,7 +1450,7 @@ export default class okx extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#fetchTicker
@@ -1637,7 +1637,7 @@ export default class okx extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchTrades
@@ -1699,7 +1699,7 @@ export default class okx extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOHLCV
@@ -1782,7 +1782,7 @@ export default class okx extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchFundingRateHistory
@@ -1923,7 +1923,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#fetchTradingFee
@@ -2096,7 +2096,7 @@ export default class okx extends Exchange {
         return this.parseBalanceByType (marketType, response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#createOrder
@@ -2352,7 +2352,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelOrder
@@ -2406,7 +2406,7 @@ export default class okx extends Exchange {
         }
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelOrders
@@ -2703,7 +2703,7 @@ export default class okx extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOrder
@@ -2846,7 +2846,7 @@ export default class okx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOpenOrders
@@ -2996,7 +2996,7 @@ export default class okx extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchCanceledOrders
@@ -3170,7 +3170,7 @@ export default class okx extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchClosedOrders
@@ -3335,7 +3335,7 @@ export default class okx extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchMyTrades
@@ -3396,7 +3396,7 @@ export default class okx extends Exchange {
         return this.parseTrades (data, market, since, limit, query);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOrderTrades
@@ -4262,7 +4262,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchLeverage (symbol, params = {}) {
+    async fetchLeverage (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#fetchLeverage
@@ -4305,7 +4305,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    async fetchPosition (symbol, params = {}) {
+    async fetchPosition (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#fetchPosition
@@ -4833,7 +4833,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#fetchFundingRate
@@ -4872,7 +4872,7 @@ export default class okx extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchFundingHistory
@@ -5030,7 +5030,7 @@ export default class okx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#setLeverage
@@ -5093,7 +5093,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    async setPositionMode (hedged, symbol = undefined, params = {}) {
+    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#setPositionMode
@@ -5127,7 +5127,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#setMarginMode
@@ -5400,7 +5400,7 @@ export default class okx extends Exchange {
         return this.parseBorrowRateHistory (data, code, since, limit);
     }
 
-    async modifyMarginHelper (symbol, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const posSide = this.safeString (params, 'posSide', 'net');
@@ -5450,7 +5450,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async reduceMargin (symbol, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}) {
         /**
          * @method
          * @name okx#reduceMargin
@@ -5463,7 +5463,7 @@ export default class okx extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async addMargin (symbol, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}) {
         /**
          * @method
          * @name okx#addMargin
@@ -5476,7 +5476,7 @@ export default class okx extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async fetchMarketLeverageTiers (symbol, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#fetchMarketLeverageTiers
@@ -5576,7 +5576,7 @@ export default class okx extends Exchange {
         return tiers;
     }
 
-    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchBorrowInterest
@@ -5659,7 +5659,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#borrowMargin
@@ -5704,7 +5704,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async repayMargin (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okx#repayMargin
@@ -5773,7 +5773,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async fetchOpenInterest (symbol, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#fetchOpenInterest
@@ -5815,7 +5815,7 @@ export default class okx extends Exchange {
         return this.parseOpenInterest (data[0], market);
     }
 
-    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchOpenInterestHistory

@@ -264,7 +264,7 @@ export default class coinone extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOrderBook
@@ -315,7 +315,7 @@ export default class coinone extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinone#fetchTicker
@@ -452,7 +452,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchTrades
@@ -490,7 +490,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coinone#createOrder
@@ -527,7 +527,7 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOrder
@@ -676,7 +676,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOpenOrders
@@ -719,7 +719,7 @@ export default class coinone extends Exchange {
         return this.parseOrders (limitOrders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchMyTrades
@@ -763,7 +763,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinone#cancelOrder

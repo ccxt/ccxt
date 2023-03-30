@@ -280,7 +280,7 @@ export default class zaif extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name zaif#fetchOrderBook
@@ -341,7 +341,7 @@ export default class zaif extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name zaif#fetchTicker
@@ -408,7 +408,7 @@ export default class zaif extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zaif#fetchTrades
@@ -447,7 +447,7 @@ export default class zaif extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name zaif#createOrder
@@ -478,7 +478,7 @@ export default class zaif extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zaif#cancelOrder
@@ -539,7 +539,7 @@ export default class zaif extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zaif#fetchOpenOrders
@@ -564,7 +564,7 @@ export default class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name zaif#fetchClosedOrders

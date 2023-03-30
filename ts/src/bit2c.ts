@@ -251,7 +251,7 @@ export default class bit2c extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOrderBook
@@ -300,7 +300,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bit2c#fetchTicker
@@ -318,7 +318,7 @@ export default class bit2c extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchTrades
@@ -404,7 +404,7 @@ export default class bit2c extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#createOrder
@@ -435,7 +435,7 @@ export default class bit2c extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#cancelOrder
@@ -451,7 +451,7 @@ export default class bit2c extends Exchange {
         return await this.privatePostOrderCancelOrder (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOpenOrders
@@ -477,7 +477,7 @@ export default class bit2c extends Exchange {
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOrder
@@ -624,7 +624,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchMyTrades

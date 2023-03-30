@@ -861,7 +861,7 @@ export default class ascendex extends Exchange {
         }
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchOrderBook
@@ -955,7 +955,7 @@ export default class ascendex extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name ascendex#fetchTicker
@@ -1070,7 +1070,7 @@ export default class ascendex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchOHLCV
@@ -1164,7 +1164,7 @@ export default class ascendex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchTrades
@@ -1429,7 +1429,7 @@ export default class ascendex extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#createOrder
@@ -1586,7 +1586,7 @@ export default class ascendex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchOrder
@@ -1697,7 +1697,7 @@ export default class ascendex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchOpenOrders
@@ -1819,7 +1819,7 @@ export default class ascendex extends Exchange {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchClosedOrders
@@ -1985,7 +1985,7 @@ export default class ascendex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#cancelOrder
@@ -2103,7 +2103,7 @@ export default class ascendex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#cancelAllOrders
@@ -2668,7 +2668,7 @@ export default class ascendex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async modifyMarginHelper (symbol, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
@@ -2710,7 +2710,7 @@ export default class ascendex extends Exchange {
         };
     }
 
-    async reduceMargin (symbol, amount, params = {}) {
+    async reduceMargin (symbol: string, amount, params = {}) {
         /**
          * @method
          * @name ascendex#reduceMargin
@@ -2723,7 +2723,7 @@ export default class ascendex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async addMargin (symbol, amount, params = {}) {
+    async addMargin (symbol: string, amount, params = {}) {
         /**
          * @method
          * @name ascendex#addMargin
@@ -2736,7 +2736,7 @@ export default class ascendex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#setLeverage
@@ -2768,7 +2768,7 @@ export default class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#setMarginMode

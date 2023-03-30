@@ -121,7 +121,7 @@ export default class bitstamp1 extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchOrderBook
@@ -184,7 +184,7 @@ export default class bitstamp1 extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchTicker
@@ -241,7 +241,7 @@ export default class bitstamp1 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchTrades
@@ -292,7 +292,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#createOrder
@@ -325,7 +325,7 @@ export default class bitstamp1 extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#cancelOrder
@@ -348,7 +348,7 @@ export default class bitstamp1 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+    async fetchOrderStatus (id, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -357,7 +357,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseOrderStatus (response);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchMyTrades

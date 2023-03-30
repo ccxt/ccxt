@@ -98,7 +98,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchTrades
@@ -154,7 +154,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#watchTicker
@@ -206,7 +206,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOHLCV
@@ -270,7 +270,7 @@ export default class okx extends okxRest {
         }
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOrderBook
@@ -621,7 +621,7 @@ export default class okx extends okxRest {
         client.resolve (this.balance[type], channel);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOrders

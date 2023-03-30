@@ -147,7 +147,7 @@ export default class bl3p extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#fetchOrderBook
@@ -210,7 +210,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bl3p#fetchTicker
@@ -265,7 +265,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#fetchTrades
@@ -340,7 +340,7 @@ export default class bl3p extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#createOrder
@@ -373,7 +373,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#cancelOrder

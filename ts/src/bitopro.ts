@@ -400,7 +400,7 @@ export default class bitopro extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitopro#fetchTicker
@@ -462,7 +462,7 @@ export default class bitopro extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchOrderBook
@@ -591,7 +591,7 @@ export default class bitopro extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchTrades
@@ -725,7 +725,7 @@ export default class bitopro extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchOHLCV
@@ -977,7 +977,7 @@ export default class bitopro extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#createOrder
@@ -1037,7 +1037,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#cancelOrder
@@ -1069,7 +1069,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#cancelOrders
@@ -1101,7 +1101,7 @@ export default class bitopro extends Exchange {
         return response;
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#cancelAllOrders
@@ -1136,7 +1136,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchOrder
@@ -1181,7 +1181,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchOrders
@@ -1244,14 +1244,14 @@ export default class bitopro extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'statusKind': 'OPEN',
         };
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchClosedOrders
@@ -1268,7 +1268,7 @@ export default class bitopro extends Exchange {
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchMyTrades

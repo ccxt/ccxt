@@ -192,7 +192,7 @@ export default class coincheck extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchOpenOrders
@@ -269,7 +269,7 @@ export default class coincheck extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchOrderBook
@@ -327,7 +327,7 @@ export default class coincheck extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coincheck#fetchTicker
@@ -440,7 +440,7 @@ export default class coincheck extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchMyTrades
@@ -484,7 +484,7 @@ export default class coincheck extends Exchange {
         return this.parseTrades (transactions, market, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#fetchTrades
@@ -565,7 +565,7 @@ export default class coincheck extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#createOrder
@@ -601,7 +601,7 @@ export default class coincheck extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coincheck#cancelOrder

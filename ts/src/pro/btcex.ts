@@ -125,7 +125,7 @@ export default class btcex extends btcexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchOHLCV
@@ -207,7 +207,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#watchTicker
@@ -279,7 +279,7 @@ export default class btcex extends btcexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchTrades
@@ -356,7 +356,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchMyTrades
@@ -440,7 +440,7 @@ export default class btcex extends btcexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcex#fetchOrders
@@ -519,7 +519,7 @@ export default class btcex extends btcexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcex#watchOrderBook

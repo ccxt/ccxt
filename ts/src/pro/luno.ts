@@ -33,7 +33,7 @@ export default class luno extends lunoRest {
         });
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name luno#watchTrades
@@ -134,7 +134,7 @@ export default class luno extends lunoRest {
         }, market);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name luno#watchOrderBook

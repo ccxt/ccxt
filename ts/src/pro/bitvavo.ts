@@ -53,7 +53,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitvavo#watchTicker
@@ -102,7 +102,7 @@ export default class bitvavo extends bitvavoRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchTrades
@@ -150,7 +150,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchOHLCV
@@ -230,7 +230,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchOrderBook
@@ -428,7 +428,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchOrders
@@ -466,7 +466,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchMyTrades

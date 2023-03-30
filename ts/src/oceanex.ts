@@ -230,7 +230,7 @@ export default class oceanex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name oceanex#fetchTicker
@@ -353,7 +353,7 @@ export default class oceanex extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOrderBook
@@ -453,7 +453,7 @@ export default class oceanex extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchTrades
@@ -618,7 +618,7 @@ export default class oceanex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#createOrder
@@ -647,7 +647,7 @@ export default class oceanex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOrder
@@ -681,7 +681,7 @@ export default class oceanex extends Exchange {
         return this.parseOrder (data[0], market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOpenOrders
@@ -698,7 +698,7 @@ export default class oceanex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchClosedOrders
@@ -715,7 +715,7 @@ export default class oceanex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOrders
@@ -772,7 +772,7 @@ export default class oceanex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOHLCV
@@ -866,7 +866,7 @@ export default class oceanex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrders (symbol, orders, params = {}) {
+    async createOrders (symbol: string, orders, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -879,7 +879,7 @@ export default class oceanex extends Exchange {
         return this.parseOrders (data);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#cancelOrder
@@ -895,7 +895,7 @@ export default class oceanex extends Exchange {
         return this.parseOrder (data);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#cancelOrders
@@ -911,7 +911,7 @@ export default class oceanex extends Exchange {
         return this.parseOrders (data);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#cancelAllOrders

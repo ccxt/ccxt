@@ -356,7 +356,7 @@ export default class wavesexchange extends Exchange {
         return super.setSandboxMode (enabled);
     }
 
-    async getFeesForAsset (symbol, side, amount, price, params = {}) {
+    async getFeesForAsset (symbol: string, side, amount, price, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         amount = this.customAmountToPrecision (symbol, amount);
@@ -371,7 +371,7 @@ export default class wavesexchange extends Exchange {
         return await this.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
     }
 
-    async customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    async customCalculateFee (symbol: string, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const response = await this.getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
@@ -574,7 +574,7 @@ export default class wavesexchange extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrderBook
@@ -820,7 +820,7 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchTicker
@@ -906,7 +906,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOHLCV
@@ -1259,7 +1259,7 @@ export default class wavesexchange extends Exchange {
         return rates;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#createOrder
@@ -1420,7 +1420,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#cancelOrder
@@ -1469,7 +1469,7 @@ export default class wavesexchange extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrder
@@ -1503,7 +1503,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrders
@@ -1556,7 +1556,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOpenOrders
@@ -1582,7 +1582,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchClosedOrders
@@ -1925,7 +1925,7 @@ export default class wavesexchange extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchMyTrades
@@ -2018,7 +2018,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchTrades

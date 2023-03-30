@@ -51,7 +51,7 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#watchOrderBook
@@ -117,7 +117,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#watchTrades
@@ -178,7 +178,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (tradesCache, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitopro#watchTicker

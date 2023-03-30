@@ -610,7 +610,7 @@ export default class bitpanda extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchTicker
@@ -687,7 +687,7 @@ export default class bitpanda extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOrderBook
@@ -814,7 +814,7 @@ export default class bitpanda extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOHLCV
@@ -943,7 +943,7 @@ export default class bitpanda extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchTrades
@@ -1503,7 +1503,7 @@ export default class bitpanda extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    async createOrder (symbol, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#createOrder
@@ -1570,7 +1570,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#cancelOrder
@@ -1598,7 +1598,7 @@ export default class bitpanda extends Exchange {
         return response;
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#cancelAllOrders
@@ -1622,7 +1622,7 @@ export default class bitpanda extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#cancelOrders
@@ -1645,7 +1645,7 @@ export default class bitpanda extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOrder
@@ -1703,7 +1703,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOpenOrders
@@ -1824,7 +1824,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrders (orderHistory, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchClosedOrders
@@ -1841,7 +1841,7 @@ export default class bitpanda extends Exchange {
         return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOrderTrades
@@ -1901,7 +1901,7 @@ export default class bitpanda extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchMyTrades

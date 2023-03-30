@@ -598,7 +598,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOrderBook
@@ -682,7 +682,7 @@ export default class bitstamp extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTicker
@@ -912,7 +912,7 @@ export default class bitstamp extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTrades
@@ -972,7 +972,7 @@ export default class bitstamp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOHLCV
@@ -1078,7 +1078,7 @@ export default class bitstamp extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTradingFee
@@ -1272,7 +1272,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#createOrder
@@ -1312,7 +1312,7 @@ export default class bitstamp extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelOrder
@@ -1329,7 +1329,7 @@ export default class bitstamp extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelAllOrders
@@ -1360,7 +1360,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+    async fetchOrderStatus (id, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const request = {};
@@ -1374,7 +1374,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOrder
@@ -1418,7 +1418,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchMyTrades
@@ -1887,7 +1887,7 @@ export default class bitstamp extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOpenOrders

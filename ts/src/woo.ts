@@ -391,7 +391,7 @@ export default class woo extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchTrades
@@ -717,7 +717,7 @@ export default class woo extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#createOrder
@@ -853,7 +853,7 @@ export default class woo extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name woo#cancelOrder
@@ -895,7 +895,7 @@ export default class woo extends Exchange {
         return this.extend (this.parseOrder (response), extendParams);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name woo#cancelAllOrders
@@ -922,7 +922,7 @@ export default class woo extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrder
@@ -982,7 +982,7 @@ export default class woo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrders
@@ -1122,7 +1122,7 @@ export default class woo extends Exchange {
         return status;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrderBook
@@ -1162,7 +1162,7 @@ export default class woo extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOHLCV
@@ -1230,7 +1230,7 @@ export default class woo extends Exchange {
         ];
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrderTrades
@@ -1273,7 +1273,7 @@ export default class woo extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchMyTrades
@@ -1863,7 +1863,7 @@ export default class woo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async repayMargin (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name woo#repayMargin
@@ -2019,7 +2019,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2096,7 +2096,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2143,7 +2143,7 @@ export default class woo extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (symbol !== undefined) {
@@ -2192,7 +2192,7 @@ export default class woo extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async fetchLeverage (symbol, params = {}) {
+    async fetchLeverage (symbol: string, params = {}) {
         await this.loadMarkets ();
         const response = await this.v3PrivateGetAccountinfo (params);
         //
@@ -2231,7 +2231,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         if ((leverage < 1) || (leverage > 20)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 20');
@@ -2242,7 +2242,7 @@ export default class woo extends Exchange {
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
-    async fetchPosition (symbol = undefined, params = {}) {
+    async fetchPosition (symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

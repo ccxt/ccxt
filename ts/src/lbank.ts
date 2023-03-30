@@ -278,7 +278,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name lbank#fetchTicker
@@ -332,7 +332,7 @@ export default class lbank extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol, limit = 60, params = {}) {
+    async fetchOrderBook (symbol: string, limit = 60, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrderBook
@@ -387,7 +387,7 @@ export default class lbank extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchTrades
@@ -435,7 +435,7 @@ export default class lbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name lbank#fetchOHLCV
@@ -595,7 +595,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name lbank#createOrder
@@ -630,7 +630,7 @@ export default class lbank extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank#cancelOrder
@@ -650,7 +650,7 @@ export default class lbank extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrder
@@ -677,7 +677,7 @@ export default class lbank extends Exchange {
         }
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrders
@@ -703,7 +703,7 @@ export default class lbank extends Exchange {
         return this.parseOrders (data, undefined, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchClosedOrders

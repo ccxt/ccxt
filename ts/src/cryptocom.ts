@@ -633,7 +633,7 @@ export default class cryptocom extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchTicker
@@ -669,7 +669,7 @@ export default class cryptocom extends Exchange {
         return this.parseTicker (first, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOrders
@@ -781,7 +781,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (orderList, market, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchTrades
@@ -834,7 +834,7 @@ export default class cryptocom extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOHLCV
@@ -885,7 +885,7 @@ export default class cryptocom extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOrderBook
@@ -1076,7 +1076,7 @@ export default class cryptocom extends Exchange {
         return this[parser] (response);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOrder
@@ -1149,7 +1149,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#createOrder
@@ -1208,7 +1208,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#cancelAllOrders
@@ -1243,7 +1243,7 @@ export default class cryptocom extends Exchange {
         return await this[method] (this.extend (request, query));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#cancelOrder
@@ -1284,7 +1284,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOpenOrders
@@ -1366,7 +1366,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (resultList, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchMyTrades
@@ -2237,7 +2237,7 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    async repayMargin (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#repayMargin
@@ -2272,7 +2272,7 @@ export default class cryptocom extends Exchange {
         });
     }
 
-    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#borrowMargin
@@ -2336,7 +2336,7 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;

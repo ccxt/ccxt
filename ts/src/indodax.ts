@@ -349,7 +349,7 @@ export default class indodax extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOrderBook
@@ -410,7 +410,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name indodax#fetchTicker
@@ -494,7 +494,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchTrades
@@ -602,7 +602,7 @@ export default class indodax extends Exchange {
         });
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOrder
@@ -626,7 +626,7 @@ export default class indodax extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOpenOrders
@@ -667,7 +667,7 @@ export default class indodax extends Exchange {
         return exchangeOrders;
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchClosedOrders
@@ -695,7 +695,7 @@ export default class indodax extends Exchange {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name indodax#createOrder
@@ -734,7 +734,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name indodax#cancelOrder

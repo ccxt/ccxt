@@ -38,7 +38,7 @@ export default class ndax extends ndaxRest {
         return requestId;
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name ndax#watchTicker
@@ -105,7 +105,7 @@ export default class ndax extends ndaxRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchTrades
@@ -188,7 +188,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchOHLCV
@@ -320,7 +320,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name ndax#watchOrderBook

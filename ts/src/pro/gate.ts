@@ -86,7 +86,7 @@ export default class gate extends gateRest {
         });
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOrderBook
@@ -266,7 +266,7 @@ export default class gate extends gateRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name gate#watchTicker
@@ -374,7 +374,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchTrades
@@ -438,7 +438,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOHLCV
@@ -522,7 +522,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchMyTrades
@@ -733,7 +733,7 @@ export default class gate extends gateRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOrders

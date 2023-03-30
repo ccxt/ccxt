@@ -50,7 +50,7 @@ export default class bitmex extends bitmexRest {
         });
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitmex#watchTicker
@@ -527,7 +527,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#watchTrades
@@ -933,7 +933,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#watchOrderBook
@@ -967,7 +967,7 @@ export default class bitmex extends bitmexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#watchOHLCV

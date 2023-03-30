@@ -73,7 +73,7 @@ export default class ascendex extends ascendexRest {
         return await this.watch (url, messageHash, message, channel);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchOHLCV
@@ -140,7 +140,7 @@ export default class ascendex extends ascendexRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchTrades
@@ -203,7 +203,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchOrderBook
@@ -223,7 +223,7 @@ export default class ascendex extends ascendexRest {
         return orderbook.limit ();
     }
 
-    async watchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
+    async watchOrderBookSnapshot (symbol: string, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const action = 'depth-snapshot-realtime';
@@ -478,7 +478,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (this.safeBalance (result), messageHash);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#watchOrders

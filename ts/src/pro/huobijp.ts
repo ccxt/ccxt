@@ -46,7 +46,7 @@ export default class huobijp extends huobijpRest {
         return requestId.toString ();
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name huobijp#watchTicker
@@ -110,7 +110,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchTrades
@@ -189,7 +189,7 @@ export default class huobijp extends huobijpRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchOHLCV
@@ -265,7 +265,7 @@ export default class huobijp extends huobijpRest {
         client.resolve (stored, ch);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#watchOrderBook

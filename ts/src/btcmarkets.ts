@@ -506,7 +506,7 @@ export default class btcmarkets extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchOHLCV
@@ -546,7 +546,7 @@ export default class btcmarkets extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchOrderBook
@@ -635,7 +635,7 @@ export default class btcmarkets extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchTicker
@@ -668,7 +668,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTicker2 (symbol, params = {}) {
+    async fetchTicker2 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -745,7 +745,7 @@ export default class btcmarkets extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchTrades
@@ -773,7 +773,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#createOrder
@@ -869,7 +869,7 @@ export default class btcmarkets extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#cancelOrders
@@ -889,7 +889,7 @@ export default class btcmarkets extends Exchange {
         return await this.privateDeleteBatchordersIds (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#cancelOrder
@@ -1010,7 +1010,7 @@ export default class btcmarkets extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchOrder
@@ -1027,7 +1027,7 @@ export default class btcmarkets extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchOrders
@@ -1057,7 +1057,7 @@ export default class btcmarkets extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchOpenOrders
@@ -1072,7 +1072,7 @@ export default class btcmarkets extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchClosedOrders
@@ -1087,7 +1087,7 @@ export default class btcmarkets extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchMyTrades

@@ -339,7 +339,7 @@ export default class bitflyer extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchOrderBook
@@ -386,7 +386,7 @@ export default class bitflyer extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchTicker
@@ -467,7 +467,7 @@ export default class bitflyer extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchTrades
@@ -490,7 +490,7 @@ export default class bitflyer extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchTradingFee
@@ -519,7 +519,7 @@ export default class bitflyer extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#createOrder
@@ -549,7 +549,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#cancelOrder
@@ -628,7 +628,7 @@ export default class bitflyer extends Exchange {
         }, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchOrders (symbol: string = undefined, since = undefined, limit = 100, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchOrders
@@ -656,7 +656,7 @@ export default class bitflyer extends Exchange {
         return orders;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = 100, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchOpenOrders
@@ -673,7 +673,7 @@ export default class bitflyer extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = 100, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchClosedOrders
@@ -690,7 +690,7 @@ export default class bitflyer extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchOrder
@@ -710,7 +710,7 @@ export default class bitflyer extends Exchange {
         throw new OrderNotFound (this.id + ' No order found with id ' + id);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchMyTrades

@@ -553,7 +553,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrderBook
@@ -576,7 +576,7 @@ export default class gemini extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTickerV1 (symbol, params = {}) {
+    async fetchTickerV1 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -598,7 +598,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV2 (symbol, params = {}) {
+    async fetchTickerV2 (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -621,7 +621,7 @@ export default class gemini extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickerV1AndV2 (symbol, params = {}) {
+    async fetchTickerV1AndV2 (symbol: string, params = {}) {
         const tickerA = await this.fetchTickerV1 (symbol, params);
         const tickerB = await this.fetchTickerV2 (symbol, params);
         return this.deepExtend (tickerA, {
@@ -635,7 +635,7 @@ export default class gemini extends Exchange {
         });
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name gemini#fetchTicker
@@ -835,7 +835,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchTrades
@@ -1127,7 +1127,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrder
@@ -1167,7 +1167,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOpenOrders
@@ -1212,7 +1212,7 @@ export default class gemini extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name gemini#createOrder
@@ -1308,7 +1308,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gemini#cancelOrder
@@ -1350,7 +1350,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchMyTrades
@@ -1652,7 +1652,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOHLCV

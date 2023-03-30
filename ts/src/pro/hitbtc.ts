@@ -35,7 +35,7 @@ export default class hitbtc extends hitbtcRest {
         });
     }
 
-    async watchPublic (symbol, channel, timeframe = undefined, params = {}) {
+    async watchPublic (symbol: string, channel, timeframe = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const url = this.urls['api']['ws'];
@@ -57,7 +57,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOrderBook
@@ -165,7 +165,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name hitbtc#watchTicker
@@ -207,7 +207,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, messageHash);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchTrades
@@ -276,7 +276,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOHLCV

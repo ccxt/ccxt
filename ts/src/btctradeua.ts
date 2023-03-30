@@ -159,7 +159,7 @@ export default class btctradeua extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#fetchOrderBook
@@ -254,7 +254,7 @@ export default class btctradeua extends Exchange {
         return this.safeTicker (result, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btctradeua#fetchTicker
@@ -378,7 +378,7 @@ export default class btctradeua extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#fetchTrades
@@ -407,7 +407,7 @@ export default class btctradeua extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#createOrder
@@ -435,7 +435,7 @@ export default class btctradeua extends Exchange {
         return this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#cancelOrder
@@ -484,7 +484,7 @@ export default class btctradeua extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#fetchOpenOrders

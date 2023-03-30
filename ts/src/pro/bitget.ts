@@ -92,7 +92,7 @@ export default class bitget extends bitgetRest {
         return marketId;
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitget#watchTicker
@@ -235,7 +235,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchOHLCV
@@ -340,7 +340,7 @@ export default class bitget extends bitgetRest {
         ];
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchOrderBook
@@ -472,7 +472,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchTrades
@@ -570,7 +570,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchOrders
@@ -819,7 +819,7 @@ export default class bitget extends bitgetRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchMyTrades
