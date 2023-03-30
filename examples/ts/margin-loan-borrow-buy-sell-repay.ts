@@ -47,7 +47,7 @@ async function example () {
     }
     console.log ('Submitting order.');
     const order = await exchange.createOrder (symbol, order_type, order_side, amount_to_trade, limit_price, { 'marginMode': marginMode });
-    console.log ('Order was submitted !', order.id);
+    console.log ('Order was submitted !', order['id']);
     //
     //
     // ...
