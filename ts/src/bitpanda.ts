@@ -1503,7 +1503,7 @@ export default class bitpanda extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#createOrder

@@ -4380,7 +4380,7 @@ class Exchange {
         return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
     }
 
-    public function create_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
@@ -4519,11 +4519,11 @@ class Exchange {
         return array( $tag, $params );
     }
 
-    public function create_limit_order(string $symbol, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_limit_order(string $symbol, $side, $amount, $price, $params = array ()) {
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order(string $symbol, OrderSide $side, $amount, $price = null, $params = array ()) {
+    public function create_market_order(string $symbol, $side, $amount, $price = null, $params = array ()) {
         return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
     }
 
@@ -4640,7 +4640,7 @@ class Exchange {
         }
     }
 
-    public function create_post_only_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_post_only_order(string $symbol, $type, $side, $amount, $price, $params = array ()) {
         if (!$this->has['createPostOnlyOrder']) {
             throw new NotSupported($this->id . 'createPostOnlyOrder() is not supported yet');
         }
@@ -4648,7 +4648,7 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_reduce_only_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_reduce_only_order(string $symbol, $type, $side, $amount, $price, $params = array ()) {
         if (!$this->has['createReduceOnlyOrder']) {
             throw new NotSupported($this->id . 'createReduceOnlyOrder() is not supported yet');
         }
@@ -4656,7 +4656,7 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
+    public function create_stop_order(string $symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
         if (!$this->has['createStopOrder']) {
             throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
         }
@@ -4667,7 +4667,7 @@ class Exchange {
         return $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_limit_order(string $symbol, OrderSide $side, $amount, $price, $stopPrice, $params = array ()) {
+    public function create_stop_limit_order(string $symbol, $side, $amount, $price, $stopPrice, $params = array ()) {
         if (!$this->has['createStopLimitOrder']) {
             throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
         }
@@ -4675,7 +4675,7 @@ class Exchange {
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
 
-    public function create_stop_market_order(string $symbol, OrderSide $side, $amount, $stopPrice, $params = array ()) {
+    public function create_stop_market_order(string $symbol, $side, $amount, $stopPrice, $params = array ()) {
         if (!$this->has['createStopMarketOrder']) {
             throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
         }

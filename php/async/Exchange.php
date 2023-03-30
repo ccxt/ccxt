@@ -25,8 +25,6 @@ use ccxt\AuthenticationError;
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
-use ccxt\types\OrderSide;
-use ccxt\types\OrderType;
 
 use React;
 use React\Async;
@@ -2142,7 +2140,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
@@ -2283,13 +2281,13 @@ class Exchange extends \ccxt\Exchange {
         return array( $tag, $params );
     }
 
-    public function create_limit_order(string $symbol, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_limit_order(string $symbol, $side, $amount, $price, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
             return Async\await($this->create_order($symbol, 'limit', $side, $amount, $price, $params));
         }) ();
     }
 
-    public function create_market_order(string $symbol, OrderSide $side, $amount, $price = null, $params = array ()) {
+    public function create_market_order(string $symbol, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
             return Async\await($this->create_order($symbol, 'market', $side, $amount, $price, $params));
         }) ();
@@ -2420,7 +2418,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_post_only_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_post_only_order(string $symbol, $type, $side, $amount, $price, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             if (!$this->has['createPostOnlyOrder']) {
                 throw new NotSupported($this->id . 'createPostOnlyOrder() is not supported yet');
@@ -2430,7 +2428,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_reduce_only_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_reduce_only_order(string $symbol, $type, $side, $amount, $price, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             if (!$this->has['createReduceOnlyOrder']) {
                 throw new NotSupported($this->id . 'createReduceOnlyOrder() is not supported yet');
@@ -2440,7 +2438,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_stop_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
+    public function create_stop_order(string $symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopPrice, $params) {
             if (!$this->has['createStopOrder']) {
                 throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
@@ -2453,7 +2451,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_stop_limit_order(string $symbol, OrderSide $side, $amount, $price, $stopPrice, $params = array ()) {
+    public function create_stop_limit_order(string $symbol, $side, $amount, $price, $stopPrice, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $price, $stopPrice, $params) {
             if (!$this->has['createStopLimitOrder']) {
                 throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
@@ -2463,7 +2461,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_stop_market_order(string $symbol, OrderSide $side, $amount, $stopPrice, $params = array ()) {
+    public function create_stop_market_order(string $symbol, $side, $amount, $stopPrice, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $stopPrice, $params) {
             if (!$this->has['createStopMarketOrder']) {
                 throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
