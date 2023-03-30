@@ -3,17 +3,11 @@
 
 import { Precise } from '../base/Precise.js';
 import coinexRest from '../coinex.js';
-import {
-    AuthenticationError,
-    BadRequest,
-    ExchangeNotAvailable,
-    NotSupported,
-    RequestTimeout,
-    ExchangeError,
-} from '../base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError, } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { md5 } from '../static_dependencies/noble-hashes/md5.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 

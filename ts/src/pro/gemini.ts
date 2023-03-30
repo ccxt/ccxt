@@ -4,6 +4,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {

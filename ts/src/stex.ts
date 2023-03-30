@@ -5,6 +5,7 @@ import Exchange from './abstract/stex.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, BadSymbol, DDoSProtection, InvalidOrder, AccountSuspended } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 

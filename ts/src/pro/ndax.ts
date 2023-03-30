@@ -3,6 +3,7 @@
 
 import ndaxRest from '../ndax.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 

@@ -3,6 +3,7 @@
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ArgumentsRequired } from '../base/errors.js';
+import { Int } from '../base/types.js';
 
 //  ---------------------------------------------------------------------------
 
