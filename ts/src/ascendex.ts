@@ -2459,7 +2459,7 @@ export default class ascendex extends Exchange {
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': this.safeNumber (feeCostString),
+                'cost': this.parseNumber (feeCostString),
                 'rate': undefined,
             },
         };
