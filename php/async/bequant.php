@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\bequant as hitbtc;
+use ccxt\async\abstract\bequant as hitbtc;
 
 class bequant extends hitbtc {
 

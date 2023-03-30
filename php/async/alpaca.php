@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\alpaca as Exchange;
+use ccxt\async\abstract\alpaca as Exchange;
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use React\Async;
