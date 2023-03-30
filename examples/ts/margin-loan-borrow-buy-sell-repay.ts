@@ -24,25 +24,25 @@ async function example () {
     let needed_amount_to_borrow: any = undefined;  // will be auto-set below
     if (amount_to_trade > balance_margin[symbol][borrow_coin]['free']) {
         needed_amount_to_borrow = amount_to_trade - balance_margin[symbol][borrow_coin]['free'];
-        console.log ('hmm, I have only ' + balance_margin[symbol][borrow_coin]['free'] + ' ' + borrow_coin + ' in margin balance, and still need additional ' + needed_amount_to_borrow + ' to make an order. Lets borrow it.');
+        console.log ('hmm, I have only ', balance_margin[symbol][borrow_coin]['free'], ' ', borrow_coin, ' in margin balance, and still need additional ', needed_amount_to_borrow, ' to make an order. Lets borrow it.');
         // To initate a borrow, at first, check if we have enough collateral (for this example, as we make a sell-short, we need '-1' to keep for collateral currency)
         const needed_collateral_amount = needed_amount_to_borrow / (margin_magnitude - 1);
         // Check if we have any collateral to get permission for borrow
         if (balance_margin[symbol][collateral_coin]['free'] < needed_collateral_amount) {
             // If we don't have enough collateral, then let's try to transfer collateral-asset from spot-balance to margin-balance
-            console.log ('hmm, I have only ' + balance_margin[symbol][collateral_coin]['free'] + ' in balance, but ' + needed_collateral_amount + ' collateral is needed. I should transfer ' + needed_collateral_amount + ' from spot');
+            console.log ('hmm, I have only ', balance_margin[symbol][collateral_coin]['free'], ' in balance, but ', needed_collateral_amount, ' collateral is needed. I should transfer ', needed_collateral_amount, ' from spot');
             // let's check if we have spot balance at all
             const balance_spot = await exchange.fetchBalance ({ 'type': 'spot' });
             if (balance_spot[collateral_coin]['free'] < needed_collateral_amount) {
-                console.log ('hmm, I neither do have enough balance on spot - only ' + balance_spot[collateral_coin]['free'] + '. Script can not continue...');
+                console.log ('hmm, I neither do have enough balance on spot - only ', balance_spot[collateral_coin]['free'], '. Script can not continue...');
                 return;
             } else {
-                console.log ('Transferring  ' + needed_collateral_amount + ' to margin account');
+                console.log ('Transferring  ', needed_collateral_amount, ' to margin account');
                 await exchange.transfer (collateral_coin, needed_collateral_amount, 'spot', marginMode, { 'symbol': symbol }); // because of temporary bug, you have to round "needed_collateral_amount" manually to 8 decimals. will be fixed a few days later
             }
         }
         // now, as we have enough margin collateral, initiate borrow
-        console.log ('Initiating margin borrow of ' + needed_amount_to_borrow + ' ' + borrow_coin);
+        console.log ('Initiating margin borrow of ', needed_amount_to_borrow, ' ', borrow_coin);
         const borrowResult = await exchange.borrowMargin (borrow_coin, needed_amount_to_borrow, symbol, { 'marginMode': marginMode });
     }
     console.log ('Submitting order.');
