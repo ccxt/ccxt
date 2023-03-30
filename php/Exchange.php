@@ -30,8 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-use ccxt\types\OrderSide;
-use ccxt\types\OrderType;
 use kornrunner\Keccak;
 use Elliptic\EC;
 use Elliptic\EdDSA;
