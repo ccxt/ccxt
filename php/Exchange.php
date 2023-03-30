@@ -59,6 +59,18 @@ class Exchange {
 
     const VERSION = '3.0.45';
 
+    public const constants = array(
+        'TRUNCATE' => TRUNCATE,
+        'ROUND' => ROUND,
+        'ROUND_UP' => ROUND_UP,
+        'ROUND_DOWN' => ROUND_DOWN,
+        'DECIMAL_PLACES' => DECIMAL_PLACES,
+        'SIGNIFICANT_DIGITS' => SIGNIFICANT_DIGITS,
+        'TICK_SIZE' => TICK_SIZE,
+        'NO_PADDING' => NO_PADDING,
+        'PAD_WITH_ZERO' => PAD_WITH_ZERO,
+    );
+
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
     private static $base58_decoder = null;
