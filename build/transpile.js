@@ -1997,22 +1997,23 @@ class Transpiler {
             php: examplesBaseFolder +'php/',
         }
         const transpileFlagPhrase = '// AUTO-TRANSPILE //'
-        
+
         const pythonPreamble = this.getPythonPreamble ().replace ('sys.path.append(root)', 'sys.path.append(root + \'/python\')'); // as main preamble is meant for derived exchange classes, the path needs to be changed
         const phpPreamble = this.getPHPPreamble ();
-        
+
         const preambles = {
             phpSync: phpPreamble,
             phpAsync: phpPreamble,
             pySync: pythonPreamble,
             pyAsync: pythonPreamble,
         };
-        
+
         const fileHeaders = {
             pySync: [
                 "import ccxt # noqa: E402",
                 "",
                 "############################",
+                "",
                 "",
                 //"print('CCXT Version:', ccxt.__version__)"
             ],
@@ -2022,6 +2023,7 @@ class Transpiler {
                 "",
                 "############################",
                 "",
+                "",
             ],
             phpSync: [
                 "",
@@ -2029,6 +2031,7 @@ class Transpiler {
                 "date_default_timezone_set('UTC');",
                 "",
                 "//#######################//",
+                "",
                 "",
                 //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
             ],
@@ -2081,12 +2084,12 @@ class Transpiler {
                         [ /print\s*\((.*)\)/, function(match, contents)
                         {
                             return match.replace(/\+/g, ',');
-                        }], 
+                        }],
                         // cases like: exchange = new ccxt.binance ()
                         //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
                         // cases like: exchange = new ccxt['name' or name] ()
                         [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
-                    ]); 
+                    ]);
                 };
                 const fixPhp = (body, isAsync)=> {
                     let asyncSub = isAsync ? 'async\\' : '';
@@ -2098,7 +2101,7 @@ class Transpiler {
                     ];
                     return this.regexAll (body, regexes);
                 };
-                
+
                 // define bodies
                 const finalBodies = {};
                 finalBodies.pySync = fixPython (pythonSyncBody, false);
@@ -2137,7 +2140,7 @@ class Transpiler {
                 overwriteFile (examplesFolders.py  + fileName + '-async.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '-async.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
-        } 
+        }
     }
 
     // ============================================================================
