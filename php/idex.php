@@ -19,7 +19,7 @@ class idex extends Exchange {
             'rateLimit' => 200,
             'version' => 'v3',
             'pro' => true,
-            'certified' => true,
+            'certified' => false,
             'requiresWeb3' => true,
             'has' => array(
                 'CORS' => null,

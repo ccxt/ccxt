@@ -36,7 +36,7 @@ class idex(Exchange):
             'rateLimit': 200,
             'version': 'v3',
             'pro': True,
-            'certified': True,
+            'certified': False,
             'requiresWeb3': True,
             'has': {
                 'CORS': None,

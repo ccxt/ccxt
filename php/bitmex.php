@@ -21,6 +21,7 @@ class bitmex extends Exchange {
             // 120 per minute => 2 per second => weight = 5 (authenticated)
             // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
             'rateLimit' => 100,
+            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,

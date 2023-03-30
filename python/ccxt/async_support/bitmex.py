@@ -36,6 +36,7 @@ class bitmex(Exchange):
             # 120 per minute => 2 per second => weight = 5(authenticated)
             # 30 per minute => 0.5 per second => weight = 20(unauthenticated)
             'rateLimit': 100,
+            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
