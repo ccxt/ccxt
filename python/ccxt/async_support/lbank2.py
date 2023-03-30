@@ -2146,7 +2146,7 @@ class lbank2(Exchange):
                 'timestamp': timestamp,
             }, query)))
             encoded = self.encode(auth)
-            hash = self.hash(encoded, 'sha256')
+            hash = self.hash(encoded, 'md5')
             uppercaseHash = hash.upper()
             sign = None
             if signatureMethod == 'RSA':

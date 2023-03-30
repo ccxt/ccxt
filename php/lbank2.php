@@ -2264,7 +2264,7 @@ class lbank2 extends Exchange {
                 'timestamp' => $timestamp,
             ), $query)));
             $encoded = $this->encode($auth);
-            $hash = $this->hash($encoded, 'sha256');
+            $hash = $this->hash($encoded, 'md5');
             $uppercaseHash = strtoupper($hash);
             $sign = null;
             if ($signatureMethod === 'RSA') {

@@ -765,7 +765,7 @@ class lbank(Exchange):
                 'api_key': self.apiKey,
             }, params))
             queryString = self.rawencode(query)
-            message = self.hash(self.encode(queryString), 'sha256').upper()
+            message = self.hash(self.encode(queryString), 'md5').upper()
             cacheSecretAsPem = self.safe_value(self.options, 'cacheSecretAsPem', True)
             pem = None
             if cacheSecretAsPem:

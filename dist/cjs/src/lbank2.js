@@ -4,6 +4,7 @@ var lbank2$1 = require('./abstract/lbank2.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var md5 = require('./static_dependencies/noble-hashes/md5.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
@@ -2283,7 +2284,7 @@ class lbank2 extends lbank2$1 {
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode(auth);
-            const hash = this.hash(encoded, sha256.sha256);
+            const hash = this.hash(encoded, md5.md5);
             const uppercaseHash = hash.toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
