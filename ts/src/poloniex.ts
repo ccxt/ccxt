@@ -814,7 +814,7 @@ export default class poloniex extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt (limit);
+            request['limit'] = limit;
         }
         const response = await this.privateGetTrades (this.extend (request, params));
         //

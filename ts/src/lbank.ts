@@ -406,7 +406,7 @@ export default class lbank extends Exchange {
             'size': 100,
         };
         if (since !== undefined) {
-            request['time'] = parseInt (since);
+            request['time'] = since;
         }
         if (limit !== undefined) {
             request['size'] = limit;
