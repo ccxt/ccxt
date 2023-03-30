@@ -3387,7 +3387,7 @@ export default class Exchange {
         return this.parseNumber (value, defaultNumber);
     }
 
-    parsePrecision (precision: string) {
+    parsePrecision (precision?: string) {
         /**
          * @ignore
          * @method
