@@ -26,7 +26,7 @@ from ccxt.base.errors import BaseError, BadSymbol, AuthenticationError, Exchange
     RequestTimeout, \
     NotSupported, NullResponse, InvalidOrder, InvalidAddress
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
-from ccxt.base.types import OrderType, OrderSide, IntegerType, IndexType, Balance
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance
 
 # -----------------------------------------------------------------------------
 
@@ -477,19 +477,19 @@ class Exchange(BaseExchange):
     async def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
 
-    async def fetch_trades(self, symbol: str, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchTrades() is not supported yet')
 
-    async def watch_trades(self, symbol: str, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
     async def fetch_deposit_addresses(self, codes: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
-    async def fetch_order_book(self, symbol, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    async def watch_order_book(self, symbol, limit: Optional[IntegerType] = None, params={}):
+    async def watch_order_book(self, symbol, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
     async def fetch_time(self, params={}):
@@ -914,7 +914,7 @@ class Exchange(BaseExchange):
             'fee': self.safe_value(order, 'fee'),
         })
 
-    def parse_orders(self, orders: object, market: Optional[object] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    def parse_orders(self, orders: object, market: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         #
         # the value of orders is either a dict or a list
         #
@@ -1166,7 +1166,7 @@ class Exchange(BaseExchange):
             'previousClose': self.safe_number(ticker, 'previousClose'),
         })
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
         trades = await self.fetchTrades(symbol, since, limit, params)
@@ -1183,7 +1183,7 @@ class Exchange(BaseExchange):
             ])
         return result
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
     def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
@@ -1254,7 +1254,7 @@ class Exchange(BaseExchange):
             result.append(self.parse_bid_ask(bidasks[i], priceKey, amountKey))
         return result
 
-    async def fetch_l2_order_book(self, symbol: str, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_l2_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         orderbook = await self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
@@ -1454,7 +1454,7 @@ class Exchange(BaseExchange):
             'nonce': None,
         }
 
-    def parse_ohlcvs(self, ohlcvs: List[object], market: Optional[Any] = None, timeframe: str = '1m', since: Optional[float] = None, limit: Optional[IntegerType] = None):
+    def parse_ohlcvs(self, ohlcvs: List[object], market: Optional[Any] = None, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None):
         results = []
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ohlcv(ohlcvs[i], market))
@@ -1503,7 +1503,7 @@ class Exchange(BaseExchange):
             result.append(account)
         return result
 
-    def parse_trades(self, trades, market: Optional[object] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    def parse_trades(self, trades, market: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         trades = self.to_array(trades)
         result = []
         for i in range(0, len(trades)):
@@ -1514,7 +1514,7 @@ class Exchange(BaseExchange):
         tail = (since is None)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
 
-    def parse_transactions(self, transactions, currency: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    def parse_transactions(self, transactions, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transactions = self.to_array(transactions)
         result = []
         for i in range(0, len(transactions)):
@@ -1525,7 +1525,7 @@ class Exchange(BaseExchange):
         tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
-    def parse_transfers(self, transfers, currency: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    def parse_transfers(self, transfers, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transfers = self.to_array(transfers)
         result = []
         for i in range(0, len(transfers)):
@@ -1536,7 +1536,7 @@ class Exchange(BaseExchange):
         tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
-    def parse_ledger(self, data, currency: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    def parse_ledger(self, data, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         result = []
         arrayData = self.to_array(data)
         for i in range(0, len(arrayData)):
@@ -1606,14 +1606,14 @@ class Exchange(BaseExchange):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    async def fetch_ohlcvc(self, symbol, timeframe='1m', since: Optional[Any] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_ohlcvc(self, symbol, timeframe='1m', since: Optional[Any] = None, limit: Optional[int] = None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
         await self.load_markets()
         trades = await self.fetchTrades(symbol, since, limit, params)
         return self.build_ohlcvc(trades, timeframe, since, limit)
 
-    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since: Optional[float] = None, limit: Optional[IntegerType] = None):
+    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
@@ -1633,7 +1633,7 @@ class Exchange(BaseExchange):
     async def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
-    async def fetch_position(self, symbol, params={}):
+    async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
@@ -1957,7 +1957,7 @@ class Exchange(BaseExchange):
     async def fetch_unified_order(self, order, params={}):
         return await self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
-    async def create_order(self, symbol, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
     async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
@@ -1969,31 +1969,34 @@ class Exchange(BaseExchange):
     async def cancel_unified_order(self, order, params={}):
         return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
+
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchMyTrades() is not supported yet')
 
-    async def fetch_transactions(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_transactions(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
 
-    async def fetch_deposits(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_deposits(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
 
-    async def fetch_withdrawals(self, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_withdrawals(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
 
     def parse_last_price(self, price, market=None):
@@ -2189,10 +2192,10 @@ class Exchange(BaseExchange):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
-    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[float] = None, limit: Optional[IntegerType] = None, tail=False):
+    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array, code=None, since: Optional[float] = None, limit: Optional[IntegerType] = None, tail=False):
+    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
@@ -2285,7 +2288,7 @@ class Exchange(BaseExchange):
             interests.append(self.parse_borrow_interest(row, market))
         return interests
 
-    def parse_funding_rate_histories(self, response, market=None, since: Optional[float] = None, limit: Optional[IntegerType] = None):
+    def parse_funding_rate_histories(self, response, market=None, since: Optional[int] = None, limit: Optional[int] = None):
         rates = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -2371,7 +2374,7 @@ class Exchange(BaseExchange):
     async def fetch_trading_fees(self, params={}):
         raise NotSupported(self.id + ' fetchTradingFees() is not supported yet')
 
-    async def fetch_trading_fee(self, symbol, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}):
         if not self.has['fetchTradingFees']:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         return await self.fetch_trading_fees(params)
@@ -2379,7 +2382,7 @@ class Exchange(BaseExchange):
     def parse_open_interest(self, interest, market=None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 
-    def parse_open_interests(self, response, market=None, since: Optional[float] = None, limit: Optional[IntegerType] = None):
+    def parse_open_interests(self, response, market=None, since: Optional[int] = None, limit: Optional[int] = None):
         interests = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -2389,7 +2392,7 @@ class Exchange(BaseExchange):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         if self.has['fetchFundingRates']:
             await self.load_markets()
             market = self.market(symbol)
@@ -2404,7 +2407,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
 
-    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2422,7 +2425,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
 
-    async def fetch_index_ohlcv(self, symbol: str, timeframe='1m', since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_index_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2440,7 +2443,7 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
 
-    async def fetch_premium_index_ohlcv(self, symbol: str, timeframe='1m', since: Optional[float] = None, limit: Optional[IntegerType] = None, params={}):
+    async def fetch_premium_index_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2592,7 +2595,7 @@ class Exchange(BaseExchange):
     def parse_income(self, info, market=None):
         raise NotSupported(self.id + ' parseIncome() is not supported yet')
 
-    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+    def parse_incomes(self, incomes, market=None, since: Optional[int] = None, limit: Optional[int] = None):
         """
          * @ignore
         parses funding fee info from exchange response

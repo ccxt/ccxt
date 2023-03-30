@@ -1444,7 +1444,7 @@ class Transpiler {
                 'Promise<any>': 'mixed',
                 'Balance': 'array',
                 'IndexType': 'int|string',
-                'IntegerType': 'int',
+                'Int': 'int',
                 'object': 'array',
             }
             let phpArgs = args.map (x => {
@@ -1480,7 +1480,8 @@ class Transpiler {
                 'string': 'str',
                 'number': 'float',
                 'any': 'Any',
-                'boolean': 'bool'
+                'boolean': 'bool',
+                'Int': 'int',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {

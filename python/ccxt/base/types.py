@@ -42,4 +42,3 @@ class Balance(TypedDict):
 
 
 IndexType = Union[str, int]
-IntegerType = int
