@@ -1890,10 +1890,11 @@ export default class currencycom extends Exchange {
         const unrealizedProfit = this.safeNumber (position, 'upl');
         const marginCoeff = this.safeString (position, 'margin');
         const leverage = Precise.stringDiv ('1', marginCoeff);
-        return {
+        return this.safePosition ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
             'contracts': this.parseNumber (quantity),
             'contractSize': undefined,
             'entryPrice': entryPrice,
@@ -1906,6 +1907,7 @@ export default class currencycom extends Exchange {
             'marginMode': undefined,
             'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -1914,7 +1916,7 @@ export default class currencycom extends Exchange {
             'marginRatio': undefined,
             'info': position,
             'id': undefined,
-        };
+        });
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
