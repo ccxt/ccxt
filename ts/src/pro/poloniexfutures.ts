@@ -118,7 +118,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
         };
         let messageHash = name;
         if (symbol !== undefined) {
-            const marketId = this.marketId (symbol);
+            const market = this.market (symbol);
+            const marketId = market['id'];
             messageHash = name + ':' + marketId;
             subscribe['topic'] = messageHash;
         }
@@ -136,8 +137,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        await this.loadMarkets ();
         const name = '/contractMarket/ticker';
-        return await this.subscribe (name, false, [ symbol ], params);
+        return await this.subscribe (name, false, symbol, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -155,7 +157,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         await this.loadMarkets ();
         const name = '/contractMarket/execution';
         // const name = ' /contractMarket/level3v2'; // ? or
-        const trades = await this.subscribe (name, false, [ symbol ], params);
+        const trades = await this.subscribe (name, false, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -175,7 +177,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          */
         let name = this.safeString (this.options, 'watchOrderBookMethod', '/contractMarket/level3v2'); // can also be /contractMarket/level2
         [ name, params ] = this.handleOptionAndParams (params, 'watchOrderBookMethod', 'name', name);
-        const orderbook = await this.subscribe (name, false, [ symbol ], params);
+        const orderbook = await this.subscribe (name, false, symbol, params);
         return orderbook.limit ();
     }
 
@@ -195,7 +197,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const name = '/contractMarket/tradeOrders';
         // const name = '/contractMarket/advancedOrders'; // TODO: for stop orders
         await this.authenticate ();
-        const orders = await this.subscribe (name, true, [ symbol ], params);
+        const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -217,7 +219,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         await this.loadMarkets ();
         const name = '/contractMarket/tradeOrders';
         await this.authenticate ();
-        const orders = await this.subscribe (name, true, [ symbol ], params);
+        const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
