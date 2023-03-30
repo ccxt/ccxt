@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
@@ -36,7 +37,7 @@ class zb(ccxt.async_support.zb):
             },
         })
 
-    async def watch_public(self, url, messageHash, symbol, method, limit=None, params={}):
+    async def watch_public(self, url, messageHash, symbol, method, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         type = 'spot' if market['spot'] else 'contract'
@@ -66,7 +67,7 @@ class zb(ccxt.async_support.zb):
             subscription['limit'] = limit
         return await self.watch(url, messageHash, message, messageHash, subscription)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = None
@@ -171,7 +172,7 @@ class zb(ccxt.async_support.zb):
         client.resolve(ticker, channel)
         return message
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         if market['spot']:
@@ -230,7 +231,7 @@ class zb(ccxt.async_support.zb):
             client.resolve(stored, channel)
         return message
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = None
@@ -307,7 +308,7 @@ class zb(ccxt.async_support.zb):
         self.trades[symbol] = array
         client.resolve(array, channel)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         if limit is not None:
             if (limit != 5) and (limit != 10):
                 raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, or 10')

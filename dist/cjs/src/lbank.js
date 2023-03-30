@@ -398,7 +398,7 @@ class lbank extends lbank$1 {
             'size': 100,
         };
         if (since !== undefined) {
-            request['time'] = parseInt(since);
+            request['time'] = since;
         }
         if (limit !== undefined) {
             request['size'] = limit;

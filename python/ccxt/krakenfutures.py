@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -393,7 +394,7 @@ class krakenfutures(Exchange):
         self.currencies = self.deep_extend(currencies, self.currencies)
         return result
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         Fetches a list of open orders in a market
         :param str symbol: Unified market symbol
@@ -546,7 +547,7 @@ class krakenfutures(Exchange):
             'info': ticker,
         })
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -610,7 +611,7 @@ class krakenfutures(Exchange):
             self.safe_number(ohlcv, 'volume'),      # trading volume, None for mark or index price
         ]
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
          * @descriptions Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
@@ -764,7 +765,7 @@ class krakenfutures(Exchange):
             'fee': None,
         })
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: market symbol
@@ -870,7 +871,7 @@ class krakenfutures(Exchange):
         order = self.parse_order(response['editStatus'])
         return self.extend({'info': response}, order)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
         """
         :param str id: Order id
         :param str|None symbol: Not used by Krakenfutures
@@ -886,7 +887,7 @@ class krakenfutures(Exchange):
             order = self.parse_order(response['cancelStatus'])
         return self.extend({'info': response}, order)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         Cancels all orders on the exchange, including trigger orders
         :param str symbol: Unified market symbol
@@ -899,7 +900,7 @@ class krakenfutures(Exchange):
         response = self.privatePostCancelallorders(self.extend(request, params))
         return response
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Gets all open orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
@@ -1265,7 +1266,7 @@ class krakenfutures(Exchange):
             'trades': trades,
         })
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         market = None
         if symbol is not None:
@@ -1505,7 +1506,7 @@ class krakenfutures(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         market = self.market(symbol)

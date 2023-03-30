@@ -1073,7 +1073,7 @@ class zonda extends zonda$1 {
             request['from'] = request['to'] - timerange;
         }
         else {
-            request['from'] = parseInt(since);
+            request['from'] = since;
             request['to'] = this.sum(request['from'], timerange);
         }
         const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution(this.extend(request, params));

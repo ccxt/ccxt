@@ -173,6 +173,6 @@ export declare type OHLCV = [number, number, number, number, number, number];
 export declare type OHLCVC = [number, number, number, number, number, number, number];
 export declare type implicitReturnType = any;
 export declare type IndexType = number | string;
-export declare type IntegerType = number;
+export declare type Int = number;
 export declare type OrderSide = 'buy' | 'sell';
 export declare type OrderType = 'limit' | 'market';

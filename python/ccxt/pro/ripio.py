@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import json
+from typing import Optional
 
 
 class ripio(ccxt.async_support.ripio):
@@ -29,7 +30,7 @@ class ripio(ccxt.async_support.ripio):
             },
         })
 
-    async def watch_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -86,7 +87,7 @@ class ripio(ccxt.async_support.ripio):
         tradesArray.append(trade)
         client.resolve(tradesArray, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -141,7 +142,7 @@ class ripio(ccxt.async_support.ripio):
             client.resolve(ticker, messageHash)
         return message
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for

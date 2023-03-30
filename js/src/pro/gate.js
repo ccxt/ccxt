@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import gateRest from '../gate.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------

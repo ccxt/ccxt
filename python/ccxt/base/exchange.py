@@ -1766,7 +1766,7 @@ class Exchange(object):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    def watch_order_book(self, symbol, limit: Optional[int] = None, params={}):
+    def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
     def fetch_time(self, params={}):
