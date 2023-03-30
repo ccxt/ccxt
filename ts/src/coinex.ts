@@ -4133,8 +4133,8 @@ export default class coinex extends Exchange {
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            await this.loadMarkets();
-            currency = this.currency(code);
+            await this.loadMarkets ();
+            currency = this.currency (code);
             request['coin_type'] = currency['id'];
         }
         if (limit !== undefined) {
@@ -4200,8 +4200,8 @@ export default class coinex extends Exchange {
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            await this.loadMarkets();
-            currency = this.currency(code);
+            await this.loadMarkets ();
+            currency = this.currency (code);
             request['coin_type'] = currency['id'];
         }
         if (limit !== undefined) {
