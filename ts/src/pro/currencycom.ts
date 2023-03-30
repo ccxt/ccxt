@@ -378,7 +378,7 @@ export default class currencycom extends currencycomRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchTrades
@@ -398,7 +398,7 @@ export default class currencycom extends currencycomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchOrderBook
@@ -414,7 +414,7 @@ export default class currencycom extends currencycomRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#watchOHLCV

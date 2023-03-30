@@ -85,7 +85,7 @@ export default class coinbasepro extends coinbaseproRest {
         return await this.subscribe (name, symbol, name, params);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchTrades
@@ -106,7 +106,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchMyTrades
@@ -132,7 +132,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchOrders
@@ -158,7 +158,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchOrderBook

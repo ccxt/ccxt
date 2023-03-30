@@ -175,7 +175,7 @@ export default class bitso extends Exchange {
         });
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchLedger
@@ -529,7 +529,7 @@ export default class bitso extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOrderBook
@@ -631,7 +631,7 @@ export default class bitso extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOHLCV
@@ -807,7 +807,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchTrades
@@ -899,7 +899,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = 25, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit = 25, params = {}) {
         /**
          * @method
          * @name bitso#fetchMyTrades
@@ -1107,7 +1107,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = 25, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit = 25, params = {}) {
         /**
          * @method
          * @name bitso#fetchOpenOrders
@@ -1169,7 +1169,7 @@ export default class bitso extends Exchange {
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOrderTrades
@@ -1233,7 +1233,7 @@ export default class bitso extends Exchange {
         return this.parseTransaction (first);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchDeposits

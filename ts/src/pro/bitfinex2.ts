@@ -73,7 +73,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return await this.watch (url, messageHash, undefined, 1);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name biftfinex2#watchOHLCV
@@ -189,7 +189,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchTrades
@@ -207,7 +207,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchMyTrades
@@ -523,7 +523,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchOrderBook
@@ -878,7 +878,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#watchOrders

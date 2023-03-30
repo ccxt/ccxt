@@ -166,7 +166,7 @@ export default class probit extends probitRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchTrades
@@ -230,7 +230,7 @@ export default class probit extends probitRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchMyTrades
@@ -311,7 +311,7 @@ export default class probit extends probitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchOrders
@@ -399,7 +399,7 @@ export default class probit extends probitRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#watchOrderBook

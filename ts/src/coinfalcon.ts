@@ -316,7 +316,7 @@ export default class coinfalcon extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchOrderBook
@@ -397,7 +397,7 @@ export default class coinfalcon extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchMyTrades
@@ -445,7 +445,7 @@ export default class coinfalcon extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchTrades
@@ -734,7 +734,7 @@ export default class coinfalcon extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchOpenOrders
@@ -762,7 +762,7 @@ export default class coinfalcon extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchDeposits
@@ -809,7 +809,7 @@ export default class coinfalcon extends Exchange {
         return this.parseTransactions (transactions, currency, undefined, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinfalcon#fetchWithdrawals

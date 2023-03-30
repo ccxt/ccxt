@@ -529,7 +529,7 @@ export default class buda extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchTrades
@@ -606,7 +606,7 @@ export default class buda extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOrderBook
@@ -626,7 +626,7 @@ export default class buda extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol']);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOHLCV
@@ -699,7 +699,7 @@ export default class buda extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOrders
@@ -724,7 +724,7 @@ export default class buda extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOpenOrders
@@ -741,7 +741,7 @@ export default class buda extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchClosedOrders
@@ -1028,7 +1028,7 @@ export default class buda extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchDeposits
@@ -1053,7 +1053,7 @@ export default class buda extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchWithdrawals

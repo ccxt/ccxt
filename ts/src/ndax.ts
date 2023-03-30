@@ -537,7 +537,7 @@ export default class ndax extends Exchange {
         return result as any;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrderBook
@@ -723,7 +723,7 @@ export default class ndax extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOHLCV
@@ -937,7 +937,7 @@ export default class ndax extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchTrades
@@ -1152,7 +1152,7 @@ export default class ndax extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchLedger
@@ -1415,7 +1415,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchMyTrades
@@ -1577,7 +1577,7 @@ export default class ndax extends Exchange {
         });
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOpenOrders
@@ -1656,7 +1656,7 @@ export default class ndax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrders
@@ -1827,7 +1827,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrderTrades
@@ -1999,7 +1999,7 @@ export default class ndax extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchDeposits
@@ -2060,7 +2060,7 @@ export default class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchWithdrawals

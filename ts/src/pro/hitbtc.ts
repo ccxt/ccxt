@@ -57,7 +57,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOrderBook
@@ -207,7 +207,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, messageHash);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchTrades
@@ -276,7 +276,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOHLCV

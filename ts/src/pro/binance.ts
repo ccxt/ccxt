@@ -109,7 +109,7 @@ export default class binance extends binanceRest {
         return stream;
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOrderBook
@@ -396,7 +396,7 @@ export default class binance extends binanceRest {
         return message;
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchTrades
@@ -621,7 +621,7 @@ export default class binance extends binanceRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOHLCV
@@ -1277,7 +1277,7 @@ export default class binance extends binanceRest {
         client.resolve (this.balance[accountType], messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOrders
@@ -1556,7 +1556,7 @@ export default class binance extends binanceRest {
         this.handleOrder (client, message);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchMyTrades

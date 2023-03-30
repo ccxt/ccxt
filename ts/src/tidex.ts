@@ -397,7 +397,7 @@ export default class tidex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOrderBook
@@ -424,7 +424,7 @@ export default class tidex extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOrderBooks
@@ -613,7 +613,7 @@ export default class tidex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchTrades
@@ -796,7 +796,7 @@ export default class tidex extends Exchange {
         return this.parseOrder (this.extend ({ 'id': id }, order));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOpenOrders
@@ -841,7 +841,7 @@ export default class tidex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchMyTrades

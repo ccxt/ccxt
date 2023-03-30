@@ -965,7 +965,7 @@ export default class bitfinex2 extends Exchange {
         return currencyId;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOrderBook
@@ -1249,7 +1249,7 @@ export default class bitfinex2 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchTrades
@@ -1289,7 +1289,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTrades (trades, market, undefined, limit);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = 100, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 100, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOHLCV
@@ -1715,7 +1715,7 @@ export default class bitfinex2 extends Exchange {
         return order;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOpenOrders
@@ -1778,7 +1778,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchClosedOrders
@@ -1848,7 +1848,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOrderTrades
@@ -1875,7 +1875,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchMyTrades
@@ -2244,7 +2244,7 @@ export default class bitfinex2 extends Exchange {
         return result;
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchTransactions
@@ -2563,7 +2563,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchLedger

@@ -1067,7 +1067,7 @@ export default class deribit extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOHLCV
@@ -1216,7 +1216,7 @@ export default class deribit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchTrades
@@ -1389,7 +1389,7 @@ export default class deribit extends Exchange {
         return parsedFees;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOrderBook
@@ -1868,7 +1868,7 @@ export default class deribit extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOpenOrders
@@ -1898,7 +1898,7 @@ export default class deribit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchClosedOrders
@@ -1928,7 +1928,7 @@ export default class deribit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOrderTrades
@@ -1982,7 +1982,7 @@ export default class deribit extends Exchange {
         return this.parseTrades (result, undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchMyTrades
@@ -2061,7 +2061,7 @@ export default class deribit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchDeposits
@@ -2109,7 +2109,7 @@ export default class deribit extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchWithdrawals
@@ -2445,7 +2445,7 @@ export default class deribit extends Exchange {
         return result;
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchTransfers

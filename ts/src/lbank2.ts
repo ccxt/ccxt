@@ -469,7 +469,7 @@ export default class lbank2 extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOrderBook
@@ -597,7 +597,7 @@ export default class lbank2 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchTrades
@@ -668,7 +668,7 @@ export default class lbank2 extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOHLCV
@@ -1282,7 +1282,7 @@ export default class lbank2 extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchMyTrades
@@ -1340,7 +1340,7 @@ export default class lbank2 extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOrders
@@ -1400,7 +1400,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOpenOrders
@@ -1814,7 +1814,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDeposits
@@ -1867,7 +1867,7 @@ export default class lbank2 extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchWithdrawals

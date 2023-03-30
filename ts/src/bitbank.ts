@@ -290,7 +290,7 @@ export default class bitbank extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchOrderBook
@@ -346,7 +346,7 @@ export default class bitbank extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchTrades
@@ -447,7 +447,7 @@ export default class bitbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchOHLCV
@@ -686,7 +686,7 @@ export default class bitbank extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchOpenOrders
@@ -714,7 +714,7 @@ export default class bitbank extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchMyTrades

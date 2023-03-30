@@ -349,7 +349,7 @@ export default class indodax extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOrderBook
@@ -494,7 +494,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchTrades
@@ -626,7 +626,7 @@ export default class indodax extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOpenOrders
@@ -667,7 +667,7 @@ export default class indodax extends Exchange {
         return exchangeOrders;
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchClosedOrders
@@ -795,7 +795,7 @@ export default class indodax extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchTransactions

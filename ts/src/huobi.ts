@@ -2069,7 +2069,7 @@ export default class huobi extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrderBook
@@ -2295,7 +2295,7 @@ export default class huobi extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrderTrades
@@ -2321,7 +2321,7 @@ export default class huobi extends Exchange {
         return await this[method] (id, symbol, since, limit, params);
     }
 
-    async fetchSpotOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchSpotOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order-id': id,
@@ -2330,7 +2330,7 @@ export default class huobi extends Exchange {
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchMyTrades
@@ -2488,7 +2488,7 @@ export default class huobi extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = 1000, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name huobi#fetchTrades
@@ -2587,7 +2587,7 @@ export default class huobi extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOHLCV
@@ -3427,7 +3427,7 @@ export default class huobi extends Exchange {
         return account;
     }
 
-    async fetchSpotOrdersByStates (states, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchSpotOrdersByStates (states, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
             if (symbol === undefined) {
@@ -3495,15 +3495,15 @@ export default class huobi extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchSpotOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchSpotOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchSpotOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchClosedSpotOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedSpotOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchSpotOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchContractOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchContractOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
         }
@@ -3602,14 +3602,14 @@ export default class huobi extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedContractOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedContractOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = {
             'status': '5,6,7', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         };
         return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrders
@@ -3642,7 +3642,7 @@ export default class huobi extends Exchange {
         return await this[method] (symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchClosedOrders
@@ -3671,7 +3671,7 @@ export default class huobi extends Exchange {
         return await this[method] (symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOpenOrders
@@ -4799,7 +4799,7 @@ export default class huobi extends Exchange {
         return addresses;
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchDeposits
@@ -4859,7 +4859,7 @@ export default class huobi extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchWithdrawals
@@ -5332,7 +5332,7 @@ export default class huobi extends Exchange {
         return rates;
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchFundingRateHistory
@@ -5533,7 +5533,7 @@ export default class huobi extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchBorrowInterest
@@ -5796,7 +5796,7 @@ export default class huobi extends Exchange {
         }
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchFundingHistory
@@ -6517,7 +6517,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchLedger
@@ -6719,7 +6719,7 @@ export default class huobi extends Exchange {
         return result;
     }
 
-    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOpenInterestHistory
@@ -7146,7 +7146,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchSettlementHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchSettlementHistory

@@ -404,7 +404,7 @@ export default class kuna extends Exchange {
         return markets;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOrderBook
@@ -497,7 +497,7 @@ export default class kuna extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchL3OrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchL3OrderBook
@@ -510,7 +510,7 @@ export default class kuna extends Exchange {
         return await this.fetchOrderBook (symbol, limit, params);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchTrades
@@ -608,7 +608,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOHLCV
@@ -777,7 +777,7 @@ export default class kuna extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOpenOrders
@@ -803,7 +803,7 @@ export default class kuna extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchMyTrades

@@ -138,7 +138,7 @@ export default class idex extends idexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#watchTrades
@@ -235,7 +235,7 @@ export default class idex extends idexRest {
         };
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#watchOHLCV
@@ -406,7 +406,7 @@ export default class idex extends idexRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#watchOrderBook
@@ -513,7 +513,7 @@ export default class idex extends idexRest {
         return this.options['token'];
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#watchOrders
@@ -653,7 +653,7 @@ export default class idex extends idexRest {
         client.resolve (orders, type);
     }
 
-    async watchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'balances';
         const subscribeObject = {

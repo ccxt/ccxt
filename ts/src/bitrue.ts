@@ -746,7 +746,7 @@ export default class bitrue extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchOrderBook
@@ -875,7 +875,7 @@ export default class bitrue extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchOHLCV
@@ -1106,7 +1106,7 @@ export default class bitrue extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchTrades
@@ -1365,7 +1365,7 @@ export default class bitrue extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchClosedOrders
@@ -1420,7 +1420,7 @@ export default class bitrue extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchOpenOrders
@@ -1505,7 +1505,7 @@ export default class bitrue extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchMyTrades
@@ -1561,7 +1561,7 @@ export default class bitrue extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchDeposits
@@ -1633,7 +1633,7 @@ export default class bitrue extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchWithdrawals

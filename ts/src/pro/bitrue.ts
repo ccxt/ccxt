@@ -168,7 +168,7 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#watchOrders
@@ -296,7 +296,7 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrderBook() requires a symbol argument');
         }

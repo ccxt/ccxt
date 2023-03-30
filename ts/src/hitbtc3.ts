@@ -833,7 +833,7 @@ export default class hitbtc3 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTrades
@@ -871,7 +871,7 @@ export default class hitbtc3 extends Exchange {
         return trades;
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchMyTrades
@@ -1157,7 +1157,7 @@ export default class hitbtc3 extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTransactions
@@ -1171,7 +1171,7 @@ export default class hitbtc3 extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchDeposits
@@ -1185,7 +1185,7 @@ export default class hitbtc3 extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchWithdrawals
@@ -1199,7 +1199,7 @@ export default class hitbtc3 extends Exchange {
         return await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
     }
 
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOrderBooks
@@ -1231,7 +1231,7 @@ export default class hitbtc3 extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOrderBook
@@ -1326,7 +1326,7 @@ export default class hitbtc3 extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOHLCV
@@ -1430,7 +1430,7 @@ export default class hitbtc3 extends Exchange {
         ];
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchClosedOrders
@@ -1526,7 +1526,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOrderTrades
@@ -1601,7 +1601,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchOpenOrders
@@ -2127,7 +2127,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchFundingRateHistory

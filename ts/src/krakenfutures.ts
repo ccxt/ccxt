@@ -388,7 +388,7 @@ export default class krakenfutures extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchOrderBook
@@ -548,7 +548,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -617,7 +617,7 @@ export default class krakenfutures extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchTrades
@@ -938,7 +938,7 @@ export default class krakenfutures extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchOpenOrders
@@ -1334,7 +1334,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1587,7 +1587,7 @@ export default class krakenfutures extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);

@@ -198,7 +198,7 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, message, channel);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#watchOHLCV
@@ -346,7 +346,7 @@ export default class mexc extends mexcRest {
         ];
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#watchOrderBook
@@ -518,7 +518,7 @@ export default class mexc extends mexcRest {
         this.handleBooksideDelta (bidsOrderSide, bids);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#watchTrades
@@ -607,7 +607,7 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#watchMyTrades
@@ -735,7 +735,7 @@ export default class mexc extends mexcRest {
         }, market);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#watchOrders

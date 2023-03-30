@@ -462,7 +462,7 @@ export default class bitopro extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchOrderBook
@@ -591,7 +591,7 @@ export default class bitopro extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchTrades
@@ -725,7 +725,7 @@ export default class bitopro extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchOHLCV
@@ -1181,7 +1181,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchOrders
@@ -1244,14 +1244,14 @@ export default class bitopro extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = {
             'statusKind': 'OPEN',
         };
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchClosedOrders
@@ -1268,7 +1268,7 @@ export default class bitopro extends Exchange {
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchMyTrades
@@ -1408,7 +1408,7 @@ export default class bitopro extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchDeposits
@@ -1460,7 +1460,7 @@ export default class bitopro extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchWithdrawals

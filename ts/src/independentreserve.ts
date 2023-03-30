@@ -243,7 +243,7 @@ export default class independentreserve extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOrderBook
@@ -477,7 +477,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOpenOrders
@@ -506,7 +506,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchClosedOrders
@@ -535,7 +535,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit = 50, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchMyTrades
@@ -604,7 +604,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchTrades

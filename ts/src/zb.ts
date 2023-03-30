@@ -1249,7 +1249,7 @@ export default class zb extends Exchange {
         return this.parseDepositAddress (datas, currency);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOrderBook
@@ -1520,7 +1520,7 @@ export default class zb extends Exchange {
         }
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOHLCV
@@ -1713,7 +1713,7 @@ export default class zb extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchTrades
@@ -2183,7 +2183,7 @@ export default class zb extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOrders
@@ -2344,7 +2344,7 @@ export default class zb extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit = 10, params = {}) {
         /**
          * @method
          * @name zb#fetchCanceledOrders
@@ -2504,7 +2504,7 @@ export default class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit = 10, params = {}) {
         /**
          * @method
          * @name zb#fetchClosedOrders
@@ -2622,7 +2622,7 @@ export default class zb extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOpenOrders
@@ -3120,7 +3120,7 @@ export default class zb extends Exchange {
         return await this.contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchFundingRateHistory
@@ -3350,7 +3350,7 @@ export default class zb extends Exchange {
         });
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchWithdrawals
@@ -3408,7 +3408,7 @@ export default class zb extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchDeposits
@@ -3800,7 +3800,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchLedger

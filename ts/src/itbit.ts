@@ -136,7 +136,7 @@ export default class itbit extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name itbit#fetchOrderBook
@@ -357,7 +357,7 @@ export default class itbit extends Exchange {
         return result;
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name itbit#fetchTransactions
@@ -436,7 +436,7 @@ export default class itbit extends Exchange {
         return this.safeString (options, status, 'pending');
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name itbit#fetchMyTrades
@@ -496,7 +496,7 @@ export default class itbit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name itbit#fetchTrades
@@ -577,7 +577,7 @@ export default class itbit extends Exchange {
         return await this.privateGetWalletsWalletId (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name itbit#fetchOpenOrders
@@ -594,7 +594,7 @@ export default class itbit extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name itbit#fetchClosedOrders
@@ -611,7 +611,7 @@ export default class itbit extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name itbit#fetchOrders

@@ -1027,7 +1027,7 @@ export default class bitmart extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchOrderBook
@@ -1151,7 +1151,7 @@ export default class bitmart extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchTrades
@@ -1253,7 +1253,7 @@ export default class bitmart extends Exchange {
         }
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchOHLCV
@@ -1344,7 +1344,7 @@ export default class bitmart extends Exchange {
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchMyTrades
@@ -1405,7 +1405,7 @@ export default class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchOrderTrades
@@ -2004,7 +2004,7 @@ export default class bitmart extends Exchange {
         return response;
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
         }
@@ -2061,7 +2061,7 @@ export default class bitmart extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchOpenOrders
@@ -2075,7 +2075,7 @@ export default class bitmart extends Exchange {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchClosedOrders
@@ -2089,7 +2089,7 @@ export default class bitmart extends Exchange {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchCanceledOrders
@@ -2275,7 +2275,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsByType (type, code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 50; // max 50
@@ -2374,7 +2374,7 @@ export default class bitmart extends Exchange {
         return this.parseTransaction (record);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchDeposits
@@ -2430,7 +2430,7 @@ export default class bitmart extends Exchange {
         return this.parseTransaction (record);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchWithdrawals
@@ -2913,7 +2913,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchBorrowInterest

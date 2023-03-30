@@ -191,7 +191,7 @@ export default class coinspot extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchOrderBook
@@ -321,7 +321,7 @@ export default class coinspot extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchTrades

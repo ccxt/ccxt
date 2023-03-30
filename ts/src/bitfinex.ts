@@ -823,7 +823,7 @@ export default class bitfinex extends Exchange {
         return currencyId;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchOrderBook
@@ -994,7 +994,7 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = 50, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit = 50, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchTrades
@@ -1018,7 +1018,7 @@ export default class bitfinex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchMyTrades
@@ -1216,7 +1216,7 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchOpenOrders
@@ -1241,7 +1241,7 @@ export default class bitfinex extends Exchange {
         return orders;
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchClosedOrders
@@ -1305,7 +1305,7 @@ export default class bitfinex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchOHLCV
@@ -1401,7 +1401,7 @@ export default class bitfinex extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchTransactions

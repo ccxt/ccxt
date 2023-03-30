@@ -63,7 +63,7 @@ export default class upbit extends upbitRest {
         return await this.watchPublic (symbol, 'ticker');
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchTrades
@@ -83,7 +83,7 @@ export default class upbit extends upbitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchOrderBook

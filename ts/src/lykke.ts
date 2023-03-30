@@ -498,7 +498,7 @@ export default class lykke extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchOrderBook
@@ -604,7 +604,7 @@ export default class lykke extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchTrades
@@ -926,7 +926,7 @@ export default class lykke extends Exchange {
         return this.parseOrder (payload);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchOpenOrders
@@ -975,7 +975,7 @@ export default class lykke extends Exchange {
         return this.parseOrders (payload, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchClosedOrders
@@ -1024,7 +1024,7 @@ export default class lykke extends Exchange {
         return this.parseOrders (payload, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchMyTrades
@@ -1181,7 +1181,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchTransactions

@@ -688,7 +688,7 @@ export default class coinsph extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOrderBook
@@ -725,7 +725,7 @@ export default class coinsph extends Exchange {
         return orderbook;
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOHLCV
@@ -791,7 +791,7 @@ export default class coinsph extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchTrades
@@ -832,7 +832,7 @@ export default class coinsph extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchMyTrades
@@ -862,7 +862,7 @@ export default class coinsph extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOrderTrades
@@ -1149,7 +1149,7 @@ export default class coinsph extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOpenOrders
@@ -1171,7 +1171,7 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchClosedOrders
@@ -1554,7 +1554,7 @@ export default class coinsph extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchDeposits
@@ -1583,7 +1583,7 @@ export default class coinsph extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchWithdrawals

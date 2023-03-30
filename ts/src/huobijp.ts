@@ -609,7 +609,7 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrderBook
@@ -814,7 +814,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrderTrades
@@ -834,7 +834,7 @@ export default class huobijp extends Exchange {
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchMyTrades
@@ -863,7 +863,7 @@ export default class huobijp extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = 1000, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name huobijp#fetchTrades
@@ -943,7 +943,7 @@ export default class huobijp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOHLCV
@@ -1135,7 +1135,7 @@ export default class huobijp extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrdersByStates (states, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStates (states, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'states': states,
@@ -1185,7 +1185,7 @@ export default class huobijp extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrders
@@ -1199,7 +1199,7 @@ export default class huobijp extends Exchange {
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOpenOrders
@@ -1214,14 +1214,14 @@ export default class huobijp extends Exchange {
         return await this[method] (symbol, since, limit, params);
     }
 
-    async fetchOpenOrdersV1 (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrdersV1 (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrdersV1() requires a symbol argument');
         }
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchClosedOrders
@@ -1235,7 +1235,7 @@ export default class huobijp extends Exchange {
         return await this.fetchOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrdersV2 (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrdersV2 (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1622,7 +1622,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchDeposits
@@ -1656,7 +1656,7 @@ export default class huobijp extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchWithdrawals

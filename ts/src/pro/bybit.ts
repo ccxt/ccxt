@@ -316,7 +316,7 @@ export default class bybit extends bybitRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOHLCV
@@ -423,7 +423,7 @@ export default class bybit extends bybitRest {
         ];
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrderBook
@@ -533,7 +533,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchTrades
@@ -683,7 +683,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchMyTrades
@@ -811,7 +811,7 @@ export default class bybit extends bybitRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrders

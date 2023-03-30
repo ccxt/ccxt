@@ -211,7 +211,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOHLCV
@@ -281,7 +281,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchTrades
@@ -339,7 +339,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOrderBook
@@ -509,7 +509,7 @@ export default class kucoin extends kucoinRest {
         return message;
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOrders
@@ -636,7 +636,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.orders, symbolSpecificMessageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchMyTrades

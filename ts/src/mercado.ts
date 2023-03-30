@@ -240,7 +240,7 @@ export default class mercado extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mercado#fetchOrderBook
@@ -365,7 +365,7 @@ export default class mercado extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mercado#fetchTrades
@@ -737,7 +737,7 @@ export default class mercado extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '15m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mercado#fetchOHLCV
@@ -770,7 +770,7 @@ export default class mercado extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mercado#fetchOrders
@@ -795,7 +795,7 @@ export default class mercado extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mercado#fetchOpenOrders
@@ -821,7 +821,7 @@ export default class mercado extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mercado#fetchMyTrades

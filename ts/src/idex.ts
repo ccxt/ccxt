@@ -431,7 +431,7 @@ export default class idex extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOHLCV
@@ -494,7 +494,7 @@ export default class idex extends Exchange {
         return [ timestamp, open, high, low, close, volume ];
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchTrades
@@ -655,7 +655,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOrderBook
@@ -830,7 +830,7 @@ export default class idex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchMyTrades
@@ -912,7 +912,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOpenOrders
@@ -929,7 +929,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchClosedOrders
@@ -946,7 +946,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrdersHelper (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersHelper (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'nonce': this.uuidv1 (),
@@ -1504,7 +1504,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchDeposits
@@ -1557,7 +1557,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchWithdrawals
@@ -1574,7 +1574,7 @@ export default class idex extends Exchange {
         return this.fetchTransactionsHelper (code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsHelper (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const nonce = this.uuidv1 ();
         const request = {

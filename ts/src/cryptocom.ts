@@ -669,7 +669,7 @@ export default class cryptocom extends Exchange {
         return this.parseTicker (first, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOrders
@@ -781,7 +781,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (orderList, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchTrades
@@ -834,7 +834,7 @@ export default class cryptocom extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOHLCV
@@ -885,7 +885,7 @@ export default class cryptocom extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOrderBook
@@ -1284,7 +1284,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOpenOrders
@@ -1366,7 +1366,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (resultList, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchMyTrades
@@ -1588,7 +1588,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchDeposits
@@ -1638,7 +1638,7 @@ export default class cryptocom extends Exchange {
         return this.parseTransactions (depositList, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchWithdrawals
@@ -1732,7 +1732,7 @@ export default class cryptocom extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchTransfers
@@ -2336,7 +2336,7 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;

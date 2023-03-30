@@ -584,7 +584,7 @@ export default class bitvavo extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchTrades
@@ -760,7 +760,7 @@ export default class bitvavo extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOrderBook
@@ -821,7 +821,7 @@ export default class bitvavo extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOHLCV
@@ -1204,7 +1204,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOrders
@@ -1274,7 +1274,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchOpenOrders
@@ -1458,7 +1458,7 @@ export default class bitvavo extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchMyTrades
@@ -1546,7 +1546,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchWithdrawals
@@ -1593,7 +1593,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#fetchDeposits

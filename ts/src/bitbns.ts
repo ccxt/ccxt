@@ -281,7 +281,7 @@ export default class bitbns extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#fetchOrderBook
@@ -716,7 +716,7 @@ export default class bitbns extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#fetchOpenOrders
@@ -841,7 +841,7 @@ export default class bitbns extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#fetchMyTrades
@@ -910,7 +910,7 @@ export default class bitbns extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#fetchTrades
@@ -941,7 +941,7 @@ export default class bitbns extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#fetchDeposits
@@ -989,7 +989,7 @@ export default class bitbns extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#fetchWithdrawals

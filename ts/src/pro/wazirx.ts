@@ -290,7 +290,7 @@ export default class wazirx extends wazirxRest {
         }, market);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchTrades
@@ -357,7 +357,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchMyTrades
@@ -390,7 +390,7 @@ export default class wazirx extends wazirxRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchOHLCV
@@ -481,7 +481,7 @@ export default class wazirx extends wazirxRest {
         ];
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchOrderBook
@@ -558,7 +558,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);

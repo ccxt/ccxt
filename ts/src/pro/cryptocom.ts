@@ -50,7 +50,7 @@ export default class cryptocom extends cryptocomRest {
         await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOrderBook
@@ -112,7 +112,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchTrades
@@ -180,7 +180,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, channel);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchMyTrades
@@ -261,7 +261,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOHLCV
@@ -321,7 +321,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOrders

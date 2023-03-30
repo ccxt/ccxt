@@ -186,7 +186,7 @@ export default class huobi extends huobiRest {
         return message;
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchTrades
@@ -251,7 +251,7 @@ export default class huobi extends huobiRest {
         return message;
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchOHLCV
@@ -313,7 +313,7 @@ export default class huobi extends huobiRest {
         client.resolve (stored, ch);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchOrderBook
@@ -641,7 +641,7 @@ export default class huobi extends huobiRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchMyTrades
@@ -739,7 +739,7 @@ export default class huobi extends huobiRest {
         return [ channel, messageHash ];
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#watchOrders

@@ -251,7 +251,7 @@ export default class bit2c extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOrderBook
@@ -318,7 +318,7 @@ export default class bit2c extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchTrades
@@ -451,7 +451,7 @@ export default class bit2c extends Exchange {
         return await this.privatePostOrderCancelOrder (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOpenOrders
@@ -624,7 +624,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchMyTrades

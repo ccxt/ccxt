@@ -212,7 +212,7 @@ export default class bittrex extends bittrexRest {
         return await this.signalrGetStart (request);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOrders
@@ -400,7 +400,7 @@ export default class bittrex extends bittrexRest {
         client.resolve (ticker, messageHash);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOHLCV
@@ -473,7 +473,7 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchTrades
@@ -542,7 +542,7 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchMyTrades
@@ -602,7 +602,7 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOrderBook
@@ -633,7 +633,7 @@ export default class bittrex extends bittrexRest {
         return orderbook.limit ();
     }
 
-    async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
+    async subscribeToOrderBook (negotiation, symbol, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'orderbook';

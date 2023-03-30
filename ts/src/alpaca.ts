@@ -304,7 +304,7 @@ export default class alpaca extends Exchange {
         return markets;
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchTrades
@@ -350,7 +350,7 @@ export default class alpaca extends Exchange {
         return this.parseTrades (symbolTrades, market, since, limit);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOrderBook
@@ -410,7 +410,7 @@ export default class alpaca extends Exchange {
         return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOHLCV
@@ -625,7 +625,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOpenOrders

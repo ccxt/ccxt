@@ -121,7 +121,7 @@ export default class bitstamp1 extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchOrderBook
@@ -241,7 +241,7 @@ export default class bitstamp1 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchTrades
@@ -357,7 +357,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseOrderStatus (response);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp1#fetchMyTrades

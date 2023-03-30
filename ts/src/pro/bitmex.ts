@@ -527,7 +527,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#watchTrades
@@ -597,7 +597,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#watchOrders
@@ -814,7 +814,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#watchMyTrades
@@ -933,7 +933,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#watchOrderBook
@@ -967,7 +967,7 @@ export default class bitmex extends bitmexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#watchOHLCV

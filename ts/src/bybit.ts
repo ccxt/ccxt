@@ -1985,7 +1985,7 @@ export default class bybit extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOHLCV
@@ -2219,7 +2219,7 @@ export default class bybit extends Exchange {
         return this.filterByArray (fundingRates, 'symbol', symbols);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchFundingRateHistory
@@ -2544,7 +2544,7 @@ export default class bybit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTrades
@@ -2608,7 +2608,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOrderBook
@@ -4681,7 +4681,7 @@ export default class bybit extends Exchange {
         }
     }
 
-    async fetchUnifiedAccountOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchUnifiedAccountOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -4786,7 +4786,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchUnifiedMarginOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchUnifiedMarginOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -4873,7 +4873,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchDerivativesOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDerivativesOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -4969,7 +4969,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOrders
@@ -5011,7 +5011,7 @@ export default class bybit extends Exchange {
         }
     }
 
-    async fetchSpotClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchSpotClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -5066,7 +5066,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchClosedOrders
@@ -5094,7 +5094,7 @@ export default class bybit extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchCanceledOrders
@@ -5122,7 +5122,7 @@ export default class bybit extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchUnifiedAccountOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchUnifiedAccountOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -5231,7 +5231,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchSpotOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchSpotOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -5281,7 +5281,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchUnifiedMarginOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchUnifiedMarginOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -5360,7 +5360,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchDerivativesOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDerivativesOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
@@ -5461,7 +5461,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchUSDCOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchUSDCOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -5504,7 +5504,7 @@ export default class bybit extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOpenOrders
@@ -5548,7 +5548,7 @@ export default class bybit extends Exchange {
         }
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOrderTrades
@@ -5566,7 +5566,7 @@ export default class bybit extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyUnifiedTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyUnifiedTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -5649,7 +5649,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMySpotTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMySpotTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMySpotTrades() requires a symbol argument');
         }
@@ -5705,7 +5705,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyUnifiedMarginTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyUnifiedMarginTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
@@ -5774,7 +5774,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyContractTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyContractTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyContractTrades() requires a symbol argument');
         }
@@ -5851,7 +5851,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyUsdcTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyUsdcTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -5896,7 +5896,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (dataList, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchMyTrades
@@ -6060,7 +6060,7 @@ export default class bybit extends Exchange {
         return this.parseDepositAddress (addressObject, currency);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchDeposits
@@ -6126,7 +6126,7 @@ export default class bybit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchWithdrawals
@@ -6305,7 +6305,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchLedger
@@ -7455,7 +7455,7 @@ export default class bybit extends Exchange {
         return await this.privatePostContractV3PrivatePositionSwitchMode (this.extend (request, params));
     }
 
-    async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         const subType = market['linear'] ? 'linear' : 'inverse';
@@ -7568,7 +7568,7 @@ export default class bybit extends Exchange {
         return this.parseOpenInterest (data[0], market);
     }
 
-    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOpenInterestHistory
@@ -7672,7 +7672,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchBorrowInterest
@@ -7810,7 +7810,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTransfers

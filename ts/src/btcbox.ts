@@ -148,7 +148,7 @@ export default class btcbox extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchOrderBook
@@ -253,7 +253,7 @@ export default class btcbox extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchTrades
@@ -450,7 +450,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrdersByType (type, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByType (type, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol === undefined) {
@@ -485,7 +485,7 @@ export default class btcbox extends Exchange {
         return orders;
     }
 
-    async fetchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchOrders
@@ -499,7 +499,7 @@ export default class btcbox extends Exchange {
         return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchOpenOrders

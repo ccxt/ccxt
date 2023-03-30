@@ -516,7 +516,7 @@ export default class upbit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrderBooks
@@ -589,7 +589,7 @@ export default class upbit extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrderBook
@@ -809,7 +809,7 @@ export default class upbit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchTrades
@@ -946,7 +946,7 @@ export default class upbit extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOHLCV
@@ -1132,7 +1132,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchDeposits
@@ -1176,7 +1176,7 @@ export default class upbit extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchWithdrawals
@@ -1446,7 +1446,7 @@ export default class upbit extends Exchange {
         return result;
     }
 
-    async fetchOrdersByState (state, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'market': this.marketId (symbol),
@@ -1484,7 +1484,7 @@ export default class upbit extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOpenOrders
@@ -1498,7 +1498,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('wait', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchClosedOrders
@@ -1512,7 +1512,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('done', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchCanceledOrders

@@ -55,7 +55,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchTrades
@@ -256,7 +256,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (result, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchOrderBook
@@ -465,7 +465,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, id, undefined, 1);
     }
 
-    async watchOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchOrders

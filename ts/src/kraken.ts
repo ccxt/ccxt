@@ -661,7 +661,7 @@ export default class kraken extends Exchange {
         return [ price, amount, timestamp ];
     }
 
-    async fetchOrderBook (symbol: string, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOrderBook
@@ -848,7 +848,7 @@ export default class kraken extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOHLCV
@@ -961,7 +961,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchLedger
@@ -1140,7 +1140,7 @@ export default class kraken extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchTrades
@@ -1648,7 +1648,7 @@ export default class kraken extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOrderTrades
@@ -1747,7 +1747,7 @@ export default class kraken extends Exchange {
         return orders;
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchMyTrades
@@ -1875,7 +1875,7 @@ export default class kraken extends Exchange {
         return await this.privatePostCancelAll (params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOpenOrders
@@ -1907,7 +1907,7 @@ export default class kraken extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchClosedOrders
@@ -2097,7 +2097,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    parseTransactionsByType (type, transactions, code = undefined, since = undefined, limit = undefined) {
+    parseTransactionsByType (type, transactions, code = undefined, since: Int = undefined, limit: Int = undefined) {
         const result = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = this.parseTransaction (this.extend ({
@@ -2108,7 +2108,7 @@ export default class kraken extends Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchDeposits
@@ -2168,7 +2168,7 @@ export default class kraken extends Exchange {
         return this.safeTimestamp (result, 'unixtime');
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchWithdrawals
