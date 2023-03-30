@@ -1295,7 +1295,7 @@ export default class okcoin extends Exchange {
         return this.parseTicker (response);
     }
 
-    async fetchTickersByType (type, symbols = undefined, params = {}) {
+    async fetchTickersByType (type, symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const method = type + 'GetInstrumentsTicker';
@@ -1309,7 +1309,7 @@ export default class okcoin extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchTickers
@@ -3388,7 +3388,7 @@ export default class okcoin extends Exchange {
         return response;
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchPositions

@@ -3709,7 +3709,7 @@ export default class Exchange {
         return [ false, params ];
     }
 
-    async fetchLastPrices (params = {}) {
+    async fetchLastPrices (symbols: string[] = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 

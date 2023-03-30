@@ -338,7 +338,7 @@ export default class huobijp extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchTradingLimits (symbols = undefined, params = {}) {
+    async fetchTradingLimits (symbols: string[] = undefined, params = {}) {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
@@ -703,7 +703,7 @@ export default class huobijp extends Exchange {
         return ticker;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchTickers

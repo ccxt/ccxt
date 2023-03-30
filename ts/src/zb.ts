@@ -1328,7 +1328,7 @@ export default class zb extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchTickers
@@ -3266,7 +3266,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchFundingRates
@@ -3544,7 +3544,7 @@ export default class zb extends Exchange {
         return this.parsePosition (firstPosition, market);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchPositions

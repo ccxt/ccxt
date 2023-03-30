@@ -453,7 +453,7 @@ export default class lbank2 extends Exchange {
         return this.parseTicker (first, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchTickers

@@ -1869,7 +1869,7 @@ export default class bybit extends Exchange {
         return this.parseTicker (rawTicker, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTickers
@@ -2140,7 +2140,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchFundingRates
@@ -6810,7 +6810,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    async fetchUnifiedPositions (symbols = undefined, params = {}) {
+    async fetchUnifiedPositions (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let type = undefined;
@@ -6898,7 +6898,7 @@ export default class bybit extends Exchange {
         return this.filterByArray (results, 'symbol', symbols, false);
     }
 
-    async fetchUSDCPositions (symbols = undefined, params = {}) {
+    async fetchUSDCPositions (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {};
@@ -6974,7 +6974,7 @@ export default class bybit extends Exchange {
         return this.filterByArray (results, 'symbol', symbols, false);
     }
 
-    async fetchDerivativesPositions (symbols = undefined, params = {}) {
+    async fetchDerivativesPositions (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -7043,7 +7043,7 @@ export default class bybit extends Exchange {
         return this.parsePositions (positions, symbols, params);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchPositions

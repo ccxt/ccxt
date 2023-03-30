@@ -1429,7 +1429,7 @@ export default class gate extends Exchange {
         return this.parseFundingRate (response);
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchFundingRates
@@ -2216,7 +2216,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchTickers
@@ -4443,7 +4443,7 @@ export default class gate extends Exchange {
         });
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchPositions
@@ -4511,7 +4511,7 @@ export default class gate extends Exchange {
         return this.parsePositions (response, symbols);
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchLeverageTiers

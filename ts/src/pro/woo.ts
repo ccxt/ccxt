@@ -205,7 +205,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'tickers';
         const topic = name;

@@ -853,7 +853,7 @@ export default class kucoinfutures extends kucoin {
         return fees;
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchPositions

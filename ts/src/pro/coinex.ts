@@ -387,7 +387,7 @@ export default class coinex extends coinexRest {
         return await this.watchTickers ([ symbol ], params);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#watchTickers

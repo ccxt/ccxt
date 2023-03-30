@@ -455,7 +455,7 @@ export default class timex extends Exchange {
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchTickers

@@ -773,7 +773,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
     }
 
-    async watchTickers (symbols = undefined, params = {}) {
+    async watchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchTickers

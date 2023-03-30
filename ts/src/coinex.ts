@@ -732,7 +732,7 @@ export default class coinex extends Exchange {
         return this.parseTicker (response['data'], market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchTickers
@@ -2803,7 +2803,7 @@ export default class coinex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchPositions
@@ -3166,7 +3166,7 @@ export default class coinex extends Exchange {
         return await this.perpetualPrivatePostMarketAdjustLeverage (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchLeverageTiers
@@ -3198,7 +3198,7 @@ export default class coinex extends Exchange {
         return this.parseLeverageTiers (data, symbols, undefined);
     }
 
-    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response, symbols: string[] = undefined, marketIdKey = undefined) {
         //
         //     {
         //         "BTCUSD": [
@@ -3547,7 +3547,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols = undefined, params = {}) {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
         /**
          *  @method
          * @name coinex#fetchFundingRates

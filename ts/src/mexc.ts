@@ -1434,7 +1434,7 @@ export default class mexc extends Exchange {
         ];
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchTickers
@@ -1712,7 +1712,7 @@ export default class mexc extends Exchange {
         }, market);
     }
 
-    async fetchBidsAsks (symbols = undefined, params = {}) {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchBidsAsks
@@ -3724,7 +3724,7 @@ export default class mexc extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    async fetchLeverageTiers (symbols = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchLeverageTiers
@@ -4196,7 +4196,7 @@ export default class mexc extends Exchange {
         return this.safeValue (response, 0);
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchPositions

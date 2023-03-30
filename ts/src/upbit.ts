@@ -517,7 +517,7 @@ export default class upbit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBooks (symbols = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrderBooks
@@ -661,7 +661,7 @@ export default class upbit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchTickers

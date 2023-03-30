@@ -231,7 +231,7 @@ export default class btcalpha extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchTickers
