@@ -293,7 +293,7 @@ class krakenfutures extends Exchange {
             $symbol = $id;
             $split = explode('_', $id);
             $splitMarket = $this->safe_string($split, 1);
-            $baseId = str_replace('usd', '', $splitMarket);
+            $baseId = mb_substr($splitMarket, 0, strlen($splitMarket) - 3 - 0);
             $quoteId = 'usd'; // always USD
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);

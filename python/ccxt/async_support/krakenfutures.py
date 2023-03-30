@@ -308,7 +308,7 @@ class krakenfutures(Exchange):
             symbol = id
             split = id.split('_')
             splitMarket = self.safe_string(split, 1)
-            baseId = splitMarket.replace('usd', '')
+            baseId = splitMarket[0:len(splitMarket) - 3]
             quoteId = 'usd'  # always USD
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
