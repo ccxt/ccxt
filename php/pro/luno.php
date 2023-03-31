@@ -69,7 +69,7 @@ class luno extends \ccxt\async\luno {
         }) ();
     }
 
-    public function handle_trades($client, $message, $subscription) {
+    public function handle_trades(Client $client, $message, $subscription) {
         //
         //     {
         //         sequence => '110980825',
@@ -166,7 +166,7 @@ class luno extends \ccxt\async\luno {
         }) ();
     }
 
-    public function handle_order_book($client, $message, $subscription) {
+    public function handle_order_book(Client $client, $message, $subscription) {
         //
         //     {
         //         "sequence" => "24352",
@@ -319,7 +319,7 @@ class luno extends \ccxt\async\luno {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if ($message === '') {
             return;
         }

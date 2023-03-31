@@ -133,7 +133,7 @@ class zb extends \ccxt\async\zb {
         ), $market);
     }
 
-    public function handle_ticker($client, $message, $subscription) {
+    public function handle_ticker(Client $client, $message, $subscription) {
         //
         // spot $ticker
         //
@@ -208,7 +208,7 @@ class zb extends \ccxt\async\zb {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message, $subscription) {
+    public function handle_ohlcv(Client $client, $message, $subscription) {
         //
         // snapshot update
         //    {
@@ -275,7 +275,7 @@ class zb extends \ccxt\async\zb {
         }) ();
     }
 
-    public function handle_trades($client, $message, $subscription) {
+    public function handle_trades(Client $client, $message, $subscription) {
         // contract $trades
         // {
         //     "channel":"BTC_USDT.Trade",
@@ -399,7 +399,7 @@ class zb extends \ccxt\async\zb {
         ), $market);
     }
 
-    public function handle_order_book($client, $message, $subscription) {
+    public function handle_order_book(Client $client, $message, $subscription) {
         // spot $snapshot
         //
         //     {
@@ -489,7 +489,7 @@ class zb extends \ccxt\async\zb {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         // {
         //     channel => 'BTC_USDT.Depth',
@@ -523,7 +523,7 @@ class zb extends \ccxt\async\zb {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //
         //     {
@@ -594,7 +594,7 @@ class zb extends \ccxt\async\zb {
         return $message;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         // array( $errorCode => 10020, errorMsg => "action param can't be empty" )
         // array( $errorCode => 10015, errorMsg => '无效的签名(1002)' )

@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -139,7 +140,7 @@ class huobi(ccxt.async_support.huobi):
         url = self.get_url_by_market_type(market['type'], market['linear'])
         return await self.subscribe_public(url, symbol, messageHash, None, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         # 'market.btcusdt.detail'
         #     {
@@ -205,7 +206,7 @@ class huobi(ccxt.async_support.huobi):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         ch: "market.btcusdt.trade.detail",
@@ -265,7 +266,7 @@ class huobi(ccxt.async_support.huobi):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         ch: 'market.btcusdt.kline.1min',
@@ -334,7 +335,7 @@ class huobi(ccxt.async_support.huobi):
         orderbook = await self.subscribe_public(url, symbol, messageHash, method, params)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client, message, subscription):
+    def handle_order_book_snapshot(self, client: Client, message, subscription):
         #
         #     {
         #         id: 1583473663565,
@@ -436,7 +437,7 @@ class huobi(ccxt.async_support.huobi):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         # spot markets
         #
         #     {
@@ -526,7 +527,7 @@ class huobi(ccxt.async_support.huobi):
             orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # deltas
         #
@@ -591,7 +592,7 @@ class huobi(ccxt.async_support.huobi):
             self.orderbooks[symbol] = self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, messageHash)
 
-    def handle_order_book_subscription(self, client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:
@@ -726,7 +727,7 @@ class huobi(ccxt.async_support.huobi):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         # spot
         #
@@ -1190,7 +1191,7 @@ class huobi(ccxt.async_support.huobi):
         # messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
         return await self.subscribe_private(channel, messageHash, type, subType, params, subscriptionParams)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         # spot
         #
         #     {
@@ -1390,7 +1391,7 @@ class huobi(ccxt.async_support.huobi):
                     self.balance = self.safe_balance(self.balance)
             client.resolve(self.balance, messageHash)
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         "id": 1583414227,
@@ -1411,7 +1412,7 @@ class huobi(ccxt.async_support.huobi):
                 del client.subscriptions[id]
         return message
 
-    def handle_system_status(self, client, message):
+    def handle_system_status(self, client: Client, message):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -1424,7 +1425,7 @@ class huobi(ccxt.async_support.huobi):
         #
         return message
 
-    def handle_subject(self, client, message):
+    def handle_subject(self, client: Client, message):
         # spot
         #     {
         #         ch: "market.btcusdt.mbp.150",
@@ -1568,10 +1569,10 @@ class huobi(ccxt.async_support.huobi):
             error = NetworkError(self.id + ' pong failed ' + self.json(e))
             client.reset(error)
 
-    def handle_ping(self, client, message):
+    def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         # spot
         #
@@ -1595,7 +1596,7 @@ class huobi(ccxt.async_support.huobi):
         client.resolve(message, 'auth')
         return message
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {
         #         action: 'sub',
@@ -1644,7 +1645,7 @@ class huobi(ccxt.async_support.huobi):
                     client.reject(e)
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
@@ -1726,7 +1727,7 @@ class huobi(ccxt.async_support.huobi):
             if 'ping' in message:
                 self.handle_ping(client, message)
 
-    def handle_my_trade(self, client, message, extendParams={}):
+    def handle_my_trade(self, client: Client, message, extendParams={}):
         #
         # spot
         #

@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -95,7 +96,7 @@ class btcex(ccxt.async_support.btcex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -162,7 +163,7 @@ class btcex(ccxt.async_support.btcex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         "params": {
@@ -230,7 +231,7 @@ class btcex(ccxt.async_support.btcex):
         request = self.deep_extend(request, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         "params": {
@@ -299,7 +300,7 @@ class btcex(ccxt.async_support.btcex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -372,7 +373,7 @@ class btcex(ccxt.async_support.btcex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -449,7 +450,7 @@ class btcex(ccxt.async_support.btcex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -519,7 +520,7 @@ class btcex(ccxt.async_support.btcex):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "params": {
@@ -603,7 +604,7 @@ class btcex(ccxt.async_support.btcex):
             bidAsk = self.parse_bid_ask(bidAsks[i], 1, 2)
             bookSide.storeArray(bidAsk)
 
-    def handle_user(self, client, message):
+    def handle_user(self, client: Client, message):
         params = self.safe_value(message, 'params')
         fullChannel = self.safe_string(params, 'channel')
         sliceUser = fullChannel[5:]
@@ -619,7 +620,7 @@ class btcex(ccxt.async_support.btcex):
             return handler(client, message)
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {
         #         id: '1',
@@ -633,7 +634,7 @@ class btcex(ccxt.async_support.btcex):
         error = self.safe_value(message, 'error', {})
         raise ExchangeError(self.id + ' error: ' + self.json(error))
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #     {
         #         id: '1',
@@ -657,7 +658,7 @@ class btcex(ccxt.async_support.btcex):
         accessToken = self.safe_string(result, 'access_token')
         client.resolve(accessToken, 'authenticated')
 
-    def handle_subscription(self, client, message):
+    def handle_subscription(self, client: Client, message):
         channels = self.safe_value(message, 'result', [])
         for i in range(0, len(channels)):
             fullChannel = channels[i]
@@ -669,10 +670,10 @@ class btcex(ccxt.async_support.btcex):
                 self.orderbooks[symbol] = self.order_book({})
                 # get full depth book
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if message == 'PONG':
             self.handle_pong(client, message)
             return

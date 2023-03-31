@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -116,12 +117,12 @@ class gate(ccxt.async_support.gate):
         orderbook = await self.subscribe_public(url, messageHash, payload, channel, query, subscription)
         return orderbook.limit()
 
-    def handle_order_book_subscription(self, client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         self.orderbooks[symbol] = self.order_book({}, limit)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # spot
         #
@@ -293,7 +294,7 @@ class gate(ccxt.async_support.gate):
             result = self.tickers
         return self.filter_by_array(result, 'symbol', symbols, True)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #    {
         #        time: 1649326221,
@@ -368,7 +369,7 @@ class gate(ccxt.async_support.gate):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         # {
         #     time: 1648725035,
@@ -426,7 +427,7 @@ class gate(ccxt.async_support.gate):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         # {
         #     "time": 1606292600,
@@ -516,7 +517,7 @@ class gate(ccxt.async_support.gate):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         # {
         #     "time": 1543205083,
@@ -585,7 +586,7 @@ class gate(ccxt.async_support.gate):
         messageHash = type + '.balance'
         return await self.subscribe_private(url, messageHash, None, channel, params, requiresUid)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # spot order fill
         #   {
@@ -714,7 +715,7 @@ class gate(ccxt.async_support.gate):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         # {
         #     "time": 1605175506,
@@ -776,7 +777,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(self.orders, messageHash)
         client.resolve(self.orders, 'orders')
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         # {
         #     time: 1647274664,
         #     channel: 'futures.orders',
@@ -811,10 +812,10 @@ class gate(ccxt.async_support.gate):
             return True
         return False
 
-    def handle_balance_subscription(self, client, message, subscription=None):
+    def handle_balance_subscription(self, client: Client, message, subscription=None):
         self.balance = {}
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
         methods = {
             'balance': self.handle_balance_subscription,
@@ -829,7 +830,7 @@ class gate(ccxt.async_support.gate):
             method(client, message, subscription)
         del client.subscriptions[id]
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         # subscribe
         #    {

@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -66,7 +67,7 @@ class cex(ccxt.async_support.cex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         e: 'get-balance',
@@ -141,7 +142,7 @@ class cex(ccxt.async_support.cex):
             trades[i]['symbol'] = symbol
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades_snapshot(self, client, message):
+    def handle_trades_snapshot(self, client: Client, message):
         #
         #     {
         #         e: 'history',
@@ -192,7 +193,7 @@ class cex(ccxt.async_support.cex):
             'fee': None,
         }, market)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         e: 'history-update',
@@ -275,7 +276,7 @@ class cex(ccxt.async_support.cex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         e: 'tick',
@@ -422,7 +423,7 @@ class cex(ccxt.async_support.cex):
         orders = await self.watch(url, messageHash, request, subscriptionHash, request)
         return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit, True)
 
-    def handle_transaction(self, client, message):
+    def handle_transaction(self, client: Client, message):
         data = self.safe_value(message, 'data')
         symbol2 = self.safe_string(data, 'symbol2')
         if symbol2 is None:
@@ -430,7 +431,7 @@ class cex(ccxt.async_support.cex):
         self.handle_order_update(client, message)
         self.handle_my_trades(client, message)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         e: 'tx',
@@ -544,7 +545,7 @@ class cex(ccxt.async_support.cex):
             }
         return self.safe_trade(parsedTrade, market)
 
-    def handle_order_update(self, client, message):
+    def handle_order_update(self, client: Client, message):
         #
         #  partialExecution
         #     {
@@ -766,7 +767,7 @@ class cex(ccxt.async_support.cex):
         scale = self.safe_integer(self.currencies[currency], 'precision', 0)
         return self.from_precision(amount, scale)
 
-    def handle_orders_snapshot(self, client, message):
+    def handle_orders_snapshot(self, client: Client, message):
         #
         #     {
         #         e: 'open-orders',
@@ -832,7 +833,7 @@ class cex(ccxt.async_support.cex):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client, message):
+    def handle_order_book_snapshot(self, client: Client, message):
         #
         #     {
         #         e: 'order-book-subscribe',
@@ -880,7 +881,7 @@ class cex(ccxt.async_support.cex):
         symbol = base + '/' + quote
         return symbol
 
-    def handle_order_book_update(self, client, message):
+    def handle_order_book_update(self, client: Client, message):
         #
         #     {
         #         e: 'md_update',
@@ -950,7 +951,7 @@ class cex(ccxt.async_support.cex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_init_ohlcv(self, client, message):
+    def handle_init_ohlcv(self, client: Client, message):
         #
         #     {
         #         e: 'init-ohlcv-data',
@@ -986,7 +987,7 @@ class cex(ccxt.async_support.cex):
         self.ohlcvs[symbol] = stored
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv24(self, client, message):
+    def handle_ohlcv24(self, client: Client, message):
         #
         #     {
         #         e: 'ohlcv24',
@@ -996,7 +997,7 @@ class cex(ccxt.async_support.cex):
         #
         return message
 
-    def handle_ohlcv1m(self, client, message):
+    def handle_ohlcv1m(self, client: Client, message):
         #
         #     {
         #         e: 'ohlcv1m',
@@ -1028,7 +1029,7 @@ class cex(ccxt.async_support.cex):
         stored.append(ohlcv)
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         e: 'ohlcv',
@@ -1057,7 +1058,7 @@ class cex(ccxt.async_support.cex):
         if dataLength > 0:
             client.resolve(stored, messageHash)
 
-    def handle_connected(self, client, message):
+    def handle_connected(self, client: Client, message):
         #
         #     {
         #         "e": "connected"
@@ -1065,7 +1066,7 @@ class cex(ccxt.async_support.cex):
         #
         return message
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {
         #         e: 'get-balance',
@@ -1076,7 +1077,7 @@ class cex(ccxt.async_support.cex):
         #
         raise ExchangeError(self.id + ' ' + self.json(message))
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         ok = self.safe_string(message, 'ok')
         if ok == 'error':
             return self.handle_error_message(client, message)
@@ -1104,7 +1105,7 @@ class cex(ccxt.async_support.cex):
             return handler(client, message)
         return message
 
-    def handle_authentication_message(self, client, message):
+    def handle_authentication_message(self, client: Client, message):
         #
         #     {
         #         "e": "auth",

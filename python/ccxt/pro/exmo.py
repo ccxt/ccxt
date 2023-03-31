@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import NotSupported
 
@@ -65,7 +66,7 @@ class exmo(ccxt.async_support.exmo):
         request = self.deep_extend(subscribe, query)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #  spot
         #     {
@@ -218,7 +219,7 @@ class exmo(ccxt.async_support.exmo):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #  spot
         #      {
@@ -274,7 +275,7 @@ class exmo(ccxt.async_support.exmo):
         trades = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #      {
         #          ts: 1654206084001,
@@ -340,7 +341,7 @@ class exmo(ccxt.async_support.exmo):
         trades = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #  spot
         #     {
@@ -454,7 +455,7 @@ class exmo(ccxt.async_support.exmo):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "ts": 1574427585174,
@@ -520,7 +521,7 @@ class exmo(ccxt.async_support.exmo):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         # {
         #     ts: 1654206362552,
@@ -568,7 +569,7 @@ class exmo(ccxt.async_support.exmo):
                     return handler(client, message)
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
-    def handle_subscribed(self, client, message):
+    def handle_subscribed(self, client: Client, message):
         #
         # {
         #     method: 'subscribe',
@@ -578,7 +579,7 @@ class exmo(ccxt.async_support.exmo):
         #
         return message
 
-    def handle_info(self, client, message):
+    def handle_info(self, client: Client, message):
         #
         # {
         #     ts: 1654215731659,
@@ -590,7 +591,7 @@ class exmo(ccxt.async_support.exmo):
         #
         return message
 
-    def handle_authentication_message(self, client, message):
+    def handle_authentication_message(self, client: Client, message):
         #
         #     {
         #         method: 'login',

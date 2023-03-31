@@ -87,7 +87,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //    {
         //        c => 'spot@public.bookTicker.v3.api@BTCUSDT',
@@ -246,7 +246,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         // spot
         //
@@ -386,7 +386,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function handle_order_book_subscription($client, $message) {
+    public function handle_order_book_subscription(Client $client, $message) {
         // spot
         //     array( id => 0, code => 0, $msg => 'spot@public.increase.depth.v3.api@BTCUSDT' )
         //
@@ -415,7 +415,7 @@ class mexc extends \ccxt\async\mexc {
         return count($cache);
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // spot
         //    {
@@ -560,7 +560,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //    {
         //        c => "spot@public.deals.v3.api@BTCUSDT",
@@ -651,7 +651,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function handle_my_trade($client, $message, $subscription = null) {
+    public function handle_my_trade(Client $client, $message, $subscription = null) {
         //
         //    {
         //        c => 'spot@private.deals.v3.api',
@@ -782,7 +782,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         // spot
         //    {
@@ -1021,7 +1021,7 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // spot
         //    {
@@ -1118,12 +1118,12 @@ class mexc extends \ccxt\async\mexc {
         }) ();
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //    {
         //        id => 0,
@@ -1147,7 +1147,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if (gettype($message) === 'string') {
             if ($message === 'Invalid listen key') {
                 $error = new AuthenticationError ($this->id . ' invalid listen key');

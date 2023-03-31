@@ -190,7 +190,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         // linear
         //     {
@@ -350,7 +350,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         "topic" => "kline.5.BTCUSDT",
@@ -463,7 +463,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         "topic" => "orderbook.50.BTCUSDT",
@@ -563,7 +563,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "topic" => "publicTrade.BTCUSDT",
@@ -722,7 +722,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         // $spot
         //    {
@@ -849,7 +849,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_order($client, $message, $subscription = null) {
+    public function handle_order(Client $client, $message, $subscription = null) {
         //
         //     spot
         //     {
@@ -1113,7 +1113,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // spot
         //    {
@@ -1385,7 +1385,7 @@ class bybit extends \ccxt\async\bybit {
         return $future;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //   {
         //       $success => false,
@@ -1443,7 +1443,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -1514,7 +1514,7 @@ class bybit extends \ccxt\async\bybit {
         );
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         //
         //   {
         //       success => true,
@@ -1529,7 +1529,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //    {
         //        $success => true,
@@ -1552,7 +1552,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //    {
         //        topic => 'kline',

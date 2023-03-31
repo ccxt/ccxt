@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 
@@ -75,7 +76,7 @@ class bitopro(ccxt.async_support.bitopro):
         orderbook = await self.watch_public('order-books', messageHash, endPart)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         event: 'ORDER_BOOK',
@@ -128,7 +129,7 @@ class bitopro(ccxt.async_support.bitopro):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         event: 'TRADE',
@@ -177,7 +178,7 @@ class bitopro(ccxt.async_support.bitopro):
         messageHash = 'TICKER' + ':' + symbol
         return await self.watch_public('tickers', messageHash, market['id'])
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         event: 'TICKER',
@@ -253,7 +254,7 @@ class bitopro(ccxt.async_support.bitopro):
         self.authenticate(url)
         return await self.watch(url, messageHash, None, messageHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         event: 'ACCOUNT_BALANCE',
@@ -292,7 +293,7 @@ class bitopro(ccxt.async_support.bitopro):
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, event)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         methods = {
             'TRADE': self.handle_trade,
             'TICKER': self.handle_ticker,

@@ -143,7 +143,7 @@ class huobi extends \ccxt\async\huobi {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         // 'market.btcusdt.detail'
         //     {
@@ -214,7 +214,7 @@ class huobi extends \ccxt\async\huobi {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         $ch => "market.btcusdt.trade.detail",
@@ -281,7 +281,7 @@ class huobi extends \ccxt\async\huobi {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         $ch => 'market.btcusdt.kline.1min',
@@ -359,7 +359,7 @@ class huobi extends \ccxt\async\huobi {
         }) ();
     }
 
-    public function handle_order_book_snapshot($client, $message, $subscription) {
+    public function handle_order_book_snapshot(Client $client, $message, $subscription) {
         //
         //     {
         //         $id => 1583473663565,
@@ -474,7 +474,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         // spot markets
         //
         //     {
@@ -567,7 +567,7 @@ class huobi extends \ccxt\async\huobi {
         return $orderbook;
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // deltas
         //
@@ -636,7 +636,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function handle_order_book_subscription($client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -792,7 +792,7 @@ class huobi extends \ccxt\async\huobi {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         // spot
         //
@@ -1280,7 +1280,7 @@ class huobi extends \ccxt\async\huobi {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         // spot
         //
         //     {
@@ -1491,7 +1491,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         "id" => 1583414227,
@@ -1516,7 +1516,7 @@ class huobi extends \ccxt\async\huobi {
         return $message;
     }
 
-    public function handle_system_status($client, $message) {
+    public function handle_system_status(Client $client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
         // and unified for any usage pattern that
@@ -1530,7 +1530,7 @@ class huobi extends \ccxt\async\huobi {
         return $message;
     }
 
-    public function handle_subject($client, $message) {
+    public function handle_subject(Client $client, $message) {
         // spot
         //     {
         //         $ch => "market.btcusdt.mbp.150",
@@ -1690,11 +1690,11 @@ class huobi extends \ccxt\async\huobi {
         }) ();
     }
 
-    public function handle_ping($client, $message) {
+    public function handle_ping(Client $client, $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         // spot
         //
@@ -1719,7 +1719,7 @@ class huobi extends \ccxt\async\huobi {
         return $message;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         action => 'sub',
@@ -1777,7 +1777,7 @@ class huobi extends \ccxt\async\huobi {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if ($this->handle_error_message($client, $message)) {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
@@ -1873,7 +1873,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function handle_my_trade($client, $message, $extendParams = array ()) {
+    public function handle_my_trade(Client $client, $message, $extendParams = array ()) {
         //
         // spot
         //

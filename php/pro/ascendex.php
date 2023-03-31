@@ -111,7 +111,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         // {
         //     "m" => "bar",
@@ -173,7 +173,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         // {
         //     m => 'trades',
@@ -249,7 +249,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_order_book_snapshot($client, $message) {
+    public function handle_order_book_snapshot(Client $client, $message) {
         //
         // {
         //     m => 'depth',
@@ -287,7 +287,7 @@ class ascendex extends \ccxt\async\ascendex {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //   {
         //       m => 'depth',
@@ -331,7 +331,7 @@ class ascendex extends \ccxt\async\ascendex {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         // {
         //     "m":"depth",
@@ -391,7 +391,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // cash $account
         //
@@ -529,7 +529,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         // spot $order
         // {
@@ -694,7 +694,7 @@ class ascendex extends \ccxt\async\ascendex {
         ), $market);
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         // {
         //     m => 'disconnected',
@@ -728,7 +728,7 @@ class ascendex extends \ccxt\async\ascendex {
         }
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //     array( m => 'auth', id => '1647605234', code => 0 )
         //
@@ -736,7 +736,7 @@ class ascendex extends \ccxt\async\ascendex {
         $client->resolve ($message, $messageHash);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -912,7 +912,7 @@ class ascendex extends \ccxt\async\ascendex {
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     array( m => 'sub', ch => 'bar:BTC/USDT', code => 0 )
         //
@@ -925,7 +925,7 @@ class ascendex extends \ccxt\async\ascendex {
         return $message;
     }
 
-    public function handle_order_book_subscription($client, $message) {
+    public function handle_order_book_subscription(Client $client, $message) {
         $channel = $this->safe_string($message, 'ch');
         $parts = explode(':', $channel);
         $marketId = $parts[1];
@@ -951,7 +951,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_ping($client, $message) {
+    public function handle_ping(Client $client, $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 

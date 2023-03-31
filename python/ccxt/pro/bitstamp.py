@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
@@ -70,7 +71,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -214,7 +215,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             'fee': None,
         }, market)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         data: {
@@ -278,7 +279,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         #
         # {
         #     "data":{
@@ -355,14 +356,14 @@ class bitstamp(ccxt.async_support.bitstamp):
             'trades': None,
         }, market)
 
-    def handle_order_book_subscription(self, client, message):
+    def handle_order_book_subscription(self, client: Client, message):
         channel = self.safe_string(message, 'channel')
         parts = channel.split('_')
         marketId = self.safe_string(parts, 3)
         symbol = self.safe_symbol(marketId)
         self.orderbooks[symbol] = self.order_book()
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         'event': "bts:subscription_succeeded",
@@ -379,7 +380,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if channel.find('order_book') > -1:
             self.handle_order_book_subscription(client, message)
 
-    def handle_subject(self, client, message):
+    def handle_subject(self, client: Client, message):
         #
         #     {
         #         data: {
@@ -429,7 +430,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 method = methods[key]
                 method(client, message)
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         # {
         #     event: 'bts:error',
         #     channel: '',
@@ -443,7 +444,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if not self.handle_error_message(client, message):
             return
         #

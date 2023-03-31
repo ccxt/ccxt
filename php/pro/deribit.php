@@ -92,7 +92,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // subscription
         //     {
@@ -179,7 +179,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',
@@ -254,7 +254,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -333,7 +333,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -419,7 +419,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //  snapshot
         //     {
@@ -558,7 +558,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         // Does not return a snapshot of current $orders
         //
         //     {
@@ -651,7 +651,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',
@@ -694,7 +694,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($stored, $channel);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // $error
         //     {
@@ -789,7 +789,7 @@ class deribit extends \ccxt\async\deribit {
         return $message;
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',

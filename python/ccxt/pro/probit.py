@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -71,7 +72,7 @@ class probit(ccxt.async_support.probit):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         channel: 'balance',
@@ -129,7 +130,7 @@ class probit(ccxt.async_support.probit):
         filter, params = self.handle_option_and_params(params, 'watchTicker', 'filter', 'ticker')
         return await self.subscribe_order_book(symbol, 'ticker', filter, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         channel: 'marketdata',
@@ -175,7 +176,7 @@ class probit(ccxt.async_support.probit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         channel: 'marketdata',
@@ -242,7 +243,7 @@ class probit(ccxt.async_support.probit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         channel: 'trade_history',
@@ -315,7 +316,7 @@ class probit(ccxt.async_support.probit):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         #
         #     {
         #         channel: 'order_history',
@@ -406,7 +407,7 @@ class probit(ccxt.async_support.probit):
         request = self.extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, filters)
 
-    def handle_order_book(self, client, message, orderBook):
+    def handle_order_book(self, client: Client, message, orderBook):
         #
         #     {
         #         channel: 'marketdata',
@@ -450,7 +451,7 @@ class probit(ccxt.async_support.probit):
         self.handle_bid_asks(storedBids, bids)
         self.handle_bid_asks(storedAsks, asks)
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {
         #         errorCode: 'INVALID_ARGUMENT',
@@ -466,7 +467,7 @@ class probit(ccxt.async_support.probit):
         # todo - raise properly here
         raise ExchangeError(self.id + ' ' + code + ' ' + errMessage + ' ' + self.json(details))
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #     {type: 'authorization', result: 'ok'}
         #
@@ -478,7 +479,7 @@ class probit(ccxt.async_support.probit):
             future.reject(message)
             del client.subscriptions['authenticated']
 
-    def handle_market_data(self, client, message):
+    def handle_market_data(self, client: Client, message):
         ticker = self.safe_value(message, 'ticker')
         if ticker is not None:
             self.handle_ticker(client, message)
@@ -489,7 +490,7 @@ class probit(ccxt.async_support.probit):
         if len(orderBook) > 0:
             self.handle_order_book(client, message, orderBook)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         #     {
         #         errorCode: 'INVALID_ARGUMENT',

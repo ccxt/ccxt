@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 
@@ -144,7 +145,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         messageHash = 'ticker:' + symbol
         return await self.subscribe(url, messageHash, topic, None, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         # market/tickerV2
         #
@@ -193,7 +194,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #    {
         #        type: 'message',
@@ -282,7 +283,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -335,7 +336,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 return i
         return len(cache)
 
-    def handle_order_book_subscription(self, client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         self.orderbooks[symbol] = self.order_book({}, limit)
@@ -344,7 +345,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         # the general idea is to fetch the snapshot after the first delta
         # but not before, because otherwise we cannot synchronize the feed
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         id: '1578090438322',
@@ -359,7 +360,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             method(client, message, subscription)
         return message
 
-    def handle_system_status(self, client, message):
+    def handle_system_status(self, client: Client, message):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -463,7 +464,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             'trades': None,
         }, market)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         messageHash = 'orders'
         data = self.safe_value(message, 'data')
         parsed = self.parse_ws_order(data)
@@ -506,7 +507,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         messageHash = 'balance'
         return await self.subscribe(url, messageHash, topic, subscription, self.extend(request, params))
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #    {
         #        id: '6375553193027a0001f6566f',
@@ -534,7 +535,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_balance_subscription(self, client, message, subscription):
+    def handle_balance_subscription(self, client: Client, message, subscription):
         self.spawn(self.fetch_balance_snapshot, client, message)
 
     async def fetch_balance_snapshot(self, client, message):
@@ -587,7 +588,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         self.balance['info'] = self.safe_value(snapshot, 'info', {})
         client.resolve(self.balance, messageHash)
 
-    def handle_subject(self, client, message):
+    def handle_subject(self, client: Client, message):
         #
         #    {
         #        type: 'message',
@@ -625,15 +626,15 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             'type': 'ping',
         }
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         # https://docs.kucoin.com/#ping
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             type = self.safe_string(message, 'type')
             methods = {

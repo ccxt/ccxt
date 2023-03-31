@@ -80,7 +80,7 @@ class coinex extends \ccxt\async\coinex {
         return $requestId;
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //  spot
         //
@@ -238,7 +238,7 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         "method" => "asset.update",
@@ -274,7 +274,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "method" => "deals.update",
@@ -342,7 +342,7 @@ class coinex extends \ccxt\async\coinex {
         ), $market);
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         method => 'kline.update',
@@ -566,7 +566,7 @@ class coinex extends \ccxt\async\coinex {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         "method" => "depth.update",
@@ -653,7 +653,7 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         //  spot
         //
@@ -921,7 +921,7 @@ class coinex extends \ccxt\async\coinex {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($error));
@@ -943,7 +943,7 @@ class coinex extends \ccxt\async\coinex {
         return $this->handle_subscription_status($client, $message);
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         //
         //     {
         //         error => null,
@@ -960,7 +960,7 @@ class coinex extends \ccxt\async\coinex {
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         $id = $this->safe_string($message, 'id');
         $subscription = $this->safe_value($client->subscriptions, $id);
         if ($subscription !== null) {

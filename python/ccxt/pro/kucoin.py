@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 
@@ -132,7 +133,7 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         return await self.subscribe(url, messageHash, topic, None, query)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         # market/snapshot
         #
@@ -223,7 +224,7 @@ class kucoin(ccxt.async_support.kucoin):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         data: {
@@ -285,7 +286,7 @@ class kucoin(ccxt.async_support.kucoin):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         data: {
@@ -357,7 +358,7 @@ class kucoin(ccxt.async_support.kucoin):
         orderbook = await self.subscribe(url, messageHash, topic, subscription, params)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -431,7 +432,7 @@ class kucoin(ccxt.async_support.kucoin):
             bidAsk = self.parse_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
-    def handle_order_book_subscription(self, client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         self.orderbooks[symbol] = self.order_book({}, limit)
@@ -440,7 +441,7 @@ class kucoin(ccxt.async_support.kucoin):
         # the general idea is to fetch the snapshot after the first delta
         # but not before, because otherwise we cannot synchronize the feed
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         id: '1578090438322',
@@ -455,7 +456,7 @@ class kucoin(ccxt.async_support.kucoin):
             method(client, message, subscription)
         return message
 
-    def handle_system_status(self, client, message):
+    def handle_system_status(self, client: Client, message):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -559,7 +560,7 @@ class kucoin(ccxt.async_support.kucoin):
             'trades': None,
         }, market)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         messageHash = 'orders'
         data = self.safe_value(message, 'data')
         parsed = self.parse_ws_order(data)
@@ -608,7 +609,7 @@ class kucoin(ccxt.async_support.kucoin):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client: Client, message):
         trades = self.myTrades
         if trades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -686,7 +687,7 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'balance'
         return await self.subscribe(url, messageHash, topic, None, self.extend(request, params))
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # {
         #     "id":"6217a451294b030001e3a26a",
@@ -737,7 +738,7 @@ class kucoin(ccxt.async_support.kucoin):
         if uniformType == selectedType:
             client.resolve(self.balance[uniformType], messageHash)
 
-    def handle_subject(self, client, message):
+    def handle_subject(self, client: Client, message):
         #
         #     {
         #         "type":"message",
@@ -781,14 +782,14 @@ class kucoin(ccxt.async_support.kucoin):
             'type': 'ping',
         }
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
         # https://docs.kucoin.com/#ping
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
         methods = {
             # 'heartbeat': self.handleHeartbeat,

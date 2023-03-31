@@ -123,7 +123,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         $arg => array( $channel => 'trades', instId => 'BTC-USDT' ),
@@ -171,7 +171,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $arg => array( $channel => 'tickers', instId => 'BTC-USDT' ),
@@ -234,7 +234,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         $arg => array( $channel => 'candle1m', instId => 'BTC-USDT' ),
@@ -337,7 +337,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook, $messageHash) {
+    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash) {
         //
         //     {
         //         $asks => array(
@@ -389,7 +389,7 @@ class okx extends \ccxt\async\okx {
         return $orderbook;
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // $snapshot
         //
@@ -572,7 +572,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         $arg => array( $channel => 'account' ),
@@ -680,7 +680,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function handle_orders($client, $message, $subscription = null) {
+    public function handle_orders(Client $client, $message, $subscription = null) {
         //
         //     {
         //         "arg":array(
@@ -762,7 +762,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     array( event => 'subscribe', arg => array( $channel => 'tickers', instId => 'BTC-USDT' ) )
         //
@@ -771,7 +771,7 @@ class okx extends \ccxt\async\okx {
         return $message;
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //     array( event => 'login', success => true )
         //
@@ -784,12 +784,12 @@ class okx extends \ccxt\async\okx {
         return 'ping';
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     array( event => 'error', msg => 'Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])', code => '60012' )
         //     array( event => 'error', msg => "channel:ticker,instId:BTC-USDT doesn't exist", code => '60018' )
@@ -817,7 +817,7 @@ class okx extends \ccxt\async\okx {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }

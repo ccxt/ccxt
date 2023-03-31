@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
@@ -102,7 +103,7 @@ class okcoin(ccxt.async_support.okcoin):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_orders(self, client, message, subscription=None):
+    def handle_orders(self, client: Client, message, subscription=None):
         #
         # {
         #     table: 'spot/order',
@@ -170,7 +171,7 @@ class okcoin(ccxt.async_support.okcoin):
         """
         return await self.subscribe('ticker', symbol, params)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         table: 'spot/trade',
@@ -202,7 +203,7 @@ class okcoin(ccxt.async_support.okcoin):
             client.resolve(stored, messageHash)
         return message
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         table: 'spot/ticker',
@@ -255,7 +256,7 @@ class okcoin(ccxt.async_support.okcoin):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         table: "spot/candle60s",
@@ -320,7 +321,7 @@ class okcoin(ccxt.async_support.okcoin):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
         #         instrument_id: "BTC-USDT",
@@ -347,7 +348,7 @@ class okcoin(ccxt.async_support.okcoin):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # first message(snapshot)
         #
@@ -507,7 +508,7 @@ class okcoin(ccxt.async_support.okcoin):
         query = self.omit(params, ['currency', 'code', 'instrument_id', 'symbol', 'type'])
         return await self.watch(url, messageHash, self.deep_extend(request, query), subscriptionHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # spot
         #
@@ -556,7 +557,7 @@ class okcoin(ccxt.async_support.okcoin):
             self.balance[type] = self.safe_balance(newBalance)
             client.resolve(self.balance[type], table)
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         #
@@ -564,7 +565,7 @@ class okcoin(ccxt.async_support.okcoin):
         # client.subscriptions[channel] = message
         return message
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #     {event: 'login', success: True}
         #
@@ -576,11 +577,11 @@ class okcoin(ccxt.async_support.okcoin):
         # instead it requires custom text-based ping-pong
         return 'ping'
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {event: 'error', message: 'Invalid sign', errorCode: 30013}
         #     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
@@ -603,7 +604,7 @@ class okcoin(ccxt.async_support.okcoin):
                 return False
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if not self.handle_error_message(client, message):
             return
         #

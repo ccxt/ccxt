@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
@@ -100,7 +101,7 @@ class ascendex(ccxt.async_support.ascendex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         # {
         #     "m": "bar",
@@ -156,7 +157,7 @@ class ascendex(ccxt.async_support.ascendex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         # {
         #     m: 'trades',
@@ -222,7 +223,7 @@ class ascendex(ccxt.async_support.ascendex):
         orderbook = await self.watch_public(channel, params)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client, message):
+    def handle_order_book_snapshot(self, client: Client, message):
         #
         # {
         #     m: 'depth',
@@ -258,7 +259,7 @@ class ascendex(ccxt.async_support.ascendex):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #   {
         #       m: 'depth',
@@ -296,7 +297,7 @@ class ascendex(ccxt.async_support.ascendex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         # {
         #     "m":"depth",
@@ -350,7 +351,7 @@ class ascendex(ccxt.async_support.ascendex):
             messageHash = 'balance:swap'
         return await self.watch_private(channel, messageHash, query)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # cash account
         #
@@ -476,7 +477,7 @@ class ascendex(ccxt.async_support.ascendex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         # spot order
         # {
@@ -637,7 +638,7 @@ class ascendex(ccxt.async_support.ascendex):
             'trades': None,
         }, market)
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         # {
         #     m: 'disconnected',
@@ -665,14 +666,14 @@ class ascendex(ccxt.async_support.ascendex):
                 client.reject(e)
             return True
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #     {m: 'auth', id: '1647605234', code: 0}
         #
         messageHash = 'authenticated'
         client.resolve(message, messageHash)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
         #
@@ -843,7 +844,7 @@ class ascendex(ccxt.async_support.ascendex):
                 self.handle_balance(client, message)
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {m: 'sub', ch: 'bar:BTC/USDT', code: 0}
         #
@@ -854,7 +855,7 @@ class ascendex(ccxt.async_support.ascendex):
             self.handle_order_book_subscription(client, message)
         return message
 
-    def handle_order_book_subscription(self, client, message):
+    def handle_order_book_subscription(self, client: Client, message):
         channel = self.safe_string(message, 'ch')
         parts = channel.split(':')
         marketId = parts[1]
@@ -874,7 +875,7 @@ class ascendex(ccxt.async_support.ascendex):
             error = NetworkError(self.id + ' handlePing failed with error ' + self.json(e))
             client.reset(error)
 
-    def handle_ping(self, client, message):
+    def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
     def authenticate(self, url, params={}):

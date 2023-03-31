@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -83,7 +84,7 @@ class mexc(ccxt.async_support.mexc):
             }
             return await self.watch_swap_public(channel, messageHash, requestParams, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #    {
         #        c: 'spot@public.bookTicker.v3.api@BTCUSDT',
@@ -222,7 +223,7 @@ class mexc(ccxt.async_support.mexc):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         # spot
         #
@@ -355,7 +356,7 @@ class mexc(ccxt.async_support.mexc):
             orderbook = await self.watch_swap_public(channel, messageHash, requestParams, params)
         return orderbook.limit()
 
-    def handle_order_book_subscription(self, client, message):
+    def handle_order_book_subscription(self, client: Client, message):
         # spot
         #     {id: 0, code: 0, msg: 'spot@public.increase.depth.v3.api@BTCUSDT'}
         #
@@ -379,7 +380,7 @@ class mexc(ccxt.async_support.mexc):
                 return i
         return len(cache)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # spot
         #    {
@@ -509,7 +510,7 @@ class mexc(ccxt.async_support.mexc):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #    {
         #        c: "spot@public.deals.v3.api@BTCUSDT",
@@ -590,7 +591,7 @@ class mexc(ccxt.async_support.mexc):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trade(self, client, message, subscription=None):
+    def handle_my_trade(self, client: Client, message, subscription=None):
         #
         #    {
         #        c: 'spot@private.deals.v3.api',
@@ -710,7 +711,7 @@ class mexc(ccxt.async_support.mexc):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         # spot
         #    {
@@ -937,7 +938,7 @@ class mexc(ccxt.async_support.mexc):
         else:
             return await self.watch_swap_private(messageHash, params)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # spot
         #    {
@@ -1023,11 +1024,11 @@ class mexc(ccxt.async_support.mexc):
             client.reject(error)
             del self.clients[url]
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #    {
         #        id: 0,
@@ -1048,7 +1049,7 @@ class mexc(ccxt.async_support.mexc):
             if method is not None:
                 method(client, message)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if isinstance(message, str):
             if message == 'Invalid listen key':
                 error = AuthenticationError(self.id + ' invalid listen key')

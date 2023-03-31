@@ -120,7 +120,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //   {
         //       action => 'snapshot',
@@ -272,7 +272,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //   {
         //       "action":"snapshot",
@@ -380,7 +380,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //   {
         //       "action":"snapshot",
@@ -506,7 +506,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //    {
         //        action => 'snapshot',
@@ -627,7 +627,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_order($client, $message, $subscription = null) {
+    public function handle_order(Client $client, $message, $subscription = null) {
         //
         //
         // spot $order
@@ -865,7 +865,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         // order and trade mixin (contract)
         //
@@ -1010,7 +1010,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         // spot
         //
         //    {
@@ -1114,7 +1114,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //  array( event => 'login', code => 0 )
         //
@@ -1122,7 +1122,7 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve ($message, $messageHash);
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //    array( $event => 'error', $code => 30015, msg => 'Invalid sign' )
         //
@@ -1146,7 +1146,7 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //   {
         //       action => 'snapshot',
@@ -1226,12 +1226,12 @@ class bitget extends \ccxt\async\bitget {
         return 'ping';
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //    {
         //        event => 'subscribe',

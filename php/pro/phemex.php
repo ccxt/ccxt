@@ -139,7 +139,7 @@ class phemex extends \ccxt\async\phemex {
         return $result;
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         spot_market24h => array(
@@ -266,7 +266,7 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         sequence => 1795484727,
@@ -298,7 +298,7 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         kline => array(
@@ -474,7 +474,7 @@ class phemex extends \ccxt\async\phemex {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         $book => array(
@@ -560,7 +560,7 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         // array(
         //    {
@@ -655,7 +655,7 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         // spot $update
         // {
         //        "closed":array(
@@ -912,7 +912,7 @@ class phemex extends \ccxt\async\phemex {
         ), $market);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         // private spot update
         // {
         //     $orders => array( closed => [ ], fills => [ ], open => array() ),
@@ -1034,7 +1034,7 @@ class phemex extends \ccxt\async\phemex {
         }
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         // {
         //     "error" => null,

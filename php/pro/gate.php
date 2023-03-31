@@ -118,13 +118,13 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function handle_order_book_subscription($client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // spot
         //
@@ -316,7 +316,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //    {
         //        time => 1649326221,
@@ -398,7 +398,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         // {
         //     time => 1648725035,
@@ -464,7 +464,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         // {
         //     "time" => 1606292600,
@@ -565,7 +565,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         // {
         //     "time" => 1543205083,
@@ -642,7 +642,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // spot order fill
         //   {
@@ -779,7 +779,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         // {
         //     "time" => 1605175506,
@@ -846,7 +846,7 @@ class gate extends \ccxt\async\gate {
         $client->resolve ($this->orders, 'orders');
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         // {
         //     time => 1647274664,
         //     channel => 'futures.orders',
@@ -887,11 +887,11 @@ class gate extends \ccxt\async\gate {
         return false;
     }
 
-    public function handle_balance_subscription($client, $message, $subscription = null) {
+    public function handle_balance_subscription(Client $client, $message, $subscription = null) {
         $this->balance = array();
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         $channel = $this->safe_string($message, 'channel');
         $methods = array(
             'balance' => array($this, 'handle_balance_subscription'),
@@ -908,7 +908,7 @@ class gate extends \ccxt\async\gate {
         unset($client->subscriptions[$id]);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // subscribe
         //    {

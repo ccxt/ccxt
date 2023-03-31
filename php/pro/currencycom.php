@@ -64,12 +64,12 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_balance($client, $message, $subscription) {
+    public function handle_balance(Client $client, $message, $subscription) {
         //
         //     {
         //         status => 'OK',
@@ -114,7 +114,7 @@ class currencycom extends \ccxt\async\currencycom {
         }
     }
 
-    public function handle_ticker($client, $message, $subscription) {
+    public function handle_ticker(Client $client, $message, $subscription) {
         //
         //     {
         //         status => 'OK',
@@ -200,7 +200,7 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_trades($client, $message, $subscription) {
+    public function handle_trades(Client $client, $message, $subscription) {
         //
         //     {
         //         status => 'OK',
@@ -245,7 +245,7 @@ class currencycom extends \ccxt\async\currencycom {
         return null;
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         status => 'OK',
@@ -461,7 +461,7 @@ class currencycom extends \ccxt\async\currencycom {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         status => 'OK',
@@ -496,7 +496,7 @@ class currencycom extends \ccxt\async\currencycom {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         $status => 'OK',
