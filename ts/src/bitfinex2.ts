@@ -1997,6 +1997,7 @@ export default class bitfinex2 extends Exchange {
             'CANCELED': 'canceled',
             'PENDING APPROVAL': 'pending',
             'PENDING': 'pending',
+            'PENDING REVIEW': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
