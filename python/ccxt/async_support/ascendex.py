@@ -2304,6 +2304,9 @@ class ascendex(Exchange):
         tag = self.safe_string(destAddress, 'destTag')
         timestamp = self.safe_integer(transaction, 'time')
         currencyId = self.safe_string(transaction, 'asset')
+        amountString = self.safe_string(transaction, 'amount')
+        feeCostString = self.safe_string(transaction, 'commission')
+        amountString = Precise.string_sub(amountString, feeCostString)
         code = self.safe_currency_code(currencyId, currency)
         return {
             'info': transaction,
@@ -2312,7 +2315,7 @@ class ascendex(Exchange):
             'type': self.safe_string(transaction, 'transactionType'),
             'currency': code,
             'network': None,
-            'amount': self.safe_number(transaction, 'amount'),
+            'amount': self.parse_number(amountString),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2326,7 +2329,7 @@ class ascendex(Exchange):
             'comment': None,
             'fee': {
                 'currency': code,
-                'cost': self.safe_number(transaction, 'commission'),
+                'cost': self.parse_number(feeCostString),
                 'rate': None,
             },
         }
