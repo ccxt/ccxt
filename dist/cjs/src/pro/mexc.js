@@ -451,11 +451,9 @@ class mexc extends mexc$1 {
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const subscription = client.subscriptions[messageHash];
-            const limit = this.safeInteger(subscription, 'limit', 1000);
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol, limit);
+                this.spawn(this.loadOrderBook, client, messageHash, symbol);
             }
             storedOrderBook.cache.push(data);
             return;
