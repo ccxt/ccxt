@@ -44,6 +44,8 @@ export default class xt extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchLedger': true,
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -3371,6 +3373,165 @@ export default class xt extends Exchange {
             'symbol': this.safeSymbol (undefined, market),
             'status': undefined,
         };
+    }
+
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchLeverageTiers
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+         * @description retrieve information on the maximum leverage for different trade sizes
+         * @param {[string]|undefined} symbols a list of unified market symbols
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params);
+        const response = (subType === 'inverse') ? await this.publicInverseGetFutureMarketV1PublicLeverageBracketList (params) : await this.publicLinearGetFutureMarketV1PublicLeverageBracketList (params);
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "symbol": "rad_usdt",
+        //                 "leverageBrackets": [
+        //                     {
+        //                         "symbol": "rad_usdt",
+        //                         "bracket": 1,
+        //                         "maxNominalValue": "5000",
+        //                         "maintMarginRate": "0.025",
+        //                         "startMarginRate": "0.05",
+        //                         "maxStartMarginRate": null,
+        //                         "maxLeverage": "20",
+        //                         "minLeverage": "1"
+        //                     },
+        //                 ]
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        symbols = this.marketSymbols (symbols);
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        //
+        //     {
+        //         "symbol": "rad_usdt",
+        //         "leverageBrackets": [
+        //             {
+        //                 "symbol": "rad_usdt",
+        //                 "bracket": 1,
+        //                 "maxNominalValue": "5000",
+        //                 "maintMarginRate": "0.025",
+        //                 "startMarginRate": "0.05",
+        //                 "maxStartMarginRate": null,
+        //                 "maxLeverage": "20",
+        //                 "minLeverage": "1"
+        //             },
+        //         ]
+        //     }
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const market = this.safeMarket (marketId, undefined, '_', 'contract');
+            const symbol = this.safeSymbol (marketId, market);
+            if (symbols !== undefined) {
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseMarketLeverageTiers (entry, market);
+                }
+            } else {
+                result[symbol] = this.parseMarketLeverageTiers (response[i], market);
+            }
+        }
+        return result;
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchMarketLeverageTiers
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+         * @description retrieve information on the maximum leverage for different trade sizes of a single market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarketLeverageTiers', market, params);
+        const response = (subType === 'inverse') ? await this.publicInverseGetFutureMarketV1PublicLeverageBracketDetail (this.extend (request, params)) : await this.publicLinearGetFutureMarketV1PublicLeverageBracketDetail (this.extend (request, params));
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "symbol": "btc_usdt",
+        //             "leverageBrackets": [
+        //                 {
+        //                     "symbol": "btc_usdt",
+        //                     "bracket": 1,
+        //                     "maxNominalValue": "500000",
+        //                     "maintMarginRate": "0.004",
+        //                     "startMarginRate": "0.008",
+        //                     "maxStartMarginRate": null,
+        //                     "maxLeverage": "125",
+        //                     "minLeverage": "1"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market = undefined) {
+        //
+        //     {
+        //         "symbol": "rad_usdt",
+        //         "leverageBrackets": [
+        //             {
+        //                 "symbol": "rad_usdt",
+        //                 "bracket": 1,
+        //                 "maxNominalValue": "5000",
+        //                 "maintMarginRate": "0.025",
+        //                 "startMarginRate": "0.05",
+        //                 "maxStartMarginRate": null,
+        //                 "maxLeverage": "20",
+        //                 "minLeverage": "1"
+        //             },
+        //         ]
+        //     }
+        //
+        const tiers = [];
+        const brackets = this.safeValue (info, 'leverageBrackets', []);
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            const marketId = this.safeString (info, 'symbol');
+            market = this.safeMarket (marketId, market, '_', 'contract');
+            tiers.push ({
+                'tier': this.safeInteger (tier, 'bracket'),
+                'currency': market['settle'],
+                'minNotional': this.safeNumber (brackets[i - 1], 'maxNominalValue', 0),
+                'maxNotional': this.safeNumber (tier, 'maxNominalValue'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintMarginRate'),
+                'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
