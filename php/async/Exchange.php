@@ -1731,7 +1731,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $price, $amount );
     }
 
-    public function safe_currency(?string $currencyId, ?string $currency = null) {
+    public function safe_currency(?string $currencyId, mixed $currency = null) {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
@@ -2471,7 +2471,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function safe_currency_code(?string $currencyId, ?string $currency = null) {
+    public function safe_currency_code(?string $currencyId, mixed $currency = null) {
         $currency = $this->safe_currency($currencyId, $currency);
         return $currency['code'];
     }

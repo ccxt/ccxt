@@ -47,7 +47,7 @@ def example():
         # Check if we have any collateral to get permission for borrow
         if balance_margin[symbol][collateral_coin]['free'] < needed_collateral_amount:
             # If we don't have enough collateral, then let's try to transfer collateral-asset from spot-balance to margin-balance
-            console.log('hmm, I have only ', balance_margin[symbol][collateral_coin]['free'], ' in balance, but ', needed_collateral_amount, ' collateral is needed. I should transfer ', needed_collateral_amount, ' from spot')
+            print('hmm, I have only ', balance_margin[symbol][collateral_coin]['free'], ' in balance, but ', needed_collateral_amount, ' collateral is needed. I should transfer ', needed_collateral_amount, ' from spot')
             # let's check if we have spot balance at all
             balance_spot = exchange.fetch_balance({
     'type': 'spot',
@@ -61,7 +61,7 @@ def example():
     'symbol': symbol,
 })  # because of temporary bug, you have to round "needed_collateral_amount" manually to 8 decimals. will be fixed a few days later
         # now, as we have enough margin collateral, initiate borrow
-        console.log('Initiating margin borrow of ', needed_amount_to_borrow, ' ', borrow_coin)
+        print('Initiating margin borrow of ', needed_amount_to_borrow, ' ', borrow_coin)
         borrow_result = exchange.borrow_margin(borrow_coin, needed_amount_to_borrow, symbol, {
     'marginMode': margin_mode,
 })
@@ -83,7 +83,7 @@ def example():
     if needed_amount_to_borrow is not None:
         amount_to_repay_back = needed_amount_to_borrow
         # At first, you need to get back the borrowed coin, by making an opposide trade
-        console.log('Making purchase back of ' + amount_to_repay_back + ' ' + borrow_coin + ' to repay it back.')
+        print('Making purchase back of ', amount_to_repay_back, ' ', borrow_coin, ' to repay it back.')
         purchase_back_price = 1.01
         order_back = exchange.create_order(symbol, order_type, ('sell' if order_side == 'buy' else 'buy'), amount_to_repay_back, purchase_back_price, {
     'marginMode': margin_mode,

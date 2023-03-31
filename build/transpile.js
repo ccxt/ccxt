@@ -2160,6 +2160,7 @@ class Transpiler {
                 // ###### replace common (synchronity agnostic) syntaxes ######
                 const fixPython = (body, isAsync)=> {
                     return this.regexAll (body, [
+                        [ /console\.log/g, 'print' ],
                         [ /function\s*(\w+\s*\(\))\s*{/g, 'def $1:' ], //need this to catch functions without any arguments
                         [ /print\s*\((.*)\)/, function(match, contents)
                         {
