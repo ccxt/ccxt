@@ -43,6 +43,7 @@ export default class xt extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchLedger': true,
                 'fetchLeverageTiers': true,
@@ -3630,6 +3631,82 @@ export default class xt extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://doc.xt.com/#futures_quotesgetFundingRate
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRate', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicQFundingRate (this.extend (request, params));
+        } else {
+            response = await this.publicLinearGetFutureMarketV1PublicQFundingRate (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "symbol": "btc_usdt",
+        //             "fundingRate": "0.000086",
+        //             "nextCollectionTime": 1680307200000,
+        //             "collectionInternal": 8
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseFundingRate (result, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "fundingRate": "0.000086",
+        //         "nextCollectionTime": 1680307200000,
+        //         "collectionInternal": 8
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_', 'contract');
+        const timestamp = this.safeInteger (contract, 'nextCollectionTime');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': timestamp,
+            'fundingDatetime': this.iso8601 (timestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
