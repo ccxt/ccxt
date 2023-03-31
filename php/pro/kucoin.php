@@ -106,8 +106,8 @@ class kucoin extends \ccxt\async\kucoin {
         return $requestId;
     }
 
-    public function subscribe($url, $messageHash, $subscriptionHash, $subscription, $params = array ()) {
-        return Async\async(function () use ($url, $messageHash, $subscriptionHash, $subscription, $params) {
+    public function subscribe($url, $messageHash, $subscriptionHash, $params = array (), $subscription = null) {
+        return Async\async(function () use ($url, $messageHash, $subscriptionHash, $params, $subscription) {
             $requestId = (string) $this->request_id();
             $request = array(
                 'id' => $requestId,
@@ -116,13 +116,9 @@ class kucoin extends \ccxt\async\kucoin {
                 'response' => true,
             );
             $message = array_merge($request, $params);
-            $subscriptionRequest = array(
-                'id' => $requestId,
-            );
-            if ($subscription === null) {
-                $subscription = $subscriptionRequest;
-            } else {
-                $subscription = array_merge($subscriptionRequest, $subscription);
+            $client = $this->client($url);
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionHash, $client->subscriptions))) {
+                $client->subscriptions[$requestId] = $subscriptionHash;
             }
             return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash, $subscription));
         }) ();
@@ -143,7 +139,7 @@ class kucoin extends \ccxt\async\kucoin {
             list($method, $query) = $this->handle_option_and_params($params, 'watchTicker', 'method', '/market/snapshot');
             $topic = $method . ':' . $market['id'];
             $messageHash = 'ticker:' . $symbol;
-            return Async\await($this->subscribe($url, $messageHash, $topic, null, $query));
+            return Async\await($this->subscribe($url, $messageHash, $topic, $query));
         }) ();
     }
 
@@ -236,7 +232,7 @@ class kucoin extends \ccxt\async\kucoin {
             $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $topic = '/market/candles:' . $market['id'] . '_' . $period;
             $messageHash = 'candles:' . $symbol . ':' . $timeframe;
-            $ohlcv = Async\await($this->subscribe($url, $messageHash, $topic, null, $params));
+            $ohlcv = Async\await($this->subscribe($url, $messageHash, $topic, $params));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -304,7 +300,7 @@ class kucoin extends \ccxt\async\kucoin {
             $symbol = $market['symbol'];
             $topic = '/market/match:' . $market['id'];
             $messageHash = 'trades:' . $symbol;
-            $trades = Async\await($this->subscribe($url, $messageHash, $topic, null, $params));
+            $trades = Async\await($this->subscribe($url, $messageHash, $topic, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -386,7 +382,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'symbol' => $symbol,
                 'limit' => $limit,
             );
-            $orderbook = Async\await($this->subscribe($url, $messageHash, $topic, $subscription, $params));
+            $orderbook = Async\await($this->subscribe($url, $messageHash, $topic, $params, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -493,13 +489,13 @@ class kucoin extends \ccxt\async\kucoin {
         //     }
         //
         $id = $this->safe_string($message, 'id');
-        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-        $subscription = $this->safe_value($subscriptionsById, $id, array());
+        $subscriptionHash = $this->safe_string($client->subscriptions, $id);
+        $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
+        unset($client->subscriptions[$id]);
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
             $method($client, $message, $subscription);
         }
-        return $message;
     }
 
     public function handle_system_status(Client $client, $message) {
@@ -538,7 +534,7 @@ class kucoin extends \ccxt\async\kucoin {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
-            $orders = Async\await($this->subscribe($url, $messageHash, $topic, null, array_merge($request, $params)));
+            $orders = Async\await($this->subscribe($url, $messageHash, $topic, array_merge($request, $params)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -665,7 +661,7 @@ class kucoin extends \ccxt\async\kucoin {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . ':' . $market['symbol'];
             }
-            $trades = Async\await($this->subscribe($url, $messageHash, $topic, null, array_merge($request, $params)));
+            $trades = Async\await($this->subscribe($url, $messageHash, $topic, array_merge($request, $params)));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -753,7 +749,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'privateChannel' => true,
             );
             $messageHash = 'balance';
-            return Async\await($this->subscribe($url, $messageHash, $topic, null, array_merge($request, $params)));
+            return Async\await($this->subscribe($url, $messageHash, $topic, array_merge($request, $params)));
         }) ();
     }
 

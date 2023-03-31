@@ -1979,7 +1979,7 @@ class krakenfutures extends krakenfutures$1 {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
-            const auth = postData + '/api/' + endpoint; // 1
+            const auth = postData + '/api/' + (api === 'private' ? endpoint : api + '/' + endpoint); // 1
             const hash = this.hash(this.encode(auth), sha256.sha256, 'binary'); // 2
             const secret = this.base64ToBinary(this.secret); // 3
             const signature = this.hmac(hash, secret, sha512.sha512, 'base64'); // 4-5

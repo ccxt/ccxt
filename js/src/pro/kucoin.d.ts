@@ -6,7 +6,7 @@ export default class kucoin extends kucoinRest {
     negotiate(privateChannel: any, params?: {}): any;
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
-    subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
+    subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: any): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -19,7 +19,7 @@ export default class kucoin extends kucoinRest {
     handleDelta(orderbook: any, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): void;
     handleSystemStatus(client: Client, message: any): any;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrderStatus(status: any): string;
