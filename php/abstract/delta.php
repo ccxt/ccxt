@@ -97,4 +97,94 @@ abstract class delta extends \ccxt\Exchange {
     public function private_delete_orders_batch($params = array()) {
         return $this->request('orders/batch', 'private', 'DELETE', $params);
     }
+    public function publicGetAssets($params = array()) {
+        return $this->request('assets', 'public', 'GET', $params);
+    }
+    public function publicGetSettings($params = array()) {
+        return $this->request('settings', 'public', 'GET', $params);
+    }
+    public function publicGetIndices($params = array()) {
+        return $this->request('indices', 'public', 'GET', $params);
+    }
+    public function publicGetProducts($params = array()) {
+        return $this->request('products', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetTickersSymbol($params = array()) {
+        return $this->request('tickers/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetL2orderbookSymbol($params = array()) {
+        return $this->request('l2orderbook/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetTradesSymbol($params = array()) {
+        return $this->request('trades/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetHistoryCandles($params = array()) {
+        return $this->request('history/candles', 'public', 'GET', $params);
+    }
+    public function publicGetHistorySparklines($params = array()) {
+        return $this->request('history/sparklines', 'public', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersLeverage($params = array()) {
+        return $this->request('orders/leverage', 'private', 'GET', $params);
+    }
+    public function privateGetPositions($params = array()) {
+        return $this->request('positions', 'private', 'GET', $params);
+    }
+    public function privateGetPositionsMargined($params = array()) {
+        return $this->request('positions/margined', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersHistory($params = array()) {
+        return $this->request('orders/history', 'private', 'GET', $params);
+    }
+    public function privateGetFills($params = array()) {
+        return $this->request('fills', 'private', 'GET', $params);
+    }
+    public function privateGetFillsHistoryDownloadCsv($params = array()) {
+        return $this->request('fills/history/download/csv', 'private', 'GET', $params);
+    }
+    public function privateGetWalletBalances($params = array()) {
+        return $this->request('wallet/balances', 'private', 'GET', $params);
+    }
+    public function privateGetWalletTransactions($params = array()) {
+        return $this->request('wallet/transactions', 'private', 'GET', $params);
+    }
+    public function privateGetWalletTransactionsDownload($params = array()) {
+        return $this->request('wallet/transactions/download', 'private', 'GET', $params);
+    }
+    public function privateGetDepositsAddress($params = array()) {
+        return $this->request('deposits/address', 'private', 'GET', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersBatch($params = array()) {
+        return $this->request('orders/batch', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersLeverage($params = array()) {
+        return $this->request('orders/leverage', 'private', 'POST', $params);
+    }
+    public function privatePostPositionsChangeMargin($params = array()) {
+        return $this->request('positions/change_margin', 'private', 'POST', $params);
+    }
+    public function privatePutOrders($params = array()) {
+        return $this->request('orders', 'private', 'PUT', $params);
+    }
+    public function privatePutOrdersBatch($params = array()) {
+        return $this->request('orders/batch', 'private', 'PUT', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersAll($params = array()) {
+        return $this->request('orders/all', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersBatch($params = array()) {
+        return $this->request('orders/batch', 'private', 'DELETE', $params);
+    }
 }

@@ -70,4 +70,67 @@ abstract class mercado extends \ccxt\Exchange {
     public function v4publicnet_get_candles($params = array()) {
         return $this->request('candles', 'v4PublicNet', 'GET', $params);
     }
+    public function publicGetCoins($params = array()) {
+        return $this->request('coins', 'public', 'GET', $params);
+    }
+    public function publicGetCoinOrderbook($params = array()) {
+        return $this->request('{coin}/orderbook/', 'public', 'GET', $params);
+    }
+    public function publicGetCoinTicker($params = array()) {
+        return $this->request('{coin}/ticker/', 'public', 'GET', $params);
+    }
+    public function publicGetCoinTrades($params = array()) {
+        return $this->request('{coin}/trades/', 'public', 'GET', $params);
+    }
+    public function publicGetCoinTradesFrom($params = array()) {
+        return $this->request('{coin}/trades/{from}/', 'public', 'GET', $params);
+    }
+    public function publicGetCoinTradesFromTo($params = array()) {
+        return $this->request('{coin}/trades/{from}/{to}', 'public', 'GET', $params);
+    }
+    public function publicGetCoinDaySummaryYearMonthDay($params = array()) {
+        return $this->request('{coin}/day-summary/{year}/{month}/{day}/', 'public', 'GET', $params);
+    }
+    public function privatePostCancelOrder($params = array()) {
+        return $this->request('cancel_order', 'private', 'POST', $params);
+    }
+    public function privatePostGetAccountInfo($params = array()) {
+        return $this->request('get_account_info', 'private', 'POST', $params);
+    }
+    public function privatePostGetOrder($params = array()) {
+        return $this->request('get_order', 'private', 'POST', $params);
+    }
+    public function privatePostGetWithdrawal($params = array()) {
+        return $this->request('get_withdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostListSystemMessages($params = array()) {
+        return $this->request('list_system_messages', 'private', 'POST', $params);
+    }
+    public function privatePostListOrders($params = array()) {
+        return $this->request('list_orders', 'private', 'POST', $params);
+    }
+    public function privatePostListOrderbook($params = array()) {
+        return $this->request('list_orderbook', 'private', 'POST', $params);
+    }
+    public function privatePostPlaceBuyOrder($params = array()) {
+        return $this->request('place_buy_order', 'private', 'POST', $params);
+    }
+    public function privatePostPlaceSellOrder($params = array()) {
+        return $this->request('place_sell_order', 'private', 'POST', $params);
+    }
+    public function privatePostPlaceMarketBuyOrder($params = array()) {
+        return $this->request('place_market_buy_order', 'private', 'POST', $params);
+    }
+    public function privatePostPlaceMarketSellOrder($params = array()) {
+        return $this->request('place_market_sell_order', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawCoin($params = array()) {
+        return $this->request('withdraw_coin', 'private', 'POST', $params);
+    }
+    public function v4PublicGetCoinCandle($params = array()) {
+        return $this->request('{coin}/candle/', 'v4Public', 'GET', $params);
+    }
+    public function v4PublicNetGetCandles($params = array()) {
+        return $this->request('candles', 'v4PublicNet', 'GET', $params);
+    }
 }

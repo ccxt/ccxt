@@ -55,4 +55,52 @@ abstract class alpaca extends \ccxt\async\Exchange {
     public function cryptopublic_get_crypto_snapshots($params = array()) {
         return $this->request('crypto/snapshots', 'cryptoPublic', 'GET', $params);
     }
+    public function marketsGetAssetsPublicBeta($params = array()) {
+        return $this->request('assets/public/beta', 'markets', 'GET', $params);
+    }
+    public function privateGetAccount($params = array()) {
+        return $this->request('account', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersOrderId($params = array()) {
+        return $this->request('orders/{order_id}', 'private', 'GET', $params);
+    }
+    public function privateGetPositions($params = array()) {
+        return $this->request('positions', 'private', 'GET', $params);
+    }
+    public function privateGetPositionsSymbol($params = array()) {
+        return $this->request('positions/{symbol}', 'private', 'GET', $params);
+    }
+    public function privateGetAccountActivitiesActivityType($params = array()) {
+        return $this->request('account/activities/{activity_type}', 'private', 'GET', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersOrderId($params = array()) {
+        return $this->request('orders/{order_id}', 'private', 'DELETE', $params);
+    }
+    public function cryptoPublicGetCryptoLatestOrderbooks($params = array()) {
+        return $this->request('crypto/latest/orderbooks', 'cryptoPublic', 'GET', $params);
+    }
+    public function cryptoPublicGetCryptoTrades($params = array()) {
+        return $this->request('crypto/trades', 'cryptoPublic', 'GET', $params);
+    }
+    public function cryptoPublicGetCryptoQuotes($params = array()) {
+        return $this->request('crypto/quotes', 'cryptoPublic', 'GET', $params);
+    }
+    public function cryptoPublicGetCryptoLatestQuotes($params = array()) {
+        return $this->request('crypto/latest/quotes', 'cryptoPublic', 'GET', $params);
+    }
+    public function cryptoPublicGetCryptoBars($params = array()) {
+        return $this->request('crypto/bars', 'cryptoPublic', 'GET', $params);
+    }
+    public function cryptoPublicGetCryptoSnapshots($params = array()) {
+        return $this->request('crypto/snapshots', 'cryptoPublic', 'GET', $params);
+    }
 }

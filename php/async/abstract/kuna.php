@@ -433,4 +433,430 @@ abstract class kuna extends \ccxt\async\Exchange {
     public function private_post_withdraw($params = array()) {
         return $this->request('withdraw', 'private', 'POST', $params);
     }
+    public function xreserveGetNonce($params = array()) {
+        return $this->request('nonce', 'xreserve', 'GET', $params);
+    }
+    public function xreserveGetFee($params = array()) {
+        return $this->request('fee', 'xreserve', 'GET', $params);
+    }
+    public function xreserveGetDelegatedTransactions($params = array()) {
+        return $this->request('delegated-transactions', 'xreserve', 'GET', $params);
+    }
+    public function xreservePostDelegateTransfer($params = array()) {
+        return $this->request('delegate-transfer', 'xreserve', 'POST', $params);
+    }
+    public function v3PublicGetTimestamp($params = array()) {
+        return $this->request('timestamp', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetCurrencies($params = array()) {
+        return $this->request('currencies', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetMarkets($params = array()) {
+        return $this->request('markets', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetTickers($params = array()) {
+        return $this->request('tickers', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetK($params = array()) {
+        return $this->request('k', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetTradesHistory($params = array()) {
+        return $this->request('trades_history', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetFees($params = array()) {
+        return $this->request('fees', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetExchangeRates($params = array()) {
+        return $this->request('exchange-rates', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetExchangeRatesCurrency($params = array()) {
+        return $this->request('exchange-rates/currency', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetBookMarket($params = array()) {
+        return $this->request('book/market', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetKunaCodesCodeCheck($params = array()) {
+        return $this->request('kuna_codes/code/check', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetLandingPageStatistic($params = array()) {
+        return $this->request('landing_page_statistic', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetTranslationsLocale($params = array()) {
+        return $this->request('translations/locale', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicGetTradesMarketHist($params = array()) {
+        return $this->request('trades/market/hist', 'array(v3,public)', 'GET', $params);
+    }
+    public function v3PublicPostHttpTest($params = array()) {
+        return $this->request('http_test', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostDepositChannels($params = array()) {
+        return $this->request('deposit_channels', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostWithdrawChannels($params = array()) {
+        return $this->request('withdraw_channels', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostSubscriptionPlans($params = array()) {
+        return $this->request('subscription_plans', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostSendTo($params = array()) {
+        return $this->request('send_to', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostConfirmToken($params = array()) {
+        return $this->request('confirm_token', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostKunaid($params = array()) {
+        return $this->request('kunaid', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostWithdrawPrerequest($params = array()) {
+        return $this->request('withdraw/prerequest', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostDepositPrerequest($params = array()) {
+        return $this->request('deposit/prerequest', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3PublicPostDepositExchangeRates($params = array()) {
+        return $this->request('deposit/exchange-rates', 'array(v3,public)', 'POST', $params);
+    }
+    public function v3SignGetResetPasswordToken($params = array()) {
+        return $this->request('reset_password/token', 'array(v3,sign)', 'GET', $params);
+    }
+    public function v3SignPostSignupGoogle($params = array()) {
+        return $this->request('signup/google', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPostSignupResendConfirmation($params = array()) {
+        return $this->request('signup/resend_confirmation', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPostSignup($params = array()) {
+        return $this->request('signup', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPostSignin($params = array()) {
+        return $this->request('signin', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPostSigninTwoFactor($params = array()) {
+        return $this->request('signin/two_factor', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPostSigninResendConfirmDevice($params = array()) {
+        return $this->request('signin/resend_confirm_device', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPostSigninConfirmDevice($params = array()) {
+        return $this->request('signin/confirm_device', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPostResetPassword($params = array()) {
+        return $this->request('reset_password', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPostCoolSignin($params = array()) {
+        return $this->request('cool-signin', 'array(v3,sign)', 'POST', $params);
+    }
+    public function v3SignPutResetPasswordToken($params = array()) {
+        return $this->request('reset_password/token', 'array(v3,sign)', 'PUT', $params);
+    }
+    public function v3SignPutSignupCodeConfirm($params = array()) {
+        return $this->request('signup/code/confirm', 'array(v3,sign)', 'PUT', $params);
+    }
+    public function v3PrivatePostAuthWOrderSubmit($params = array()) {
+        return $this->request('auth/w/order/submit', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthROrders($params = array()) {
+        return $this->request('auth/r/orders', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthROrdersMarket($params = array()) {
+        return $this->request('auth/r/orders/market', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthROrdersMarkets($params = array()) {
+        return $this->request('auth/r/orders/markets', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthApiTokensDelete($params = array()) {
+        return $this->request('auth/api_tokens/delete', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthApiTokensCreate($params = array()) {
+        return $this->request('auth/api_tokens/create', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthApiTokens($params = array()) {
+        return $this->request('auth/api_tokens', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthSigninHistoryUniq($params = array()) {
+        return $this->request('auth/signin_history/uniq', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthSigninHistory($params = array()) {
+        return $this->request('auth/signin_history', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthDisableWithdrawConfirmation($params = array()) {
+        return $this->request('auth/disable_withdraw_confirmation', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthChangePassword($params = array()) {
+        return $this->request('auth/change_password', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthDepositAddress($params = array()) {
+        return $this->request('auth/deposit_address', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthAnnouncementsAccept($params = array()) {
+        return $this->request('auth/announcements/accept', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthAnnouncementsUnaccepted($params = array()) {
+        return $this->request('auth/announcements/unaccepted', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthOtpDeactivate($params = array()) {
+        return $this->request('auth/otp/deactivate', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthOtpActivate($params = array()) {
+        return $this->request('auth/otp/activate', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthOtpSecret($params = array()) {
+        return $this->request('auth/otp/secret', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthROrderMarketOrderIdTrades($params = array()) {
+        return $this->request('auth/r/order/market/:order_id/trades', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthROrdersMarketHist($params = array()) {
+        return $this->request('auth/r/orders/market/hist', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthROrdersHist($params = array()) {
+        return $this->request('auth/r/orders/hist', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthROrdersHistMarkets($params = array()) {
+        return $this->request('auth/r/orders/hist/markets', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthROrdersDetails($params = array()) {
+        return $this->request('auth/r/orders/details', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthAssetsHistory($params = array()) {
+        return $this->request('auth/assets-history', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthAssetsHistoryWithdraws($params = array()) {
+        return $this->request('auth/assets-history/withdraws', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthAssetsHistoryDeposits($params = array()) {
+        return $this->request('auth/assets-history/deposits', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthRWallets($params = array()) {
+        return $this->request('auth/r/wallets', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthMarketsFavorites($params = array()) {
+        return $this->request('auth/markets/favorites', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthMarketsFavoritesList($params = array()) {
+        return $this->request('auth/markets/favorites/list', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthMeUpdate($params = array()) {
+        return $this->request('auth/me/update', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthMe($params = array()) {
+        return $this->request('auth/me', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthFundSources($params = array()) {
+        return $this->request('auth/fund_sources', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthFundSourcesList($params = array()) {
+        return $this->request('auth/fund_sources/list', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthWithdrawResendConfirmation($params = array()) {
+        return $this->request('auth/withdraw/resend_confirmation', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthWithdraw($params = array()) {
+        return $this->request('auth/withdraw', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthWithdrawDetails($params = array()) {
+        return $this->request('auth/withdraw/details', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthWithdrawInfo($params = array()) {
+        return $this->request('auth/withdraw/info', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthPaymentAddresses($params = array()) {
+        return $this->request('auth/payment_addresses', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthDepositPrerequest($params = array()) {
+        return $this->request('auth/deposit/prerequest', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthDepositExchangeRates($params = array()) {
+        return $this->request('auth/deposit/exchange-rates', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthDeposit($params = array()) {
+        return $this->request('auth/deposit', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthDepositDetails($params = array()) {
+        return $this->request('auth/deposit/details', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthDepositInfo($params = array()) {
+        return $this->request('auth/deposit/info', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaCodesCount($params = array()) {
+        return $this->request('auth/kuna_codes/count', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaCodesDetails($params = array()) {
+        return $this->request('auth/kuna_codes/details', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaCodesEdit($params = array()) {
+        return $this->request('auth/kuna_codes/edit', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaCodesSendPdf($params = array()) {
+        return $this->request('auth/kuna_codes/send-pdf', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaCodes($params = array()) {
+        return $this->request('auth/kuna_codes', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaCodesRedeemedByMe($params = array()) {
+        return $this->request('auth/kuna_codes/redeemed-by-me', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaCodesIssuedByMe($params = array()) {
+        return $this->request('auth/kuna_codes/issued-by-me', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthPaymentRequestsInvoice($params = array()) {
+        return $this->request('auth/payment_requests/invoice', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthPaymentRequestsType($params = array()) {
+        return $this->request('auth/payment_requests/type', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthReferralProgramWeeklyEarnings($params = array()) {
+        return $this->request('auth/referral_program/weekly_earnings', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthReferralProgramStats($params = array()) {
+        return $this->request('auth/referral_program/stats', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthMerchantPayoutServices($params = array()) {
+        return $this->request('auth/merchant/payout_services', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthMerchantWithdraw($params = array()) {
+        return $this->request('auth/merchant/withdraw', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthMerchantPaymentServices($params = array()) {
+        return $this->request('auth/merchant/payment_services', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthMerchantDeposit($params = array()) {
+        return $this->request('auth/merchant/deposit', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthVerificationAuthToken($params = array()) {
+        return $this->request('auth/verification/auth_token', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaidPurchaseCreate($params = array()) {
+        return $this->request('auth/kunaid_purchase/create', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthDevicesList($params = array()) {
+        return $this->request('auth/devices/list', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthSessionsList($params = array()) {
+        return $this->request('auth/sessions/list', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthSubscriptionsReactivate($params = array()) {
+        return $this->request('auth/subscriptions/reactivate', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthSubscriptionsCancel($params = array()) {
+        return $this->request('auth/subscriptions/cancel', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthSubscriptionsProlong($params = array()) {
+        return $this->request('auth/subscriptions/prolong', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthSubscriptionsCreate($params = array()) {
+        return $this->request('auth/subscriptions/create', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthSubscriptionsList($params = array()) {
+        return $this->request('auth/subscriptions/list', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostAuthKunaIdsList($params = array()) {
+        return $this->request('auth/kuna_ids/list', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostOrderCancelMulti($params = array()) {
+        return $this->request('order/cancel/multi', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePostOrderCancel($params = array()) {
+        return $this->request('order/cancel', 'array(v3,private)', 'POST', $params);
+    }
+    public function v3PrivatePutAuthFundSourcesId($params = array()) {
+        return $this->request('auth/fund_sources/id', 'array(v3,private)', 'PUT', $params);
+    }
+    public function v3PrivatePutAuthKunaCodesRedeem($params = array()) {
+        return $this->request('auth/kuna_codes/redeem', 'array(v3,private)', 'PUT', $params);
+    }
+    public function v3PrivateDeleteAuthMarketsFavorites($params = array()) {
+        return $this->request('auth/markets/favorites', 'array(v3,private)', 'DELETE', $params);
+    }
+    public function v3PrivateDeleteAuthFundSources($params = array()) {
+        return $this->request('auth/fund_sources', 'array(v3,private)', 'DELETE', $params);
+    }
+    public function v3PrivateDeleteAuthDevices($params = array()) {
+        return $this->request('auth/devices', 'array(v3,private)', 'DELETE', $params);
+    }
+    public function v3PrivateDeleteAuthDevicesList($params = array()) {
+        return $this->request('auth/devices/list', 'array(v3,private)', 'DELETE', $params);
+    }
+    public function v3PrivateDeleteAuthSessionsList($params = array()) {
+        return $this->request('auth/sessions/list', 'array(v3,private)', 'DELETE', $params);
+    }
+    public function v3PrivateDeleteAuthSessions($params = array()) {
+        return $this->request('auth/sessions', 'array(v3,private)', 'DELETE', $params);
+    }
+    public function publicGetDepth($params = array()) {
+        return $this->request('depth', 'public', 'GET', $params);
+    }
+    public function publicGetKWithPendingTrades($params = array()) {
+        return $this->request('k_with_pending_trades', 'public', 'GET', $params);
+    }
+    public function publicGetK($params = array()) {
+        return $this->request('k', 'public', 'GET', $params);
+    }
+    public function publicGetMarkets($params = array()) {
+        return $this->request('markets', 'public', 'GET', $params);
+    }
+    public function publicGetOrderBook($params = array()) {
+        return $this->request('order_book', 'public', 'GET', $params);
+    }
+    public function publicGetOrderBookMarket($params = array()) {
+        return $this->request('order_book/{market}', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetTickersMarket($params = array()) {
+        return $this->request('tickers/{market}', 'public', 'GET', $params);
+    }
+    public function publicGetTimestamp($params = array()) {
+        return $this->request('timestamp', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetTradesMarket($params = array()) {
+        return $this->request('trades/{market}', 'public', 'GET', $params);
+    }
+    public function privateGetMembersMe($params = array()) {
+        return $this->request('members/me', 'private', 'GET', $params);
+    }
+    public function privateGetDeposits($params = array()) {
+        return $this->request('deposits', 'private', 'GET', $params);
+    }
+    public function privateGetDeposit($params = array()) {
+        return $this->request('deposit', 'private', 'GET', $params);
+    }
+    public function privateGetDepositAddress($params = array()) {
+        return $this->request('deposit_address', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrder($params = array()) {
+        return $this->request('order', 'private', 'GET', $params);
+    }
+    public function privateGetTradesMy($params = array()) {
+        return $this->request('trades/my', 'private', 'GET', $params);
+    }
+    public function privateGetWithdraws($params = array()) {
+        return $this->request('withdraws', 'private', 'GET', $params);
+    }
+    public function privateGetWithdraw($params = array()) {
+        return $this->request('withdraw', 'private', 'GET', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersMulti($params = array()) {
+        return $this->request('orders/multi', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersClear($params = array()) {
+        return $this->request('orders/clear', 'private', 'POST', $params);
+    }
+    public function privatePostOrderDelete($params = array()) {
+        return $this->request('order/delete', 'private', 'POST', $params);
+    }
+    public function privatePostWithdraw($params = array()) {
+        return $this->request('withdraw', 'private', 'POST', $params);
+    }
 }

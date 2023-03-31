@@ -115,4 +115,112 @@ abstract class bitbns extends \ccxt\async\Exchange {
     public function v2_post_marginorders($params = array()) {
         return $this->request('marginOrders', 'v2', 'POST', $params);
     }
+    public function wwwGetOrderFetchMarkets($params = array()) {
+        return $this->request('order/fetchMarkets', 'www', 'GET', $params);
+    }
+    public function wwwGetOrderFetchTickers($params = array()) {
+        return $this->request('order/fetchTickers', 'www', 'GET', $params);
+    }
+    public function wwwGetOrderFetchOrderbook($params = array()) {
+        return $this->request('order/fetchOrderbook', 'www', 'GET', $params);
+    }
+    public function wwwGetOrderGetTickerWithVolume($params = array()) {
+        return $this->request('order/getTickerWithVolume', 'www', 'GET', $params);
+    }
+    public function wwwGetExchangeDataOhlc($params = array()) {
+        return $this->request('exchangeData/ohlc', 'www', 'GET', $params);
+    }
+    public function wwwGetExchangeDataOrderBook($params = array()) {
+        return $this->request('exchangeData/orderBook', 'www', 'GET', $params);
+    }
+    public function wwwGetExchangeDataTradedetails($params = array()) {
+        return $this->request('exchangeData/tradedetails', 'www', 'GET', $params);
+    }
+    public function v1GetPlatformStatus($params = array()) {
+        return $this->request('platform/status', 'v1', 'GET', $params);
+    }
+    public function v1GetTickers($params = array()) {
+        return $this->request('tickers', 'v1', 'GET', $params);
+    }
+    public function v1GetOrderbookSellSymbol($params = array()) {
+        return $this->request('orderbook/sell/{symbol}', 'v1', 'GET', $params);
+    }
+    public function v1GetOrderbookBuySymbol($params = array()) {
+        return $this->request('orderbook/buy/{symbol}', 'v1', 'GET', $params);
+    }
+    public function v1PostCurrentCoinBalanceEVERYTHING($params = array()) {
+        return $this->request('currentCoinBalance/EVERYTHING', 'v1', 'POST', $params);
+    }
+    public function v1PostGetApiUsageStatusUSAGE($params = array()) {
+        return $this->request('getApiUsageStatus/USAGE', 'v1', 'POST', $params);
+    }
+    public function v1PostGetOrderSocketTokenUSAGE($params = array()) {
+        return $this->request('getOrderSocketToken/USAGE', 'v1', 'POST', $params);
+    }
+    public function v1PostCurrentCoinBalanceSymbol($params = array()) {
+        return $this->request('currentCoinBalance/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostOrderStatusSymbol($params = array()) {
+        return $this->request('orderStatus/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostDepositHistorySymbol($params = array()) {
+        return $this->request('depositHistory/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostWithdrawHistorySymbol($params = array()) {
+        return $this->request('withdrawHistory/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostWithdrawHistoryAllSymbol($params = array()) {
+        return $this->request('withdrawHistoryAll/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostDepositHistoryAllSymbol($params = array()) {
+        return $this->request('depositHistoryAll/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostListOpenOrdersSymbol($params = array()) {
+        return $this->request('listOpenOrders/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostListOpenStopOrdersSymbol($params = array()) {
+        return $this->request('listOpenStopOrders/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostGetCoinAddressSymbol($params = array()) {
+        return $this->request('getCoinAddress/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostPlaceSellOrderSymbol($params = array()) {
+        return $this->request('placeSellOrder/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostPlaceBuyOrderSymbol($params = array()) {
+        return $this->request('placeBuyOrder/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostBuyStopLossSymbol($params = array()) {
+        return $this->request('buyStopLoss/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostSellStopLossSymbol($params = array()) {
+        return $this->request('sellStopLoss/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostCancelOrderSymbol($params = array()) {
+        return $this->request('cancelOrder/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostCancelStopLossOrderSymbol($params = array()) {
+        return $this->request('cancelStopLossOrder/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostListExecutedOrdersSymbol($params = array()) {
+        return $this->request('listExecutedOrders/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostPlaceMarketOrderSymbol($params = array()) {
+        return $this->request('placeMarketOrder/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v1PostPlaceMarketOrderQntySymbol($params = array()) {
+        return $this->request('placeMarketOrderQnty/{symbol}', 'v1', 'POST', $params);
+    }
+    public function v2PostOrders($params = array()) {
+        return $this->request('orders', 'v2', 'POST', $params);
+    }
+    public function v2PostCancel($params = array()) {
+        return $this->request('cancel', 'v2', 'POST', $params);
+    }
+    public function v2PostGetordersnew($params = array()) {
+        return $this->request('getordersnew', 'v2', 'POST', $params);
+    }
+    public function v2PostMarginOrders($params = array()) {
+        return $this->request('marginOrders', 'v2', 'POST', $params);
+    }
 }

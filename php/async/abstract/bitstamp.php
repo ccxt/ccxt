@@ -583,4 +583,580 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     public function private_post_flr_address($params = array()) {
         return $this->request('flr_address/', 'private', 'POST', $params);
     }
+    public function publicGetOhlcPair($params = array()) {
+        return $this->request('ohlc/{pair}/', 'public', 'GET', $params);
+    }
+    public function publicGetOrderBookPair($params = array()) {
+        return $this->request('order_book/{pair}/', 'public', 'GET', $params);
+    }
+    public function publicGetTickerHourPair($params = array()) {
+        return $this->request('ticker_hour/{pair}/', 'public', 'GET', $params);
+    }
+    public function publicGetTickerPair($params = array()) {
+        return $this->request('ticker/{pair}/', 'public', 'GET', $params);
+    }
+    public function publicGetTransactionsPair($params = array()) {
+        return $this->request('transactions/{pair}/', 'public', 'GET', $params);
+    }
+    public function publicGetTradingPairsInfo($params = array()) {
+        return $this->request('trading-pairs-info/', 'public', 'GET', $params);
+    }
+    public function privatePostBalance($params = array()) {
+        return $this->request('balance/', 'private', 'POST', $params);
+    }
+    public function privatePostBalancePair($params = array()) {
+        return $this->request('balance/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostBchWithdrawal($params = array()) {
+        return $this->request('bch_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostBchAddress($params = array()) {
+        return $this->request('bch_address/', 'private', 'POST', $params);
+    }
+    public function privatePostUserTransactions($params = array()) {
+        return $this->request('user_transactions/', 'private', 'POST', $params);
+    }
+    public function privatePostUserTransactionsPair($params = array()) {
+        return $this->request('user_transactions/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostOpenOrdersAll($params = array()) {
+        return $this->request('open_orders/all/', 'private', 'POST', $params);
+    }
+    public function privatePostOpenOrdersPair($params = array()) {
+        return $this->request('open_orders/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderStatus($params = array()) {
+        return $this->request('order_status/', 'private', 'POST', $params);
+    }
+    public function privatePostCancelOrder($params = array()) {
+        return $this->request('cancel_order/', 'private', 'POST', $params);
+    }
+    public function privatePostCancelAllOrders($params = array()) {
+        return $this->request('cancel_all_orders/', 'private', 'POST', $params);
+    }
+    public function privatePostCancelAllOrdersPair($params = array()) {
+        return $this->request('cancel_all_orders/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostBuyPair($params = array()) {
+        return $this->request('buy/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostBuyMarketPair($params = array()) {
+        return $this->request('buy/market/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostBuyInstantPair($params = array()) {
+        return $this->request('buy/instant/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostSellPair($params = array()) {
+        return $this->request('sell/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostSellMarketPair($params = array()) {
+        return $this->request('sell/market/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostSellInstantPair($params = array()) {
+        return $this->request('sell/instant/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostTransferToMain($params = array()) {
+        return $this->request('transfer-to-main/', 'private', 'POST', $params);
+    }
+    public function privatePostTransferFromMain($params = array()) {
+        return $this->request('transfer-from-main/', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawalRequests($params = array()) {
+        return $this->request('withdrawal-requests/', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawalOpen($params = array()) {
+        return $this->request('withdrawal/open/', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawalStatus($params = array()) {
+        return $this->request('withdrawal/status/', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawalCancel($params = array()) {
+        return $this->request('withdrawal/cancel/', 'private', 'POST', $params);
+    }
+    public function privatePostLiquidationAddressNew($params = array()) {
+        return $this->request('liquidation_address/new/', 'private', 'POST', $params);
+    }
+    public function privatePostLiquidationAddressInfo($params = array()) {
+        return $this->request('liquidation_address/info/', 'private', 'POST', $params);
+    }
+    public function privatePostBtcUnconfirmed($params = array()) {
+        return $this->request('btc_unconfirmed/', 'private', 'POST', $params);
+    }
+    public function privatePostWebsocketsToken($params = array()) {
+        return $this->request('websockets_token/', 'private', 'POST', $params);
+    }
+    public function privatePostBtcWithdrawal($params = array()) {
+        return $this->request('btc_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostBtcAddress($params = array()) {
+        return $this->request('btc_address/', 'private', 'POST', $params);
+    }
+    public function privatePostRippleWithdrawal($params = array()) {
+        return $this->request('ripple_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostRippleAddress($params = array()) {
+        return $this->request('ripple_address/', 'private', 'POST', $params);
+    }
+    public function privatePostLtcWithdrawal($params = array()) {
+        return $this->request('ltc_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostLtcAddress($params = array()) {
+        return $this->request('ltc_address/', 'private', 'POST', $params);
+    }
+    public function privatePostEthWithdrawal($params = array()) {
+        return $this->request('eth_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostEthAddress($params = array()) {
+        return $this->request('eth_address/', 'private', 'POST', $params);
+    }
+    public function privatePostXrpWithdrawal($params = array()) {
+        return $this->request('xrp_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostXrpAddress($params = array()) {
+        return $this->request('xrp_address/', 'private', 'POST', $params);
+    }
+    public function privatePostXlmWithdrawal($params = array()) {
+        return $this->request('xlm_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostXlmAddress($params = array()) {
+        return $this->request('xlm_address/', 'private', 'POST', $params);
+    }
+    public function privatePostPaxWithdrawal($params = array()) {
+        return $this->request('pax_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostPaxAddress($params = array()) {
+        return $this->request('pax_address/', 'private', 'POST', $params);
+    }
+    public function privatePostLinkWithdrawal($params = array()) {
+        return $this->request('link_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostLinkAddress($params = array()) {
+        return $this->request('link_address/', 'private', 'POST', $params);
+    }
+    public function privatePostUsdcWithdrawal($params = array()) {
+        return $this->request('usdc_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostUsdcAddress($params = array()) {
+        return $this->request('usdc_address/', 'private', 'POST', $params);
+    }
+    public function privatePostOmgWithdrawal($params = array()) {
+        return $this->request('omg_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostOmgAddress($params = array()) {
+        return $this->request('omg_address/', 'private', 'POST', $params);
+    }
+    public function privatePostDaiWithdrawal($params = array()) {
+        return $this->request('dai_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostDaiAddress($params = array()) {
+        return $this->request('dai_address/', 'private', 'POST', $params);
+    }
+    public function privatePostKncWithdrawal($params = array()) {
+        return $this->request('knc_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostKncAddress($params = array()) {
+        return $this->request('knc_address/', 'private', 'POST', $params);
+    }
+    public function privatePostMkrWithdrawal($params = array()) {
+        return $this->request('mkr_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostMkrAddress($params = array()) {
+        return $this->request('mkr_address/', 'private', 'POST', $params);
+    }
+    public function privatePostZrxWithdrawal($params = array()) {
+        return $this->request('zrx_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostZrxAddress($params = array()) {
+        return $this->request('zrx_address/', 'private', 'POST', $params);
+    }
+    public function privatePostGusdWithdrawal($params = array()) {
+        return $this->request('gusd_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostGusdAddress($params = array()) {
+        return $this->request('gusd_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAaveWithdrawal($params = array()) {
+        return $this->request('aave_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAaveAddress($params = array()) {
+        return $this->request('aave_address/', 'private', 'POST', $params);
+    }
+    public function privatePostBatWithdrawal($params = array()) {
+        return $this->request('bat_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostBatAddress($params = array()) {
+        return $this->request('bat_address/', 'private', 'POST', $params);
+    }
+    public function privatePostUmaWithdrawal($params = array()) {
+        return $this->request('uma_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostUmaAddress($params = array()) {
+        return $this->request('uma_address/', 'private', 'POST', $params);
+    }
+    public function privatePostSnxWithdrawal($params = array()) {
+        return $this->request('snx_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostSnxAddress($params = array()) {
+        return $this->request('snx_address/', 'private', 'POST', $params);
+    }
+    public function privatePostUniWithdrawal($params = array()) {
+        return $this->request('uni_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostUniAddress($params = array()) {
+        return $this->request('uni_address/', 'private', 'POST', $params);
+    }
+    public function privatePostYfiWithdrawal($params = array()) {
+        return $this->request('yfi_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostYfiAddress($params = array()) {
+        return $this->request('yfi_address', 'private', 'POST', $params);
+    }
+    public function privatePostAudioWithdrawal($params = array()) {
+        return $this->request('audio_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAudioAddress($params = array()) {
+        return $this->request('audio_address/', 'private', 'POST', $params);
+    }
+    public function privatePostCrvWithdrawal($params = array()) {
+        return $this->request('crv_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostCrvAddress($params = array()) {
+        return $this->request('crv_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAlgoWithdrawal($params = array()) {
+        return $this->request('algo_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAlgoAddress($params = array()) {
+        return $this->request('algo_address/', 'private', 'POST', $params);
+    }
+    public function privatePostCompWithdrawal($params = array()) {
+        return $this->request('comp_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostCompAddress($params = array()) {
+        return $this->request('comp_address/', 'private', 'POST', $params);
+    }
+    public function privatePostGrtWithdrawal($params = array()) {
+        return $this->request('grt_withdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostGrtAddress($params = array()) {
+        return $this->request('grt_address/', 'private', 'POST', $params);
+    }
+    public function privatePostUsdtWithdrawal($params = array()) {
+        return $this->request('usdt_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostUsdtAddress($params = array()) {
+        return $this->request('usdt_address/', 'private', 'POST', $params);
+    }
+    public function privatePostEurtWithdrawal($params = array()) {
+        return $this->request('eurt_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostEurtAddress($params = array()) {
+        return $this->request('eurt_address/', 'private', 'POST', $params);
+    }
+    public function privatePostMaticWithdrawal($params = array()) {
+        return $this->request('matic_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostMaticAddress($params = array()) {
+        return $this->request('matic_address/', 'private', 'POST', $params);
+    }
+    public function privatePostSushiWithdrawal($params = array()) {
+        return $this->request('sushi_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostSushiAddress($params = array()) {
+        return $this->request('sushi_address/', 'private', 'POST', $params);
+    }
+    public function privatePostChzWithdrawal($params = array()) {
+        return $this->request('chz_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostChzAddress($params = array()) {
+        return $this->request('chz_address/', 'private', 'POST', $params);
+    }
+    public function privatePostEnjWithdrawal($params = array()) {
+        return $this->request('enj_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostEnjAddress($params = array()) {
+        return $this->request('enj_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAlphaWithdrawal($params = array()) {
+        return $this->request('alpha_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAlphaAddress($params = array()) {
+        return $this->request('alpha_address/', 'private', 'POST', $params);
+    }
+    public function privatePostFttWithdrawal($params = array()) {
+        return $this->request('ftt_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostFttAddress($params = array()) {
+        return $this->request('ftt_address/', 'private', 'POST', $params);
+    }
+    public function privatePostStorjWithdrawal($params = array()) {
+        return $this->request('storj_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostStorjAddress($params = array()) {
+        return $this->request('storj_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAxsWithdrawal($params = array()) {
+        return $this->request('axs_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAxsAddress($params = array()) {
+        return $this->request('axs_address/', 'private', 'POST', $params);
+    }
+    public function privatePostSandWithdrawal($params = array()) {
+        return $this->request('sand_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostSandAddress($params = array()) {
+        return $this->request('sand_address/', 'private', 'POST', $params);
+    }
+    public function privatePostHbarWithdrawal($params = array()) {
+        return $this->request('hbar_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostHbarAddress($params = array()) {
+        return $this->request('hbar_address/', 'private', 'POST', $params);
+    }
+    public function privatePostRgtWithdrawal($params = array()) {
+        return $this->request('rgt_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostRgtAddress($params = array()) {
+        return $this->request('rgt_address/', 'private', 'POST', $params);
+    }
+    public function privatePostFetWithdrawal($params = array()) {
+        return $this->request('fet_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostFetAddress($params = array()) {
+        return $this->request('fet_address/', 'private', 'POST', $params);
+    }
+    public function privatePostSklWithdrawal($params = array()) {
+        return $this->request('skl_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostSklAddress($params = array()) {
+        return $this->request('skl_address/', 'private', 'POST', $params);
+    }
+    public function privatePostCelWithdrawal($params = array()) {
+        return $this->request('cel_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostCelAddress($params = array()) {
+        return $this->request('cel_address/', 'private', 'POST', $params);
+    }
+    public function privatePostSxpWithdrawal($params = array()) {
+        return $this->request('sxp_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostSxpAddress($params = array()) {
+        return $this->request('sxp_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAdaWithdrawal($params = array()) {
+        return $this->request('ada_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAdaAddress($params = array()) {
+        return $this->request('ada_address/', 'private', 'POST', $params);
+    }
+    public function privatePostSlpWithdrawal($params = array()) {
+        return $this->request('slp_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostSlpAddress($params = array()) {
+        return $this->request('slp_address/', 'private', 'POST', $params);
+    }
+    public function privatePostFtmWithdrawal($params = array()) {
+        return $this->request('ftm_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostFtmAddress($params = array()) {
+        return $this->request('ftm_address/', 'private', 'POST', $params);
+    }
+    public function privatePostPerpWithdrawal($params = array()) {
+        return $this->request('perp_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostPerpAddress($params = array()) {
+        return $this->request('perp_address/', 'private', 'POST', $params);
+    }
+    public function privatePostDydxWithdrawal($params = array()) {
+        return $this->request('dydx_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostDydxAddress($params = array()) {
+        return $this->request('dydx_address/', 'private', 'POST', $params);
+    }
+    public function privatePostGalaWithdrawal($params = array()) {
+        return $this->request('gala_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostGalaAddress($params = array()) {
+        return $this->request('gala_address/', 'private', 'POST', $params);
+    }
+    public function privatePostShibWithdrawal($params = array()) {
+        return $this->request('shib_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostShibAddress($params = array()) {
+        return $this->request('shib_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAmpWithdrawal($params = array()) {
+        return $this->request('amp_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAmpAddress($params = array()) {
+        return $this->request('amp_address/', 'private', 'POST', $params);
+    }
+    public function privatePostSgbWithdrawal($params = array()) {
+        return $this->request('sgb_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostSgbAddress($params = array()) {
+        return $this->request('sgb_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAvaxWithdrawal($params = array()) {
+        return $this->request('avax_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAvaxAddress($params = array()) {
+        return $this->request('avax_address/', 'private', 'POST', $params);
+    }
+    public function privatePostWbtcWithdrawal($params = array()) {
+        return $this->request('wbtc_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostWbtcAddress($params = array()) {
+        return $this->request('wbtc_address/', 'private', 'POST', $params);
+    }
+    public function privatePostCtsiWithdrawal($params = array()) {
+        return $this->request('ctsi_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostCtsiAddress($params = array()) {
+        return $this->request('ctsi_address/', 'private', 'POST', $params);
+    }
+    public function privatePostCvxWithdrawal($params = array()) {
+        return $this->request('cvx_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostCvxAddress($params = array()) {
+        return $this->request('cvx_address/', 'private', 'POST', $params);
+    }
+    public function privatePostImxWithdrawal($params = array()) {
+        return $this->request('imx_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostImxAddress($params = array()) {
+        return $this->request('imx_address/', 'private', 'POST', $params);
+    }
+    public function privatePostNexoWithdrawal($params = array()) {
+        return $this->request('nexo_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostNexoAddress($params = array()) {
+        return $this->request('nexo_address/', 'private', 'POST', $params);
+    }
+    public function privatePostUstWithdrawal($params = array()) {
+        return $this->request('ust_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostUstAddress($params = array()) {
+        return $this->request('ust_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAntWithdrawal($params = array()) {
+        return $this->request('ant_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostAntAddress($params = array()) {
+        return $this->request('ant_address/', 'private', 'POST', $params);
+    }
+    public function privatePostGodsWithdrawal($params = array()) {
+        return $this->request('gods_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostGodsAddress($params = array()) {
+        return $this->request('gods_address/', 'private', 'POST', $params);
+    }
+    public function privatePostRadWithdrawal($params = array()) {
+        return $this->request('rad_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostRadAddress($params = array()) {
+        return $this->request('rad_address/', 'private', 'POST', $params);
+    }
+    public function privatePostBandWithdrawal($params = array()) {
+        return $this->request('band_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostBandAddress($params = array()) {
+        return $this->request('band_address/', 'private', 'POST', $params);
+    }
+    public function privatePostInjWithdrawal($params = array()) {
+        return $this->request('inj_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostInjAddress($params = array()) {
+        return $this->request('inj_address/', 'private', 'POST', $params);
+    }
+    public function privatePostRlyWithdrawal($params = array()) {
+        return $this->request('rly_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostRlyAddress($params = array()) {
+        return $this->request('rly_address/', 'private', 'POST', $params);
+    }
+    public function privatePostRndrWithdrawal($params = array()) {
+        return $this->request('rndr_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostRndrAddress($params = array()) {
+        return $this->request('rndr_address/', 'private', 'POST', $params);
+    }
+    public function privatePostVegaWithdrawal($params = array()) {
+        return $this->request('vega_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostVegaAddress($params = array()) {
+        return $this->request('vega_address/', 'private', 'POST', $params);
+    }
+    public function privatePost1inchWithdrawal($params = array()) {
+        return $this->request('1inch_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePost1inchAddress($params = array()) {
+        return $this->request('1inch_address/', 'private', 'POST', $params);
+    }
+    public function privatePostEnsWithdrawal($params = array()) {
+        return $this->request('ens_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostEnsAddress($params = array()) {
+        return $this->request('ens_address/', 'private', 'POST', $params);
+    }
+    public function privatePostManaWithdrawal($params = array()) {
+        return $this->request('mana_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostManaAddress($params = array()) {
+        return $this->request('mana_address/', 'private', 'POST', $params);
+    }
+    public function privatePostLrcWithdrawal($params = array()) {
+        return $this->request('lrc_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostLrcAddress($params = array()) {
+        return $this->request('lrc_address/', 'private', 'POST', $params);
+    }
+    public function privatePostApeWithdrawal($params = array()) {
+        return $this->request('ape_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostApeAddress($params = array()) {
+        return $this->request('ape_address/', 'private', 'POST', $params);
+    }
+    public function privatePostMplWithdrawal($params = array()) {
+        return $this->request('mpl_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostMplAddress($params = array()) {
+        return $this->request('mpl_address/', 'private', 'POST', $params);
+    }
+    public function privatePostEurocWithdrawal($params = array()) {
+        return $this->request('euroc_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostEurocAddress($params = array()) {
+        return $this->request('euroc_address/', 'private', 'POST', $params);
+    }
+    public function privatePostSolWithdrawal($params = array()) {
+        return $this->request('sol_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostSolAddress($params = array()) {
+        return $this->request('sol_address/', 'private', 'POST', $params);
+    }
+    public function privatePostDotWithdrawal($params = array()) {
+        return $this->request('dot_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostDotAddress($params = array()) {
+        return $this->request('dot_address/', 'private', 'POST', $params);
+    }
+    public function privatePostNearWithdrawal($params = array()) {
+        return $this->request('near_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostNearAddress($params = array()) {
+        return $this->request('near_address/', 'private', 'POST', $params);
+    }
+    public function privatePostDogeWithdrawal($params = array()) {
+        return $this->request('doge_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostDogeAddress($params = array()) {
+        return $this->request('doge_address/', 'private', 'POST', $params);
+    }
+    public function privatePostFlrWithdrawal($params = array()) {
+        return $this->request('flr_withdrawal/', 'private', 'POST', $params);
+    }
+    public function privatePostFlrAddress($params = array()) {
+        return $this->request('flr_address/', 'private', 'POST', $params);
+    }
 }

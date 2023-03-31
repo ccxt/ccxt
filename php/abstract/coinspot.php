@@ -79,4 +79,76 @@ abstract class coinspot extends \ccxt\Exchange {
     public function private_post_ro_my_referralpayments($params = array()) {
         return $this->request('ro/my/referralpayments', 'private', 'POST', $params);
     }
+    public function publicGetLatest($params = array()) {
+        return $this->request('latest', 'public', 'GET', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersHistory($params = array()) {
+        return $this->request('orders/history', 'private', 'POST', $params);
+    }
+    public function privatePostMyCoinDeposit($params = array()) {
+        return $this->request('my/coin/deposit', 'private', 'POST', $params);
+    }
+    public function privatePostMyCoinSend($params = array()) {
+        return $this->request('my/coin/send', 'private', 'POST', $params);
+    }
+    public function privatePostQuoteBuy($params = array()) {
+        return $this->request('quote/buy', 'private', 'POST', $params);
+    }
+    public function privatePostQuoteSell($params = array()) {
+        return $this->request('quote/sell', 'private', 'POST', $params);
+    }
+    public function privatePostMyBalances($params = array()) {
+        return $this->request('my/balances', 'private', 'POST', $params);
+    }
+    public function privatePostMyOrders($params = array()) {
+        return $this->request('my/orders', 'private', 'POST', $params);
+    }
+    public function privatePostMyBuy($params = array()) {
+        return $this->request('my/buy', 'private', 'POST', $params);
+    }
+    public function privatePostMySell($params = array()) {
+        return $this->request('my/sell', 'private', 'POST', $params);
+    }
+    public function privatePostMyBuyCancel($params = array()) {
+        return $this->request('my/buy/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostMySellCancel($params = array()) {
+        return $this->request('my/sell/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyBalances($params = array()) {
+        return $this->request('ro/my/balances', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyBalancesCointype($params = array()) {
+        return $this->request('ro/my/balances/{cointype}', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyDeposits($params = array()) {
+        return $this->request('ro/my/deposits', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyWithdrawals($params = array()) {
+        return $this->request('ro/my/withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyTransactions($params = array()) {
+        return $this->request('ro/my/transactions', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyTransactionsCointype($params = array()) {
+        return $this->request('ro/my/transactions/{cointype}', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyTransactionsOpen($params = array()) {
+        return $this->request('ro/my/transactions/open', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyTransactionsCointypeOpen($params = array()) {
+        return $this->request('ro/my/transactions/{cointype}/open', 'private', 'POST', $params);
+    }
+    public function privatePostRoMySendreceive($params = array()) {
+        return $this->request('ro/my/sendreceive', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyAffiliatepayments($params = array()) {
+        return $this->request('ro/my/affiliatepayments', 'private', 'POST', $params);
+    }
+    public function privatePostRoMyReferralpayments($params = array()) {
+        return $this->request('ro/my/referralpayments', 'private', 'POST', $params);
+    }
 }

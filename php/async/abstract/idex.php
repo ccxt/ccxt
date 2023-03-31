@@ -73,4 +73,70 @@ abstract class idex extends \ccxt\async\Exchange {
     public function private_delete_orders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params);
     }
+    public function publicGetPing($params = array()) {
+        return $this->request('ping', 'public', 'GET', $params);
+    }
+    public function publicGetTime($params = array()) {
+        return $this->request('time', 'public', 'GET', $params);
+    }
+    public function publicGetExchange($params = array()) {
+        return $this->request('exchange', 'public', 'GET', $params);
+    }
+    public function publicGetAssets($params = array()) {
+        return $this->request('assets', 'public', 'GET', $params);
+    }
+    public function publicGetMarkets($params = array()) {
+        return $this->request('markets', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetCandles($params = array()) {
+        return $this->request('candles', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbook($params = array()) {
+        return $this->request('orderbook', 'public', 'GET', $params);
+    }
+    public function privateGetUser($params = array()) {
+        return $this->request('user', 'private', 'GET', $params);
+    }
+    public function privateGetWallets($params = array()) {
+        return $this->request('wallets', 'private', 'GET', $params);
+    }
+    public function privateGetBalances($params = array()) {
+        return $this->request('balances', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetFills($params = array()) {
+        return $this->request('fills', 'private', 'GET', $params);
+    }
+    public function privateGetDeposits($params = array()) {
+        return $this->request('deposits', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetWsToken($params = array()) {
+        return $this->request('wsToken', 'private', 'GET', $params);
+    }
+    public function privatePostWallets($params = array()) {
+        return $this->request('wallets', 'private', 'POST', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersTest($params = array()) {
+        return $this->request('orders/test', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
 }

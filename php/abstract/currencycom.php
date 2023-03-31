@@ -196,4 +196,193 @@ abstract class currencycom extends \ccxt\Exchange {
     public function private_delete_v2_order($params = array()) {
         return $this->request('v2/order', 'private', 'DELETE', $params);
     }
+    public function publicGetV1Time($params = array()) {
+        return $this->request('v1/time', 'public', 'GET', $params);
+    }
+    public function publicGetV1ExchangeInfo($params = array()) {
+        return $this->request('v1/exchangeInfo', 'public', 'GET', $params);
+    }
+    public function publicGetV1Depth($params = array()) {
+        return $this->request('v1/depth', 'public', 'GET', $params);
+    }
+    public function publicGetV1AggTrades($params = array()) {
+        return $this->request('v1/aggTrades', 'public', 'GET', $params);
+    }
+    public function publicGetV1Klines($params = array()) {
+        return $this->request('v1/klines', 'public', 'GET', $params);
+    }
+    public function publicGetV1Ticker24hr($params = array()) {
+        return $this->request('v1/ticker/24hr', 'public', 'GET', $params);
+    }
+    public function publicGetV2Time($params = array()) {
+        return $this->request('v2/time', 'public', 'GET', $params);
+    }
+    public function publicGetV2ExchangeInfo($params = array()) {
+        return $this->request('v2/exchangeInfo', 'public', 'GET', $params);
+    }
+    public function publicGetV2Depth($params = array()) {
+        return $this->request('v2/depth', 'public', 'GET', $params);
+    }
+    public function publicGetV2AggTrades($params = array()) {
+        return $this->request('v2/aggTrades', 'public', 'GET', $params);
+    }
+    public function publicGetV2Klines($params = array()) {
+        return $this->request('v2/klines', 'public', 'GET', $params);
+    }
+    public function publicGetV2Ticker24hr($params = array()) {
+        return $this->request('v2/ticker/24hr', 'public', 'GET', $params);
+    }
+    public function marketcapGetV1Assets($params = array()) {
+        return $this->request('v1/assets', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1Candles($params = array()) {
+        return $this->request('v1/candles', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1Orderbook($params = array()) {
+        return $this->request('v1/orderbook', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1Summary($params = array()) {
+        return $this->request('v1/summary', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1Ticker($params = array()) {
+        return $this->request('v1/ticker', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenAssets($params = array()) {
+        return $this->request('v1/token/assets', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenOrderbook($params = array()) {
+        return $this->request('v1/token/orderbook', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenSummary($params = array()) {
+        return $this->request('v1/token/summary', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenTicker($params = array()) {
+        return $this->request('v1/token/ticker', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenTrades($params = array()) {
+        return $this->request('v1/token/trades', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenCryptoOHLC($params = array()) {
+        return $this->request('v1/token_crypto/OHLC', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenCryptoAssets($params = array()) {
+        return $this->request('v1/token_crypto/assets', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenCryptoOrderbook($params = array()) {
+        return $this->request('v1/token_crypto/orderbook', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenCryptoSummary($params = array()) {
+        return $this->request('v1/token_crypto/summary', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenCryptoTicker($params = array()) {
+        return $this->request('v1/token_crypto/ticker', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1TokenCryptoTrades($params = array()) {
+        return $this->request('v1/token_crypto/trades', 'marketcap', 'GET', $params);
+    }
+    public function marketcapGetV1Trades($params = array()) {
+        return $this->request('v1/trades', 'marketcap', 'GET', $params);
+    }
+    public function privateGetV1Account($params = array()) {
+        return $this->request('v1/account', 'private', 'GET', $params);
+    }
+    public function privateGetV1Currencies($params = array()) {
+        return $this->request('v1/currencies', 'private', 'GET', $params);
+    }
+    public function privateGetV1Deposits($params = array()) {
+        return $this->request('v1/deposits', 'private', 'GET', $params);
+    }
+    public function privateGetV1DepositAddress($params = array()) {
+        return $this->request('v1/depositAddress', 'private', 'GET', $params);
+    }
+    public function privateGetV1Ledger($params = array()) {
+        return $this->request('v1/ledger', 'private', 'GET', $params);
+    }
+    public function privateGetV1LeverageSettings($params = array()) {
+        return $this->request('v1/leverageSettings', 'private', 'GET', $params);
+    }
+    public function privateGetV1MyTrades($params = array()) {
+        return $this->request('v1/myTrades', 'private', 'GET', $params);
+    }
+    public function privateGetV1OpenOrders($params = array()) {
+        return $this->request('v1/openOrders', 'private', 'GET', $params);
+    }
+    public function privateGetV1TradingPositions($params = array()) {
+        return $this->request('v1/tradingPositions', 'private', 'GET', $params);
+    }
+    public function privateGetV1TradingPositionsHistory($params = array()) {
+        return $this->request('v1/tradingPositionsHistory', 'private', 'GET', $params);
+    }
+    public function privateGetV1Transactions($params = array()) {
+        return $this->request('v1/transactions', 'private', 'GET', $params);
+    }
+    public function privateGetV1Withdrawals($params = array()) {
+        return $this->request('v1/withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetV2Account($params = array()) {
+        return $this->request('v2/account', 'private', 'GET', $params);
+    }
+    public function privateGetV2Currencies($params = array()) {
+        return $this->request('v2/currencies', 'private', 'GET', $params);
+    }
+    public function privateGetV2Deposits($params = array()) {
+        return $this->request('v2/deposits', 'private', 'GET', $params);
+    }
+    public function privateGetV2DepositAddress($params = array()) {
+        return $this->request('v2/depositAddress', 'private', 'GET', $params);
+    }
+    public function privateGetV2Ledger($params = array()) {
+        return $this->request('v2/ledger', 'private', 'GET', $params);
+    }
+    public function privateGetV2LeverageSettings($params = array()) {
+        return $this->request('v2/leverageSettings', 'private', 'GET', $params);
+    }
+    public function privateGetV2MyTrades($params = array()) {
+        return $this->request('v2/myTrades', 'private', 'GET', $params);
+    }
+    public function privateGetV2OpenOrders($params = array()) {
+        return $this->request('v2/openOrders', 'private', 'GET', $params);
+    }
+    public function privateGetV2TradingPositions($params = array()) {
+        return $this->request('v2/tradingPositions', 'private', 'GET', $params);
+    }
+    public function privateGetV2TradingPositionsHistory($params = array()) {
+        return $this->request('v2/tradingPositionsHistory', 'private', 'GET', $params);
+    }
+    public function privateGetV2Transactions($params = array()) {
+        return $this->request('v2/transactions', 'private', 'GET', $params);
+    }
+    public function privateGetV2Withdrawals($params = array()) {
+        return $this->request('v2/withdrawals', 'private', 'GET', $params);
+    }
+    public function privatePostV1Order($params = array()) {
+        return $this->request('v1/order', 'private', 'POST', $params);
+    }
+    public function privatePostV1UpdateTradingPosition($params = array()) {
+        return $this->request('v1/updateTradingPosition', 'private', 'POST', $params);
+    }
+    public function privatePostV1UpdateTradingOrder($params = array()) {
+        return $this->request('v1/updateTradingOrder', 'private', 'POST', $params);
+    }
+    public function privatePostV1CloseTradingPosition($params = array()) {
+        return $this->request('v1/closeTradingPosition', 'private', 'POST', $params);
+    }
+    public function privatePostV2Order($params = array()) {
+        return $this->request('v2/order', 'private', 'POST', $params);
+    }
+    public function privatePostV2UpdateTradingPosition($params = array()) {
+        return $this->request('v2/updateTradingPosition', 'private', 'POST', $params);
+    }
+    public function privatePostV2UpdateTradingOrder($params = array()) {
+        return $this->request('v2/updateTradingOrder', 'private', 'POST', $params);
+    }
+    public function privatePostV2CloseTradingPosition($params = array()) {
+        return $this->request('v2/closeTradingPosition', 'private', 'POST', $params);
+    }
+    public function privateDeleteV1Order($params = array()) {
+        return $this->request('v1/order', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteV2Order($params = array()) {
+        return $this->request('v2/order', 'private', 'DELETE', $params);
+    }
 }

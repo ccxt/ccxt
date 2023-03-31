@@ -97,4 +97,94 @@ abstract class buda extends \ccxt\Exchange {
     public function private_put_orders_id($params = array()) {
         return $this->request('orders/{id}', 'private', 'PUT', $params);
     }
+    public function publicGetPairs($params = array()) {
+        return $this->request('pairs', 'public', 'GET', $params);
+    }
+    public function publicGetMarkets($params = array()) {
+        return $this->request('markets', 'public', 'GET', $params);
+    }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarket($params = array()) {
+        return $this->request('markets/{market}', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarketTicker($params = array()) {
+        return $this->request('markets/{market}/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarketVolume($params = array()) {
+        return $this->request('markets/{market}/volume', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarketOrderBook($params = array()) {
+        return $this->request('markets/{market}/order_book', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarketTrades($params = array()) {
+        return $this->request('markets/{market}/trades', 'public', 'GET', $params);
+    }
+    public function publicGetCurrenciesCurrencyFeesDeposit($params = array()) {
+        return $this->request('currencies/{currency}/fees/deposit', 'public', 'GET', $params);
+    }
+    public function publicGetCurrenciesCurrencyFeesWithdrawal($params = array()) {
+        return $this->request('currencies/{currency}/fees/withdrawal', 'public', 'GET', $params);
+    }
+    public function publicGetTvHistory($params = array()) {
+        return $this->request('tv/history', 'public', 'GET', $params);
+    }
+    public function publicPostMarketsMarketQuotations($params = array()) {
+        return $this->request('markets/{market}/quotations', 'public', 'POST', $params);
+    }
+    public function privateGetBalances($params = array()) {
+        return $this->request('balances', 'private', 'GET', $params);
+    }
+    public function privateGetBalancesCurrency($params = array()) {
+        return $this->request('balances/{currency}', 'private', 'GET', $params);
+    }
+    public function privateGetCurrenciesCurrencyBalances($params = array()) {
+        return $this->request('currencies/{currency}/balances', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetMarketsMarketOrders($params = array()) {
+        return $this->request('markets/{market}/orders', 'private', 'GET', $params);
+    }
+    public function privateGetDeposits($params = array()) {
+        return $this->request('deposits', 'private', 'GET', $params);
+    }
+    public function privateGetCurrenciesCurrencyDeposits($params = array()) {
+        return $this->request('currencies/{currency}/deposits', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetCurrenciesCurrencyWithdrawals($params = array()) {
+        return $this->request('currencies/{currency}/withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetCurrenciesCurrencyReceiveAddresses($params = array()) {
+        return $this->request('currencies/{currency}/receive_addresses', 'private', 'GET', $params);
+    }
+    public function privateGetCurrenciesCurrencyReceiveAddressesId($params = array()) {
+        return $this->request('currencies/{currency}/receive_addresses/{id}', 'private', 'GET', $params);
+    }
+    public function privatePostMarketsMarketOrders($params = array()) {
+        return $this->request('markets/{market}/orders', 'private', 'POST', $params);
+    }
+    public function privatePostCurrenciesCurrencyDeposits($params = array()) {
+        return $this->request('currencies/{currency}/deposits', 'private', 'POST', $params);
+    }
+    public function privatePostCurrenciesCurrencyWithdrawals($params = array()) {
+        return $this->request('currencies/{currency}/withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostCurrenciesCurrencySimulatedWithdrawals($params = array()) {
+        return $this->request('currencies/{currency}/simulated_withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostCurrenciesCurrencyReceiveAddresses($params = array()) {
+        return $this->request('currencies/{currency}/receive_addresses', 'private', 'POST', $params);
+    }
+    public function privatePutOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'PUT', $params);
+    }
 }

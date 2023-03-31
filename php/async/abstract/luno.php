@@ -106,4 +106,103 @@ abstract class luno extends \ccxt\async\Exchange {
     public function private_delete_withdrawals_id($params = array()) {
         return $this->request('withdrawals/{id}', 'private', 'DELETE', $params);
     }
+    public function exchangeGetMarkets($params = array()) {
+        return $this->request('markets', 'exchange', 'GET', $params);
+    }
+    public function publicGetOrderbook($params = array()) {
+        return $this->request('orderbook', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbookTop($params = array()) {
+        return $this->request('orderbook_top', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function privateGetAccountsIdPending($params = array()) {
+        return $this->request('accounts/{id}/pending', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsIdTransactions($params = array()) {
+        return $this->request('accounts/{id}/transactions', 'private', 'GET', $params);
+    }
+    public function privateGetBalance($params = array()) {
+        return $this->request('balance', 'private', 'GET', $params);
+    }
+    public function privateGetBeneficiaries($params = array()) {
+        return $this->request('beneficiaries', 'private', 'GET', $params);
+    }
+    public function privateGetFeeInfo($params = array()) {
+        return $this->request('fee_info', 'private', 'GET', $params);
+    }
+    public function privateGetFundingAddress($params = array()) {
+        return $this->request('funding_address', 'private', 'GET', $params);
+    }
+    public function privateGetListorders($params = array()) {
+        return $this->request('listorders', 'private', 'GET', $params);
+    }
+    public function privateGetListtrades($params = array()) {
+        return $this->request('listtrades', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetQuotesId($params = array()) {
+        return $this->request('quotes/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawalsId($params = array()) {
+        return $this->request('withdrawals/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetTransfers($params = array()) {
+        return $this->request('transfers', 'private', 'GET', $params);
+    }
+    public function privatePostAccounts($params = array()) {
+        return $this->request('accounts', 'private', 'POST', $params);
+    }
+    public function privatePostAccountsIdName($params = array()) {
+        return $this->request('accounts/{id}/name', 'private', 'POST', $params);
+    }
+    public function privatePostPostorder($params = array()) {
+        return $this->request('postorder', 'private', 'POST', $params);
+    }
+    public function privatePostMarketorder($params = array()) {
+        return $this->request('marketorder', 'private', 'POST', $params);
+    }
+    public function privatePostStoporder($params = array()) {
+        return $this->request('stoporder', 'private', 'POST', $params);
+    }
+    public function privatePostFundingAddress($params = array()) {
+        return $this->request('funding_address', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostSend($params = array()) {
+        return $this->request('send', 'private', 'POST', $params);
+    }
+    public function privatePostQuotes($params = array()) {
+        return $this->request('quotes', 'private', 'POST', $params);
+    }
+    public function privatePostOauth2Grant($params = array()) {
+        return $this->request('oauth2/grant', 'private', 'POST', $params);
+    }
+    public function privatePutAccountsIdName($params = array()) {
+        return $this->request('accounts/{id}/name', 'private', 'PUT', $params);
+    }
+    public function privatePutQuotesId($params = array()) {
+        return $this->request('quotes/{id}', 'private', 'PUT', $params);
+    }
+    public function privateDeleteQuotesId($params = array()) {
+        return $this->request('quotes/{id}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteWithdrawalsId($params = array()) {
+        return $this->request('withdrawals/{id}', 'private', 'DELETE', $params);
+    }
 }

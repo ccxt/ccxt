@@ -190,4 +190,187 @@ abstract class coinbaseprime extends \ccxt\coinbasepro {
     public function private_delete_orders_id($params = array()) {
         return $this->request('orders/{id}', 'private', 'DELETE', $params);
     }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies', 'public', 'GET', $params);
+    }
+    public function publicGetProducts($params = array()) {
+        return $this->request('products', 'public', 'GET', $params);
+    }
+    public function publicGetProductsId($params = array()) {
+        return $this->request('products/{id}', 'public', 'GET', $params);
+    }
+    public function publicGetProductsIdBook($params = array()) {
+        return $this->request('products/{id}/book', 'public', 'GET', $params);
+    }
+    public function publicGetProductsIdCandles($params = array()) {
+        return $this->request('products/{id}/candles', 'public', 'GET', $params);
+    }
+    public function publicGetProductsIdStats($params = array()) {
+        return $this->request('products/{id}/stats', 'public', 'GET', $params);
+    }
+    public function publicGetProductsIdTicker($params = array()) {
+        return $this->request('products/{id}/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetProductsIdTrades($params = array()) {
+        return $this->request('products/{id}/trades', 'public', 'GET', $params);
+    }
+    public function publicGetTime($params = array()) {
+        return $this->request('time', 'public', 'GET', $params);
+    }
+    public function publicGetProductsSparkLines($params = array()) {
+        return $this->request('products/spark-lines', 'public', 'GET', $params);
+    }
+    public function privateGetAccounts($params = array()) {
+        return $this->request('accounts', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsId($params = array()) {
+        return $this->request('accounts/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsIdHolds($params = array()) {
+        return $this->request('accounts/{id}/holds', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsIdLedger($params = array()) {
+        return $this->request('accounts/{id}/ledger', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsIdTransfers($params = array()) {
+        return $this->request('accounts/{id}/transfers', 'private', 'GET', $params);
+    }
+    public function privateGetCoinbaseAccounts($params = array()) {
+        return $this->request('coinbase-accounts', 'private', 'GET', $params);
+    }
+    public function privateGetFills($params = array()) {
+        return $this->request('fills', 'private', 'GET', $params);
+    }
+    public function privateGetFunding($params = array()) {
+        return $this->request('funding', 'private', 'GET', $params);
+    }
+    public function privateGetFees($params = array()) {
+        return $this->request('fees', 'private', 'GET', $params);
+    }
+    public function privateGetMarginProfileInformation($params = array()) {
+        return $this->request('margin/profile_information', 'private', 'GET', $params);
+    }
+    public function privateGetMarginBuyingPower($params = array()) {
+        return $this->request('margin/buying_power', 'private', 'GET', $params);
+    }
+    public function privateGetMarginWithdrawalPower($params = array()) {
+        return $this->request('margin/withdrawal_power', 'private', 'GET', $params);
+    }
+    public function privateGetMarginWithdrawalPowerAll($params = array()) {
+        return $this->request('margin/withdrawal_power_all', 'private', 'GET', $params);
+    }
+    public function privateGetMarginExitPlan($params = array()) {
+        return $this->request('margin/exit_plan', 'private', 'GET', $params);
+    }
+    public function privateGetMarginLiquidationHistory($params = array()) {
+        return $this->request('margin/liquidation_history', 'private', 'GET', $params);
+    }
+    public function privateGetMarginPositionRefreshAmounts($params = array()) {
+        return $this->request('margin/position_refresh_amounts', 'private', 'GET', $params);
+    }
+    public function privateGetMarginStatus($params = array()) {
+        return $this->request('margin/status', 'private', 'GET', $params);
+    }
+    public function privateGetOracle($params = array()) {
+        return $this->request('oracle', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersClientClientOid($params = array()) {
+        return $this->request('orders/client:{client_oid}', 'private', 'GET', $params);
+    }
+    public function privateGetOtcOrders($params = array()) {
+        return $this->request('otc/orders', 'private', 'GET', $params);
+    }
+    public function privateGetPaymentMethods($params = array()) {
+        return $this->request('payment-methods', 'private', 'GET', $params);
+    }
+    public function privateGetPosition($params = array()) {
+        return $this->request('position', 'private', 'GET', $params);
+    }
+    public function privateGetProfiles($params = array()) {
+        return $this->request('profiles', 'private', 'GET', $params);
+    }
+    public function privateGetProfilesId($params = array()) {
+        return $this->request('profiles/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetReportsReportId($params = array()) {
+        return $this->request('reports/{report_id}', 'private', 'GET', $params);
+    }
+    public function privateGetTransfers($params = array()) {
+        return $this->request('transfers', 'private', 'GET', $params);
+    }
+    public function privateGetTransfersTransferId($params = array()) {
+        return $this->request('transfers/{transfer_id}', 'private', 'GET', $params);
+    }
+    public function privateGetUsersSelfExchangeLimits($params = array()) {
+        return $this->request('users/self/exchange-limits', 'private', 'GET', $params);
+    }
+    public function privateGetUsersSelfHoldBalances($params = array()) {
+        return $this->request('users/self/hold-balances', 'private', 'GET', $params);
+    }
+    public function privateGetUsersSelfTrailingVolume($params = array()) {
+        return $this->request('users/self/trailing-volume', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawalsFeeEstimate($params = array()) {
+        return $this->request('withdrawals/fee-estimate', 'private', 'GET', $params);
+    }
+    public function privateGetConversionsConversionId($params = array()) {
+        return $this->request('conversions/{conversion_id}', 'private', 'GET', $params);
+    }
+    public function privatePostConversions($params = array()) {
+        return $this->request('conversions', 'private', 'POST', $params);
+    }
+    public function privatePostDepositsCoinbaseAccount($params = array()) {
+        return $this->request('deposits/coinbase-account', 'private', 'POST', $params);
+    }
+    public function privatePostDepositsPaymentMethod($params = array()) {
+        return $this->request('deposits/payment-method', 'private', 'POST', $params);
+    }
+    public function privatePostCoinbaseAccountsIdAddresses($params = array()) {
+        return $this->request('coinbase-accounts/{id}/addresses', 'private', 'POST', $params);
+    }
+    public function privatePostFundingRepay($params = array()) {
+        return $this->request('funding/repay', 'private', 'POST', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostPositionClose($params = array()) {
+        return $this->request('position/close', 'private', 'POST', $params);
+    }
+    public function privatePostProfilesMarginTransfer($params = array()) {
+        return $this->request('profiles/margin-transfer', 'private', 'POST', $params);
+    }
+    public function privatePostProfilesTransfer($params = array()) {
+        return $this->request('profiles/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostReports($params = array()) {
+        return $this->request('reports', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawalsCoinbase($params = array()) {
+        return $this->request('withdrawals/coinbase', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawalsCoinbaseAccount($params = array()) {
+        return $this->request('withdrawals/coinbase-account', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawalsCrypto($params = array()) {
+        return $this->request('withdrawals/crypto', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawalsPaymentMethod($params = array()) {
+        return $this->request('withdrawals/payment-method', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersClientClientOid($params = array()) {
+        return $this->request('orders/client:{client_oid}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'DELETE', $params);
+    }
 }

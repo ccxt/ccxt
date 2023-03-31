@@ -46,4 +46,43 @@ abstract class btcturk extends \ccxt\Exchange {
     public function graph_get_klines_history($params = array()) {
         return $this->request('klines/history', 'graph', 'GET', $params);
     }
+    public function publicGetOrderbook($params = array()) {
+        return $this->request('orderbook', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetServerExchangeinfo($params = array()) {
+        return $this->request('server/exchangeinfo', 'public', 'GET', $params);
+    }
+    public function privateGetUsersBalances($params = array()) {
+        return $this->request('users/balances', 'private', 'GET', $params);
+    }
+    public function privateGetOpenOrders($params = array()) {
+        return $this->request('openOrders', 'private', 'GET', $params);
+    }
+    public function privateGetAllOrders($params = array()) {
+        return $this->request('allOrders', 'private', 'GET', $params);
+    }
+    public function privateGetUsersTransactionsTrade($params = array()) {
+        return $this->request('users/transactions/trade', 'private', 'GET', $params);
+    }
+    public function privatePostOrder($params = array()) {
+        return $this->request('order', 'private', 'POST', $params);
+    }
+    public function privatePostCancelOrder($params = array()) {
+        return $this->request('cancelOrder', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrder($params = array()) {
+        return $this->request('order', 'private', 'DELETE', $params);
+    }
+    public function graphGetOhlcs($params = array()) {
+        return $this->request('ohlcs', 'graph', 'GET', $params);
+    }
+    public function graphGetKlinesHistory($params = array()) {
+        return $this->request('klines/history', 'graph', 'GET', $params);
+    }
 }

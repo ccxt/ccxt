@@ -49,4 +49,46 @@ abstract class btcalpha extends \ccxt\async\Exchange {
     public function private_post_order_cancel($params = array()) {
         return $this->request('order-cancel/', 'private', 'POST', $params);
     }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies/', 'public', 'GET', $params);
+    }
+    public function publicGetPairs($params = array()) {
+        return $this->request('pairs/', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbookPairName($params = array()) {
+        return $this->request('orderbook/{pair_name}', 'public', 'GET', $params);
+    }
+    public function publicGetExchanges($params = array()) {
+        return $this->request('exchanges/', 'public', 'GET', $params);
+    }
+    public function publicGetChartsPairTypeChart($params = array()) {
+        return $this->request('charts/{pair}/{type}/chart/', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker/', 'public', 'GET', $params);
+    }
+    public function privateGetWallets($params = array()) {
+        return $this->request('wallets/', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersOwn($params = array()) {
+        return $this->request('orders/own/', 'private', 'GET', $params);
+    }
+    public function privateGetOrderId($params = array()) {
+        return $this->request('order/{id}/', 'private', 'GET', $params);
+    }
+    public function privateGetExchangesOwn($params = array()) {
+        return $this->request('exchanges/own/', 'private', 'GET', $params);
+    }
+    public function privateGetDeposits($params = array()) {
+        return $this->request('deposits/', 'private', 'GET', $params);
+    }
+    public function privateGetWithdraws($params = array()) {
+        return $this->request('withdraws/', 'private', 'GET', $params);
+    }
+    public function privatePostOrder($params = array()) {
+        return $this->request('order/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderCancel($params = array()) {
+        return $this->request('order-cancel/', 'private', 'POST', $params);
+    }
 }

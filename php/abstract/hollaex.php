@@ -85,4 +85,82 @@ abstract class hollaex extends \ccxt\Exchange {
     public function private_delete_order($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params);
     }
+    public function publicGetHealth($params = array()) {
+        return $this->request('health', 'public', 'GET', $params);
+    }
+    public function publicGetConstants($params = array()) {
+        return $this->request('constants', 'public', 'GET', $params);
+    }
+    public function publicGetKit($params = array()) {
+        return $this->request('kit', 'public', 'GET', $params);
+    }
+    public function publicGetTiers($params = array()) {
+        return $this->request('tiers', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbook($params = array()) {
+        return $this->request('orderbook', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbooks($params = array()) {
+        return $this->request('orderbooks', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetChart($params = array()) {
+        return $this->request('chart', 'public', 'GET', $params);
+    }
+    public function publicGetCharts($params = array()) {
+        return $this->request('charts', 'public', 'GET', $params);
+    }
+    public function publicGetUdfConfig($params = array()) {
+        return $this->request('udf/config', 'public', 'GET', $params);
+    }
+    public function publicGetUdfHistory($params = array()) {
+        return $this->request('udf/history', 'public', 'GET', $params);
+    }
+    public function publicGetUdfSymbols($params = array()) {
+        return $this->request('udf/symbols', 'public', 'GET', $params);
+    }
+    public function privateGetUser($params = array()) {
+        return $this->request('user', 'private', 'GET', $params);
+    }
+    public function privateGetUserBalance($params = array()) {
+        return $this->request('user/balance', 'private', 'GET', $params);
+    }
+    public function privateGetUserDeposits($params = array()) {
+        return $this->request('user/deposits', 'private', 'GET', $params);
+    }
+    public function privateGetUserWithdrawals($params = array()) {
+        return $this->request('user/withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetUserWithdrawalFee($params = array()) {
+        return $this->request('user/withdrawal/fee', 'private', 'GET', $params);
+    }
+    public function privateGetUserTrades($params = array()) {
+        return $this->request('user/trades', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrder($params = array()) {
+        return $this->request('order', 'private', 'GET', $params);
+    }
+    public function privatePostUserWithdrawal($params = array()) {
+        return $this->request('user/withdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostOrder($params = array()) {
+        return $this->request('order', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrderAll($params = array()) {
+        return $this->request('order/all', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrder($params = array()) {
+        return $this->request('order', 'private', 'DELETE', $params);
+    }
 }

@@ -40,4 +40,37 @@ abstract class ace extends \ccxt\Exchange {
     public function private_post_v2_order_gettradelist($params = array()) {
         return $this->request('v2/order/getTradeList', 'private', 'POST', $params);
     }
+    public function publicGetOapiV2ListTradePrice($params = array()) {
+        return $this->request('oapi/v2/list/tradePrice', 'public', 'GET', $params);
+    }
+    public function publicGetOapiV2ListMarketPair($params = array()) {
+        return $this->request('oapi/v2/list/marketPair', 'public', 'GET', $params);
+    }
+    public function publicGetOpenV2PublicGetOrderBook($params = array()) {
+        return $this->request('open/v2/public/getOrderBook', 'public', 'GET', $params);
+    }
+    public function privatePostV2CoinCustomerAccount($params = array()) {
+        return $this->request('v2/coin/customerAccount', 'private', 'POST', $params);
+    }
+    public function privatePostV2KlineGetKline($params = array()) {
+        return $this->request('v2/kline/getKline', 'private', 'POST', $params);
+    }
+    public function privatePostV2OrderOrder($params = array()) {
+        return $this->request('v2/order/order', 'private', 'POST', $params);
+    }
+    public function privatePostV2OrderCancel($params = array()) {
+        return $this->request('v2/order/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostV2OrderGetOrderList($params = array()) {
+        return $this->request('v2/order/getOrderList', 'private', 'POST', $params);
+    }
+    public function privatePostV2OrderShowOrderStatus($params = array()) {
+        return $this->request('v2/order/showOrderStatus', 'private', 'POST', $params);
+    }
+    public function privatePostV2OrderShowOrderHistory($params = array()) {
+        return $this->request('v2/order/showOrderHistory', 'private', 'POST', $params);
+    }
+    public function privatePostV2OrderGetTradeList($params = array()) {
+        return $this->request('v2/order/getTradeList', 'private', 'POST', $params);
+    }
 }

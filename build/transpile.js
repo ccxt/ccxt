@@ -2331,7 +2331,7 @@ class Transpiler {
 
         this.transpilePhpAsyncToSync ()
 
-        this.transpilePhpBaseClassMethods ()
+        // this.transpilePhpBaseClassMethods ()
 
         this.addGeneratedHeaderToJs ('./js/')
 

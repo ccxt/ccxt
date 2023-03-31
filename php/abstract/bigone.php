@@ -70,4 +70,67 @@ abstract class bigone extends \ccxt\Exchange {
     public function private_post_transfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params);
     }
+    public function publicGetPing($params = array()) {
+        return $this->request('ping', 'public', 'GET', $params);
+    }
+    public function publicGetAssetPairs($params = array()) {
+        return $this->request('asset_pairs', 'public', 'GET', $params);
+    }
+    public function publicGetAssetPairsAssetPairNameDepth($params = array()) {
+        return $this->request('asset_pairs/{asset_pair_name}/depth', 'public', 'GET', $params);
+    }
+    public function publicGetAssetPairsAssetPairNameTrades($params = array()) {
+        return $this->request('asset_pairs/{asset_pair_name}/trades', 'public', 'GET', $params);
+    }
+    public function publicGetAssetPairsAssetPairNameTicker($params = array()) {
+        return $this->request('asset_pairs/{asset_pair_name}/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetAssetPairsAssetPairNameCandles($params = array()) {
+        return $this->request('asset_pairs/{asset_pair_name}/candles', 'public', 'GET', $params);
+    }
+    public function publicGetAssetPairsTickers($params = array()) {
+        return $this->request('asset_pairs/tickers', 'public', 'GET', $params);
+    }
+    public function privateGetAccounts($params = array()) {
+        return $this->request('accounts', 'private', 'GET', $params);
+    }
+    public function privateGetFundAccounts($params = array()) {
+        return $this->request('fund/accounts', 'private', 'GET', $params);
+    }
+    public function privateGetAssetsAssetSymbolAddress($params = array()) {
+        return $this->request('assets/{asset_symbol}/address', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersMulti($params = array()) {
+        return $this->request('orders/multi', 'private', 'GET', $params);
+    }
+    public function privateGetTrades($params = array()) {
+        return $this->request('trades', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetDeposits($params = array()) {
+        return $this->request('deposits', 'private', 'GET', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersIdCancel($params = array()) {
+        return $this->request('orders/{id}/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersCancel($params = array()) {
+        return $this->request('orders/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostTransfer($params = array()) {
+        return $this->request('transfer', 'private', 'POST', $params);
+    }
 }

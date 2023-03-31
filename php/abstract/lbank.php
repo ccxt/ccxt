@@ -52,4 +52,49 @@ abstract class lbank extends \ccxt\Exchange {
     public function private_post_withdrawconfigs($params = array()) {
         return $this->request('withdrawConfigs', 'private', 'POST', $params);
     }
+    public function publicGetCurrencyPairs($params = array()) {
+        return $this->request('currencyPairs', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetDepth($params = array()) {
+        return $this->request('depth', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetKline($params = array()) {
+        return $this->request('kline', 'public', 'GET', $params);
+    }
+    public function publicGetAccuracy($params = array()) {
+        return $this->request('accuracy', 'public', 'GET', $params);
+    }
+    public function privatePostUserInfo($params = array()) {
+        return $this->request('user_info', 'private', 'POST', $params);
+    }
+    public function privatePostCreateOrder($params = array()) {
+        return $this->request('create_order', 'private', 'POST', $params);
+    }
+    public function privatePostCancelOrder($params = array()) {
+        return $this->request('cancel_order', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersInfo($params = array()) {
+        return $this->request('orders_info', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersInfoHistory($params = array()) {
+        return $this->request('orders_info_history', 'private', 'POST', $params);
+    }
+    public function privatePostWithdraw($params = array()) {
+        return $this->request('withdraw', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawCancel($params = array()) {
+        return $this->request('withdrawCancel', 'private', 'POST', $params);
+    }
+    public function privatePostWithdraws($params = array()) {
+        return $this->request('withdraws', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawConfigs($params = array()) {
+        return $this->request('withdrawConfigs', 'private', 'POST', $params);
+    }
 }

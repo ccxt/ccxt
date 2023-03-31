@@ -91,4 +91,88 @@ abstract class krakenfutures extends \ccxt\Exchange {
     public function feeschedules_get_volumes($params = array()) {
         return $this->request('volumes', 'feeschedules', 'GET', $params);
     }
+    public function publicGetInstruments($params = array()) {
+        return $this->request('instruments', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbook($params = array()) {
+        return $this->request('orderbook', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetHistory($params = array()) {
+        return $this->request('history', 'public', 'GET', $params);
+    }
+    public function publicGetHistoricalfundingrates($params = array()) {
+        return $this->request('historicalfundingrates', 'public', 'GET', $params);
+    }
+    public function privateGetOpenpositions($params = array()) {
+        return $this->request('openpositions', 'private', 'GET', $params);
+    }
+    public function privateGetNotifications($params = array()) {
+        return $this->request('notifications', 'private', 'GET', $params);
+    }
+    public function privateGetAccounts($params = array()) {
+        return $this->request('accounts', 'private', 'GET', $params);
+    }
+    public function privateGetOpenorders($params = array()) {
+        return $this->request('openorders', 'private', 'GET', $params);
+    }
+    public function privateGetRecentorders($params = array()) {
+        return $this->request('recentorders', 'private', 'GET', $params);
+    }
+    public function privateGetFills($params = array()) {
+        return $this->request('fills', 'private', 'GET', $params);
+    }
+    public function privateGetTransfers($params = array()) {
+        return $this->request('transfers', 'private', 'GET', $params);
+    }
+    public function privatePostSendorder($params = array()) {
+        return $this->request('sendorder', 'private', 'POST', $params);
+    }
+    public function privatePostEditorder($params = array()) {
+        return $this->request('editorder', 'private', 'POST', $params);
+    }
+    public function privatePostCancelorder($params = array()) {
+        return $this->request('cancelorder', 'private', 'POST', $params);
+    }
+    public function privatePostTransfer($params = array()) {
+        return $this->request('transfer', 'private', 'POST', $params);
+    }
+    public function privatePostBatchorder($params = array()) {
+        return $this->request('batchorder', 'private', 'POST', $params);
+    }
+    public function privatePostCancelallorders($params = array()) {
+        return $this->request('cancelallorders', 'private', 'POST', $params);
+    }
+    public function privatePostCancelallordersafter($params = array()) {
+        return $this->request('cancelallordersafter', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawal($params = array()) {
+        return $this->request('withdrawal', 'private', 'POST', $params);
+    }
+    public function chartsGetPriceTypeSymbolInterval($params = array()) {
+        return $this->request('{price_type}/{symbol}/{interval}', 'charts', 'GET', $params);
+    }
+    public function historyGetOrders($params = array()) {
+        return $this->request('orders', 'history', 'GET', $params);
+    }
+    public function historyGetExecutions($params = array()) {
+        return $this->request('executions', 'history', 'GET', $params);
+    }
+    public function historyGetTriggers($params = array()) {
+        return $this->request('triggers', 'history', 'GET', $params);
+    }
+    public function historyGetAccountlogcsv($params = array()) {
+        return $this->request('accountlogcsv', 'history', 'GET', $params);
+    }
+    public function historyGetMarketSymbolOrders($params = array()) {
+        return $this->request('market/{symbol}/orders', 'history', 'GET', $params);
+    }
+    public function historyGetMarketSymbolExecutions($params = array()) {
+        return $this->request('market/{symbol}/executions', 'history', 'GET', $params);
+    }
+    public function feeschedulesGetVolumes($params = array()) {
+        return $this->request('volumes', 'feeschedules', 'GET', $params);
+    }
 }

@@ -124,4 +124,121 @@ abstract class poloniexfutures extends \ccxt\Exchange {
     public function private_delete_stoporders($params = array()) {
         return $this->request('stopOrders', 'private', 'DELETE', $params);
     }
+    public function publicGetContractsActive($params = array()) {
+        return $this->request('contracts/active', 'public', 'GET', $params);
+    }
+    public function publicGetContractsSymbol($params = array()) {
+        return $this->request('contracts/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetLevel2Snapshot($params = array()) {
+        return $this->request('level2/snapshot', 'public', 'GET', $params);
+    }
+    public function publicGetLevel2Depth($params = array()) {
+        return $this->request('level2/depth', 'public', 'GET', $params);
+    }
+    public function publicGetLevel2MessageQuery($params = array()) {
+        return $this->request('level2/message/query', 'public', 'GET', $params);
+    }
+    public function publicGetLevel3Snapshot($params = array()) {
+        return $this->request('level3/snapshot', 'public', 'GET', $params);
+    }
+    public function publicGetTradeHistory($params = array()) {
+        return $this->request('trade/history', 'public', 'GET', $params);
+    }
+    public function publicGetInterestQuery($params = array()) {
+        return $this->request('interest/query', 'public', 'GET', $params);
+    }
+    public function publicGetIndexQuery($params = array()) {
+        return $this->request('index/query', 'public', 'GET', $params);
+    }
+    public function publicGetMarkPriceSymbolCurrent($params = array()) {
+        return $this->request('mark-price/{symbol}/current', 'public', 'GET', $params);
+    }
+    public function publicGetPremiumQuery($params = array()) {
+        return $this->request('premium/query', 'public', 'GET', $params);
+    }
+    public function publicGetFundingRateSymbolCurrent($params = array()) {
+        return $this->request('funding-rate/{symbol}/current', 'public', 'GET', $params);
+    }
+    public function publicGetTimestamp($params = array()) {
+        return $this->request('timestamp', 'public', 'GET', $params);
+    }
+    public function publicGetStatus($params = array()) {
+        return $this->request('status', 'public', 'GET', $params);
+    }
+    public function publicGetKlineQuery($params = array()) {
+        return $this->request('kline/query', 'public', 'GET', $params);
+    }
+    public function publicPostBulletPublic($params = array()) {
+        return $this->request('bullet-public', 'public', 'POST', $params);
+    }
+    public function privateGetAccountOverview($params = array()) {
+        return $this->request('account-overview', 'private', 'GET', $params);
+    }
+    public function privateGetTransactionHistory($params = array()) {
+        return $this->request('transaction-history', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetStopOrders($params = array()) {
+        return $this->request('stopOrders', 'private', 'GET', $params);
+    }
+    public function privateGetRecentDoneOrders($params = array()) {
+        return $this->request('recentDoneOrders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersOrderId($params = array()) {
+        return $this->request('orders/{order-id}', 'private', 'GET', $params);
+    }
+    public function privateGetFills($params = array()) {
+        return $this->request('fills', 'private', 'GET', $params);
+    }
+    public function privateGetOpenOrderStatistics($params = array()) {
+        return $this->request('openOrderStatistics', 'private', 'GET', $params);
+    }
+    public function privateGetPosition($params = array()) {
+        return $this->request('position', 'private', 'GET', $params);
+    }
+    public function privateGetPositions($params = array()) {
+        return $this->request('positions', 'private', 'GET', $params);
+    }
+    public function privateGetFundingHistory($params = array()) {
+        return $this->request('funding-history', 'private', 'GET', $params);
+    }
+    public function privateGetMarginTypeQuery($params = array()) {
+        return $this->request('marginType/query', 'private', 'GET', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'private', 'POST', $params);
+    }
+    public function privatePostPositionMarginAutoDepositStatus($params = array()) {
+        return $this->request('position/margin/auto-deposit-status', 'private', 'POST', $params);
+    }
+    public function privatePostPositionMarginDepositMargin($params = array()) {
+        return $this->request('position/margin/deposit-margin', 'private', 'POST', $params);
+    }
+    public function privatePostBulletPrivate($params = array()) {
+        return $this->request('bullet-private', 'private', 'POST', $params);
+    }
+    public function privatePostMarginTypeChange($params = array()) {
+        return $this->request('marginType/change', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrdersOrderId($params = array()) {
+        return $this->request('orders/{order-id}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteStopOrders($params = array()) {
+        return $this->request('stopOrders', 'private', 'DELETE', $params);
+    }
 }

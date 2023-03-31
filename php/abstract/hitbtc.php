@@ -196,4 +196,193 @@ abstract class hitbtc extends \ccxt\Exchange {
     public function private_patch_order_clientorderid($params = array()) {
         return $this->request('order/{clientOrderId}', 'private', 'PATCH', $params);
     }
+    public function publicGetCurrency($params = array()) {
+        return $this->request('currency', 'public', 'GET', $params);
+    }
+    public function publicGetCurrencyCurrency($params = array()) {
+        return $this->request('currency/{currency}', 'public', 'GET', $params);
+    }
+    public function publicGetSymbol($params = array()) {
+        return $this->request('symbol', 'public', 'GET', $params);
+    }
+    public function publicGetSymbolSymbol($params = array()) {
+        return $this->request('symbol/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetTickerSymbol($params = array()) {
+        return $this->request('ticker/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetTradesSymbol($params = array()) {
+        return $this->request('trades/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbook($params = array()) {
+        return $this->request('orderbook', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbookSymbol($params = array()) {
+        return $this->request('orderbook/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetCandles($params = array()) {
+        return $this->request('candles', 'public', 'GET', $params);
+    }
+    public function publicGetCandlesSymbol($params = array()) {
+        return $this->request('candles/{symbol}', 'public', 'GET', $params);
+    }
+    public function privateGetTradingBalance($params = array()) {
+        return $this->request('trading/balance', 'private', 'GET', $params);
+    }
+    public function privateGetOrder($params = array()) {
+        return $this->request('order', 'private', 'GET', $params);
+    }
+    public function privateGetOrderClientOrderId($params = array()) {
+        return $this->request('order/{clientOrderId}', 'private', 'GET', $params);
+    }
+    public function privateGetTradingFeeAll($params = array()) {
+        return $this->request('trading/fee/all', 'private', 'GET', $params);
+    }
+    public function privateGetTradingFeeSymbol($params = array()) {
+        return $this->request('trading/fee/{symbol}', 'private', 'GET', $params);
+    }
+    public function privateGetMarginAccount($params = array()) {
+        return $this->request('margin/account', 'private', 'GET', $params);
+    }
+    public function privateGetMarginAccountSymbol($params = array()) {
+        return $this->request('margin/account/{symbol}', 'private', 'GET', $params);
+    }
+    public function privateGetMarginPosition($params = array()) {
+        return $this->request('margin/position', 'private', 'GET', $params);
+    }
+    public function privateGetMarginPositionSymbol($params = array()) {
+        return $this->request('margin/position/{symbol}', 'private', 'GET', $params);
+    }
+    public function privateGetMarginOrder($params = array()) {
+        return $this->request('margin/order', 'private', 'GET', $params);
+    }
+    public function privateGetMarginOrderClientOrderId($params = array()) {
+        return $this->request('margin/order/{clientOrderId}', 'private', 'GET', $params);
+    }
+    public function privateGetHistoryOrder($params = array()) {
+        return $this->request('history/order', 'private', 'GET', $params);
+    }
+    public function privateGetHistoryTrades($params = array()) {
+        return $this->request('history/trades', 'private', 'GET', $params);
+    }
+    public function privateGetHistoryOrderOrderIdTrades($params = array()) {
+        return $this->request('history/order/{orderId}/trades', 'private', 'GET', $params);
+    }
+    public function privateGetAccountBalance($params = array()) {
+        return $this->request('account/balance', 'private', 'GET', $params);
+    }
+    public function privateGetAccountCryptoAddressCurrency($params = array()) {
+        return $this->request('account/crypto/address/{currency}', 'private', 'GET', $params);
+    }
+    public function privateGetAccountCryptoAddressesCurrency($params = array()) {
+        return $this->request('account/crypto/addresses/{currency}', 'private', 'GET', $params);
+    }
+    public function privateGetAccountCryptoUsedAddressesCurrency($params = array()) {
+        return $this->request('account/crypto/used-addresses/{currency}', 'private', 'GET', $params);
+    }
+    public function privateGetAccountCryptoEstimateWithdraw($params = array()) {
+        return $this->request('account/crypto/estimate-withdraw', 'private', 'GET', $params);
+    }
+    public function privateGetAccountCryptoIsMineAddress($params = array()) {
+        return $this->request('account/crypto/is-mine/{address}', 'private', 'GET', $params);
+    }
+    public function privateGetAccountTransactions($params = array()) {
+        return $this->request('account/transactions', 'private', 'GET', $params);
+    }
+    public function privateGetAccountTransactionsId($params = array()) {
+        return $this->request('account/transactions/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetSubAcc($params = array()) {
+        return $this->request('sub-acc', 'private', 'GET', $params);
+    }
+    public function privateGetSubAccAcl($params = array()) {
+        return $this->request('sub-acc/acl', 'private', 'GET', $params);
+    }
+    public function privateGetSubAccBalanceSubAccountUserID($params = array()) {
+        return $this->request('sub-acc/balance/{subAccountUserID}', 'private', 'GET', $params);
+    }
+    public function privateGetSubAccDepositAddressSubAccountUserIdCurrency($params = array()) {
+        return $this->request('sub-acc/deposit-address/{subAccountUserId}/{currency}', 'private', 'GET', $params);
+    }
+    public function privatePostOrder($params = array()) {
+        return $this->request('order', 'private', 'POST', $params);
+    }
+    public function privatePostMarginOrder($params = array()) {
+        return $this->request('margin/order', 'private', 'POST', $params);
+    }
+    public function privatePostAccountCryptoAddressCurrency($params = array()) {
+        return $this->request('account/crypto/address/{currency}', 'private', 'POST', $params);
+    }
+    public function privatePostAccountCryptoWithdraw($params = array()) {
+        return $this->request('account/crypto/withdraw', 'private', 'POST', $params);
+    }
+    public function privatePostAccountCryptoTransferConvert($params = array()) {
+        return $this->request('account/crypto/transfer-convert', 'private', 'POST', $params);
+    }
+    public function privatePostAccountTransfer($params = array()) {
+        return $this->request('account/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostAccountTransferInternal($params = array()) {
+        return $this->request('account/transfer/internal', 'private', 'POST', $params);
+    }
+    public function privatePostSubAccFreeze($params = array()) {
+        return $this->request('sub-acc/freeze', 'private', 'POST', $params);
+    }
+    public function privatePostSubAccActivate($params = array()) {
+        return $this->request('sub-acc/activate', 'private', 'POST', $params);
+    }
+    public function privatePostSubAccTransfer($params = array()) {
+        return $this->request('sub-acc/transfer', 'private', 'POST', $params);
+    }
+    public function privatePutOrderClientOrderId($params = array()) {
+        return $this->request('order/{clientOrderId}', 'private', 'PUT', $params);
+    }
+    public function privatePutMarginAccountSymbol($params = array()) {
+        return $this->request('margin/account/{symbol}', 'private', 'PUT', $params);
+    }
+    public function privatePutMarginOrderClientOrderId($params = array()) {
+        return $this->request('margin/order/{clientOrderId}', 'private', 'PUT', $params);
+    }
+    public function privatePutAccountCryptoWithdrawId($params = array()) {
+        return $this->request('account/crypto/withdraw/{id}', 'private', 'PUT', $params);
+    }
+    public function privatePutSubAccAclSubAccountUserId($params = array()) {
+        return $this->request('sub-acc/acl/{subAccountUserId}', 'private', 'PUT', $params);
+    }
+    public function privateDeleteOrder($params = array()) {
+        return $this->request('order', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrderClientOrderId($params = array()) {
+        return $this->request('order/{clientOrderId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteMarginAccount($params = array()) {
+        return $this->request('margin/account', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteMarginAccountSymbol($params = array()) {
+        return $this->request('margin/account/{symbol}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteMarginPosition($params = array()) {
+        return $this->request('margin/position', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteMarginPositionSymbol($params = array()) {
+        return $this->request('margin/position/{symbol}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteMarginOrder($params = array()) {
+        return $this->request('margin/order', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteMarginOrderClientOrderId($params = array()) {
+        return $this->request('margin/order/{clientOrderId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteAccountCryptoWithdrawId($params = array()) {
+        return $this->request('account/crypto/withdraw/{id}', 'private', 'DELETE', $params);
+    }
+    public function privatePatchOrderClientOrderId($params = array()) {
+        return $this->request('order/{clientOrderId}', 'private', 'PATCH', $params);
+    }
 }

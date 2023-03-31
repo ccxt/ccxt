@@ -82,4 +82,79 @@ abstract class coinsph extends \ccxt\Exchange {
     public function private_delete_openapi_v1_openorders($params = array()) {
         return $this->request('openapi/v1/openOrders', 'private', 'DELETE', $params);
     }
+    public function publicGetOpenapiV1Ping($params = array()) {
+        return $this->request('openapi/v1/ping', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiV1Time($params = array()) {
+        return $this->request('openapi/v1/time', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiQuoteV1Ticker24hr($params = array()) {
+        return $this->request('openapi/quote/v1/ticker/24hr', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiQuoteV1TickerPrice($params = array()) {
+        return $this->request('openapi/quote/v1/ticker/price', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiQuoteV1TickerBookTicker($params = array()) {
+        return $this->request('openapi/quote/v1/ticker/bookTicker', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiV1ExchangeInfo($params = array()) {
+        return $this->request('openapi/v1/exchangeInfo', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiQuoteV1Depth($params = array()) {
+        return $this->request('openapi/quote/v1/depth', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiQuoteV1Klines($params = array()) {
+        return $this->request('openapi/quote/v1/klines', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiQuoteV1Trades($params = array()) {
+        return $this->request('openapi/quote/v1/trades', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiV1Pairs($params = array()) {
+        return $this->request('openapi/v1/pairs', 'public', 'GET', $params);
+    }
+    public function publicGetOpenapiQuoteV1AvgPrice($params = array()) {
+        return $this->request('openapi/quote/v1/avgPrice', 'public', 'GET', $params);
+    }
+    public function privateGetOpenapiV1Account($params = array()) {
+        return $this->request('openapi/v1/account', 'private', 'GET', $params);
+    }
+    public function privateGetOpenapiV1OpenOrders($params = array()) {
+        return $this->request('openapi/v1/openOrders', 'private', 'GET', $params);
+    }
+    public function privateGetOpenapiV1AssetTradeFee($params = array()) {
+        return $this->request('openapi/v1/asset/tradeFee', 'private', 'GET', $params);
+    }
+    public function privateGetOpenapiV1Order($params = array()) {
+        return $this->request('openapi/v1/order', 'private', 'GET', $params);
+    }
+    public function privateGetOpenapiV1HistoryOrders($params = array()) {
+        return $this->request('openapi/v1/historyOrders', 'private', 'GET', $params);
+    }
+    public function privateGetOpenapiV1MyTrades($params = array()) {
+        return $this->request('openapi/v1/myTrades', 'private', 'GET', $params);
+    }
+    public function privateGetOpenapiV1CapitalDepositHistory($params = array()) {
+        return $this->request('openapi/v1/capital/deposit/history', 'private', 'GET', $params);
+    }
+    public function privateGetOpenapiV1CapitalWithdrawHistory($params = array()) {
+        return $this->request('openapi/v1/capital/withdraw/history', 'private', 'GET', $params);
+    }
+    public function privatePostOpenapiV1OrderTest($params = array()) {
+        return $this->request('openapi/v1/order/test', 'private', 'POST', $params);
+    }
+    public function privatePostOpenapiV1Order($params = array()) {
+        return $this->request('openapi/v1/order', 'private', 'POST', $params);
+    }
+    public function privatePostOpenapiV1CapitalWithdrawApply($params = array()) {
+        return $this->request('openapi/v1/capital/withdraw/apply', 'private', 'POST', $params);
+    }
+    public function privatePostOpenapiV1CapitalDepositApply($params = array()) {
+        return $this->request('openapi/v1/capital/deposit/apply', 'private', 'POST', $params);
+    }
+    public function privateDeleteOpenapiV1Order($params = array()) {
+        return $this->request('openapi/v1/order', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOpenapiV1OpenOrders($params = array()) {
+        return $this->request('openapi/v1/openOrders', 'private', 'DELETE', $params);
+    }
 }

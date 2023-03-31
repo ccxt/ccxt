@@ -61,4 +61,58 @@ abstract class probit extends \ccxt\async\Exchange {
     public function accounts_post_token($params = array()) {
         return $this->request('token', 'accounts', 'POST', $params);
     }
+    public function publicGetMarket($params = array()) {
+        return $this->request('market', 'public', 'GET', $params);
+    }
+    public function publicGetCurrency($params = array()) {
+        return $this->request('currency', 'public', 'GET', $params);
+    }
+    public function publicGetCurrencyWithPlatform($params = array()) {
+        return $this->request('currency_with_platform', 'public', 'GET', $params);
+    }
+    public function publicGetTime($params = array()) {
+        return $this->request('time', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetOrderBook($params = array()) {
+        return $this->request('order_book', 'public', 'GET', $params);
+    }
+    public function publicGetTrade($params = array()) {
+        return $this->request('trade', 'public', 'GET', $params);
+    }
+    public function publicGetCandle($params = array()) {
+        return $this->request('candle', 'public', 'GET', $params);
+    }
+    public function privatePostNewOrder($params = array()) {
+        return $this->request('new_order', 'private', 'POST', $params);
+    }
+    public function privatePostCancelOrder($params = array()) {
+        return $this->request('cancel_order', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawal($params = array()) {
+        return $this->request('withdrawal', 'private', 'POST', $params);
+    }
+    public function privateGetBalance($params = array()) {
+        return $this->request('balance', 'private', 'GET', $params);
+    }
+    public function privateGetOrder($params = array()) {
+        return $this->request('order', 'private', 'GET', $params);
+    }
+    public function privateGetOpenOrder($params = array()) {
+        return $this->request('open_order', 'private', 'GET', $params);
+    }
+    public function privateGetOrderHistory($params = array()) {
+        return $this->request('order_history', 'private', 'GET', $params);
+    }
+    public function privateGetTradeHistory($params = array()) {
+        return $this->request('trade_history', 'private', 'GET', $params);
+    }
+    public function privateGetDepositAddress($params = array()) {
+        return $this->request('deposit_address', 'private', 'GET', $params);
+    }
+    public function accountsPostToken($params = array()) {
+        return $this->request('token', 'accounts', 'POST', $params);
+    }
 }

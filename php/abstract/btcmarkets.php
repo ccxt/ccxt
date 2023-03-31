@@ -112,4 +112,109 @@ abstract class btcmarkets extends \ccxt\Exchange {
     public function private_put_orders_id($params = array()) {
         return $this->request('orders/{id}', 'private', 'PUT', $params);
     }
+    public function publicGetMarkets($params = array()) {
+        return $this->request('markets', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarketIdTicker($params = array()) {
+        return $this->request('markets/{marketId}/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarketIdTrades($params = array()) {
+        return $this->request('markets/{marketId}/trades', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarketIdOrderbook($params = array()) {
+        return $this->request('markets/{marketId}/orderbook', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsMarketIdCandles($params = array()) {
+        return $this->request('markets/{marketId}/candles', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsTickers($params = array()) {
+        return $this->request('markets/tickers', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsOrderbooks($params = array()) {
+        return $this->request('markets/orderbooks', 'public', 'GET', $params);
+    }
+    public function publicGetTime($params = array()) {
+        return $this->request('time', 'public', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetBatchordersIds($params = array()) {
+        return $this->request('batchorders/{ids}', 'private', 'GET', $params);
+    }
+    public function privateGetTrades($params = array()) {
+        return $this->request('trades', 'private', 'GET', $params);
+    }
+    public function privateGetTradesId($params = array()) {
+        return $this->request('trades/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawalsId($params = array()) {
+        return $this->request('withdrawals/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetDeposits($params = array()) {
+        return $this->request('deposits', 'private', 'GET', $params);
+    }
+    public function privateGetDepositsId($params = array()) {
+        return $this->request('deposits/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetTransfers($params = array()) {
+        return $this->request('transfers', 'private', 'GET', $params);
+    }
+    public function privateGetTransfersId($params = array()) {
+        return $this->request('transfers/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetAddresses($params = array()) {
+        return $this->request('addresses', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawalFees($params = array()) {
+        return $this->request('withdrawal-fees', 'private', 'GET', $params);
+    }
+    public function privateGetAssets($params = array()) {
+        return $this->request('assets', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsMeTradingFees($params = array()) {
+        return $this->request('accounts/me/trading-fees', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsMeWithdrawalLimits($params = array()) {
+        return $this->request('accounts/me/withdrawal-limits', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsMeBalances($params = array()) {
+        return $this->request('accounts/me/balances', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsMeTransactions($params = array()) {
+        return $this->request('accounts/me/transactions', 'private', 'GET', $params);
+    }
+    public function privateGetReportsId($params = array()) {
+        return $this->request('reports/{id}', 'private', 'GET', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostBatchorders($params = array()) {
+        return $this->request('batchorders', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostReports($params = array()) {
+        return $this->request('reports', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteBatchordersIds($params = array()) {
+        return $this->request('batchorders/{ids}', 'private', 'DELETE', $params);
+    }
+    public function privatePutOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'PUT', $params);
+    }
 }

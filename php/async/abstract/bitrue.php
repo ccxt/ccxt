@@ -91,4 +91,88 @@ abstract class bitrue extends \ccxt\async\Exchange {
     public function open_private_delete_poseidon_api_v1_listenkey_listenkey($params = array()) {
         return $this->request('poseidon/api/v1/listenKey/{listenKey}', 'array(open,private)', 'DELETE', $params);
     }
+    public function klinePublicGetPublicJson($params = array()) {
+        return $this->request('public.json', 'array(kline,public)', 'GET', $params);
+    }
+    public function klinePublicGetPublicCurrencyJson($params = array()) {
+        return $this->request('public{currency}.json', 'array(kline,public)', 'GET', $params);
+    }
+    public function v1PublicGetPing($params = array()) {
+        return $this->request('ping', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetTime($params = array()) {
+        return $this->request('time', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetExchangeInfo($params = array()) {
+        return $this->request('exchangeInfo', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetDepth($params = array()) {
+        return $this->request('depth', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetTrades($params = array()) {
+        return $this->request('trades', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetHistoricalTrades($params = array()) {
+        return $this->request('historicalTrades', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetAggTrades($params = array()) {
+        return $this->request('aggTrades', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetTickerBookTicker($params = array()) {
+        return $this->request('ticker/bookTicker', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetMarketKline($params = array()) {
+        return $this->request('market/kline', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PrivateGetOrder($params = array()) {
+        return $this->request('order', 'array(v1,private)', 'GET', $params);
+    }
+    public function v1PrivateGetOpenOrders($params = array()) {
+        return $this->request('openOrders', 'array(v1,private)', 'GET', $params);
+    }
+    public function v1PrivateGetAllOrders($params = array()) {
+        return $this->request('allOrders', 'array(v1,private)', 'GET', $params);
+    }
+    public function v1PrivateGetAccount($params = array()) {
+        return $this->request('account', 'array(v1,private)', 'GET', $params);
+    }
+    public function v1PrivateGetMyTrades($params = array()) {
+        return $this->request('myTrades', 'array(v1,private)', 'GET', $params);
+    }
+    public function v1PrivateGetEtfNetValueSymbol($params = array()) {
+        return $this->request('etf/net-value/{symbol}', 'array(v1,private)', 'GET', $params);
+    }
+    public function v1PrivateGetWithdrawHistory($params = array()) {
+        return $this->request('withdraw/history', 'array(v1,private)', 'GET', $params);
+    }
+    public function v1PrivateGetDepositHistory($params = array()) {
+        return $this->request('deposit/history', 'array(v1,private)', 'GET', $params);
+    }
+    public function v1PrivatePostOrder($params = array()) {
+        return $this->request('order', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostWithdrawCommit($params = array()) {
+        return $this->request('withdraw/commit', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivateDeleteOrder($params = array()) {
+        return $this->request('order', 'array(v1,private)', 'DELETE', $params);
+    }
+    public function v2PrivateGetMyTrades($params = array()) {
+        return $this->request('myTrades', 'array(v2,private)', 'GET', $params);
+    }
+    public function openPrivatePostPoseidonApiV1ListenKey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey', 'array(open,private)', 'POST', $params);
+    }
+    public function openPrivatePutPoseidonApiV1ListenKeyListenKey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey/{listenKey}', 'array(open,private)', 'PUT', $params);
+    }
+    public function openPrivateDeletePoseidonApiV1ListenKeyListenKey($params = array()) {
+        return $this->request('poseidon/api/v1/listenKey/{listenKey}', 'array(open,private)', 'DELETE', $params);
+    }
 }

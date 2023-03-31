@@ -145,4 +145,142 @@ abstract class coinmate extends \ccxt\Exchange {
     public function private_post_unconfirmedrippledeposits($params = array()) {
         return $this->request('unconfirmedRippleDeposits', 'private', 'POST', $params);
     }
+    public function publicGetOrderBook($params = array()) {
+        return $this->request('orderBook', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetTransactions($params = array()) {
+        return $this->request('transactions', 'public', 'GET', $params);
+    }
+    public function publicGetTradingPairs($params = array()) {
+        return $this->request('tradingPairs', 'public', 'GET', $params);
+    }
+    public function privatePostBalances($params = array()) {
+        return $this->request('balances', 'private', 'POST', $params);
+    }
+    public function privatePostBitcoinCashWithdrawal($params = array()) {
+        return $this->request('bitcoinCashWithdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostBitcoinCashDepositAddresses($params = array()) {
+        return $this->request('bitcoinCashDepositAddresses', 'private', 'POST', $params);
+    }
+    public function privatePostBitcoinDepositAddresses($params = array()) {
+        return $this->request('bitcoinDepositAddresses', 'private', 'POST', $params);
+    }
+    public function privatePostBitcoinWithdrawal($params = array()) {
+        return $this->request('bitcoinWithdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostBitcoinWithdrawalFees($params = array()) {
+        return $this->request('bitcoinWithdrawalFees', 'private', 'POST', $params);
+    }
+    public function privatePostBuyInstant($params = array()) {
+        return $this->request('buyInstant', 'private', 'POST', $params);
+    }
+    public function privatePostBuyLimit($params = array()) {
+        return $this->request('buyLimit', 'private', 'POST', $params);
+    }
+    public function privatePostCancelOrder($params = array()) {
+        return $this->request('cancelOrder', 'private', 'POST', $params);
+    }
+    public function privatePostCancelOrderWithInfo($params = array()) {
+        return $this->request('cancelOrderWithInfo', 'private', 'POST', $params);
+    }
+    public function privatePostCreateVoucher($params = array()) {
+        return $this->request('createVoucher', 'private', 'POST', $params);
+    }
+    public function privatePostDashDepositAddresses($params = array()) {
+        return $this->request('dashDepositAddresses', 'private', 'POST', $params);
+    }
+    public function privatePostDashWithdrawal($params = array()) {
+        return $this->request('dashWithdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostEthereumWithdrawal($params = array()) {
+        return $this->request('ethereumWithdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostEthereumDepositAddresses($params = array()) {
+        return $this->request('ethereumDepositAddresses', 'private', 'POST', $params);
+    }
+    public function privatePostLitecoinWithdrawal($params = array()) {
+        return $this->request('litecoinWithdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostLitecoinDepositAddresses($params = array()) {
+        return $this->request('litecoinDepositAddresses', 'private', 'POST', $params);
+    }
+    public function privatePostOpenOrders($params = array()) {
+        return $this->request('openOrders', 'private', 'POST', $params);
+    }
+    public function privatePostOrder($params = array()) {
+        return $this->request('order', 'private', 'POST', $params);
+    }
+    public function privatePostOrderHistory($params = array()) {
+        return $this->request('orderHistory', 'private', 'POST', $params);
+    }
+    public function privatePostOrderById($params = array()) {
+        return $this->request('orderById', 'private', 'POST', $params);
+    }
+    public function privatePostPusherAuth($params = array()) {
+        return $this->request('pusherAuth', 'private', 'POST', $params);
+    }
+    public function privatePostRedeemVoucher($params = array()) {
+        return $this->request('redeemVoucher', 'private', 'POST', $params);
+    }
+    public function privatePostReplaceByBuyLimit($params = array()) {
+        return $this->request('replaceByBuyLimit', 'private', 'POST', $params);
+    }
+    public function privatePostReplaceByBuyInstant($params = array()) {
+        return $this->request('replaceByBuyInstant', 'private', 'POST', $params);
+    }
+    public function privatePostReplaceBySellLimit($params = array()) {
+        return $this->request('replaceBySellLimit', 'private', 'POST', $params);
+    }
+    public function privatePostReplaceBySellInstant($params = array()) {
+        return $this->request('replaceBySellInstant', 'private', 'POST', $params);
+    }
+    public function privatePostRippleDepositAddresses($params = array()) {
+        return $this->request('rippleDepositAddresses', 'private', 'POST', $params);
+    }
+    public function privatePostRippleWithdrawal($params = array()) {
+        return $this->request('rippleWithdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostSellInstant($params = array()) {
+        return $this->request('sellInstant', 'private', 'POST', $params);
+    }
+    public function privatePostSellLimit($params = array()) {
+        return $this->request('sellLimit', 'private', 'POST', $params);
+    }
+    public function privatePostTransactionHistory($params = array()) {
+        return $this->request('transactionHistory', 'private', 'POST', $params);
+    }
+    public function privatePostTraderFees($params = array()) {
+        return $this->request('traderFees', 'private', 'POST', $params);
+    }
+    public function privatePostTradeHistory($params = array()) {
+        return $this->request('tradeHistory', 'private', 'POST', $params);
+    }
+    public function privatePostTransfer($params = array()) {
+        return $this->request('transfer', 'private', 'POST', $params);
+    }
+    public function privatePostTransferHistory($params = array()) {
+        return $this->request('transferHistory', 'private', 'POST', $params);
+    }
+    public function privatePostUnconfirmedBitcoinDeposits($params = array()) {
+        return $this->request('unconfirmedBitcoinDeposits', 'private', 'POST', $params);
+    }
+    public function privatePostUnconfirmedBitcoinCashDeposits($params = array()) {
+        return $this->request('unconfirmedBitcoinCashDeposits', 'private', 'POST', $params);
+    }
+    public function privatePostUnconfirmedDashDeposits($params = array()) {
+        return $this->request('unconfirmedDashDeposits', 'private', 'POST', $params);
+    }
+    public function privatePostUnconfirmedEthereumDeposits($params = array()) {
+        return $this->request('unconfirmedEthereumDeposits', 'private', 'POST', $params);
+    }
+    public function privatePostUnconfirmedLitecoinDeposits($params = array()) {
+        return $this->request('unconfirmedLitecoinDeposits', 'private', 'POST', $params);
+    }
+    public function privatePostUnconfirmedRippleDeposits($params = array()) {
+        return $this->request('unconfirmedRippleDeposits', 'private', 'POST', $params);
+    }
 }

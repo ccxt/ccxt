@@ -409,4 +409,406 @@ abstract class bitfinex2 extends \ccxt\async\Exchange {
     public function private_post_auth_w_pulse_del($params = array()) {
         return $this->request('auth/w/pulse/del', 'private', 'POST', $params);
     }
+    public function publicGetConfConfig($params = array()) {
+        return $this->request('conf/{config}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubActionObject($params = array()) {
+        return $this->request('conf/pub:{action}:{object}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubActionObjectDetail($params = array()) {
+        return $this->request('conf/pub:{action}:{object}:{detail}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapObject($params = array()) {
+        return $this->request('conf/pub:map:{object}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapObjectDetail($params = array()) {
+        return $this->request('conf/pub:map:{object}:{detail}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapCurrencyDetail($params = array()) {
+        return $this->request('conf/pub:map:currency:{detail}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapCurrencySym($params = array()) {
+        return $this->request('conf/pub:map:currency:sym', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapCurrencyLabel($params = array()) {
+        return $this->request('conf/pub:map:currency:label', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapCurrencyUnit($params = array()) {
+        return $this->request('conf/pub:map:currency:unit', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapCurrencyUndl($params = array()) {
+        return $this->request('conf/pub:map:currency:undl', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapCurrencyPool($params = array()) {
+        return $this->request('conf/pub:map:currency:pool', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapCurrencyExplorer($params = array()) {
+        return $this->request('conf/pub:map:currency:explorer', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapCurrencyTxFee($params = array()) {
+        return $this->request('conf/pub:map:currency:tx:fee', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubMapTxMethod($params = array()) {
+        return $this->request('conf/pub:map:tx:method', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubListObject($params = array()) {
+        return $this->request('conf/pub:list:{object}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubListObjectDetail($params = array()) {
+        return $this->request('conf/pub:list:{object}:{detail}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubListCurrency($params = array()) {
+        return $this->request('conf/pub:list:currency', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubListPairExchange($params = array()) {
+        return $this->request('conf/pub:list:pair:exchange', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubListPairMargin($params = array()) {
+        return $this->request('conf/pub:list:pair:margin', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubListPairFutures($params = array()) {
+        return $this->request('conf/pub:list:pair:futures', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubListCompetitions($params = array()) {
+        return $this->request('conf/pub:list:competitions', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubInfoObject($params = array()) {
+        return $this->request('conf/pub:info:{object}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubInfoObjectDetail($params = array()) {
+        return $this->request('conf/pub:info:{object}:{detail}', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubInfoPair($params = array()) {
+        return $this->request('conf/pub:info:pair', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubInfoPairFutures($params = array()) {
+        return $this->request('conf/pub:info:pair:futures', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubInfoTxStatus($params = array()) {
+        return $this->request('conf/pub:info:tx:status', 'public', 'GET', $params);
+    }
+    public function publicGetConfPubFees($params = array()) {
+        return $this->request('conf/pub:fees', 'public', 'GET', $params);
+    }
+    public function publicGetPlatformStatus($params = array()) {
+        return $this->request('platform/status', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetTickerSymbol($params = array()) {
+        return $this->request('ticker/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetTickersHist($params = array()) {
+        return $this->request('tickers/hist', 'public', 'GET', $params);
+    }
+    public function publicGetTradesSymbolHist($params = array()) {
+        return $this->request('trades/{symbol}/hist', 'public', 'GET', $params);
+    }
+    public function publicGetBookSymbolPrecision($params = array()) {
+        return $this->request('book/{symbol}/{precision}', 'public', 'GET', $params);
+    }
+    public function publicGetBookSymbolP0($params = array()) {
+        return $this->request('book/{symbol}/P0', 'public', 'GET', $params);
+    }
+    public function publicGetBookSymbolP1($params = array()) {
+        return $this->request('book/{symbol}/P1', 'public', 'GET', $params);
+    }
+    public function publicGetBookSymbolP2($params = array()) {
+        return $this->request('book/{symbol}/P2', 'public', 'GET', $params);
+    }
+    public function publicGetBookSymbolP3($params = array()) {
+        return $this->request('book/{symbol}/P3', 'public', 'GET', $params);
+    }
+    public function publicGetBookSymbolR0($params = array()) {
+        return $this->request('book/{symbol}/R0', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolSideSection($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}:{side}/{section}', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolSideLast($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}:{side}/last', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolSideHist($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}:{side}/hist', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolSection($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}/{section}', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolLast($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}/last', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolHist($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}/hist', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolLongLast($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}:long/last', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolLongHist($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}:long/hist', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolShortLast($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}:short/last', 'public', 'GET', $params);
+    }
+    public function publicGetStats1KeySizeSymbolShortHist($params = array()) {
+        return $this->request('stats1/{key}:{size}:{symbol}:short/hist', 'public', 'GET', $params);
+    }
+    public function publicGetCandlesTradeTimeframeSymbolPeriodSection($params = array()) {
+        return $this->request('candles/trade:{timeframe}:{symbol}:{period}/{section}', 'public', 'GET', $params);
+    }
+    public function publicGetCandlesTradeTimeframeSymbolSection($params = array()) {
+        return $this->request('candles/trade:{timeframe}:{symbol}/{section}', 'public', 'GET', $params);
+    }
+    public function publicGetCandlesTradeTimeframeSymbolLast($params = array()) {
+        return $this->request('candles/trade:{timeframe}:{symbol}/last', 'public', 'GET', $params);
+    }
+    public function publicGetCandlesTradeTimeframeSymbolHist($params = array()) {
+        return $this->request('candles/trade:{timeframe}:{symbol}/hist', 'public', 'GET', $params);
+    }
+    public function publicGetStatusType($params = array()) {
+        return $this->request('status/{type}', 'public', 'GET', $params);
+    }
+    public function publicGetStatusDeriv($params = array()) {
+        return $this->request('status/deriv', 'public', 'GET', $params);
+    }
+    public function publicGetLiquidationsHist($params = array()) {
+        return $this->request('liquidations/hist', 'public', 'GET', $params);
+    }
+    public function publicGetRankingsKeyTimeframeSymbolSection($params = array()) {
+        return $this->request('rankings/{key}:{timeframe}:{symbol}/{section}', 'public', 'GET', $params);
+    }
+    public function publicGetRankingsKeyTimeframeSymbolHist($params = array()) {
+        return $this->request('rankings/{key}:{timeframe}:{symbol}/hist', 'public', 'GET', $params);
+    }
+    public function publicGetPulseHist($params = array()) {
+        return $this->request('pulse/hist', 'public', 'GET', $params);
+    }
+    public function publicGetPulseProfileNickname($params = array()) {
+        return $this->request('pulse/profile/{nickname}', 'public', 'GET', $params);
+    }
+    public function publicGetFundingStatsSymbolHist($params = array()) {
+        return $this->request('funding/stats/{symbol}/hist', 'public', 'GET', $params);
+    }
+    public function publicPostCalcTradeAvg($params = array()) {
+        return $this->request('calc/trade/avg', 'public', 'POST', $params);
+    }
+    public function publicPostCalcFx($params = array()) {
+        return $this->request('calc/fx', 'public', 'POST', $params);
+    }
+    public function privatePostAuthRWallets($params = array()) {
+        return $this->request('auth/r/wallets', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRWalletsHist($params = array()) {
+        return $this->request('auth/r/wallets/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthROrders($params = array()) {
+        return $this->request('auth/r/orders', 'private', 'POST', $params);
+    }
+    public function privatePostAuthROrdersSymbol($params = array()) {
+        return $this->request('auth/r/orders/{symbol}', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWOrderSubmit($params = array()) {
+        return $this->request('auth/w/order/submit', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWOrderUpdate($params = array()) {
+        return $this->request('auth/w/order/update', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWOrderCancel($params = array()) {
+        return $this->request('auth/w/order/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWOrderMulti($params = array()) {
+        return $this->request('auth/w/order/multi', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWOrderCancelMulti($params = array()) {
+        return $this->request('auth/w/order/cancel/multi', 'private', 'POST', $params);
+    }
+    public function privatePostAuthROrdersSymbolHist($params = array()) {
+        return $this->request('auth/r/orders/{symbol}/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthROrdersHist($params = array()) {
+        return $this->request('auth/r/orders/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthROrderSymbolIdTrades($params = array()) {
+        return $this->request('auth/r/order/{symbol}:{id}/trades', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRTradesSymbolHist($params = array()) {
+        return $this->request('auth/r/trades/{symbol}/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRTradesHist($params = array()) {
+        return $this->request('auth/r/trades/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRLedgersCurrencyHist($params = array()) {
+        return $this->request('auth/r/ledgers/{currency}/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRLedgersHist($params = array()) {
+        return $this->request('auth/r/ledgers/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRInfoMarginKey($params = array()) {
+        return $this->request('auth/r/info/margin/{key}', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRInfoMarginBase($params = array()) {
+        return $this->request('auth/r/info/margin/base', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRInfoMarginSymAll($params = array()) {
+        return $this->request('auth/r/info/margin/sym_all', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRPositions($params = array()) {
+        return $this->request('auth/r/positions', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWPositionClaim($params = array()) {
+        return $this->request('auth/w/position/claim', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWPositionIncrease($params = array()) {
+        return $this->request('auth/w/position/increase:', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRPositionIncreaseInfo($params = array()) {
+        return $this->request('auth/r/position/increase/info', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRPositionsHist($params = array()) {
+        return $this->request('auth/r/positions/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRPositionsAudit($params = array()) {
+        return $this->request('auth/r/positions/audit', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRPositionsSnap($params = array()) {
+        return $this->request('auth/r/positions/snap', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWDerivCollateralSet($params = array()) {
+        return $this->request('auth/w/deriv/collateral/set', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWDerivCollateralLimits($params = array()) {
+        return $this->request('auth/w/deriv/collateral/limits', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingOffers($params = array()) {
+        return $this->request('auth/r/funding/offers', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingOffersSymbol($params = array()) {
+        return $this->request('auth/r/funding/offers/{symbol}', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWFundingOfferSubmit($params = array()) {
+        return $this->request('auth/w/funding/offer/submit', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWFundingOfferCancel($params = array()) {
+        return $this->request('auth/w/funding/offer/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWFundingOfferCancelAll($params = array()) {
+        return $this->request('auth/w/funding/offer/cancel/all', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWFundingClose($params = array()) {
+        return $this->request('auth/w/funding/close', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWFundingAuto($params = array()) {
+        return $this->request('auth/w/funding/auto', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWFundingKeep($params = array()) {
+        return $this->request('auth/w/funding/keep', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingOffersSymbolHist($params = array()) {
+        return $this->request('auth/r/funding/offers/{symbol}/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingOffersHist($params = array()) {
+        return $this->request('auth/r/funding/offers/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingLoans($params = array()) {
+        return $this->request('auth/r/funding/loans', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingLoansHist($params = array()) {
+        return $this->request('auth/r/funding/loans/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingLoansSymbol($params = array()) {
+        return $this->request('auth/r/funding/loans/{symbol}', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingLoansSymbolHist($params = array()) {
+        return $this->request('auth/r/funding/loans/{symbol}/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingCredits($params = array()) {
+        return $this->request('auth/r/funding/credits', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingCreditsHist($params = array()) {
+        return $this->request('auth/r/funding/credits/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingCreditsSymbol($params = array()) {
+        return $this->request('auth/r/funding/credits/{symbol}', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingCreditsSymbolHist($params = array()) {
+        return $this->request('auth/r/funding/credits/{symbol}/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingTradesSymbolHist($params = array()) {
+        return $this->request('auth/r/funding/trades/{symbol}/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRFundingTradesHist($params = array()) {
+        return $this->request('auth/r/funding/trades/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRInfoFundingKey($params = array()) {
+        return $this->request('auth/r/info/funding/{key}', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRInfoUser($params = array()) {
+        return $this->request('auth/r/info/user', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRSummary($params = array()) {
+        return $this->request('auth/r/summary', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRLoginsHist($params = array()) {
+        return $this->request('auth/r/logins/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRPermissions($params = array()) {
+        return $this->request('auth/r/permissions', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWToken($params = array()) {
+        return $this->request('auth/w/token', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRAuditHist($params = array()) {
+        return $this->request('auth/r/audit/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWTransfer($params = array()) {
+        return $this->request('auth/w/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWDepositAddress($params = array()) {
+        return $this->request('auth/w/deposit/address', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWDepositInvoice($params = array()) {
+        return $this->request('auth/w/deposit/invoice', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWWithdraw($params = array()) {
+        return $this->request('auth/w/withdraw', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRMovementsCurrencyHist($params = array()) {
+        return $this->request('auth/r/movements/{currency}/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRMovementsHist($params = array()) {
+        return $this->request('auth/r/movements/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRAlerts($params = array()) {
+        return $this->request('auth/r/alerts', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWAlertSet($params = array()) {
+        return $this->request('auth/w/alert/set', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWAlertPriceSymbolPriceDel($params = array()) {
+        return $this->request('auth/w/alert/price:{symbol}:{price}/del', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWAlertTypeSymbolPriceDel($params = array()) {
+        return $this->request('auth/w/alert/{type}:{symbol}:{price}/del', 'private', 'POST', $params);
+    }
+    public function privatePostAuthCalcOrderAvail($params = array()) {
+        return $this->request('auth/calc/order/avail', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWSettingsSet($params = array()) {
+        return $this->request('auth/w/settings/set', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRSettings($params = array()) {
+        return $this->request('auth/r/settings', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWSettingsDel($params = array()) {
+        return $this->request('auth/w/settings/del', 'private', 'POST', $params);
+    }
+    public function privatePostAuthRPulseHist($params = array()) {
+        return $this->request('auth/r/pulse/hist', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWPulseAdd($params = array()) {
+        return $this->request('auth/w/pulse/add', 'private', 'POST', $params);
+    }
+    public function privatePostAuthWPulseDel($params = array()) {
+        return $this->request('auth/w/pulse/del', 'private', 'POST', $params);
+    }
 }

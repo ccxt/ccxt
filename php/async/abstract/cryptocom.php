@@ -358,4 +358,355 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     public function derivatives_private_post_private_get_order_list($params = array()) {
         return $this->request('private/get-order-list', 'array(derivatives,private)', 'POST', $params);
     }
+    public function v1PublicGetPublicAuth($params = array()) {
+        return $this->request('public/auth', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetPublicGetInstruments($params = array()) {
+        return $this->request('public/get-instruments', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetPublicGetBook($params = array()) {
+        return $this->request('public/get-book', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetPublicGetCandlestick($params = array()) {
+        return $this->request('public/get-candlestick', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetPublicGetTrades($params = array()) {
+        return $this->request('public/get-trades', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetPublicGetTickers($params = array()) {
+        return $this->request('public/get-tickers', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetPublicGetValuations($params = array()) {
+        return $this->request('public/get-valuations', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetPublicGetExpiredSettlementPrice($params = array()) {
+        return $this->request('public/get-expired-settlement-price', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PublicGetPublicGetInsurance($params = array()) {
+        return $this->request('public/get-insurance', 'array(v1,public)', 'GET', $params);
+    }
+    public function v1PrivatePostPrivateSetCancelOnDisconnect($params = array()) {
+        return $this->request('private/set-cancel-on-disconnect', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetCancelOnDisconnect($params = array()) {
+        return $this->request('private/get-cancel-on-disconnect', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateUserBalance($params = array()) {
+        return $this->request('private/user-balance', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateUserBalanceHistory($params = array()) {
+        return $this->request('private/user-balance-history', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetPositions($params = array()) {
+        return $this->request('private/get-positions', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateCreateOrder($params = array()) {
+        return $this->request('private/create-order', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateCreateOrderList($params = array()) {
+        return $this->request('private/create-order-list', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateCancelOrder($params = array()) {
+        return $this->request('private/cancel-order', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateCancelOrderList($params = array()) {
+        return $this->request('private/cancel-order-list', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateCancelAllOrders($params = array()) {
+        return $this->request('private/cancel-all-orders', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateClosePosition($params = array()) {
+        return $this->request('private/close-position', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetOrderHistory($params = array()) {
+        return $this->request('private/get-order-history', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetOpenOrders($params = array()) {
+        return $this->request('private/get-open-orders', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetOrderDetail($params = array()) {
+        return $this->request('private/get-order-detail', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetTrades($params = array()) {
+        return $this->request('private/get-trades', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateChangeAccountLeverage($params = array()) {
+        return $this->request('private/change-account-leverage', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetTransactions($params = array()) {
+        return $this->request('private/get-transactions', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateCreateSubaccountTransfer($params = array()) {
+        return $this->request('private/create-subaccount-transfer', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetSubaccountBalances($params = array()) {
+        return $this->request('private/get-subaccount-balances', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetOrderList($params = array()) {
+        return $this->request('private/get-order-list', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateCreateWithdrawal($params = array()) {
+        return $this->request('private/create-withdrawal', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetCurrencyNetworks($params = array()) {
+        return $this->request('private/get-currency-networks', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetDepositAddress($params = array()) {
+        return $this->request('private/get-deposit-address', 'array(v1,private)', 'POST', $params);
+    }
+    public function v1PrivatePostPrivateGetAccounts($params = array()) {
+        return $this->request('private/get-accounts', 'array(v1,private)', 'POST', $params);
+    }
+    public function v2PublicGetPublicAuth($params = array()) {
+        return $this->request('public/auth', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PublicGetPublicGetInstruments($params = array()) {
+        return $this->request('public/get-instruments', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PublicGetPublicGetBook($params = array()) {
+        return $this->request('public/get-book', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PublicGetPublicGetCandlestick($params = array()) {
+        return $this->request('public/get-candlestick', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PublicGetPublicGetTicker($params = array()) {
+        return $this->request('public/get-ticker', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PublicGetPublicGetTrades($params = array()) {
+        return $this->request('public/get-trades', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PublicGetPublicMarginGetTransferCurrencies($params = array()) {
+        return $this->request('public/margin/get-transfer-currencies', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PublicGetPublicMarginGetLoadCurrenices($params = array()) {
+        return $this->request('public/margin/get-load-currenices', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PublicGetPublicRespondHeartbeat($params = array()) {
+        return $this->request('public/respond-heartbeat', 'array(v2,public)', 'GET', $params);
+    }
+    public function v2PrivatePostPrivateSetCancelOnDisconnect($params = array()) {
+        return $this->request('private/set-cancel-on-disconnect', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetCancelOnDisconnect($params = array()) {
+        return $this->request('private/get-cancel-on-disconnect', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateCreateWithdrawal($params = array()) {
+        return $this->request('private/create-withdrawal', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetWithdrawalHistory($params = array()) {
+        return $this->request('private/get-withdrawal-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetCurrencyNetworks($params = array()) {
+        return $this->request('private/get-currency-networks', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetDepositHistory($params = array()) {
+        return $this->request('private/get-deposit-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetDepositAddress($params = array()) {
+        return $this->request('private/get-deposit-address', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetAccountSummary($params = array()) {
+        return $this->request('private/get-account-summary', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateCreateOrder($params = array()) {
+        return $this->request('private/create-order', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateCancelOrder($params = array()) {
+        return $this->request('private/cancel-order', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateCancelAllOrders($params = array()) {
+        return $this->request('private/cancel-all-orders', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateCreateOrderList($params = array()) {
+        return $this->request('private/create-order-list', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetOrderHistory($params = array()) {
+        return $this->request('private/get-order-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetOpenOrders($params = array()) {
+        return $this->request('private/get-open-orders', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetOrderDetail($params = array()) {
+        return $this->request('private/get-order-detail', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetTrades($params = array()) {
+        return $this->request('private/get-trades', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetUserConfig($params = array()) {
+        return $this->request('private/margin/get-user-config', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetAccountSummary($params = array()) {
+        return $this->request('private/margin/get-account-summary', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginTransfer($params = array()) {
+        return $this->request('private/margin/transfer', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginBorrow($params = array()) {
+        return $this->request('private/margin/borrow', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginRepay($params = array()) {
+        return $this->request('private/margin/repay', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetTransferHistory($params = array()) {
+        return $this->request('private/margin/get-transfer-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetBorrowHistory($params = array()) {
+        return $this->request('private/margin/get-borrow-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetInterestHistory($params = array()) {
+        return $this->request('private/margin/get-interest-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetRepayHistory($params = array()) {
+        return $this->request('private/margin/get-repay-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetLiquidationHistory($params = array()) {
+        return $this->request('private/margin/get-liquidation-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetLiquidationOrders($params = array()) {
+        return $this->request('private/margin/get-liquidation-orders', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginCreateOrder($params = array()) {
+        return $this->request('private/margin/create-order', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginCancelOrder($params = array()) {
+        return $this->request('private/margin/cancel-order', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginCancelAllOrders($params = array()) {
+        return $this->request('private/margin/cancel-all-orders', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetOrderHistory($params = array()) {
+        return $this->request('private/margin/get-order-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetOpenOrders($params = array()) {
+        return $this->request('private/margin/get-open-orders', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetOrderDetail($params = array()) {
+        return $this->request('private/margin/get-order-detail', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateMarginGetTrades($params = array()) {
+        return $this->request('private/margin/get-trades', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateDerivTransfer($params = array()) {
+        return $this->request('private/deriv/transfer', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateDerivGetTransferHistory($params = array()) {
+        return $this->request('private/deriv/get-transfer-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetAccounts($params = array()) {
+        return $this->request('private/get-accounts', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateGetSubaccountBalances($params = array()) {
+        return $this->request('private/get-subaccount-balances', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateCreateSubaccountTransfer($params = array()) {
+        return $this->request('private/create-subaccount-transfer', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateOtcGetOtcUser($params = array()) {
+        return $this->request('private/otc/get-otc-user', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateOtcGetInstruments($params = array()) {
+        return $this->request('private/otc/get-instruments', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateOtcRequestQuote($params = array()) {
+        return $this->request('private/otc/request-quote', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateOtcAcceptQuote($params = array()) {
+        return $this->request('private/otc/accept-quote', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateOtcGetQuoteHistory($params = array()) {
+        return $this->request('private/otc/get-quote-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function v2PrivatePostPrivateOtcGetTradeHistory($params = array()) {
+        return $this->request('private/otc/get-trade-history', 'array(v2,private)', 'POST', $params);
+    }
+    public function derivativesPublicGetPublicAuth($params = array()) {
+        return $this->request('public/auth', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPublicGetPublicGetInstruments($params = array()) {
+        return $this->request('public/get-instruments', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPublicGetPublicGetBook($params = array()) {
+        return $this->request('public/get-book', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPublicGetPublicGetCandlestick($params = array()) {
+        return $this->request('public/get-candlestick', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPublicGetPublicGetTrades($params = array()) {
+        return $this->request('public/get-trades', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPublicGetPublicGetTickers($params = array()) {
+        return $this->request('public/get-tickers', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPublicGetPublicGetValuations($params = array()) {
+        return $this->request('public/get-valuations', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPublicGetPublicGetExpiredSettlementPrice($params = array()) {
+        return $this->request('public/get-expired-settlement-price', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPublicGetPublicGetInsurance($params = array()) {
+        return $this->request('public/get-insurance', 'array(derivatives,public)', 'GET', $params);
+    }
+    public function derivativesPrivatePostPrivateSetCancelOnDisconnect($params = array()) {
+        return $this->request('private/set-cancel-on-disconnect', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetCancelOnDisconnect($params = array()) {
+        return $this->request('private/get-cancel-on-disconnect', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateUserBalance($params = array()) {
+        return $this->request('private/user-balance', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateUserBalanceHistory($params = array()) {
+        return $this->request('private/user-balance-history', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetPositions($params = array()) {
+        return $this->request('private/get-positions', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateCreateOrder($params = array()) {
+        return $this->request('private/create-order', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateCreateOrderList($params = array()) {
+        return $this->request('private/create-order-list', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateCancelOrder($params = array()) {
+        return $this->request('private/cancel-order', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateCancelOrderList($params = array()) {
+        return $this->request('private/cancel-order-list', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateCancelAllOrders($params = array()) {
+        return $this->request('private/cancel-all-orders', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateClosePosition($params = array()) {
+        return $this->request('private/close-position', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateConvertCollateral($params = array()) {
+        return $this->request('private/convert-collateral', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetOrderHistory($params = array()) {
+        return $this->request('private/get-order-history', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetOpenOrders($params = array()) {
+        return $this->request('private/get-open-orders', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetOrderDetail($params = array()) {
+        return $this->request('private/get-order-detail', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetTrades($params = array()) {
+        return $this->request('private/get-trades', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateChangeAccountLeverage($params = array()) {
+        return $this->request('private/change-account-leverage', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetTransactions($params = array()) {
+        return $this->request('private/get-transactions', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateCreateSubaccountTransfer($params = array()) {
+        return $this->request('private/create-subaccount-transfer', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetSubaccountBalances($params = array()) {
+        return $this->request('private/get-subaccount-balances', 'array(derivatives,private)', 'POST', $params);
+    }
+    public function derivativesPrivatePostPrivateGetOrderList($params = array()) {
+        return $this->request('private/get-order-list', 'array(derivatives,private)', 'POST', $params);
+    }
 }
