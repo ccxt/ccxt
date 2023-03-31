@@ -615,57 +615,59 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleOrderBook (client, message) {
         //
-        // snapshot
-        //
         //    {
-        //        channel: 'book_lv2',
-        //        data: [
-        //            {
-        //                symbol: 'BTC_USDT',
-        //                createTime: 1677368876253,
-        //                "asks": [
-        //                    ["5.65", "0.02"],
-        //                    ...
-        //                ],
-        //                "bids": [
-        //                    ["6.16", "0.6"],
-        //                    ...
-        //                ],
-        //                lastId: 164148724,
-        //                id: 164148725,
-        //                ts: 1677368876316
-        //            }
-        //        ],
-        //        action: 'snapshot'
+        //        data: {
+        //            symbol: 'BTCUSDTPERP',
+        //            sequence: 1679593048010,
+        //            orderId: '6426fec8586b9500089d64d8',
+        //            clientOid: '14e6ee8e-8757-462c-84db-ed12c2b62f55',
+        //            ts: 1680277192127513900
+        //        },
+        //        subject: 'received',
+        //        topic: '/contractMarket/level3v2:BTCUSDTPERP',
+        //        type: 'message'
         //    }
         //
-        // update
+        //    {
+        //        data: {
+        //            symbol: 'BTCUSDTPERP',
+        //            sequence: 1679593047982,
+        //            side: 'sell',
+        //            orderTime: '1680277191900131371',
+        //            size: '1',
+        //            orderId: '6426fec7d32b6e000790268b',
+        //            price: '28376.4',
+        //            ts: 1680277191939042300
+        //        },
+        //        subject: 'open',
+        //        topic: '/contractMarket/level3v2:BTCUSDTPERP',
+        //        type: 'message'
+        //    }
         //
         //    {
-        //        channel: 'book_lv2',
-        //        data: [
-        //            {
-        //                symbol: 'BTC_USDT',
-        //                createTime: 1677368876882,
-        //                "asks": [
-        //                    ["6.35", "3"]
-        //                ],
-        //                "bids": [
-        //                    ["5.65", "0.02"]
-        //                ],
-        //                lastId: 164148725,
-        //                id: 164148726,
-        //                ts: 1677368876890
-        //            }
-        //        ],
-        //        action: 'update'
+        //        data: {
+        //            symbol: 'BTCUSDTPERP',
+        //            reason: 'canceled',   // or 'filled'
+        //            sequence: 1679593047983,
+        //            orderId: '6426fec74026fa0008e7046f',
+        //            ts: 1680277191949842000
+        //        },
+        //        subject: 'done',
+        //        topic: '/contractMarket/level3v2:BTCUSDTPERP',
+        //        type: 'message'
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const item = this.safeValue (data, 0, {});
-        const type = this.safeString (message, 'action');
-        const marketId = this.safeString (item, 'symbol');
+        const type = this.safeString (message, 'subject');
+        const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
+        const orderId = this.safeString (data, 'orderId');
+        const timestamp = this.safeString (data, 'ts') / 1000;
+        const messageHash = this.safeString (data, 'topic');
+        const side = this.safeString (data, 'side');
+        const size = this.safeString (data, 'size');
+        const price = this.safeString (data, 'price');
+        // TODO ↓
         const symbol = market['symbol'];
         const name = 'book_lv2';
         const messageHash = name + ':' + marketId;
@@ -762,7 +764,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }
         const methods = {
             'book': this.handleOrderBook,
-            'book_lv2': this.handleOrderBook,
+            'open': this.handleOrderBook,
+            'done': this.handleOrderBook,
             'ticker': this.handleTicker,
             // 'trades': this.handleTrade,
             'match': this.handleTrade,
@@ -773,7 +776,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (subject === 'auth') {
             this.handleAuthenticate (client, message);
         } else {
-            if (subject !== undefined) {
+            if (method !== undefined) {
                 return method.call (this, client, message);
             }
         }
