@@ -2172,12 +2172,13 @@ class Transpiler {
                     ]);
                 };
                 const fixPhp = (body, isAsync)=> {
-                    let asyncSub = isAsync ? 'async\\' : '';
+                    let asyncSub = isAsync ? 'async\\\\' : '';
                     const regexes = [
+                        [ /\$console\->log/g, 'var_dump' ],
                         // cases like: exchange = new ccxt.huobi ()
                         [ /new \$ccxt->/g, 'new \\ccxt\\' + asyncSub ],
                         // cases like: exchange = new ccxt['huobi' or varname] ()
-                        [ /new \$ccxt\[(.*?)\]\(/g, 'new ($classname = \'\\\\ccxt\\\\\'.$1' + asyncSub + ')(' ],
+                        [ /new \$ccxt\[(?:['"]|)(.*?)(?:['"]|)\]\(/g, 'new ($classname = \'\\\\ccxt\\\\' + asyncSub + '$1\')(' ],
                     ];
                     return this.regexAll (body, regexes);
                 };

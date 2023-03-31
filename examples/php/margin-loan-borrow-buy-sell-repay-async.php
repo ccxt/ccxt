@@ -20,7 +20,7 @@ use React\Promise;
 function example() {
     // ########## user inputs ##########
     return Async\async(function () {
-        $exchange = new ($classname = '\\ccxt\\'.'binance'async\)(array(
+        $exchange = new ($classname = '\\ccxt\\async\\binance')(array(
     'apiKey' => 'xxx',
     'secret' => 'xxx',
 ));
@@ -44,29 +44,29 @@ function example() {
         $needed_amount_to_borrow = null; // will be auto-set below
         if ($amount_to_trade > $balance_margin[$symbol][$borrow_coin]['free']) {
             $needed_amount_to_borrow = $amount_to_trade - $balance_margin[$symbol][$borrow_coin]['free'];
-            var_dump('hmm, I have only ' . $balance_margin[$symbol][$borrow_coin]['free'] . ' ' . $borrow_coin . ' in margin balance, and still need additional ' . $needed_amount_to_borrow . ' to make an order. Lets borrow it.');
+            var_dump('hmm, I have only ', $balance_margin[$symbol][$borrow_coin]['free'], ' ', $borrow_coin, ' in margin balance, and still need additional ', $needed_amount_to_borrow, ' to make an order. Lets borrow it.');
             // To initate a borrow, at first, check if we have enough collateral (for this example, as we make a sell-short, we need '-1' to keep for collateral currency)
             $needed_collateral_amount = $needed_amount_to_borrow / ($margin_magnitude - 1);
             // Check if we have any collateral to get permission for borrow
             if ($balance_margin[$symbol][$collateral_coin]['free'] < $needed_collateral_amount) {
                 // If we don't have enough collateral, then let's try to transfer collateral-asset from spot-balance to margin-balance
-                $console->log('hmm, I have only ' . $balance_margin[$symbol][$collateral_coin]['free'] . ' in balance, but ' . $needed_collateral_amount . ' collateral is needed. I should transfer ' . $needed_collateral_amount . ' from spot');
+                var_dump('hmm, I have only ', $balance_margin[$symbol][$collateral_coin]['free'], ' in balance, but ', $needed_collateral_amount, ' collateral is needed. I should transfer ', $needed_collateral_amount, ' from spot');
                 // let's check if we have spot balance at all
                 $balance_spot = Async\await($exchange->fetch_balance(array(
     'type' => 'spot',
 )));
                 if ($balance_spot[$collateral_coin]['free'] < $needed_collateral_amount) {
-                    var_dump('hmm, I neither do have enough balance on spot - only ' . $balance_spot[$collateral_coin]['free'] . '. Script can not continue...');
+                    var_dump('hmm, I neither do have enough balance on spot - only ', $balance_spot[$collateral_coin]['free'], '. Script can not continue...');
                     return;
                 } else {
-                    var_dump('Transferring  ' . $needed_collateral_amount . ' to margin account');
+                    var_dump('Transferring  ', $needed_collateral_amount, ' to margin account');
                     Async\await($exchange->transfer($collateral_coin, $needed_collateral_amount, 'spot', $margin_mode, array(
     'symbol' => $symbol,
 ))); // because of temporary bug, you have to round "needed_collateral_amount" manually to 8 decimals. will be fixed a few days later
                 }
             }
             // now, as we have enough margin collateral, initiate borrow
-            $console->log('Initiating margin borrow of ' . $needed_amount_to_borrow . ' ' . $borrow_coin);
+            var_dump('Initiating margin borrow of ', $needed_amount_to_borrow, ' ', $borrow_coin);
             $borrow_result = Async\await($exchange->borrow_margin($borrow_coin, $needed_amount_to_borrow, $symbol, array(
     'marginMode' => $margin_mode,
 )));
@@ -75,7 +75,7 @@ function example() {
         $order = Async\await($exchange->create_order($symbol, $order_type, $order_side, $amount_to_trade, $limit_price, array(
     'marginMode' => $margin_mode,
 )));
-        var_dump('Order was submitted !', $order->id);
+        var_dump('Order was submitted !', $order['id']);
         //
         //
         // ...
@@ -89,7 +89,7 @@ function example() {
         if ($needed_amount_to_borrow !== null) {
             $amount_to_repay_back = $needed_amount_to_borrow;
             // At first, you need to get back the borrowed coin, by making an opposide trade
-            $console->log('Making purchase back of ' . $amount_to_repay_back . ' ' . $borrow_coin . ' to repay it back.');
+            var_dump('Making purchase back of ' . $amount_to_repay_back . ' ' . $borrow_coin . ' to repay it back.');
             $purchase_back_price = 1.01;
             $order_back = Async\await($exchange->create_order($symbol, $order_type, ($order_side === 'buy' ? 'sell' : 'buy'), $amount_to_repay_back, $purchase_back_price, array(
     'marginMode' => $margin_mode,

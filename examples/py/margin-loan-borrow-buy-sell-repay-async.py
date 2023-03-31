@@ -41,27 +41,27 @@ async def example():
     needed_amount_to_borrow = None  # will be auto-set below
     if amount_to_trade > balance_margin[symbol][borrow_coin]['free']:
         needed_amount_to_borrow = amount_to_trade - balance_margin[symbol][borrow_coin]['free']
-        print('hmm, I have only ' , balance_margin[symbol][borrow_coin]['free'] , ' ' , borrow_coin , ' in margin balance, and still need additional ' , needed_amount_to_borrow , ' to make an order. Lets borrow it.')
+        print('hmm, I have only ', balance_margin[symbol][borrow_coin]['free'], ' ', borrow_coin, ' in margin balance, and still need additional ', needed_amount_to_borrow, ' to make an order. Lets borrow it.')
         # To initate a borrow, at first, check if we have enough collateral (for this example, as we make a sell-short, we need '-1' to keep for collateral currency)
         needed_collateral_amount = needed_amount_to_borrow / (margin_magnitude - 1)
         # Check if we have any collateral to get permission for borrow
         if balance_margin[symbol][collateral_coin]['free'] < needed_collateral_amount:
             # If we don't have enough collateral, then let's try to transfer collateral-asset from spot-balance to margin-balance
-            console.log('hmm, I have only ' + balance_margin[symbol][collateral_coin]['free'] + ' in balance, but ' + needed_collateral_amount + ' collateral is needed. I should transfer ' + needed_collateral_amount + ' from spot')
+            console.log('hmm, I have only ', balance_margin[symbol][collateral_coin]['free'], ' in balance, but ', needed_collateral_amount, ' collateral is needed. I should transfer ', needed_collateral_amount, ' from spot')
             # let's check if we have spot balance at all
             balance_spot = await exchange.fetch_balance({
     'type': 'spot',
 })
             if balance_spot[collateral_coin]['free'] < needed_collateral_amount:
-                print('hmm, I neither do have enough balance on spot - only ' + balance_spot[collateral_coin]['free'] + '. Script can not continue...')
+                print('hmm, I neither do have enough balance on spot - only ', balance_spot[collateral_coin]['free'], '. Script can not continue...')
                 return
             else:
-                print('Transferring  ' + needed_collateral_amount + ' to margin account')
+                print('Transferring  ', needed_collateral_amount, ' to margin account')
                 await exchange.transfer(collateral_coin, needed_collateral_amount, 'spot', margin_mode, {
     'symbol': symbol,
 })  # because of temporary bug, you have to round "needed_collateral_amount" manually to 8 decimals. will be fixed a few days later
         # now, as we have enough margin collateral, initiate borrow
-        console.log('Initiating margin borrow of ' + needed_amount_to_borrow + ' ' + borrow_coin)
+        console.log('Initiating margin borrow of ', needed_amount_to_borrow, ' ', borrow_coin)
         borrow_result = await exchange.borrow_margin(borrow_coin, needed_amount_to_borrow, symbol, {
     'marginMode': margin_mode,
 })
@@ -69,7 +69,7 @@ async def example():
     order = await exchange.create_order(symbol, order_type, order_side, amount_to_trade, limit_price, {
     'marginMode': margin_mode,
 })
-    print('Order was submitted !', order.id)
+    print('Order was submitted !', order['id'])
     #
     #
     # ...
