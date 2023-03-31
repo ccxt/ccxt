@@ -1216,7 +1216,9 @@ export default class Exchange {
         // (connection established successfully)
         connected.then (() => {
             if (!client.subscriptions[subscribeHash]) {
-                client.subscriptions[subscribeHash] = subscription || true;
+                if (subscribeHash !== undefined) {
+                    client.subscriptions[subscribeHash] = subscription || true;
+                }
                 const options = this.safeValue (this.options, 'ws');
                 const cost = this.safeValue (options, 'cost', 1);
                 if (message) {

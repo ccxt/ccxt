@@ -345,7 +345,8 @@ class Exchange(BaseExchange):
 
         def after(fut):
             if subscribe_hash not in client.subscriptions:
-                client.subscriptions[subscribe_hash] = subscription or True
+                if subscribe_hash is not None:
+                    client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
                 options = self.safe_value(self.options, 'ws')
                 cost = self.safe_value(options, 'cost', 1)
