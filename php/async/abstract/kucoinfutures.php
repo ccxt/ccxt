@@ -6,7 +6,7 @@ namespace ccxt\async\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class kucoinfutures extends kucoin {
+abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function public_get_timestamp($params = array()) {
         return $this->request('timestamp', 'public', 'GET', $params);
     }

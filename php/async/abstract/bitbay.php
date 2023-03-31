@@ -6,7 +6,7 @@ namespace ccxt\async\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class bitbay extends zonda {
+abstract class bitbay extends \ccxt\async\zonda {
     public function public_get_id_all($params = array()) {
         return $this->request('{id}/all', 'public', 'GET', $params);
     }

@@ -6,7 +6,7 @@ namespace ccxt\async\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class huobipro extends huobi {
+abstract class huobipro extends \ccxt\async\huobi {
     public function v2public_get_reference_currencies($params = array()) {
         return $this->request('reference/currencies', 'v2Public', 'GET', $params);
     }

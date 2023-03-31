@@ -6,7 +6,7 @@ namespace ccxt\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class flowbtc extends ndax {
+abstract class flowbtc extends \ccxt\ndax {
     public function public_get_activate2fa($params = array()) {
         return $this->request('Activate2FA', 'public', 'GET', $params);
     }

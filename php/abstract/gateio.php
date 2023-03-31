@@ -6,7 +6,7 @@ namespace ccxt\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class gateio extends gate {
+abstract class gateio extends \ccxt\gate {
     public function public_wallet_get_currency_chains($params = array()) {
         return $this->request('currency_chains', 'array(public,wallet)', 'GET', $params);
     }

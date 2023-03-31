@@ -6,7 +6,7 @@ namespace ccxt\async\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class binancecoinm extends binance {
+abstract class binancecoinm extends \ccxt\async\binance {
     public function sapi_get_system_status($params = array()) {
         return $this->request('system/status', 'sapi', 'GET', $params);
     }
