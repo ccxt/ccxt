@@ -2161,11 +2161,6 @@ class Transpiler {
                 const fixPython = (body, isAsync)=> {
                     return this.regexAll (body, [
                         [ /console\.log/g, 'print' ],
-                        [ /function\s*(\w+\s*\(\))\s*{/g, 'def $1:' ], //need this to catch functions without any arguments
-                        [ /print\s*\((.*)\)/, function(match, contents)
-                        {
-                            return match.replace(/\+/g, ',');
-                        }],
                         // cases like: exchange = new ccxt.binance ()
                         //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
                         // cases like: exchange = new ccxt['name' or name] ()

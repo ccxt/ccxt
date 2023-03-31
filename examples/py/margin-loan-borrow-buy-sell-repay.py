@@ -83,7 +83,7 @@ def example():
     if needed_amount_to_borrow is not None:
         amount_to_repay_back = needed_amount_to_borrow
         # At first, you need to get back the borrowed coin, by making an opposide trade
-        print('Making purchase back of ', amount_to_repay_back, ' ', borrow_coin, ' to repay it back.')
+        print('Making purchase back of ' + amount_to_repay_back + ' ' + borrow_coin + ' to repay it back.')
         purchase_back_price = 1.01
         order_back = exchange.create_order(symbol, order_type, ('sell' if order_side == 'buy' else 'buy'), amount_to_repay_back, purchase_back_price, {
     'marginMode': margin_mode,

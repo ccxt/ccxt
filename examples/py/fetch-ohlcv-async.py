@@ -23,7 +23,7 @@ async def example():
     length = len(ohlcv)
     if length > 0:
         last_price = ohlcv[length - 1][4]
-        print('Fetched ' , length , ' candles for ' , myex.id , ':  last close ' , last_price)
+        print('Fetched ' + length + ' candles for ' + myex.id + ':  last close ' + last_price)
     else:
         print('No candles have been fetched')
 
