@@ -1094,7 +1094,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
@@ -1130,7 +1130,7 @@ class poloniex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1188,7 +1188,7 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an order by it's $id
          * @param {string} $id order $id
@@ -1227,14 +1227,14 @@ class poloniex extends Exchange {
         ));
     }
 
-    public function fetch_order_status($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         $orders = $this->fetch_open_orders($symbol, null, null, $params);
         $indexed = $this->index_by($orders, 'id');
         return (is_array($indexed) && array_key_exists($id, $indexed)) ? 'open' : 'closed';
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
          * @param {string} $id order $id

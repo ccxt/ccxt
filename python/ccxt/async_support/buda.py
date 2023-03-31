@@ -644,7 +644,7 @@ class buda(Exchange):
         response = await self.privateGetBalances(params)
         return self.parse_balance(response)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by buda fetchOrder
@@ -734,7 +734,7 @@ class buda(Exchange):
         order = self.safe_value(response, 'order')
         return self.parse_order(order)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

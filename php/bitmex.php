@@ -657,7 +657,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the market the order was made in
@@ -1809,7 +1809,7 @@ class bitmex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $origClOrdID = $this->safe_string_2($params, 'origClOrdID', 'clientOrderId');
@@ -1835,7 +1835,7 @@ class bitmex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id

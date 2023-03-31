@@ -982,7 +982,7 @@ class bittrex(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1167,7 +1167,7 @@ class bittrex(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1288,7 +1288,7 @@ class bittrex(Exchange):
             orders.append(result)
         return self.parse_orders(orders, market)
 
-    async def fetch_deposit(self, id, code: Optional[str] = None, params={}):
+    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         :param str id: deposit id
@@ -1361,7 +1361,7 @@ class bittrex(Exchange):
         await self.load_markets()
         return self.fetch_deposits(code, since, limit, self.extend(params, {'status': 'pending'}))
 
-    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1690,7 +1690,7 @@ class bittrex(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in

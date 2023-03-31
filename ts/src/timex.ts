@@ -786,7 +786,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -838,7 +838,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#cancelOrder
@@ -894,7 +894,7 @@ export default class timex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOrder

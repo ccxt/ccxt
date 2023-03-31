@@ -453,7 +453,7 @@ class zaif(Exchange):
             'id': str(response['return']['order_id']),
         }, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

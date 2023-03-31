@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\poloniexfutures as Exchange;
+use ccxt\async\abstract\poloniexfutures as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
@@ -891,7 +891,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order

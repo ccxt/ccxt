@@ -2681,7 +2681,7 @@ export default class gate extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchOrderTrades
@@ -3468,7 +3468,7 @@ export default class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name gate#editOrder
@@ -3810,7 +3810,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchOrder
@@ -4052,7 +4052,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gate#cancelOrder

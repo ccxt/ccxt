@@ -141,7 +141,7 @@ async function main() {
             `import _${parent} from '../${parent}.js';`
         const typescriptHeader = `interface ${parent} {`
         const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
-        const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : parent
+        const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent
         const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
         storedTypeScriptResult[exchange] = []
         storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
@@ -165,7 +165,7 @@ namespace ccxt\\abstract;
     // one more time for the async php
     Object.values (storedPhpMethods).forEach (x => {
         x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
-        x[2] = x[2].replace (/ccxt\\Exchange/, 'ccxt\\async\\Exchange')
+        x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
     })
     await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
     log.bright.cyan ('PHP async implicit api methods completed!')

@@ -350,7 +350,7 @@ class bl3p(Exchange):
             'id': orderId,
         }, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

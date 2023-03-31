@@ -190,7 +190,7 @@ class upbit extends Exchange {
         return $this->fetch_currency_by_id($currency['id'], $params);
     }
 
-    public function fetch_currency_by_id($id, $params = array ()) {
+    public function fetch_currency_by_id(string $id, $params = array ()) {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         $request = array(
@@ -288,7 +288,7 @@ class upbit extends Exchange {
         return $this->fetch_market_by_id($market['id'], $params);
     }
 
-    public function fetch_market_by_id($id, $params = array ()) {
+    public function fetch_market_by_id(string $id, $params = array ()) {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         $request = array(
@@ -1073,7 +1073,7 @@ class upbit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1492,7 +1492,7 @@ class upbit extends Exchange {
         return $this->fetch_orders_by_state('cancel', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol not used by upbit fetchOrder

@@ -863,7 +863,7 @@ export default class coinsph extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOrderTrades
@@ -1127,7 +1127,7 @@ export default class coinsph extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOrder
@@ -1202,7 +1202,7 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#cancelOrder

@@ -1366,7 +1366,7 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1400,7 +1400,7 @@ class delta(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_order(result, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

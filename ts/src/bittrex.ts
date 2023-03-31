@@ -1030,7 +1030,7 @@ export default class bittrex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchOrderTrades
@@ -1239,7 +1239,7 @@ export default class bittrex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#cancelOrder
@@ -1370,7 +1370,7 @@ export default class bittrex extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    async fetchDeposit (id, code: string = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchDeposit
@@ -1457,7 +1457,7 @@ export default class bittrex extends Exchange {
         return this.fetchDeposits (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
-    async fetchWithdrawal (id, code: string = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchWithdrawal
@@ -1822,7 +1822,7 @@ export default class bittrex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchOrder

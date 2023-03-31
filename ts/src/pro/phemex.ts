@@ -1007,25 +1007,11 @@ export default class phemex extends phemexRest {
         //       }
         //     ]
         // }
-        const id = this.safeInteger (message, 'id');
-        if (id !== undefined) {
-            // not every method stores its subscription
-            // as an object so we can't do indexById here
-            const subs = client.subscriptions;
-            const values = Object.values (subs);
-            for (let i = 0; i < values.length; i++) {
-                const subscription = values[i] as any;
-                if (subscription !== true) {
-                    const subId = this.safeInteger (subscription, 'id');
-                    if ((subId !== undefined) && (subId === id)) {
-                        const method = this.safeValue (subscription, 'method');
-                        if (method !== undefined) {
-                            method.call (this, client, message);
-                            return;
-                        }
-                    }
-                }
-            }
+        const id = this.safeString (message, 'id');
+        if (id in client.subscriptions) {
+            const method = client.subscriptions[id];
+            delete client.subscriptions[id];
+            return method.call (this, client, message);
         }
         if (('market24h' in message) || ('spot_market24h' in message)) {
             return this.handleTicker (client, message);
@@ -1059,14 +1045,14 @@ export default class phemex extends phemexRest {
         //
         const result = this.safeValue (message, 'result');
         const status = this.safeString (result, 'status');
+        const messageHash = 'authenticated';
         if (status === 'success') {
-            client.resolve (message, 'authenticated');
+            client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (error, 'authenticated');
-            const subscriptionHash = 'user.auth';
-            if (subscriptionHash in client.subscriptions) {
-                delete client.subscriptions[subscriptionHash];
+            client.reject (error, messageHash);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
             }
         }
     }
@@ -1083,18 +1069,14 @@ export default class phemex extends phemexRest {
             'params': [],
         };
         request = this.extend (request, params);
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-        };
-        return await this.watch (url, messageHash, request, channel, subscription);
+        return await this.watch (url, messageHash, request, channel);
     }
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const time = this.seconds ();
+        const requestId = this.requestId ();
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
@@ -1106,14 +1088,15 @@ export default class phemex extends phemexRest {
             const request = {
                 'method': method,
                 'params': [ 'API', this.apiKey, signature, expiration ],
-                'id': time,
+                'id': requestId,
             };
-            const subscription = {
-                'id': time,
-                'method': this.handleAuthenticate,
-            };
+            const subscriptionHash = requestId.toString ();
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message, method, subscription);
+            if (!(messageHash in client.subscriptions)) {
+                client.subscriptions[subscriptionHash] = this.handleAuthenticate;
+            }
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
         return future;
     }

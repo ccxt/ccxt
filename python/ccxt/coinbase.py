@@ -2142,7 +2142,7 @@ class coinbase(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
@@ -2190,7 +2190,7 @@ class coinbase(Exchange):
                 raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder

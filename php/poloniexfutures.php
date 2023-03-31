@@ -866,7 +866,7 @@ class poloniexfutures extends Exchange {
         );
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @see https://futures-docs.poloniex.com/#cancel-an-order

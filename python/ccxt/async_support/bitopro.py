@@ -984,7 +984,7 @@ class bitopro(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1071,7 +1071,7 @@ class bitopro(Exchange):
         #
         return result
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1412,7 +1412,7 @@ class bitopro(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id

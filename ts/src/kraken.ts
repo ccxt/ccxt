@@ -1036,7 +1036,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items);
     }
 
-    async fetchLedgerEntry (id, code: string = undefined, params = {}) {
+    async fetchLedgerEntry (id: string, code: string = undefined, params = {}) {
         const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }
@@ -1531,7 +1531,7 @@ export default class kraken extends Exchange {
         return [ request, params ];
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name kraken#editOrder
@@ -1580,7 +1580,7 @@ export default class kraken extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOrder
@@ -1649,7 +1649,7 @@ export default class kraken extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#fetchOrderTrades
@@ -1808,7 +1808,7 @@ export default class kraken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelOrder

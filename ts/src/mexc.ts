@@ -1947,7 +1947,7 @@ export default class mexc extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchOrder
@@ -2430,7 +2430,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#cancelOrder
@@ -3347,7 +3347,7 @@ export default class mexc extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchOrderTrades
@@ -4306,7 +4306,7 @@ export default class mexc extends Exchange {
         });
     }
 
-    async fetchTransfer (id, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfer (id: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfer', undefined, params);
         await this.loadMarkets ();
         if (marketType === 'spot') {

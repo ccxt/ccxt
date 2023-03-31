@@ -608,20 +608,18 @@ class oceanex(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the oceanex api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        ids = id
-        if not isinstance(id, list):
-            ids = [id]
         await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        ids = [id]
         request = {'ids': ids}
         response = await self.privateGetOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
@@ -810,7 +808,7 @@ class oceanex(Exchange):
         data = response['data']
         return self.parse_orders(data)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

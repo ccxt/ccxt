@@ -1118,7 +1118,7 @@ class lbank2(Exchange):
             'average': None,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1133,7 +1133,7 @@ class lbank2(Exchange):
         result = await getattr(self, method)(id, symbol, params)
         return result
 
-    async def fetch_order_supplement(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order_supplement(self, id: str, symbol: Optional[str] = None, params={}):
         await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -1167,7 +1167,7 @@ class lbank2(Exchange):
         result = self.safe_value(response, 'data', {})
         return self.parse_order(result)
 
-    async def fetch_order_default(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order_default(self, id: str, symbol: Optional[str] = None, params={}):
         # Id can be a list of ids delimited by a comma
         await self.load_markets()
         if symbol is None:
@@ -1368,7 +1368,7 @@ class lbank2(Exchange):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

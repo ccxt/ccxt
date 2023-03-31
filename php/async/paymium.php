@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\paymium as Exchange;
+use ccxt\async\abstract\paymium as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
@@ -415,7 +415,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order

@@ -831,7 +831,7 @@ class btcmarkets(Exchange):
         }
         return await self.privateDeleteBatchordersIds(self.extend(request, params))
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -944,7 +944,7 @@ class btcmarkets(Exchange):
             'fee': None,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by btcmarkets fetchOrder

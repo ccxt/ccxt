@@ -1355,7 +1355,7 @@ class bitmart(Exchange):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1811,7 +1811,7 @@ class bitmart(Exchange):
             'price': price,
         })
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1985,7 +1985,7 @@ class bitmart(Exchange):
         """
         return await self.fetch_orders_by_status('canceled', symbol, since, limit, params)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1998,8 +1998,6 @@ class bitmart(Exchange):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' fetchOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        if not isinstance(id, str):
-            id = str(id)
         request = {
             'symbol': market['id'],
             'order_id': id,
@@ -2190,7 +2188,7 @@ class bitmart(Exchange):
         records = self.safe_value(data, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
-    async def fetch_deposit(self, id, code: Optional[str] = None, params={}):
+    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -2240,7 +2238,7 @@ class bitmart(Exchange):
         """
         return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
-    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id

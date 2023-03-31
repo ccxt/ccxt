@@ -2465,7 +2465,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitget#editOrder
@@ -2564,7 +2564,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitget#cancelOrder
@@ -2745,7 +2745,7 @@ export default class bitget extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchOrder
@@ -3323,7 +3323,7 @@ export default class bitget extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchOrderTrades

@@ -890,7 +890,7 @@ export default class btcmarkets extends Exchange {
         return await this.privateDeleteBatchordersIds (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#cancelOrder
@@ -1011,7 +1011,7 @@ export default class btcmarkets extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchOrder

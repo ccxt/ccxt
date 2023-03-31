@@ -1680,7 +1680,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrder (rawOrder, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchOrder
@@ -1830,7 +1830,7 @@ export default class tokocrypto extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#cancelOrder

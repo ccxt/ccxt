@@ -1587,7 +1587,7 @@ export default class ascendex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchOrder
@@ -1986,7 +1986,7 @@ export default class ascendex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#cancelOrder

@@ -1348,7 +1348,7 @@ class huobi extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_limits_by_id($id, $params = array ()) {
+    public function fetch_trading_limits_by_id(string $id, $params = array ()) {
         $request = array(
             'symbol' => $id,
         );
@@ -2283,7 +2283,7 @@ class huobi extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -2307,7 +2307,7 @@ class huobi extends Exchange {
         return $this->$method ($id, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_spot_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_spot_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order-id' => $id,
@@ -3179,7 +3179,7 @@ class huobi extends Exchange {
         return $result;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in
@@ -4341,7 +4341,7 @@ class huobi extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id

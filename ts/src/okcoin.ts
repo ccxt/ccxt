@@ -2042,7 +2042,7 @@ export default class okcoin extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#cancelOrder
@@ -2277,7 +2277,7 @@ export default class okcoin extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOrder
@@ -3156,7 +3156,7 @@ export default class okcoin extends Exchange {
         return this.parseMyTrades (response, market, since, limit, params) as any;
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOrderTrades

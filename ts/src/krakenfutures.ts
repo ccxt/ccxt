@@ -873,7 +873,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOrder (sendStatus);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#editOrder
@@ -904,7 +904,7 @@ export default class krakenfutures extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @param {string} id Order id
          * @param {string|undefined} symbol Not used by Krakenfutures

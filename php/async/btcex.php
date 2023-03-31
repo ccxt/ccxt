@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\btcex as Exchange;
+use ccxt\async\abstract\btcex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -1231,7 +1231,7 @@ class btcex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -1424,7 +1424,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             Async\await($this->sign_in());
             Async\await($this->load_markets());
@@ -1571,7 +1571,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $id argument');
@@ -1998,7 +1998,7 @@ class btcex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');

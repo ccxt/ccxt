@@ -2391,7 +2391,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name phemex#editOrder
@@ -2466,7 +2466,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#cancelOrder
@@ -2538,7 +2538,7 @@ export default class phemex extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOrder

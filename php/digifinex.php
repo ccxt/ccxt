@@ -1645,7 +1645,7 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
@@ -2094,7 +2094,7 @@ class digifinex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-$order-status

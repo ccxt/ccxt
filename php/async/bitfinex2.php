@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\bitfinex2 as Exchange;
+use ccxt\async\abstract\bitfinex2 as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
@@ -1651,7 +1651,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -1683,7 +1683,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_open_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open $order by it's $id
@@ -1704,7 +1704,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open $order by it's $id
@@ -1858,7 +1858,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order

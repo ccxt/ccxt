@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\hitbtc as Exchange;
+use ccxt\async\abstract\hitbtc as Exchange;
 use ccxt\ExchangeError;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
@@ -1025,7 +1025,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             // we use clientOrderId order $id with this exchange intentionally
@@ -1051,7 +1051,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1172,7 +1172,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1196,7 +1196,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_open_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by it's $id
@@ -1338,7 +1338,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order

@@ -51,7 +51,7 @@ export default class kucoinfutures extends kucoin {
         triggerPrice: any;
         info: any;
     }>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     parseMarginModification(info: any, market?: any): {

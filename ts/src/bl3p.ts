@@ -374,7 +374,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#cancelOrder

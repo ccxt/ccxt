@@ -1205,6 +1205,9 @@ export default class Exchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
+        if ((subscribeHash === undefined) && (messageHash in client.futures)) {
+            return client.futures[messageHash];
+        }
         const future = client.future (messageHash);
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
@@ -1216,7 +1219,9 @@ export default class Exchange {
         // (connection established successfully)
         connected.then (() => {
             if (!client.subscriptions[subscribeHash]) {
-                client.subscriptions[subscribeHash] = subscription || true;
+                if (subscribeHash !== undefined) {
+                    client.subscriptions[subscribeHash] = subscription || true;
+                }
                 const options = this.safeValue (this.options, 'ws');
                 const cost = this.safeValue (options, 'cost', 1);
                 if (message) {
@@ -2776,7 +2781,7 @@ export default class Exchange {
         return await this.editOrder (id, symbol, 'limit', side, amount, price, params);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         await this.cancelOrder (id, symbol);
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
@@ -2807,7 +2812,7 @@ export default class Exchange {
         return [ price, amount ];
     }
 
-    safeCurrency (currencyId?: string, currency: string = undefined) {
+    safeCurrency (currencyId?: string, currency: any = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
@@ -3195,7 +3200,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}): Promise<any> {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
@@ -3211,7 +3216,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchOrderTrades() is not supported yet');
     }
 
@@ -3495,7 +3500,7 @@ export default class Exchange {
         return await this.createOrder (symbol, 'market', side, amount, undefined, query);
     }
 
-    safeCurrencyCode (currencyId?: string, currency: string = undefined) {
+    safeCurrencyCode (currencyId?: string, currency: any = undefined) {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }

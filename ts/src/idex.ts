@@ -898,7 +898,7 @@ export default class idex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchOrder
@@ -1432,7 +1432,7 @@ export default class idex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#cancelOrder
@@ -1484,7 +1484,7 @@ export default class idex extends Exchange {
         }
     }
 
-    async fetchDeposit (id, code: string = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchDeposit
@@ -1537,7 +1537,7 @@ export default class idex extends Exchange {
         return this.safeNumber (response, 'serverTime');
     }
 
-    async fetchWithdrawal (id, code: string = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchWithdrawal

@@ -550,7 +550,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#cancelOrder
@@ -691,7 +691,7 @@ export default class bitflyer extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchOrder

@@ -603,7 +603,7 @@ export default class indodax extends Exchange {
         });
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOrder
@@ -735,7 +735,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name indodax#cancelOrder

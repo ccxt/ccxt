@@ -1200,7 +1200,7 @@ class stex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -1239,7 +1239,7 @@ class stex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_closed_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open order by it's $id
          * @param {string} $id order $id
@@ -1295,7 +1295,7 @@ class stex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single $order
          * @param {string} $id $order $id
@@ -1359,7 +1359,7 @@ class stex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1829,7 +1829,7 @@ class stex extends Exchange {
         );
     }
 
-    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -1934,7 +1934,7 @@ class stex extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id

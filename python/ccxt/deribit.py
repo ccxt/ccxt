@@ -1525,7 +1525,7 @@ class deribit(Exchange):
             'trades': trades,
         }, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1720,7 +1720,7 @@ class deribit(Exchange):
         order['trades'] = trades
         return self.parse_order(order, market)
 
-    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         if price is None:
@@ -1745,7 +1745,7 @@ class deribit(Exchange):
         order['trades'] = trades
         return self.parse_order(order)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1832,7 +1832,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id

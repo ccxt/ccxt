@@ -3295,7 +3295,7 @@ class bybit extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -3943,7 +3943,7 @@ class bybit extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function edit_unified_account_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_unified_account_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4006,7 +4006,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function edit_unified_margin_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_unified_margin_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4089,7 +4089,7 @@ class bybit extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function edit_contract_v3_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_contract_v3_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -4137,7 +4137,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $symbol argument');
         }
@@ -4154,7 +4154,7 @@ class bybit extends Exchange {
         return $this->edit_contract_v3_order($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function cancel_unified_account_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_unified_account_order(string $id, ?string $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -4202,7 +4202,7 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_spot_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_spot_order(string $id, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -4241,7 +4241,7 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_unified_margin_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_unified_margin_order(string $id, ?string $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelUnifiedMarginOrder() requires a $symbol argument');
         }
@@ -4283,7 +4283,7 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_usdc_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_usdc_order(string $id, ?string $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelUSDCOrder() requires a $symbol argument');
         }
@@ -4324,7 +4324,7 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_derivatives_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_derivatives_order(string $id, ?string $symbol = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelDerivativesOrder() requires a $symbol argument');
         }
@@ -4353,7 +4353,7 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -5509,7 +5509,7 @@ class bybit extends Exchange {
         }
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id

@@ -6,7 +6,7 @@ namespace ccxt\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class binanceusdm extends binance {
+abstract class binanceusdm extends \ccxt\binance {
     public function sapi_get_system_status($params = array()) {
         return $this->request('system/status', 'sapi', 'GET', $params);
     }

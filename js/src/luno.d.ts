@@ -9,7 +9,7 @@ export default class luno extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrdersByState(state?: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -27,7 +27,7 @@ export default class luno extends Exchange {
         taker: number;
     }>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchLedgerByEntries(code?: string, entry?: number, limit?: number, params?: {}): Promise<any>;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerComment(comment: any): {

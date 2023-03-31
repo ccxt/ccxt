@@ -2104,9 +2104,6 @@ class bitmart extends bitmart$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' fetchOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        if (typeof id !== 'string') {
-            id = id.toString();
-        }
         const request = {
             'symbol': market['id'],
             'order_id': id,

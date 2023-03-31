@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\upbit as Exchange;
+use ccxt\async\abstract\upbit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\InvalidOrder;
 use ccxt\AddressPending;
@@ -197,7 +197,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_currency_by_id($id, $params = array ()) {
+    public function fetch_currency_by_id(string $id, $params = array ()) {
         return Async\async(function () use ($id, $params) {
             // this method is for retrieving funding fees and limits per currency
             // it requires private access and API keys properly set up
@@ -299,7 +299,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_market_by_id($id, $params = array ()) {
+    public function fetch_market_by_id(string $id, $params = array ()) {
         return Async\async(function () use ($id, $params) {
             // this method is for retrieving trading fees and limits per market
             // it requires private access and API keys properly set up
@@ -1106,7 +1106,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1539,7 +1539,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user

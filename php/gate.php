@@ -2641,7 +2641,7 @@ class gate extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -3416,7 +3416,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * edit a trade order, gate currently only supports the modification of the $price or $amount fields
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -3756,7 +3756,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * Retrieves information on an order
          * @param {string} $id Order $id
@@ -3992,7 +3992,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * Cancels an open order
          * @param {string} $id Order $id

@@ -1077,7 +1077,7 @@ export default class cryptocom extends Exchange {
         return this[parser] (response);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#fetchOrder
@@ -1244,7 +1244,7 @@ export default class cryptocom extends Exchange {
         return await this[method] (this.extend (request, query));
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#cancelOrder

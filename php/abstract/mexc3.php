@@ -6,7 +6,7 @@ namespace ccxt\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class mexc3 extends mexc {
+abstract class mexc3 extends \ccxt\mexc {
     public function spot_public_get_ping($params = array()) {
         return $this->request('ping', 'array(spot,public)', 'GET', $params);
     }

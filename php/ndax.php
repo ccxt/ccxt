@@ -1345,7 +1345,7 @@ class ndax extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
         $this->load_accounts();
@@ -1512,7 +1512,7 @@ class ndax extends Exchange {
         return $response;
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -1719,7 +1719,7 @@ class ndax extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -1793,7 +1793,7 @@ class ndax extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
          * @param {string} $id order $id

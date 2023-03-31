@@ -2288,7 +2288,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type=None, side=None, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
@@ -2350,7 +2350,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
@@ -2410,7 +2410,7 @@ class phemex(Exchange):
         request['symbol'] = market['id']
         return getattr(self, method)(self.extend(request, params))
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in

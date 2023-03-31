@@ -23,7 +23,7 @@ export default class huobi extends Exchange {
         taker: number;
     }>;
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<{}>;
-    fetchTradingLimitsById(id: any, params?: {}): Promise<{
+    fetchTradingLimitsById(id: string, params?: {}): Promise<{
         info: any;
         limits: {
             amount: {
@@ -49,8 +49,8 @@ export default class huobi extends Exchange {
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchSpotOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchSpotOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: number, params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -67,7 +67,7 @@ export default class huobi extends Exchange {
     networkIdToCode(networkId: any, currencyCode?: any): string;
     networkCodeToId(networkCode: any, currencyCode?: any): any;
     fetchBalance(params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseMarginBalanceHelper(balance: any, code: any, result: any): any;
     fetchSpotOrdersByStates(states: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchSpotOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -101,7 +101,7 @@ export default class huobi extends Exchange {
         average: any;
     }>;
     createContractOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: any): {

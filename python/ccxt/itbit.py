@@ -702,7 +702,7 @@ class itbit(Exchange):
             'id': response['id'],
         }, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by itbit fetchOrder
@@ -719,7 +719,7 @@ class itbit(Exchange):
         response = self.privateGetWalletsWalletIdOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

@@ -1851,7 +1851,7 @@ class mexc(Exchange):
         data = self.safe_string(response, 'data')
         return self.parse_order(data, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2292,7 +2292,7 @@ class mexc(Exchange):
             params['states'] = state
             return self.fetch_orders(symbol, since, limit, params)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -3147,7 +3147,7 @@ class mexc(Exchange):
             trades = self.safe_value(response, 'data')
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -4025,7 +4025,7 @@ class mexc(Exchange):
             'lastUpdateTimestamp': None,
         })
 
-    def fetch_transfer(self, id, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfer(self, id: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
         self.load_markets()
         if marketType == 'spot':

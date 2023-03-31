@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.45'
+__version__ = '3.0.46'
 
 # -----------------------------------------------------------------------------
 
@@ -336,6 +336,8 @@ class Exchange(BaseExchange):
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         backoff_delay = 0
         client = self.client(url)
+        if subscribe_hash is None and message_hash in client.futures:
+            return client.futures[message_hash]
         future = client.future(message_hash)
 
         # base exchange self.open starts the aiohttp Session in an async context
@@ -345,7 +347,8 @@ class Exchange(BaseExchange):
 
         def after(fut):
             if subscribe_hash not in client.subscriptions:
-                client.subscriptions[subscribe_hash] = subscription or True
+                if subscribe_hash is not None:
+                    client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
                 options = self.safe_value(self.options, 'ws')
                 cost = self.safe_value(options, 'cost', 1)
@@ -1640,7 +1643,7 @@ class Exchange(BaseExchange):
     async def edit_limit_order(self, id, symbol, side, amount, price=None, params={}):
         return await self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
-    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         await self.cancelOrder(id, symbol)
         return await self.create_order(symbol, type, side, amount, price, params)
 
@@ -1974,7 +1977,7 @@ class Exchange(BaseExchange):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
@@ -1986,7 +1989,7 @@ class Exchange(BaseExchange):
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):

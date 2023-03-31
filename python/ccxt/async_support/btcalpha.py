@@ -716,7 +716,7 @@ class btcalpha(Exchange):
             'amount': self.parse_number(amount),
         })
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -730,7 +730,7 @@ class btcalpha(Exchange):
         response = await self.privatePostOrderCancel(self.extend(request, params))
         return response
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by btcalpha fetchOrder

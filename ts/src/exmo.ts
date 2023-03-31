@@ -1322,7 +1322,7 @@ export default class exmo extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name exmo#cancelOrder
@@ -1337,7 +1337,7 @@ export default class exmo extends Exchange {
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOrder
@@ -1378,7 +1378,7 @@ export default class exmo extends Exchange {
         });
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOrderTrades
@@ -1922,7 +1922,7 @@ export default class exmo extends Exchange {
         return this.parseTransactions (items, currency, since, limit);
     }
 
-    async fetchWithdrawal (id, code: string = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchWithdrawal

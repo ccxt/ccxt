@@ -1040,7 +1040,7 @@ class bitfinex(Exchange):
         response = await self.privatePostOrderNew(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         order = {
             'order_id': int(id),
@@ -1058,7 +1058,7 @@ class bitfinex(Exchange):
         response = await self.privatePostOrderCancelReplace(self.extend(order, params))
         return self.parse_order(response)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1190,7 +1190,7 @@ class bitfinex(Exchange):
         orders = self.filter_by_array(orders, 'status', ['closed', 'canceled'], False)
         return orders
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by bitfinex fetchOrder

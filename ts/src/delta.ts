@@ -1426,7 +1426,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1463,7 +1463,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelOrder

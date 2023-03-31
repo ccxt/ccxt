@@ -6,7 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\kucoinfutures as kucoin;
+use ccxt\async\abstract\kucoinfutures as kucoin;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
@@ -1139,7 +1139,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order

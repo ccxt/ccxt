@@ -524,7 +524,7 @@ class blockchaincom(Exchange):
         response = self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -902,7 +902,7 @@ class blockchaincom(Exchange):
         response = self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -939,7 +939,7 @@ class blockchaincom(Exchange):
         response = self.privateGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_deposit(self, id, code: Optional[str] = None, params={}):
+    def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -997,7 +997,7 @@ class blockchaincom(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by blockchaincom fetchOrder

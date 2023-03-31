@@ -594,7 +594,7 @@ class lbank(Exchange):
         order['info'] = response
         return self.parse_order(order, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -611,7 +611,7 @@ class lbank(Exchange):
         response = self.privatePostCancelOrder(self.extend(request, params))
         return response
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in

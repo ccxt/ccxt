@@ -1140,7 +1140,7 @@ export default class latoken extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchOrder
@@ -1224,7 +1224,7 @@ export default class latoken extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name latoken#cancelOrder

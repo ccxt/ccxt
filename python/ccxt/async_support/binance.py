@@ -3336,7 +3336,7 @@ class binance(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
@@ -3912,7 +3912,7 @@ class binance(Exchange):
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -4129,7 +4129,7 @@ class binance(Exchange):
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -4205,7 +4205,7 @@ class binance(Exchange):
         else:
             return response
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -7156,7 +7156,7 @@ class binance(Exchange):
         #
         return response
 
-    async def verify_gift_code(self, id, params={}):
+    async def verify_gift_code(self, id: str, params={}):
         """
         verify gift code
         :param str id: reference number id

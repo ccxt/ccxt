@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.45';
+$version = '3.0.46';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.45';
+    const VERSION = '3.0.46';
 
     public $browser;
     public $marketsLoading = null;
@@ -1698,7 +1698,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->cancelOrder ($id, $symbol));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
@@ -2144,7 +2144,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
@@ -2160,7 +2160,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderTrades() is not supported yet');
     }
 

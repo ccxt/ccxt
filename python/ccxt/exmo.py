@@ -1225,7 +1225,7 @@ class exmo(Exchange):
             'average': None,
         }
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1237,7 +1237,7 @@ class exmo(Exchange):
         request = {'order_id': id}
         return self.privatePostOrderCancel(self.extend(request, params))
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by exmo fetchOrder
@@ -1275,7 +1275,7 @@ class exmo(Exchange):
             'id': str(id),
         })
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1765,7 +1765,7 @@ class exmo(Exchange):
         items = self.safe_value(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
-    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id

@@ -1252,7 +1252,7 @@ class bkex(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1358,7 +1358,7 @@ class bkex(Exchange):
         innerData = self.safe_value(result, 'data')
         return self.parse_orders(innerData, market, since, limit, params)
 
-    async def fetch_open_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id

@@ -24,15 +24,15 @@ trait ClientTrait {
     public $newUpdates = true;
 
     public function inflate($data) {
-        return \ccxtpro\inflate($data); // zlib_decode($data);
+        return \ccxt\pro\inflate($data); // zlib_decode($data);
     }
 
     public function inflate64($data) {
-        return \ccxtpro\inflate64($data); // zlib_decode(base64_decode($data));
+        return \ccxt\pro\inflate64($data); // zlib_decode(base64_decode($data));
     }
 
     public function gunzip($data) {
-        return \ccxtpro\gunzip($data);
+        return \ccxt\pro\gunzip($data);
     }
 
     public function order_book ($snapshot = array(), $depth = PHP_INT_MAX) {
@@ -88,12 +88,17 @@ trait ClientTrait {
         $client = $this->client($url);
         // todo: calculate the backoff delay in php
         $backoff_delay = 0; // milliseconds
+        if (($subscribe_hash == null) && array_key_exists($message_hash, $client->futures)) {
+            return $client->futures[$message_hash];
+        }
         $future = $client->future($message_hash);
         $connected = $client->connect($backoff_delay);
         $connected->then(
             function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
                 if (!isset($client->subscriptions[$subscribe_hash])) {
-                    $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
+                    if ($subscribe_hash !== null) {
+                        $client->subscriptions[$subscribe_hash] = $subscription ?? true;
+                    }
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
                     $options = $this->safe_value($this->options, 'ws');

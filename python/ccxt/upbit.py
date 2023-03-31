@@ -198,7 +198,7 @@ class upbit(Exchange):
         currency = self.currency(code)
         return self.fetch_currency_by_id(currency['id'], params)
 
-    def fetch_currency_by_id(self, id, params={}):
+    def fetch_currency_by_id(self, id: str, params={}):
         # self method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
         request = {
@@ -292,7 +292,7 @@ class upbit(Exchange):
         market = self.market(symbol)
         return self.fetch_market_by_id(market['id'], params)
 
-    def fetch_market_by_id(self, id, params={}):
+    def fetch_market_by_id(self, id: str, params={}):
         # self method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
         request = {
@@ -1039,7 +1039,7 @@ class upbit(Exchange):
         #
         return self.parse_order(response)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1433,7 +1433,7 @@ class upbit(Exchange):
         """
         return self.fetch_orders_by_state('cancel', symbol, since, limit, params)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by upbit fetchOrder

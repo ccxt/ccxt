@@ -30,14 +30,14 @@ export default class whitebit extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     parseOrderType(type: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -94,7 +94,7 @@ export default class whitebit extends Exchange {
         info: any;
     };
     parseTransactionStatus(status: any): string;
-    fetchDeposit(id: any, code?: string, params?: {}): Promise<{
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
         id: string;
         txid: string;
         timestamp: number;

@@ -810,7 +810,7 @@ export default class novadax extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name novadax#cancelOrder
@@ -838,7 +838,7 @@ export default class novadax extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name novadax#fetchOrder
@@ -971,7 +971,7 @@ export default class novadax extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name novadax#fetchOrderTrades

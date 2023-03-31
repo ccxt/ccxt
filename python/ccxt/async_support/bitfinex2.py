@@ -1563,7 +1563,7 @@ class bitfinex2(Exchange):
         orders = self.safe_value(response, 4, [])
         return self.parse_orders(orders)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1590,7 +1590,7 @@ class bitfinex2(Exchange):
         order = self.safe_value(response, 4)
         return self.parse_order(order)
 
-    async def fetch_open_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1607,7 +1607,7 @@ class bitfinex2(Exchange):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    async def fetch_closed_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_closed_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1747,7 +1747,7 @@ class bitfinex2(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id

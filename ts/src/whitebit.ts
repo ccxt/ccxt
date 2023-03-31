@@ -1228,7 +1228,7 @@ export default class whitebit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#cancelOrder
@@ -1531,7 +1531,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOrderTrades
@@ -1855,7 +1855,7 @@ export default class whitebit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDeposit (id, code: string = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDeposit

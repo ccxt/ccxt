@@ -874,7 +874,7 @@ class idex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the market the order was made in
@@ -1396,7 +1396,7 @@ class idex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1446,7 +1446,7 @@ class idex extends Exchange {
         }
     }
 
-    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -1493,7 +1493,7 @@ class idex extends Exchange {
         return $this->safe_number($response, 'serverTime');
     }
 
-    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id

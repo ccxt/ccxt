@@ -1343,7 +1343,7 @@ class currencycom(Exchange):
         #
         return self.parse_orders(response, market, since, limit, params)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

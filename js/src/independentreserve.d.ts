@@ -10,7 +10,7 @@ export default class independentreserve extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseOrder(order: any, market?: any): any;
     parseOrderStatus(status: any): string;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -18,7 +18,7 @@ export default class independentreserve extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

@@ -1313,7 +1313,7 @@ export default class bitstamp extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelOrder
@@ -1361,7 +1361,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrderStatus (id, symbol: string = undefined, params = {}) {
+    async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const request = {};
@@ -1375,7 +1375,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOrder

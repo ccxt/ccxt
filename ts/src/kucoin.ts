@@ -1535,7 +1535,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#cancelOrder
@@ -1737,7 +1737,7 @@ export default class kucoin extends Exchange {
         return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrder
@@ -1932,7 +1932,7 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrderTrades

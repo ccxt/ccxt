@@ -36,7 +36,7 @@ export default class zonda extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     isFiat(currency: any): any;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;

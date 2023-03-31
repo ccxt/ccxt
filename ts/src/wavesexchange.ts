@@ -1421,7 +1421,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#cancelOrder
@@ -1470,7 +1470,7 @@ export default class wavesexchange extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrder

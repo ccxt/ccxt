@@ -664,7 +664,7 @@ export default class bitmex extends Exchange {
         return result as any;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchOrder
@@ -1840,7 +1840,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         const origClOrdID = this.safeString2 (params, 'origClOrdID', 'clientOrderId');
@@ -1866,7 +1866,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#cancelOrder

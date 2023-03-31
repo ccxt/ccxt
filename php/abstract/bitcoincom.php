@@ -6,7 +6,7 @@ namespace ccxt\abstract;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-abstract class bitcoincom extends fmfwio {
+abstract class bitcoincom extends \ccxt\fmfwio {
     public function public_get_currency($params = array()) {
         return $this->request('currency', 'public', 'GET', $params);
     }

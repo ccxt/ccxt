@@ -643,7 +643,7 @@ export default class bitbns extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#cancelOrder
@@ -668,7 +668,7 @@ export default class bitbns extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#fetchOrder

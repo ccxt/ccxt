@@ -783,7 +783,7 @@ class cex(Exchange):
             'trades': None,
         }
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1079,7 +1079,7 @@ class cex(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by cex fetchOrder
@@ -1411,7 +1411,7 @@ class cex(Exchange):
     def parse_order_status(self, status):
         return self.safe_string(self.options['order']['status'], status, status)
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a amount argument')
         if price is None:

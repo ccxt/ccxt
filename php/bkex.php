@@ -1302,7 +1302,7 @@ class bkex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1414,7 +1414,7 @@ class bkex extends Exchange {
         return $this->parse_orders($innerData, $market, $since, $limit, $params);
     }
 
-    public function fetch_open_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open order by it's $id
          * @param {string} $id order $id

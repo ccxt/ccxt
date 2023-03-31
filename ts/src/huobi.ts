@@ -1353,7 +1353,7 @@ export default class huobi extends Exchange {
         return result;
     }
 
-    async fetchTradingLimitsById (id, params = {}) {
+    async fetchTradingLimitsById (id: string, params = {}) {
         const request = {
             'symbol': id,
         };
@@ -2296,7 +2296,7 @@ export default class huobi extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrderTrades
@@ -2322,7 +2322,7 @@ export default class huobi extends Exchange {
         return await this[method] (id, symbol, since, limit, params);
     }
 
-    async fetchSpotOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order-id': id,
@@ -3206,7 +3206,7 @@ export default class huobi extends Exchange {
         return result;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrder
@@ -4378,7 +4378,7 @@ export default class huobi extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobi#cancelOrder

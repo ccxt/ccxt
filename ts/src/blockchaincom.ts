@@ -551,7 +551,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#cancelOrder
@@ -981,7 +981,7 @@ export default class blockchaincom extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawal (id, code: string = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#fetchWithdrawal
@@ -1026,7 +1026,7 @@ export default class blockchaincom extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchDeposit (id, code: string = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#fetchDeposit
@@ -1092,7 +1092,7 @@ export default class blockchaincom extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name blockchaincom#fetchOrder

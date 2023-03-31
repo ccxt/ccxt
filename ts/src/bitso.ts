@@ -970,7 +970,7 @@ export default class bitso extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitso#cancelOrder
@@ -1147,7 +1147,7 @@ export default class bitso extends Exchange {
         return orders;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOrder
@@ -1170,7 +1170,7 @@ export default class bitso extends Exchange {
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchOrderTrades
@@ -1191,7 +1191,7 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market);
     }
 
-    async fetchDeposit (id, code: string = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchDeposit

@@ -25,7 +25,7 @@ export default class currencycom extends Exchange {
     parseOrderSide(status: any): string;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

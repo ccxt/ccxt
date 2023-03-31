@@ -1288,7 +1288,7 @@ class bitstamp extends Exchange {
         ));
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1332,7 +1332,7 @@ class bitstamp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order_status($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
@@ -1346,7 +1346,7 @@ class bitstamp extends Exchange {
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in

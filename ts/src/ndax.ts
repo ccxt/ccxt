@@ -1368,7 +1368,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1539,7 +1539,7 @@ export default class ndax extends Exchange {
         return response;
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ndax#cancelOrder
@@ -1752,7 +1752,7 @@ export default class ndax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrder
@@ -1828,7 +1828,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrderTrades

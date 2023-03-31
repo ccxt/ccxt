@@ -1338,7 +1338,7 @@ export default class bitrue extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchOrder
@@ -1466,7 +1466,7 @@ export default class bitrue extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#cancelOrder

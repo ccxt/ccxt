@@ -1381,7 +1381,7 @@ class bitmart extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
          * @param {string} $id order $id
@@ -1869,7 +1869,7 @@ class bitmart extends Exchange {
         ));
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -2061,7 +2061,7 @@ class bitmart extends Exchange {
         return $this->fetch_orders_by_status('canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -2075,9 +2075,6 @@ class bitmart extends Exchange {
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' fetchOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
-        }
-        if (gettype($id) !== 'string') {
-            $id = (string) $id;
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2284,7 +2281,7 @@ class bitmart extends Exchange {
         return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
-    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit
          * @param {string} $id deposit $id
@@ -2336,7 +2333,7 @@ class bitmart extends Exchange {
         return $this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id

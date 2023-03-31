@@ -841,7 +841,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lykke#cancelOrder
@@ -890,7 +890,7 @@ export default class lykke extends Exchange {
         return await this.privateDeleteOrders (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchOrder

@@ -1387,7 +1387,7 @@ class hitbtc3(Exchange):
         parsed = self.parse_orders(response, market, since, limit)
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1436,7 +1436,7 @@ class hitbtc3(Exchange):
         order = self.safe_value(response, 0)
         return self.parse_order(order, market)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1555,7 +1555,7 @@ class hitbtc3(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1613,7 +1613,7 @@ class hitbtc3(Exchange):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1643,7 +1643,7 @@ class hitbtc3(Exchange):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = None
         request = {

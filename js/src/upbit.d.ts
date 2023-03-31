@@ -17,7 +17,7 @@ export default class upbit extends Exchange {
             };
         };
     }>;
-    fetchCurrencyById(id: any, params?: {}): Promise<{
+    fetchCurrencyById(id: string, params?: {}): Promise<{
         info: any;
         id: string;
         code: any;
@@ -82,7 +82,7 @@ export default class upbit extends Exchange {
             info: any;
         };
     }>;
-    fetchMarketById(id: any, params?: {}): Promise<{
+    fetchMarketById(id: string, params?: {}): Promise<{
         id: string;
         symbol: string;
         base: any;
@@ -176,7 +176,7 @@ export default class upbit extends Exchange {
         fee: any;
         trades: any;
     }>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<{
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
         info: any;
         id: string;
         clientOrderId: any;
@@ -255,7 +255,7 @@ export default class upbit extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<{
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<{
         info: any;
         id: string;
         clientOrderId: any;
