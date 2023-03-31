@@ -344,7 +344,7 @@ class itbit(Exchange):
                 result['fee'] = None
         return result
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: not used by itbit fetchTransactions()
@@ -702,7 +702,7 @@ class itbit(Exchange):
             'id': response['id'],
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by itbit fetchOrder
@@ -719,7 +719,7 @@ class itbit(Exchange):
         response = await self.privateGetWalletsWalletIdOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

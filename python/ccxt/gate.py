@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
@@ -1395,7 +1396,7 @@ class gate(Exchange):
         #
         return self.parse_funding_rate(response)
 
-    def fetch_funding_rates(self, symbols=None, params={}):
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param [str]|None symbols: list of unified market symbols
@@ -1524,7 +1525,7 @@ class gate(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def fetch_network_deposit_address(self, code, params={}):
+    def fetch_network_deposit_address(self, code: str, params={}):
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1561,7 +1562,7 @@ class gate(Exchange):
             }
         return result
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -1571,7 +1572,7 @@ class gate(Exchange):
         """
         return self.fetch_deposit_address(code, params)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -2124,7 +2125,7 @@ class gate(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
@@ -2552,7 +2553,7 @@ class gate(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -2804,7 +2805,7 @@ class gate(Exchange):
             'fees': fees,
         }, market)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2828,7 +2829,7 @@ class gate(Exchange):
         response = self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2852,7 +2853,7 @@ class gate(Exchange):
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3266,7 +3267,7 @@ class gate(Exchange):
         #
         return self.parse_order(response, market)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -3588,7 +3589,7 @@ class gate(Exchange):
             'info': order,
         }, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         Retrieves information on an order
         :param str id: Order id
@@ -3811,7 +3812,7 @@ class gate(Exchange):
         orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         Cancels an open order
         :param str id: Order id
@@ -3969,7 +3970,7 @@ class gate(Exchange):
         #
         return self.parse_orders(response, market)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code for currency being transferred
@@ -4149,13 +4150,13 @@ class gate(Exchange):
         takerFee = '0.00075'
         feePaid = Precise.string_mul(takerFee, notional)
         initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), feePaid)
-        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
             'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notional)),
@@ -4170,13 +4171,14 @@ class gate(Exchange):
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liq_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
+            'lastPrice': None,
             'collateral': self.safe_number(position, 'margin'),
             'marginMode': marginMode,
             'side': side,
-            'percentage': self.parse_number(percentage),
-        }
+            'percentage': None,
+        })
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: Not used by gate, but parsed internally by CCXT
@@ -4236,7 +4238,7 @@ class gate(Exchange):
         #
         return self.parse_positions(response, symbols)
 
-    def fetch_leverage_tiers(self, symbols=None, params={}):
+    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param [str]|None symbols: list of unified market symbols
@@ -4467,7 +4469,7 @@ class gate(Exchange):
             floor = cap
         return tiers
 
-    def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
@@ -4545,7 +4547,7 @@ class gate(Exchange):
             response = response[0]
         return self.parse_margin_loan(response, currency)
 
-    def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan

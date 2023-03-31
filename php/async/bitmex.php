@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\bitmex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -30,6 +31,7 @@ class bitmex extends Exchange {
             // 120 per minute => 2 per second => weight = 5 (authenticated)
             // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
             'rateLimit' => 100,
+            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -670,7 +672,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -962,7 +964,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1013,7 +1015,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1146,7 +1148,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1846,7 +1848,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->load_markets());
             $request = array();
@@ -1874,7 +1876,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -1989,7 +1991,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2210,18 +2212,20 @@ class bitmex extends Exchange {
         $maintenanceMargin = $this->safe_number($position, 'maintMargin');
         $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
         $contracts = $this->omit_zero($this->safe_number($position, 'currentQty'));
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'account'),
             'symbol' => $symbol,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
+            'lastUpdateTimestamp' => null,
             'hedged' => null,
             'side' => null,
             'contracts' => $this->convert_value($contracts, $market),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
+            'lastPrice' => null,
             'notional' => $notional,
             'leverage' => $this->safe_number($position, 'leverage'),
             'collateral' => null,
@@ -2234,7 +2238,7 @@ class bitmex extends Exchange {
             'marginMode' => $marginMode,
             'marginRatio' => null,
             'percentage' => $this->safe_number($position, 'unrealisedPnlPcnt'),
-        );
+        ));
     }
 
     public function convert_value($value, $market = null) {
@@ -2271,7 +2275,7 @@ class bitmex extends Exchange {
         return false;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2302,7 +2306,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -2711,7 +2715,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account

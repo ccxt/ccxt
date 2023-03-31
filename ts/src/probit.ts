@@ -1027,7 +1027,7 @@ export default class probit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchOrder
@@ -1225,7 +1225,7 @@ export default class probit extends Exchange {
         return order;
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name probit#cancelOrder
@@ -1266,7 +1266,7 @@ export default class probit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name probit#fetchDepositAddress
@@ -1344,7 +1344,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddresses (data, codes);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name probit#withdraw

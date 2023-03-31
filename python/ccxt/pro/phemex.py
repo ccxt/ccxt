@@ -931,21 +931,11 @@ class phemex(ccxt.async_support.phemex):
         #       }
         #     ]
         # }
-        id = self.safe_integer(message, 'id')
-        if id is not None:
-            # not every method stores its subscription
-            # object so we can't do indexById here
-            subs = client.subscriptions
-            values = list(subs.values())
-            for i in range(0, len(values)):
-                subscription = values[i]
-                if subscription is not True:
-                    subId = self.safe_integer(subscription, 'id')
-                    if (subId is not None) and (subId == id):
-                        method = self.safe_value(subscription, 'method')
-                        if method is not None:
-                            method(client, message)
-                            return
+        id = self.safe_string(message, 'id')
+        if id in client.subscriptions:
+            method = client.subscriptions[id]
+            del client.subscriptions[id]
+            return method(client, message)
         if ('market24h' in message) or ('spot_market24h' in message):
             return self.handle_ticker(client, message)
         elif 'trades' in message:
@@ -974,14 +964,14 @@ class phemex(ccxt.async_support.phemex):
         #
         result = self.safe_value(message, 'result')
         status = self.safe_string(result, 'status')
+        messageHash = 'authenticated'
         if status == 'success':
-            client.resolve(message, 'authenticated')
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))
-            client.reject(error, 'authenticated')
-            subscriptionHash = 'user.auth'
-            if subscriptionHash in client.subscriptions:
-                del client.subscriptions[subscriptionHash]
+            client.reject(error, messageHash)
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     async def subscribe_private(self, type, messageHash, params={}):
         await self.load_markets()
@@ -995,17 +985,13 @@ class phemex(ccxt.async_support.phemex):
             'params': [],
         }
         request = self.extend(request, params)
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-        }
-        return await self.watch(url, messageHash, request, channel, subscription)
+        return await self.watch(url, messageHash, request, channel)
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)
-        time = self.seconds()
+        requestId = self.request_id()
         messageHash = 'authenticated'
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
@@ -1017,12 +1003,12 @@ class phemex(ccxt.async_support.phemex):
             request = {
                 'method': method,
                 'params': ['API', self.apiKey, signature, expiration],
-                'id': time,
+                'id': requestId,
             }
-            subscription = {
-                'id': time,
-                'method': self.handle_authenticate,
-            }
+            subscriptionHash = str(requestId)
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message, method, subscription)
+            if not (messageHash in client.subscriptions):
+                client.subscriptions[subscriptionHash] = self.handle_authenticate
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
         return future

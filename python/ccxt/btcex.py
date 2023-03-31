@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -1185,7 +1186,7 @@ class btcex(Exchange):
             'trades': trades,
         }, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         self.sign_in()
         self.load_markets()
         request = {
@@ -1357,7 +1358,7 @@ class btcex(Exchange):
         order = self.safe_value(result, 'order')
         return self.parse_order(order, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         self.sign_in()
         self.load_markets()
         request = {
@@ -1488,7 +1489,7 @@ class btcex(Exchange):
         #
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if id is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a id argument')
         self.load_markets()
@@ -1630,14 +1631,14 @@ class btcex(Exchange):
         notionalString = Precise.string_mul(markPrice, size)
         unrealisedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
-        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         marginType = self.safe_string(position, 'margin_type')
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notionalString)),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -1651,11 +1652,12 @@ class btcex(Exchange):
             'marginRatio': self.parse_number(riskLevel),
             'liquidationPrice': self.safe_number(position, 'liquid_price'),
             'markPrice': self.parse_number(markPrice),
+            'lastPrice': None,
             'collateral': self.parse_number(collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': self.parse_number(percentage),
-        }
+            'percentage': None,
+        })
 
     def fetch_position(self, symbol: str, params={}):
         self.sign_in()
@@ -1703,7 +1705,7 @@ class btcex(Exchange):
         #
         return self.parse_position(result)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         self.sign_in()
         self.load_markets()
         request = {
@@ -1820,7 +1822,7 @@ class btcex(Exchange):
             'fee': None,
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires the code argument')
         self.sign_in()
@@ -1853,7 +1855,7 @@ class btcex(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires the code argument')
         self.sign_in()
@@ -1886,7 +1888,7 @@ class btcex(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires the code argument')
         self.sign_in()
@@ -2020,7 +2022,7 @@ class btcex(Exchange):
             })
         return tiers
 
-    def fetch_leverage_tiers(self, symbols=None, params={}):
+    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
         retrieve information on the maximum leverage, for different trade sizes
@@ -2055,7 +2057,7 @@ class btcex(Exchange):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
         #
         #     {
         #         "WAVES-USDT-PERPETUAL": [
@@ -2160,7 +2162,7 @@ class btcex(Exchange):
         #
         return response
 
-    def fetch_funding_rates(self, symbols=None, params={}):
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the current funding rates
         see https://docs.btcex.com/#contracts
@@ -2318,7 +2320,7 @@ class btcex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://docs.btcex.com/#asset-transfer

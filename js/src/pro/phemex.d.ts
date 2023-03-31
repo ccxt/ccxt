@@ -46,7 +46,7 @@ export default class phemex extends phemexRest {
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: any, message: any): void;
     parseWSSwapOrder(order: any, market?: any): any;
-    handleMessage(client: any, message: any): void;
+    handleMessage(client: any, message: any): any;
     handleAuthenticate(client: any, message: any): void;
     subscribePrivate(type: any, messageHash: any, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;

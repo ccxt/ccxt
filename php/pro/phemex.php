@@ -1008,25 +1008,11 @@ class phemex extends \ccxt\async\phemex {
         //       }
         //     )
         // }
-        $id = $this->safe_integer($message, 'id');
-        if ($id !== null) {
-            // not every $method stores its $subscription
-            // object so we can't do indexById here
-            $subs = $client->subscriptions;
-            $values = is_array($subs) ? array_values($subs) : array();
-            for ($i = 0; $i < count($values); $i++) {
-                $subscription = $values[$i];
-                if ($subscription !== true) {
-                    $subId = $this->safe_integer($subscription, 'id');
-                    if (($subId !== null) && ($subId === $id)) {
-                        $method = $this->safe_value($subscription, 'method');
-                        if ($method !== null) {
-                            $method($client, $message);
-                            return;
-                        }
-                    }
-                }
-            }
+        $id = $this->safe_string($message, 'id');
+        if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+            $method = $client->subscriptions[$id];
+            unset($client->subscriptions[$id]);
+            return $method($client, $message);
         }
         if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message))) {
             return $this->handle_ticker($client, $message);
@@ -1060,14 +1046,14 @@ class phemex extends \ccxt\async\phemex {
         //
         $result = $this->safe_value($message, 'result');
         $status = $this->safe_string($result, 'status');
+        $messageHash = 'authenticated';
         if ($status === 'success') {
-            $client->resolve ($message, 'authenticated');
+            $client->resolve ($message, $messageHash);
         } else {
             $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
-            $client->reject ($error, 'authenticated');
-            $subscriptionHash = 'user.auth';
-            if (is_array($client->subscriptions) && array_key_exists($subscriptionHash, $client->subscriptions)) {
-                unset($client->subscriptions[$subscriptionHash]);
+            $client->reject ($error, $messageHash);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                unset($client->subscriptions[$messageHash]);
             }
         }
     }
@@ -1085,11 +1071,7 @@ class phemex extends \ccxt\async\phemex {
                 'params' => array(),
             );
             $request = array_merge($request, $params);
-            $subscription = array(
-                'id' => $requestId,
-                'messageHash' => $messageHash,
-            );
-            return Async\await($this->watch($url, $messageHash, $request, $channel, $subscription));
+            return Async\await($this->watch($url, $messageHash, $request, $channel));
         }) ();
     }
 
@@ -1097,7 +1079,7 @@ class phemex extends \ccxt\async\phemex {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
-        $time = $this->seconds();
+        $requestId = $this->request_id();
         $messageHash = 'authenticated';
         $future = $this->safe_value($client->subscriptions, $messageHash);
         if ($future === null) {
@@ -1109,14 +1091,15 @@ class phemex extends \ccxt\async\phemex {
             $request = array(
                 'method' => $method,
                 'params' => array( 'API', $this->apiKey, $signature, $expiration ),
-                'id' => $time,
+                'id' => $requestId,
             );
-            $subscription = array(
-                'id' => $time,
-                'method' => array($this, 'handle_authenticate'),
-            );
+            $subscriptionHash = (string) $requestId;
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message, $method, $subscription);
+            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
+            }
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
         }
         return $future;
     }

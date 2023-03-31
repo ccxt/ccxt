@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\krakenfutures as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -299,7 +300,7 @@ class krakenfutures extends Exchange {
                 $symbol = $id;
                 $split = explode('_', $id);
                 $splitMarket = $this->safe_string($split, 1);
-                $baseId = str_replace('usd', '', $splitMarket);
+                $baseId = mb_substr($splitMarket, 0, strlen($splitMarket) - 3 - 0);
                 $quoteId = 'usd'; // always USD
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
@@ -443,7 +444,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTickers ($params));
@@ -881,7 +882,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * Edit an open $order on the exchange
@@ -912,7 +913,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * @param {string} $id Order $id
@@ -1642,7 +1643,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * Fetches current contract trading positions
@@ -1674,7 +1675,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_positions($response, $symbols = null, $params = array ()) {
+    public function parse_positions($response, ?array $symbols = null, $params = array ()) {
         $result = array();
         $positions = $this->safe_value($response, 'openPositions');
         for ($i = 0; $i < count($positions); $i++) {
@@ -1740,7 +1741,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetInstruments ($params));
@@ -1908,7 +1909,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * transfer from futures wallet to spot wallet
@@ -1921,7 +1922,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfers currencies between sub-accounts

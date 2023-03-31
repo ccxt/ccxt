@@ -664,7 +664,7 @@ class idex extends \ccxt\async\idex {
         $client->resolve ($orders, $type);
     }
 
-    public function watch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             Async\await($this->load_markets());
             $name = 'balances';

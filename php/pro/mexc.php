@@ -474,11 +474,9 @@ class mexc extends \ccxt\async\mexc {
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
-            $subscription = $client->subscriptions[$messageHash];
-            $limit = $this->safe_integer($subscription, 'limit', 1000);
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
             }
             $storedOrderBook->cache[] = $data;
             return;

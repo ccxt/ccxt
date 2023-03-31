@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import numbers
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -2287,7 +2288,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type=None, side=None, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
@@ -2349,7 +2350,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
@@ -2409,7 +2410,7 @@ class phemex(Exchange):
         request['symbol'] = market['id']
         return await getattr(self, method)(self.extend(request, params))
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2730,7 +2731,7 @@ class phemex(Exchange):
             return self.parse_trades(rows, market, since, limit)
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2774,7 +2775,7 @@ class phemex(Exchange):
             'info': response,
         }
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2811,7 +2812,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2931,7 +2932,7 @@ class phemex(Exchange):
             'fee': fee,
         }
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
@@ -3157,9 +3158,8 @@ class phemex(Exchange):
             else:
                 priceDiff = Precise.string_sub(Precise.string_div('1', markPriceString), Precise.string_div('1', entryPriceString))
         unrealizedPnl = Precise.string_mul(Precise.string_mul(priceDiff, contracts), contractSizeString)
-        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMarginString), '100')
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -3171,8 +3171,10 @@ class phemex(Exchange):
             'collateral': self.parse_number(collateral),
             'notional': self.parse_number(notionalString),
             'markPrice': self.parse_number(markPriceString),  # markPrice lags a bit ¯\_(ツ)_/¯
+            'lastPrice': None,
             'entryPrice': self.parse_number(entryPriceString),
             'timestamp': None,
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -3182,8 +3184,8 @@ class phemex(Exchange):
             'marginMode': None,
             'side': side,
             'hedged': False,
-            'percentage': self.parse_number(percentage),
-        }
+            'percentage': None,
+        })
 
     async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3460,7 +3462,7 @@ class phemex(Exchange):
             request['targetPosMode'] = 'OneWay'
         return await self.privatePutGPositionsSwitchPosModeSync(self.extend(request, params))
 
-    async def fetch_leverage_tiers(self, symbols=None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param [str]|None symbols: list of unified market symbols
@@ -3643,7 +3645,7 @@ class phemex(Exchange):
             request['leverage'] = leverage
         return await getattr(self, method)(self.extend(request, params))
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -3719,7 +3721,7 @@ class phemex(Exchange):
                 transfer['currency'] = code
         return transfer
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred

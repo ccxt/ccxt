@@ -296,7 +296,7 @@ export default class krakenfutures extends Exchange {
             let symbol = id;
             const split = id.split ('_');
             const splitMarket = this.safeString (split, 1);
-            const baseId = splitMarket.replace ('usd', '');
+            const baseId = splitMarket.slice (0, splitMarket.length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -873,7 +873,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOrder (sendStatus);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#editOrder
@@ -904,7 +904,7 @@ export default class krakenfutures extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @param {string} id Order id
          * @param {string|undefined} symbol Not used by Krakenfutures
@@ -1893,7 +1893,7 @@ export default class krakenfutures extends Exchange {
         }
     }
 
-    async transferOut (code, amount, params = {}) {
+    async transferOut (code: string, amount, params = {}) {
         /**
          * @description transfer from futures wallet to spot wallet
          * @param {str} code Unified currency code
@@ -1904,7 +1904,7 @@ export default class krakenfutures extends Exchange {
         return await this.transfer (code, amount, 'future', 'spot', params);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name krakenfutures#transfer

@@ -6,7 +6,7 @@ export default class wazirx extends wazirxRest {
     handleBalance(client: any, message: any): void;
     parseWSTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: any, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: any, message: any): void;
     parseWSTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

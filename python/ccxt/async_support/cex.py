@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import json
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
@@ -583,7 +584,7 @@ class cex(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -782,7 +783,7 @@ class cex(Exchange):
             'trades': None,
         }
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1078,7 +1079,7 @@ class cex(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by cex fetchOrder
@@ -1410,7 +1411,7 @@ class cex(Exchange):
     def parse_order_status(self, status):
         return self.safe_string(self.options['order']['status'], status, status)
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a amount argument')
         if price is None:
@@ -1428,7 +1429,7 @@ class cex(Exchange):
         response = await self.privatePostCancelReplaceOrderPair(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code

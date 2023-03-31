@@ -25,8 +25,6 @@ use ccxt\AuthenticationError;
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
-use ccxt\types\OrderSide;
-use ccxt\types\OrderType;
 
 use React;
 use React\Async;
@@ -36,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.45';
+$version = '3.0.46';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.45';
+    const VERSION = '3.0.46';
 
     public $browser;
     public $marketsLoading = null;
@@ -370,7 +368,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' withdraw() is not supported yet');
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         throw new NotSupported($this->id . ' createDepositAddress() is not supported yet');
     }
 
@@ -1494,6 +1492,22 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function safe_position($position) {
+        // simplified version of => /pull/12765/
+        $unrealizedPnlString = $this->safe_string($position, 'unrealisedPnl');
+        $initialMarginString = $this->safe_string($position, 'initialMargin');
+        //
+        // PERCENTAGE
+        //
+        $percentage = $this->safe_value($position, 'percentage');
+        if (($percentage === null) && ($unrealizedPnlString !== null) && ($initialMarginString !== null)) {
+            // was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
+            $position['percentage'] = $this->parse_number($percentageString);
+        }
+        return $position;
+    }
+
     public function parse_positions($positions, ?array $symbols = null, $params = array ()) {
         $symbols = $this->market_symbols($symbols);
         $positions = $this->to_array($positions);
@@ -1684,7 +1698,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             Async\await($this->cancelOrder ($id, $symbol));
             return Async\await($this->create_order($symbol, $type, $side, $amount, $price, $params));
@@ -1909,7 +1923,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             if (!$this->has['fetchTransactionFees']) {
                 throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
@@ -1926,7 +1940,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchDepositWithdrawFees() is not supported yet');
     }
 
-    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             if (!$this->has['fetchDepositWithdrawFees']) {
                 throw new NotSupported($this->id . ' fetchDepositWithdrawFee() is not supported yet');
@@ -2126,11 +2140,11 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
@@ -2146,7 +2160,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderTrades() is not supported yet');
     }
 
@@ -2267,13 +2281,13 @@ class Exchange extends \ccxt\Exchange {
         return array( $tag, $params );
     }
 
-    public function create_limit_order(string $symbol, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_limit_order(string $symbol, string $side, $amount, $price, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
             return Async\await($this->create_order($symbol, 'limit', $side, $amount, $price, $params));
         }) ();
     }
 
-    public function create_market_order(string $symbol, OrderSide $side, $amount, $price = null, $params = array ()) {
+    public function create_market_order(string $symbol, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
             return Async\await($this->create_order($symbol, 'market', $side, $amount, $price, $params));
         }) ();
@@ -2404,7 +2418,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_post_only_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_post_only_order(string $symbol, string $type, string $side, $amount, $price, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             if (!$this->has['createPostOnlyOrder']) {
                 throw new NotSupported($this->id . 'createPostOnlyOrder() is not supported yet');
@@ -2414,7 +2428,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_reduce_only_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price, $params = array ()) {
+    public function create_reduce_only_order(string $symbol, string $type, string $side, $amount, $price, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             if (!$this->has['createReduceOnlyOrder']) {
                 throw new NotSupported($this->id . 'createReduceOnlyOrder() is not supported yet');
@@ -2424,7 +2438,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_stop_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
+    public function create_stop_order(string $symbol, string $type, string $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopPrice, $params) {
             if (!$this->has['createStopOrder']) {
                 throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
@@ -2437,7 +2451,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_stop_limit_order(string $symbol, OrderSide $side, $amount, $price, $stopPrice, $params = array ()) {
+    public function create_stop_limit_order(string $symbol, string $side, $amount, $price, $stopPrice, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $price, $stopPrice, $params) {
             if (!$this->has['createStopLimitOrder']) {
                 throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
@@ -2447,7 +2461,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_stop_market_order(string $symbol, OrderSide $side, $amount, $stopPrice, $params = array ()) {
+    public function create_stop_market_order(string $symbol, string $side, $amount, $stopPrice, $params = array ()) {
         return Async\async(function () use ($symbol, $side, $amount, $stopPrice, $params) {
             if (!$this->has['createStopMarketOrder']) {
                 throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
@@ -2669,7 +2683,7 @@ class Exchange extends \ccxt\Exchange {
         return array( false, $params );
     }
 
-    public function fetch_last_prices($params = array ()) {
+    public function fetch_last_prices(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchLastPrices() is not supported yet');
     }
 

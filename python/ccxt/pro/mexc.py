@@ -437,11 +437,9 @@ class mexc(ccxt.async_support.mexc):
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
-            subscription = client.subscriptions[messageHash]
-            limit = self.safe_integer(subscription, 'limit', 1000)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
             if cacheLength == snapshotDelay:
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
+                self.spawn(self.load_order_book, client, messageHash, symbol)
             storedOrderBook.cache.append(data)
             return
         try:

@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -567,7 +568,7 @@ class coinsph(Exchange):
         self.set_markets(result)
         return result
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -838,7 +839,7 @@ class coinsph(Exchange):
         response = await self.privateGetOpenapiV1MyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1077,7 +1078,7 @@ class coinsph(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param int|str id: order id
@@ -1139,7 +1140,7 @@ class coinsph(Exchange):
         response = await self.privateGetOpenapiV1HistoryOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1407,7 +1408,7 @@ class coinsph(Exchange):
             'taker': self.safe_number(fee, 'takerCommission'),
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal to coins_ph account
         :param str code: unified currency code
@@ -1432,7 +1433,7 @@ class coinsph(Exchange):
         response = await self.privatePostOpenapiV1CapitalWithdrawApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    async def deposit(self, code, amount, address, tag=None, params={}):
+    async def deposit(self, code: str, amount, address, tag=None, params={}):
         """
         make a deposit from coins_ph account to exchange account
         :param str code: unified currency code
@@ -1457,7 +1458,7 @@ class coinsph(Exchange):
         response = await self.privatePostOpenapiV1CapitalDepositApply(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1480,7 +1481,7 @@ class coinsph(Exchange):
         response = await self.privateGetOpenapiV1CapitalDepositHistory(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code

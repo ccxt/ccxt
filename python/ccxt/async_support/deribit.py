@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -795,7 +796,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_balance(result)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -830,7 +831,7 @@ class deribit(Exchange):
             'info': response,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -990,7 +991,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_ticker(result, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1524,7 +1525,7 @@ class deribit(Exchange):
             'trades': trades,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1719,7 +1720,7 @@ class deribit(Exchange):
         order['trades'] = trades
         return self.parse_order(order, market)
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         if price is None:
@@ -1744,7 +1745,7 @@ class deribit(Exchange):
         order['trades'] = trades
         return self.parse_order(order)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1831,7 +1832,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1954,7 +1955,7 @@ class deribit(Exchange):
         trades = self.safe_value(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1997,7 +1998,7 @@ class deribit(Exchange):
         data = self.safe_value(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2151,14 +2152,14 @@ class deribit(Exchange):
         initialMarginString = self.safe_string(position, 'initial_margin')
         notionalString = self.safe_string(position, 'size_currency')
         maintenanceMarginString = self.safe_string(position, 'maintenance_margin')
-        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMarginString), '100')
         currentTime = self.milliseconds()
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalString), '100')),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -2172,11 +2173,12 @@ class deribit(Exchange):
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
+            'lastPrice': None,
             'collateral': None,
             'marginMode': None,
             'side': side,
-            'percentage': self.parse_number(percentage),
-        }
+            'percentage': None,
+        })
 
     async def fetch_position(self, symbol: str, params={}):
         """
@@ -2220,7 +2222,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_position(result)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -2279,7 +2281,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_positions(result, symbols)
 
-    async def fetch_historical_volatility(self, code, params={}):
+    async def fetch_historical_volatility(self, code: str, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2313,7 +2315,7 @@ class deribit(Exchange):
             })
         return result
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -2369,7 +2371,7 @@ class deribit(Exchange):
         transfers = self.safe_value(result, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2452,7 +2454,7 @@ class deribit(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

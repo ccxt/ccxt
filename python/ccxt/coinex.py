@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -727,7 +728,7 @@ class coinex(Exchange):
         #
         return self.parse_ticker(response['data'], market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
@@ -1883,7 +1884,7 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2066,7 +2067,7 @@ class coinex(Exchange):
         #
         return response
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2413,7 +2414,7 @@ class coinex(Exchange):
         """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -2442,7 +2443,7 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2653,7 +2654,7 @@ class coinex(Exchange):
         trades = self.safe_value(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -2888,7 +2889,7 @@ class coinex(Exchange):
         maintenanceMarginPercentage = self.safe_string(position, 'mainten_margin')
         collateral = self.safe_string(position, 'margin_amount')
         leverage = self.safe_number(position, 'leverage')
-        return {
+        return self.safe_position({
             'info': position,
             'id': positionId,
             'symbol': symbol,
@@ -2901,10 +2902,12 @@ class coinex(Exchange):
             'contracts': None,
             'contractSize': contractSize,
             'markPrice': None,
+            'lastPrice': None,
             'side': side,
             'hedged': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': None,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': collateral,
@@ -2912,7 +2915,7 @@ class coinex(Exchange):
             'initialMarginPercentage': None,
             'leverage': leverage,
             'marginRatio': None,
-        }
+        })
 
     def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
@@ -2985,7 +2988,7 @@ class coinex(Exchange):
         }
         return self.perpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
 
-    def fetch_leverage_tiers(self, symbols=None, params={}):
+    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param [str]|None symbols: list of unified market symbols
@@ -3014,7 +3017,7 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_leverage_tiers(data, symbols, None)
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
         #
         #     {
         #         "BTCUSD": [
@@ -3338,7 +3341,7 @@ class coinex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_rates(self, symbols=None, params={}):
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
          *  @method
         fetch the current funding rates
@@ -3402,7 +3405,7 @@ class coinex(Exchange):
                 result.append(self.parse_funding_rate(ticker, market))
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3622,7 +3625,7 @@ class coinex(Exchange):
             'fee': fee,
         }
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -3726,7 +3729,7 @@ class coinex(Exchange):
             'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'status')),
         }
 
-    def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -3805,7 +3808,7 @@ class coinex(Exchange):
         transfers = self.safe_value(data, 'records', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -3867,7 +3870,7 @@ class coinex(Exchange):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -3957,7 +3960,7 @@ class coinex(Exchange):
             'info': info,
         }
 
-    def fetch_borrow_rate(self, code, params={}):
+    def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
@@ -4046,7 +4049,7 @@ class coinex(Exchange):
             })
         return rates
 
-    def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -4130,7 +4133,7 @@ class coinex(Exchange):
             'info': info,
         }
 
-    def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
@@ -4167,7 +4170,7 @@ class coinex(Exchange):
             'symbol': symbol,
         })
 
-    def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat

@@ -682,7 +682,7 @@ export default class buda extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOrder
@@ -789,7 +789,7 @@ export default class buda extends Exchange {
         return this.parseOrder (order);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name buda#cancelOrder
@@ -910,7 +910,7 @@ export default class buda extends Exchange {
         return this.safeValue (fiats, code, false);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name buda#fetchDepositAddress
@@ -952,7 +952,7 @@ export default class buda extends Exchange {
         };
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name buda#createDepositAddress
@@ -1029,7 +1029,7 @@ export default class buda extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchDeposits
@@ -1054,7 +1054,7 @@ export default class buda extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchWithdrawals
@@ -1079,7 +1079,7 @@ export default class buda extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name buda#withdraw

@@ -16,7 +16,7 @@ export default class zb extends Exchange {
         info: any;
     };
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: any;
@@ -24,7 +24,7 @@ export default class zb extends Exchange {
         info: any;
     }>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -32,9 +32,9 @@ export default class zb extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -102,59 +102,13 @@ export default class zb extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchPosition(symbol: string, params?: {}): Promise<{
-        info: any;
-        id: any;
-        symbol: any;
-        contracts: number;
-        contractSize: any;
-        entryPrice: number;
-        collateral: any;
-        side: string;
-        unrealizedProfit: number;
-        leverage: number;
-        percentage: string;
-        marginMode: string;
-        notional: number;
-        markPrice: any;
-        liquidationPrice: number;
-        initialMargin: number;
-        initialMarginPercentage: any;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: any;
-        marginRatio: number;
-        timestamp: number;
-        datetime: string;
-    }>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): {
-        info: any;
-        id: any;
-        symbol: any;
-        contracts: number;
-        contractSize: any;
-        entryPrice: number;
-        collateral: any;
-        side: string;
-        unrealizedProfit: number;
-        leverage: number;
-        percentage: string;
-        marginMode: string;
-        notional: number;
-        markPrice: any;
-        liquidationPrice: number;
-        initialMargin: number;
-        initialMarginPercentage: any;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: any;
-        marginRatio: number;
-        timestamp: number;
-        datetime: string;
-    };
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
@@ -173,8 +127,8 @@ export default class zb extends Exchange {
         status: any;
         fee: any;
     };
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: any): {
         id: string;
         timestamp: number;
@@ -196,7 +150,7 @@ export default class zb extends Exchange {
     };
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    fetchBorrowRate(code: any, params?: {}): Promise<{
+    fetchBorrowRate(code: string, params?: {}): Promise<{
         currency: any;
         rate: number;
         period: number;
@@ -206,7 +160,7 @@ export default class zb extends Exchange {
     }>;
     fetchBorrowRates(params?: {}): Promise<any[]>;
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
-    borrowMargin(code: any, amount: any, symbol?: string, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
         id: any;
         currency: any;

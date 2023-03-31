@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -549,7 +550,7 @@ class bittrex(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -637,7 +638,7 @@ class bittrex(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_bids_asks(self, symbols=None, params={}):
+    async def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -981,7 +982,7 @@ class bittrex(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1166,7 +1167,7 @@ class bittrex(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1287,7 +1288,7 @@ class bittrex(Exchange):
             orders.append(result)
         return self.parse_orders(orders, market)
 
-    async def fetch_deposit(self, id, code=None, params={}):
+    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         :param str id: deposit id
@@ -1306,7 +1307,7 @@ class bittrex(Exchange):
         transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1345,7 +1346,7 @@ class bittrex(Exchange):
         # return self.parse_transactions(response, currency, since, limit)
         return self.parse_transactions(response, currency, None, limit)
 
-    async def fetch_pending_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_pending_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all pending deposits made from an account
         :param str|None code: unified currency code
@@ -1360,7 +1361,7 @@ class bittrex(Exchange):
         await self.load_markets()
         return self.fetch_deposits(code, since, limit, self.extend(params, {'status': 'pending'}))
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1379,7 +1380,7 @@ class bittrex(Exchange):
         transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1415,7 +1416,7 @@ class bittrex(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_pending_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_pending_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all pending withdrawals made from an account
         :param str|None code: unified currency code
@@ -1689,7 +1690,7 @@ class bittrex(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1822,7 +1823,7 @@ class bittrex(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1856,7 +1857,7 @@ class bittrex(Exchange):
             'info': response,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1890,7 +1891,7 @@ class bittrex(Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

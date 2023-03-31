@@ -1233,7 +1233,7 @@ class bitstamp(Exchange):
             'type': type,
         })
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1273,7 +1273,7 @@ class bitstamp(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_order_status(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
         self.load_markets()
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         request = {}
@@ -1285,7 +1285,7 @@ class bitstamp(Exchange):
         response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1347,7 +1347,7 @@ class bitstamp(Exchange):
         result = self.filter_by(response, 'type', '2')
         return self.parse_trades(result, market, since, limit)
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1393,7 +1393,7 @@ class bitstamp(Exchange):
         transactions = self.filter_by_array(response, 'type', ['0', '1'], False)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1736,7 +1736,7 @@ class bitstamp(Exchange):
                 'fee': parsedTransaction['fee'],
             }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1798,7 +1798,7 @@ class bitstamp(Exchange):
     def is_fiat(self, code):
         return code == 'USD' or code == 'EUR' or code == 'GBP'
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1821,7 +1821,7 @@ class bitstamp(Exchange):
             'info': response,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

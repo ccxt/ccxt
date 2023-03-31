@@ -1128,7 +1128,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchOrder
@@ -1309,7 +1309,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name gemini#cancelOrder
@@ -1380,7 +1380,7 @@ export default class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name gemini#withdraw
@@ -1440,7 +1440,7 @@ export default class gemini extends Exchange {
         return this.seconds ();
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gemini#fetchTransactions
@@ -1546,7 +1546,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeString (params, 'network');
@@ -1628,7 +1628,7 @@ export default class gemini extends Exchange {
         }
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name gemini#createDepositAddress

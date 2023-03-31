@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\luno as Exchange;
 
 class luno extends Exchange {
 
@@ -421,7 +422,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol not used by luno fetchOrder
@@ -526,7 +527,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
@@ -816,7 +817,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -831,7 +832,7 @@ class luno extends Exchange {
         return $this->privatePostStoporder (array_merge($request, $params));
     }
 
-    public function fetch_ledger_by_entries($code = null, $entry = -1, $limit = 1, $params = array ()) {
+    public function fetch_ledger_by_entries(?string $code = null, $entry = -1, $limit = 1, $params = array ()) {
         // by default without $entry number or $limit number, return most recent $entry
         $since = null;
         $request = array(
@@ -841,7 +842,7 @@ class luno extends Exchange {
         return $this->fetch_ledger($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null

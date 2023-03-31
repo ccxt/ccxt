@@ -3356,9 +3356,8 @@ export default class phemex extends Exchange {
             }
         }
         const unrealizedPnl = Precise.stringMul(Precise.stringMul(priceDiff, contracts), contractSizeString);
-        const percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMarginString), '100');
         const marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3370,8 +3369,10 @@ export default class phemex extends Exchange {
             'collateral': this.parseNumber(collateral),
             'notional': this.parseNumber(notionalString),
             'markPrice': this.parseNumber(markPriceString),
+            'lastPrice': undefined,
             'entryPrice': this.parseNumber(entryPriceString),
             'timestamp': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentageString),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -3381,8 +3382,8 @@ export default class phemex extends Exchange {
             'marginMode': undefined,
             'side': side,
             'hedged': false,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

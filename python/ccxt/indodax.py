@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
@@ -431,7 +432,7 @@ class indodax(Exchange):
         ticker = self.safe_value(response, 'ticker', {})
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
@@ -576,7 +577,7 @@ class indodax(Exchange):
             'trades': None,
         })
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -687,7 +688,7 @@ class indodax(Exchange):
             'id': id,
         }, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -709,7 +710,7 @@ class indodax(Exchange):
         }
         return self.privatePostCancelOrder(self.extend(request, params))
 
-    def fetch_transaction_fee(self, code, params={}):
+    def fetch_transaction_fee(self, code: str, params={}):
         """
         fetch the fee for a transaction
         :param str code: unified currency code
@@ -740,7 +741,7 @@ class indodax(Exchange):
             'currency': self.safe_currency_code(currencyId, currency),
         }
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -834,7 +835,7 @@ class indodax(Exchange):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

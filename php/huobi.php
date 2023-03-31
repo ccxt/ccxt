@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\huobi as Exchange;
 
 class huobi extends Exchange {
 
@@ -1331,7 +1332,7 @@ class huobi extends Exchange {
         return $this->parse_trading_fee($first, $market);
     }
 
-    public function fetch_trading_limits($symbols = null, $params = array ()) {
+    public function fetch_trading_limits(?array $symbols = null, $params = array ()) {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define $symbols = array( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
@@ -1347,7 +1348,7 @@ class huobi extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_limits_by_id($id, $params = array ()) {
+    public function fetch_trading_limits_by_id(string $id, $params = array ()) {
         $request = array(
             'symbol' => $id,
         );
@@ -1907,7 +1908,7 @@ class huobi extends Exchange {
         return $ticker;
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-$tickers-for-all-pairs
@@ -2282,7 +2283,7 @@ class huobi extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -2306,7 +2307,7 @@ class huobi extends Exchange {
         return $this->$method ($id, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_spot_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_spot_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'order-id' => $id,
@@ -3178,7 +3179,7 @@ class huobi extends Exchange {
         return $result;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in
@@ -4340,7 +4341,7 @@ class huobi extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -4671,7 +4672,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
@@ -4702,7 +4703,7 @@ class huobi extends Exchange {
         return $this->index_by($parsed, 'network');
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -4717,7 +4718,7 @@ class huobi extends Exchange {
         return $indexedAddresses[$selectedNetworkCode];
     }
 
-    public function fetch_withdraw_addresses($code, $note = null, $networkCode = null, $params = array ()) {
+    public function fetch_withdraw_addresses(string $code, $note = null, $networkCode = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -4752,7 +4753,7 @@ class huobi extends Exchange {
         return $addresses;
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -4810,7 +4811,7 @@ class huobi extends Exchange {
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -4978,7 +4979,7 @@ class huobi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -5061,7 +5062,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
@@ -5423,7 +5424,7 @@ class huobi extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
          * fetch the funding rate for multiple markets
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -5468,7 +5469,7 @@ class huobi extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @param {string|null} $code unified $currency $code
@@ -5975,7 +5976,7 @@ class huobi extends Exchange {
         $maintenanceMarginPercentage = Precise::string_div($adjustmentFactor, $leverage);
         $maintenanceMargin = Precise::string_mul($maintenanceMarginPercentage, $notional);
         $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -5990,6 +5991,7 @@ class huobi extends Exchange {
             'marginMode' => $marginMode,
             'notional' => $this->parse_number($notional),
             'markPrice' => null,
+            'lastPrice' => null,
             'liquidationPrice' => $liquidationPrice,
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => $this->parse_number($intialMarginPercentage),
@@ -5998,10 +6000,11 @@ class huobi extends Exchange {
             'marginRatio' => $this->parse_number($marginRatio),
             'timestamp' => null,
             'datetime' => null,
-        );
+            'lastUpdateTimestamp' => null,
+        ));
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified $market $symbols
@@ -6442,7 +6445,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -6511,7 +6514,7 @@ class huobi extends Exchange {
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -6604,7 +6607,7 @@ class huobi extends Exchange {
         return $this->safe_value($tiers, $symbol);
     }
 
-    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
@@ -6926,7 +6929,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
@@ -6979,7 +6982,7 @@ class huobi extends Exchange {
         ));
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated

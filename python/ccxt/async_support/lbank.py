@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
@@ -302,7 +303,7 @@ class lbank(Exchange):
         # }
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -593,7 +594,7 @@ class lbank(Exchange):
         order['info'] = response
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -610,7 +611,7 @@ class lbank(Exchange):
         response = await self.privatePostCancelOrder(self.extend(request, params))
         return response
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -674,7 +675,7 @@ class lbank(Exchange):
         allOrders = self.array_concat(closed, canceled)
         return self.filter_by_symbol_since_limit(allOrders, symbol, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

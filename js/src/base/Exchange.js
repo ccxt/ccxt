@@ -962,6 +962,9 @@ export default class Exchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
+        if ((subscribeHash === undefined) && (messageHash in client.futures)) {
+            return client.futures[messageHash];
+        }
         const future = client.future(messageHash);
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
@@ -973,7 +976,9 @@ export default class Exchange {
         // (connection established successfully)
         connected.then(() => {
             if (!client.subscriptions[subscribeHash]) {
-                client.subscriptions[subscribeHash] = subscription || true;
+                if (subscribeHash !== undefined) {
+                    client.subscriptions[subscribeHash] = subscription || true;
+                }
                 const options = this.safeValue(this.options, 'ws');
                 const cost = this.safeValue(options, 'cost', 1);
                 if (message) {
@@ -2295,6 +2300,21 @@ export default class Exchange {
         }
         return this.markets;
     }
+    safePosition(position) {
+        // simplified version of: /pull/12765/
+        const unrealizedPnlString = this.safeString(position, 'unrealisedPnl');
+        const initialMarginString = this.safeString(position, 'initialMargin');
+        //
+        // PERCENTAGE
+        //
+        const percentage = this.safeValue(position, 'percentage');
+        if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            const percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), '100');
+            position['percentage'] = this.parseNumber(percentageString);
+        }
+        return position;
+    }
     parsePositions(positions, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols);
         positions = this.toArray(positions);
@@ -3312,7 +3332,7 @@ export default class Exchange {
         }
         return [false, params];
     }
-    async fetchLastPrices(params = {}) {
+    async fetchLastPrices(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchLastPrices() is not supported yet');
     }
     async fetchTradingFees(params = {}) {

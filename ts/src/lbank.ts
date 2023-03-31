@@ -632,7 +632,7 @@ export default class lbank extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank#cancelOrder
@@ -652,7 +652,7 @@ export default class lbank extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrder
@@ -728,7 +728,7 @@ export default class lbank extends Exchange {
         return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as any;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lbank#withdraw

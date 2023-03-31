@@ -648,7 +648,7 @@ export default class oceanex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#fetchOrder
@@ -657,15 +657,12 @@ export default class oceanex extends Exchange {
          * @param {object} params extra parameters specific to the oceanex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        let ids = id;
-        if (!Array.isArray (id)) {
-            ids = [ id ];
-        }
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        const ids = [ id ];
         const request = { 'ids': ids };
         const response = await this.privateGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -880,7 +877,7 @@ export default class oceanex extends Exchange {
         return this.parseOrders (data);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name oceanex#cancelOrder

@@ -841,7 +841,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lykke#cancelOrder
@@ -890,7 +890,7 @@ export default class lykke extends Exchange {
         return await this.privateDeleteOrders (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchOrder
@@ -1086,7 +1086,7 @@ export default class lykke extends Exchange {
         return [ this.parseNumber (price), this.parseNumber (amount) ];
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name lykke#fetchDepositAddress
@@ -1182,7 +1182,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchTransactions
@@ -1225,7 +1225,7 @@ export default class lykke extends Exchange {
         return this.parseTransactions (payload, currency, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lykke#withdraw

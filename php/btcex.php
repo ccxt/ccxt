@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\btcex as Exchange;
 
 class btcex extends Exchange {
 
@@ -1209,7 +1210,7 @@ class btcex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         $this->sign_in();
         $this->load_markets();
         $request = array(
@@ -1398,7 +1399,7 @@ class btcex extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         $this->sign_in();
         $this->load_markets();
         $request = array(
@@ -1537,7 +1538,7 @@ class btcex extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($id === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $id argument');
         }
@@ -1686,14 +1687,14 @@ class btcex extends Exchange {
         $notionalString = Precise::string_mul($markPrice, $size);
         $unrealisedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
-        $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
         $marginType = $this->safe_string($position, 'margin_type');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,
+            'lastUpdateTimestamp' => null,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notionalString)),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
@@ -1707,11 +1708,12 @@ class btcex extends Exchange {
             'marginRatio' => $this->parse_number($riskLevel),
             'liquidationPrice' => $this->safe_number($position, 'liquid_price'),
             'markPrice' => $this->parse_number($markPrice),
+            'lastPrice' => null,
             'collateral' => $this->parse_number($collateral),
             'marginType' => $marginType,
             'side' => $side,
-            'percentage' => $this->parse_number($percentage),
-        );
+            'percentage' => null,
+        ));
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -1761,7 +1763,7 @@ class btcex extends Exchange {
         return $this->parse_position($result);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         $this->sign_in();
         $this->load_markets();
         $request = array(
@@ -1881,7 +1883,7 @@ class btcex extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
         }
@@ -1916,7 +1918,7 @@ class btcex extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
         }
@@ -1951,7 +1953,7 @@ class btcex extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
         }
@@ -2092,7 +2094,7 @@ class btcex extends Exchange {
         return $tiers;
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
          * retrieve information on the maximum leverage, for different trade sizes
@@ -2128,7 +2130,7 @@ class btcex extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
         //
         //     {
         //         "WAVES-USDT-PERPETUAL" => array(
@@ -2245,7 +2247,7 @@ class btcex extends Exchange {
         return $response;
     }
 
-    public function fetch_funding_rates($symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
          * fetch the current funding rates
          * @see https://docs.btcex.com/#contracts
@@ -2411,7 +2413,7 @@ class btcex extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.btcex.com/#asset-transfer

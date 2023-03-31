@@ -817,7 +817,7 @@ export default class yobit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name yobit#cancelOrder
@@ -969,7 +969,7 @@ export default class yobit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOrder
@@ -1116,7 +1116,7 @@ export default class yobit extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as any;
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name yobit#createDepositAddress
@@ -1139,7 +1139,7 @@ export default class yobit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name yobit#fetchDepositAddress
@@ -1176,7 +1176,7 @@ export default class yobit extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name yobit#withdraw

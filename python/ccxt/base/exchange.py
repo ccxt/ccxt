@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.45'
+__version__ = '3.0.46'
 
 # -----------------------------------------------------------------------------
 
@@ -1826,7 +1826,7 @@ class Exchange(object):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         raise NotSupported(self.id + ' createDepositAddress() is not supported yet')
 
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
@@ -2763,6 +2763,20 @@ class Exchange(object):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
+    def safe_position(self, position):
+        # simplified version of: /pull/12765/
+        unrealizedPnlString = self.safe_string(position, 'unrealisedPnl')
+        initialMarginString = self.safe_string(position, 'initialMargin')
+        #
+        # PERCENTAGE
+        #
+        percentage = self.safe_value(position, 'percentage')
+        if (percentage is None) and (unrealizedPnlString is not None) and (initialMarginString is not None):
+            # was done in all implementations( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
+            position['percentage'] = self.parse_number(percentageString)
+        return position
+
     def parse_positions(self, positions, symbols: Optional[List[str]] = None, params={}):
         symbols = self.market_symbols(symbols)
         positions = self.to_array(positions)
@@ -2903,7 +2917,7 @@ class Exchange(object):
     def edit_limit_order(self, id, symbol, side, amount, price=None, params={}):
         return self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         self.cancelOrder(id, symbol)
         return self.create_order(symbol, type, side, amount, price, params)
 
@@ -3073,7 +3087,7 @@ class Exchange(object):
             raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
         return self.fetch_transaction_fees(codes, params)
 
-    def fetch_transaction_fee(self, code, params={}):
+    def fetch_transaction_fee(self, code: str, params={}):
         if not self.has['fetchTransactionFees']:
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
         return self.fetch_transaction_fees([code], params)
@@ -3084,7 +3098,7 @@ class Exchange(object):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositWithdrawFees() is not supported yet')
 
-    def fetch_deposit_withdraw_fee(self, code, params={}):
+    def fetch_deposit_withdraw_fee(self, code: str, params={}):
         if not self.has['fetchDepositWithdrawFees']:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = self.fetchDepositWithdrawFees([code], params)
@@ -3237,7 +3251,7 @@ class Exchange(object):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
@@ -3249,7 +3263,7 @@ class Exchange(object):
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
     def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -3645,7 +3659,7 @@ class Exchange(object):
                 return [True, params]
         return [False, params]
 
-    def fetch_last_prices(self, params={}):
+    def fetch_last_prices(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')
 
     def fetch_trading_fees(self, params={}):

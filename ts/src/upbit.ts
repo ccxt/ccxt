@@ -185,7 +185,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    async fetchCurrency (code, params = {}) {
+    async fetchCurrency (code: string, params = {}) {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         await this.loadMarkets ();
@@ -193,7 +193,7 @@ export default class upbit extends Exchange {
         return await this.fetchCurrencyById (currency['id'], params);
     }
 
-    async fetchCurrencyById (id, params = {}) {
+    async fetchCurrencyById (id: string, params = {}) {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         const request = {
@@ -291,7 +291,7 @@ export default class upbit extends Exchange {
         return await this.fetchMarketById (market['id'], params);
     }
 
-    async fetchMarketById (id, params = {}) {
+    async fetchMarketById (id: string, params = {}) {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         const request = {
@@ -1096,7 +1096,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name upbit#cancelOrder
@@ -1133,7 +1133,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchDeposits
@@ -1177,7 +1177,7 @@ export default class upbit extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchWithdrawals
@@ -1527,7 +1527,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('cancel', symbol, since, limit, params);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrder
@@ -1642,7 +1642,7 @@ export default class upbit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name upbit#fetchDepositAddress
@@ -1666,7 +1666,7 @@ export default class upbit extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name upbit#createDepositAddress
@@ -1704,7 +1704,7 @@ export default class upbit extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name upbit#withdraw

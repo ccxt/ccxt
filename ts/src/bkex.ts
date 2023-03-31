@@ -1075,7 +1075,7 @@ export default class bkex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bkex#fetchDepositAddress
@@ -1124,7 +1124,7 @@ export default class bkex extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchDeposits
@@ -1182,7 +1182,7 @@ export default class bkex extends Exchange {
         return this.parseTransactions (dataInner, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchWithdrawals
@@ -1330,7 +1330,7 @@ export default class bkex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bkex#cancelOrder
@@ -1448,7 +1448,7 @@ export default class bkex extends Exchange {
         return this.parseOrders (innerData, market, since, limit, params);
     }
 
-    async fetchOpenOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bkex#fetchOpenOrder

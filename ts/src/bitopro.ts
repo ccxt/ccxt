@@ -1038,7 +1038,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#cancelOrder
@@ -1137,7 +1137,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchOrder
@@ -1409,7 +1409,7 @@ export default class bitopro extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchDeposits
@@ -1461,7 +1461,7 @@ export default class bitopro extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchWithdrawals
@@ -1512,7 +1512,7 @@ export default class bitopro extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#fetchWithdrawal
@@ -1552,7 +1552,7 @@ export default class bitopro extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#withdraw

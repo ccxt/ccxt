@@ -4259,7 +4259,7 @@ export default class mexc extends Exchange {
         const leverage = this.safeNumber(position, 'leverage');
         const liquidationPrice = this.safeNumber(position, 'liquidatePrice');
         const timestamp = this.safeNumber(position, 'updateTime');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -4274,6 +4274,7 @@ export default class mexc extends Exchange {
             'marginType': marginType,
             'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': undefined,
@@ -4282,7 +4283,8 @@ export default class mexc extends Exchange {
             'marginRatio': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
     async fetchTransfer(id, since = undefined, limit = undefined, params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfer', undefined, params);

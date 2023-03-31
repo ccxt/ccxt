@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -349,7 +350,7 @@ class huobijp(Exchange):
         response = self.publicGetCommonTimestamp(params)
         return self.safe_integer(response, 'data')
 
-    def fetch_trading_limits(self, symbols=None, params={}):
+    def fetch_trading_limits(self, symbols: Optional[List[str]] = None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define symbols = ['ETH/BTC', 'LTC/BTC'] in args it will only load those
@@ -362,7 +363,7 @@ class huobijp(Exchange):
             result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
         return result
 
-    def fetch_trading_limits_by_id(self, id, params={}):
+    def fetch_trading_limits_by_id(self, id: str, params={}):
         request = {
             'symbol': id,
         }
@@ -690,7 +691,7 @@ class huobijp(Exchange):
         ticker['datetime'] = self.iso8601(timestamp)
         return ticker
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -793,7 +794,7 @@ class huobijp(Exchange):
             'fee': fee,
         }
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1109,7 +1110,7 @@ class huobijp(Exchange):
         #
         return self.parse_orders(response['data'], market, since, limit)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1374,7 +1375,7 @@ class huobijp(Exchange):
             'average': None,
         }
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1516,7 +1517,7 @@ class huobijp(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1543,7 +1544,7 @@ class huobijp(Exchange):
         # return response
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1669,7 +1670,7 @@ class huobijp(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

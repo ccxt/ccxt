@@ -1183,7 +1183,7 @@ export default class lbank2 extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchOrder
@@ -1202,7 +1202,7 @@ export default class lbank2 extends Exchange {
         return result;
     }
 
-    async fetchOrderSupplement (id, symbol: string = undefined, params = {}) {
+    async fetchOrderSupplement (id: string, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
@@ -1238,7 +1238,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrder (result);
     }
 
-    async fetchOrderDefault (id, symbol: string = undefined, params = {}) {
+    async fetchOrderDefault (id: string, symbol: string = undefined, params = {}) {
         // Id can be a list of ids delimited by a comma
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -1459,7 +1459,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#cancelOrder
@@ -1549,7 +1549,7 @@ export default class lbank2 extends Exchange {
         return network;
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDepositAddress
@@ -1568,7 +1568,7 @@ export default class lbank2 extends Exchange {
         return await this[method] (code, params);
     }
 
-    async fetchDepositAddressDefault (code, params = {}) {
+    async fetchDepositAddressDefault (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1608,7 +1608,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDepositAddressSupplement (code, params = {}) {
+    async fetchDepositAddressSupplement (code: string, params = {}) {
         // returns the address for whatever the default network is...
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1649,7 +1649,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#withdraw
@@ -1816,7 +1816,7 @@ export default class lbank2 extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchDeposits
@@ -1869,7 +1869,7 @@ export default class lbank2 extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank2#fetchWithdrawals

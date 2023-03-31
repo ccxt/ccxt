@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitget as Exchange;
 
 class bitget extends Exchange {
 
@@ -173,6 +174,7 @@ class bitget extends Exchange {
                             'trade/batch-orders' => 4,
                             'trade/cancel-order' => 2,
                             'trade/cancel-batch-orders' => 4,
+                            'trade/cancel-batch-orders-v2' => 4,
                             'trade/orderInfo' => 1,
                             'trade/open-orders' => 1,
                             'trade/history' => 1,
@@ -1221,7 +1223,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
@@ -1275,7 +1277,7 @@ class bitget extends Exchange {
         return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1346,7 +1348,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
@@ -1455,7 +1457,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1668,7 +1670,7 @@ class bitget extends Exchange {
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
@@ -2171,6 +2173,7 @@ class bitget extends Exchange {
             'new' => 'open',
             'init' => 'open',
             'not_trigger' => 'open',
+            'partial_fill' => 'open',
             'triggered' => 'closed',
             'full_fill' => 'closed',
             'filled' => 'closed',
@@ -2429,7 +2432,7 @@ class bitget extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @param {string} $id cancel order $id
@@ -2526,7 +2529,7 @@ class bitget extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -2578,19 +2581,14 @@ class bitget extends Exchange {
         $this->check_required_symbol('cancelOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
-        $type = $this->safe_string($params, 'type', $market['type']);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " cancelOrders() requires a $type parameter (one of 'spot', 'swap').");
-        }
-        $params = $this->omit($params, 'type');
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
         $request = array();
         $method = null;
         if ($type === 'spot') {
-            $method = 'apiPostOrderOrdersBatchcancel';
-            $request['method'] = 'batchcancel';
-            $jsonIds = $this->json($ids);
-            $parts = explode('"', $jsonIds);
-            $request['order_ids'] = implode('', $parts);
+            $method = 'privateSpotPostTradeCancelBatchOrdersV2';
+            $request['symbol'] = $market['id'];
+            $request['orderIds'] = $ids;
         } elseif ($type === 'swap') {
             $method = 'privateMixPostOrderCancelBatchOrders';
             $request['symbol'] = $market['id'];
@@ -2602,18 +2600,17 @@ class bitget extends Exchange {
         //     spot
         //
         //     {
-        //         "status" => "ok",
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => "1680008815965",
         //         "data" => {
-        //             "success" => array(
-        //                 "673451224205135872",
+        //             "resultList" => array(
+        //                 array(
+        //                     "orderId" => "1024598257429823488",
+        //                     "clientOrderId" => "876493ce-c287-4bfc-9f4a-8b1905881313"
+        //                 ),
         //             ),
-        //             "failed" => array(
-        //                 {
-        //                 "err-msg" => "invalid record",
-        //                 "order-id" => "673451224205135873",
-        //                 "err-code" => "base record invalid"
-        //                 }
-        //             )
+        //             "failed" => array()
         //         }
         //     }
         //
@@ -2707,7 +2704,7 @@ class bitget extends Exchange {
         return $response;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -2921,6 +2918,9 @@ class bitget extends Exchange {
         //         }
         //     }
         //
+        if (gettype($response) === 'string') {
+            $response = json_decode($response, $as_associative_array = true);
+        }
         $data = $this->safe_value($response, 'data', array());
         if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
             $data = $this->safe_value($data, 'orderList', array());
@@ -3133,7 +3133,7 @@ class bitget extends Exchange {
         return $this->safe_value($data, 'orderList', $data);
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -3270,7 +3270,7 @@ class bitget extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -3366,7 +3366,7 @@ class bitget extends Exchange {
         return $this->parse_positions($data);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified $market $symbols
@@ -3510,7 +3510,7 @@ class bitget extends Exchange {
         $maintenanceMargin = Precise::string_add(Precise::string_mul($maintenanceMarginPercentage, $notional), $feeToClose);
         $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
         $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMargin, 4), '100');
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -3523,10 +3523,12 @@ class bitget extends Exchange {
             'contracts' => $contracts,
             'contractSize' => $contractSizeNumber,
             'markPrice' => $this->parse_number($markPrice),
+            'lastPrice' => null,
             'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => null,
             'maintenanceMargin' => $this->parse_number($maintenanceMargin),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
             'collateral' => $this->parse_number($collateral),
@@ -3534,7 +3536,7 @@ class bitget extends Exchange {
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'leverage' => $this->parse_number($leverage),
             'marginRatio' => $this->parse_number($marginRatio),
-        );
+        ));
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3988,7 +3990,7 @@ class bitget extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal transfers made on an account
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
@@ -4041,7 +4043,7 @@ class bitget extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
          * transfer $currency internally between wallets on the same account

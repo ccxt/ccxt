@@ -938,6 +938,7 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
+            "use " + namespace + "\\abstract\\" + className + " as " + baseClass + ';',
         ]
     }
 
@@ -972,13 +973,6 @@ class Transpiler {
                 libraryImports.push ('use React\\Promise;')
             }
         }
-        if (bodyAsString.match (/OrderSide \$/)) {
-            libraryImports.push ('use ccxt\\types\\OrderSide;')
-        }
-        if (bodyAsString.match (/OrderType \$/)) {
-            libraryImports.push ('use ccxt\\types\\OrderType;')
-        }
-
 
         header = header.concat (errorImports).concat (precisionImports).concat (libraryImports)
 
@@ -1448,6 +1442,8 @@ class Transpiler {
                 'IndexType': 'int|string',
                 'Int': 'int',
                 'object': 'array',
+                'OrderType': 'string',
+                'OrderSide': 'string',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')

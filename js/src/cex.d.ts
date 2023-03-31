@@ -11,7 +11,7 @@ export default class cex extends Exchange {
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: any, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -36,7 +36,7 @@ export default class cex extends Exchange {
         fee: any;
         trades: any;
     }>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): {
         id: any;
         clientOrderId: any;
@@ -63,7 +63,7 @@ export default class cex extends Exchange {
     };
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<{
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<{
         id: any;
         clientOrderId: any;
         datetime: string;
@@ -89,7 +89,7 @@ export default class cex extends Exchange {
     }>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     parseOrderStatus(status: any): string;
-    editOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
         id: any;
         clientOrderId: any;
         datetime: string;
@@ -113,8 +113,8 @@ export default class cex extends Exchange {
         info: any;
         average: any;
     }>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: string;
         network: string;

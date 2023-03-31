@@ -16,63 +16,17 @@ export default class btcex extends Exchange {
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parsePosition(position: any, market?: any): {
-        info: any;
-        id: any;
-        symbol: string;
-        timestamp: any;
-        datetime: any;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        entryPrice: number;
-        notional: number;
-        leverage: number;
-        unrealizedPnl: number;
-        contracts: number;
-        contractSize: any;
-        marginRatio: number;
-        liquidationPrice: number;
-        markPrice: number;
-        collateral: number;
-        marginType: string;
-        side: string;
-        percentage: number;
-    };
-    fetchPosition(symbol: string, params?: {}): Promise<{
-        info: any;
-        id: any;
-        symbol: string;
-        timestamp: any;
-        datetime: any;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        entryPrice: number;
-        notional: number;
-        leverage: number;
-        unrealizedPnl: number;
-        contracts: number;
-        contractSize: any;
-        marginRatio: number;
-        liquidationPrice: number;
-        markPrice: number;
-        collateral: number;
-        marginType: string;
-        side: string;
-        percentage: number;
-    }>;
-    fetchPositions(symbols?: any, params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
+    fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -94,9 +48,9 @@ export default class btcex extends Exchange {
         updated: number;
         fee: any;
     };
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -119,11 +73,11 @@ export default class btcex extends Exchange {
     fetchLeverage(symbol: string, params?: {}): Promise<number>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
-    fetchLeverageTiers(symbols?: any, params?: {}): Promise<{}>;
-    parseLeverageTiers(response: any, symbols?: any, marketIdKey?: any): {};
+    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
+    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    fetchFundingRates(symbols?: any, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -162,7 +116,7 @@ export default class btcex extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: any;

@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -879,7 +880,7 @@ class exmo(Exchange):
         result = self.safe_value(response, market['id'])
         return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
-    def fetch_order_books(self, symbols=None, limit: Optional[int] = None, params={}):
+    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
@@ -952,7 +953,7 @@ class exmo(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1224,7 +1225,7 @@ class exmo(Exchange):
             'average': None,
         }
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1236,7 +1237,7 @@ class exmo(Exchange):
         request = {'order_id': id}
         return self.privatePostOrderCancel(self.extend(request, params))
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by exmo fetchOrder
@@ -1274,7 +1275,7 @@ class exmo(Exchange):
             'id': str(id),
         })
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1463,7 +1464,7 @@ class exmo(Exchange):
         })
         return self.parse_orders(response, market, since, limit, params)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1504,7 +1505,7 @@ class exmo(Exchange):
             return self.markets[symbols[0]]
         return None
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1666,7 +1667,7 @@ class exmo(Exchange):
             'fee': fee,
         }
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1715,7 +1716,7 @@ class exmo(Exchange):
         #
         return self.parse_transactions(response['history'], currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1764,7 +1765,7 @@ class exmo(Exchange):
         items = self.safe_value(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1812,7 +1813,7 @@ class exmo(Exchange):
         first = self.safe_value(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposit(self, id=None, code=None, params={}):
+    def fetch_deposit(self, id=None, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1860,7 +1861,7 @@ class exmo(Exchange):
         first = self.safe_value(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code

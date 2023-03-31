@@ -708,7 +708,7 @@ export default class tidex extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name tidex#cancelOrder
@@ -777,7 +777,7 @@ export default class tidex extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name tidex#fetchOrder
@@ -881,7 +881,7 @@ export default class tidex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name tidex#withdraw

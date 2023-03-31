@@ -354,7 +354,7 @@ export default class huobijp extends Exchange {
         return result;
     }
 
-    async fetchTradingLimitsById (id, params = {}) {
+    async fetchTradingLimitsById (id: string, params = {}) {
         const request = {
             'symbol': id,
         };
@@ -815,7 +815,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrderTrades
@@ -1168,7 +1168,7 @@ export default class huobijp extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrder
@@ -1466,7 +1466,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#cancelOrder
@@ -1623,7 +1623,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchDeposits
@@ -1657,7 +1657,7 @@ export default class huobijp extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchWithdrawals
@@ -1794,7 +1794,7 @@ export default class huobijp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#withdraw

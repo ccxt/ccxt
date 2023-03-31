@@ -507,7 +507,7 @@ export default class Exchange {
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    createDepositAddress(code: any, params?: {}): Promise<DepositAddressResponse>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
     getDefaultOptions(): {
@@ -578,6 +578,7 @@ export default class Exchange {
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
+    safePosition(position: any): any;
     parsePositions(positions: any, symbols?: string[], params?: {}): any;
     parseAccounts(accounts: any, params?: {}): any[];
     parseTrades(trades: any, market?: object, since?: Int, limit?: Int, params?: {}): Trade[];
@@ -598,7 +599,7 @@ export default class Exchange {
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitSellOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitOrder(id: any, symbol: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
@@ -618,10 +619,10 @@ export default class Exchange {
     fetchStatus(params?: {}): Promise<any>;
     fetchFundingFee(code: string, params?: {}): Promise<any>;
     fetchFundingFees(codes?: string[], params?: {}): Promise<any>;
-    fetchTransactionFee(code: any, params?: {}): Promise<any>;
+    fetchTransactionFee(code: string, params?: {}): Promise<any>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
-    fetchDepositWithdrawFee(code: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
     getSupportedMapping(key: any, mapping?: {}): any;
     fetchBorrowRate(code: string, params?: {}): Promise<any>;
     handleOptionAndParams(params: any, methodName: any, optionName: any, defaultValue?: any): any[];
@@ -642,11 +643,11 @@ export default class Exchange {
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -698,7 +699,7 @@ export default class Exchange {
     isTriggerOrder(params: any): any[];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: any): any[];
-    fetchLastPrices(params?: {}): Promise<void>;
+    fetchLastPrices(symbols?: string[], params?: {}): Promise<void>;
     fetchTradingFees(params?: {}): Promise<any>;
     fetchTradingFee(symbol: string, params?: {}): Promise<any>;
     parseOpenInterest(interest: any, market?: any): any;

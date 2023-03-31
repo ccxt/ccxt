@@ -708,7 +708,7 @@ export default class bithumb extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#fetchOrder
@@ -917,7 +917,7 @@ export default class bithumb extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#cancelOrder
@@ -954,7 +954,7 @@ export default class bithumb extends Exchange {
         return this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#withdraw

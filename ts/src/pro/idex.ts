@@ -654,7 +654,7 @@ export default class idex extends idexRest {
         client.resolve (orders, type);
     }
 
-    async watchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'balances';
         const subscribeObject = {
