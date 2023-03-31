@@ -2885,9 +2885,14 @@ export default class xt extends Exchange {
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
-        const response = (subType === 'inverse') ? await this.privateInverseGetFutureUserV1BalanceBills (this.extend (request, params)) : await this.privateLinearGetFutureUserV1BalanceBills (this.extend (request, params));
-        //
-        // swap and future
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInverseGetFutureUserV1BalanceBills (this.extend (request, params));
+        } else if (subType === 'linear') {
+            response = await this.privateLinearGetFutureUserV1BalanceBills (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported');
+        }
         //
         //     {
         //         "returnCode": 0,
@@ -3298,7 +3303,12 @@ export default class xt extends Exchange {
         };
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('setLeverage', market, params);
-        const response = (subType === 'inverse') ? await this.privateInversePostFutureUserV1PositionAdjustLeverage (this.extend (request, params)) : await this.privateLinearPostFutureUserV1PositionAdjustLeverage (this.extend (request, params));
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInversePostFutureUserV1PositionAdjustLeverage (this.extend (request, params));
+        } else {
+            response = await this.privateLinearPostFutureUserV1PositionAdjustLeverage (this.extend (request, params));
+        }
         //
         //     {
         //         "returnCode": 0,
@@ -3353,7 +3363,12 @@ export default class xt extends Exchange {
         };
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('modifyMarginHelper', market, params);
-        const response = (subType === 'inverse') ? await this.privateInversePostFutureUserV1PositionMargin (this.extend (request, params)) : await this.privateLinearPostFutureUserV1PositionMargin (this.extend (request, params));
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInversePostFutureUserV1PositionMargin (this.extend (request, params));
+        } else {
+            response = await this.privateLinearPostFutureUserV1PositionMargin (this.extend (request, params));
+        }
         //
         //     {
         //         "returnCode": 0,
@@ -3389,7 +3404,12 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params);
-        const response = (subType === 'inverse') ? await this.publicInverseGetFutureMarketV1PublicLeverageBracketList (params) : await this.publicLinearGetFutureMarketV1PublicLeverageBracketList (params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicLeverageBracketList (params);
+        } else {
+            response = await this.publicLinearGetFutureMarketV1PublicLeverageBracketList (params);
+        }
         //
         //     {
         //         "returnCode": 0,
@@ -3471,7 +3491,12 @@ export default class xt extends Exchange {
         };
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarketLeverageTiers', market, params);
-        const response = (subType === 'inverse') ? await this.publicInverseGetFutureMarketV1PublicLeverageBracketDetail (this.extend (request, params)) : await this.publicLinearGetFutureMarketV1PublicLeverageBracketDetail (this.extend (request, params));
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicLeverageBracketDetail (this.extend (request, params));
+        } else {
+            response = await this.publicLinearGetFutureMarketV1PublicLeverageBracketDetail (this.extend (request, params));
+        }
         //
         //     {
         //         "returnCode": 0,
