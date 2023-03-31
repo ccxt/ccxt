@@ -606,7 +606,7 @@ export default class Exchange {
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<void>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<void>;
     parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType): number[];
-    safeCurrency(currencyId?: string, currency?: string): any;
+    safeCurrency(currencyId?: string, currency?: any): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     checkRequiredCredentials(error?: boolean): boolean;
     oath(): string;
@@ -685,7 +685,7 @@ export default class Exchange {
     createStopOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, stopPrice?: any, params?: {}): Promise<Order>;
     createStopLimitOrder(symbol: string, side: OrderSide, amount: any, price: any, stopPrice: any, params?: {}): Promise<Order>;
     createStopMarketOrder(symbol: string, side: OrderSide, amount: any, stopPrice: any, params?: {}): Promise<Order>;
-    safeCurrencyCode(currencyId?: string, currency?: string): any;
+    safeCurrencyCode(currencyId?: string, currency?: any): any;
     filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;

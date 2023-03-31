@@ -1667,7 +1667,7 @@ class Exchange(BaseExchange):
         amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
-    def safe_currency(self, currencyId: Optional[str], currency: Optional[str] = None):
+    def safe_currency(self, currencyId: Optional[str], currency: Optional[Any] = None):
         if (currencyId is None) and (currency is not None):
             return currency
         if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
@@ -2205,7 +2205,7 @@ class Exchange(BaseExchange):
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
 
-    def safe_currency_code(self, currencyId: Optional[str], currency: Optional[str] = None):
+    def safe_currency_code(self, currencyId: Optional[str], currency: Optional[Any] = None):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
