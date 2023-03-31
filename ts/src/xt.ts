@@ -43,6 +43,7 @@ export default class xt extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchLedger': true,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': true,
@@ -3532,6 +3533,78 @@ export default class xt extends Exchange {
             });
         }
         return tiers;
+    }
+
+    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchFundingRateHistory
+         * @description fetches historical funding rates
+         * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures] to fetch
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicQFundingRateRecord (this.extend (request, params));
+        } else {
+            response = await this.publicLinearGetFutureMarketV1PublicQFundingRateRecord (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": true,
+        //             "items": [
+        //                 {
+        //                     "id": "210441653482221888",
+        //                     "symbol": "btc_usdt",
+        //                     "fundingRate": "0.000057",
+        //                     "createdTime": 1679875200000,
+        //                     "collectionInternal": 28800
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const items = this.safeValue (result, 'items', []);
+        const rates = [];
+        for (let i = 0; i < items.length; i++) {
+            const entry = items[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId, market);
+            const timestamp = this.safeInteger (entry, 'createdTime');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
