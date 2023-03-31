@@ -64,10 +64,10 @@ export default class bkex extends Exchange {
     };
     parseTransactionStatus(status: any): string;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOpenOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrder(order: any, market?: any): any;
     parseOrderSide(side: any): string;

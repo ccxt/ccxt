@@ -18,7 +18,7 @@ export default class idex extends Exchange {
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOrdersHelper(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -47,9 +47,9 @@ export default class idex extends Exchange {
         fee: any;
     }>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
-    fetchDeposit(id: any, code?: string, params?: {}): Promise<{
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -71,7 +71,7 @@ export default class idex extends Exchange {
     }>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchTime(params?: {}): Promise<number>;
-    fetchWithdrawal(id: any, code?: string, params?: {}): Promise<{
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;

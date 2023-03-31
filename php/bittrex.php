@@ -1004,7 +1004,7 @@ class bittrex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -1209,7 +1209,7 @@ class bittrex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1336,7 +1336,7 @@ class bittrex extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
-    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a $currency deposit via the deposit $id
          * @param {string} $id deposit $id
@@ -1417,7 +1417,7 @@ class bittrex extends Exchange {
         return $this->fetch_deposits($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
     }
 
-    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -1776,7 +1776,7 @@ class bittrex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in

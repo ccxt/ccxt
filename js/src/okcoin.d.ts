@@ -23,11 +23,11 @@ export default class okcoin extends Exchange {
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseBalanceByType(type: any, response: any): import("./base/types.js").Balances;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrderSide(side: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrdersByState(state: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -113,7 +113,7 @@ export default class okcoin extends Exchange {
     parseMyTrade(pair: any, market?: any): import("./base/types.js").Trade;
     parseMyTrades(trades: any, market?: any, since?: Int, limit?: Int, params?: {}): any;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

@@ -839,7 +839,7 @@ class coinsph(Exchange):
         response = await self.privateGetOpenapiV1MyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1078,7 +1078,7 @@ class coinsph(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param int|str id: order id
@@ -1140,7 +1140,7 @@ class coinsph(Exchange):
         response = await self.privateGetOpenapiV1HistoryOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

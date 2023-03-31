@@ -2374,7 +2374,7 @@ class phemex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order($id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
@@ -2447,7 +2447,7 @@ class phemex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
@@ -2515,7 +2515,7 @@ class phemex extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string} $symbol unified $symbol of the $market the $order was made in

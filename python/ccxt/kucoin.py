@@ -1471,7 +1471,7 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1646,7 +1646,7 @@ class kucoin(Exchange):
         """
         return self.fetch_orders_by_status('active', symbol, since, limit, params)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an order
         :param str id: Order id
@@ -1825,7 +1825,7 @@ class kucoin(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id

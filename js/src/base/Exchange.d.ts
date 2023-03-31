@@ -599,7 +599,7 @@ export default class Exchange {
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitSellOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitOrder(id: any, symbol: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
@@ -643,11 +643,11 @@ export default class Exchange {
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

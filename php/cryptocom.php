@@ -1062,7 +1062,7 @@ class cryptocom extends Exchange {
         return $this->$parser ($response);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in
@@ -1223,7 +1223,7 @@ class cryptocom extends Exchange {
         return $this->$method (array_merge($request, $query));
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id

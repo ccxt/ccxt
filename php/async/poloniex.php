@@ -1121,7 +1121,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1159,7 +1159,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1221,7 +1221,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an order by it's $id
@@ -1262,7 +1262,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_status($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             Async\await($this->load_markets());
             $orders = Async\await($this->fetch_open_orders($symbol, null, null, $params));
@@ -1271,7 +1271,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order

@@ -1165,7 +1165,7 @@ class whitebit(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1439,7 +1439,7 @@ class whitebit(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1733,7 +1733,7 @@ class whitebit(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit(self, id, code: Optional[str] = None, params={}):
+    def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id

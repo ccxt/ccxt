@@ -1289,7 +1289,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1302,7 +1302,7 @@ class exmo extends Exchange {
         return $this->privatePostOrderCancel (array_merge($request, $params));
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol not used by exmo fetchOrder
@@ -1341,7 +1341,7 @@ class exmo extends Exchange {
         ));
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
          * @param {string} $id order $id
@@ -1871,7 +1871,7 @@ class exmo extends Exchange {
         return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id

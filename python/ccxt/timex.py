@@ -752,7 +752,7 @@ class timex(Exchange):
         order = self.safe_value(orders, 0, {})
         return self.parse_order(order, market)
 
-    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -800,7 +800,7 @@ class timex(Exchange):
         order = self.safe_value(firstOrder, 'newOrder', {})
         return self.parse_order(order, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -850,7 +850,7 @@ class timex(Exchange):
         #     }
         return response
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by timex fetchOrder

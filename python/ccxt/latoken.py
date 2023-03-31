@@ -1082,7 +1082,7 @@ class latoken(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by latoken fetchOrder
@@ -1159,7 +1159,7 @@ class latoken(Exchange):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

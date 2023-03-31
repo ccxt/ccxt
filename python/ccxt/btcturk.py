@@ -649,7 +649,7 @@ class btcturk(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

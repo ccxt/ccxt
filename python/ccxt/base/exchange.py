@@ -2917,7 +2917,7 @@ class Exchange(object):
     def edit_limit_order(self, id, symbol, side, amount, price=None, params={}):
         return self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         self.cancelOrder(id, symbol)
         return self.create_order(symbol, type, side, amount, price, params)
 
@@ -3251,7 +3251,7 @@ class Exchange(object):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
@@ -3263,7 +3263,7 @@ class Exchange(object):
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderTrades() is not supported yet')
 
     def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):

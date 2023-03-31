@@ -924,7 +924,7 @@ class bitso(Exchange):
             'id': id,
         }, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1079,7 +1079,7 @@ class bitso(Exchange):
         orders = self.parse_orders(response['payload'], market, since, limit)
         return orders
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by bitso fetchOrder
@@ -1097,7 +1097,7 @@ class bitso(Exchange):
                 return self.parse_order(payload[0])
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1115,7 +1115,7 @@ class bitso(Exchange):
         response = self.privateGetOrderTradesOid(self.extend(request, params))
         return self.parse_trades(response['payload'], market)
 
-    def fetch_deposit(self, id, code: Optional[str] = None, params={}):
+    def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id

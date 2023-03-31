@@ -1335,7 +1335,7 @@ class wavesexchange(Exchange):
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1381,7 +1381,7 @@ class wavesexchange(Exchange):
             'trades': None,
         }
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in

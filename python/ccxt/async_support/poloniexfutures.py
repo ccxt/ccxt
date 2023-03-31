@@ -844,7 +844,7 @@ class poloniexfutures(Exchange):
             'info': response,
         }
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://futures-docs.poloniex.com/#cancel-an-order

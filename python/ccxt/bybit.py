@@ -3199,7 +3199,7 @@ class bybit(Exchange):
             'info': order,
         }, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -3786,7 +3786,7 @@ class bybit(Exchange):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order)
 
-    def edit_unified_account_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_unified_account_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -3842,7 +3842,7 @@ class bybit(Exchange):
             'id': self.safe_string(result, 'orderId'),
         }
 
-    def edit_unified_margin_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -3915,7 +3915,7 @@ class bybit(Exchange):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order)
 
-    def edit_contract_v3_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_contract_v3_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3958,7 +3958,7 @@ class bybit(Exchange):
             'id': self.safe_string(result, 'orderId'),
         }
 
-    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an symbol argument')
         self.load_markets()
@@ -3972,7 +3972,7 @@ class bybit(Exchange):
             return self.edit_unified_margin_order(id, symbol, type, side, amount, price, params)
         return self.edit_contract_v3_order(id, symbol, type, side, amount, price, params)
 
-    def cancel_unified_account_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_unified_account_order(self, id: str, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -4015,7 +4015,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_spot_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_spot_order(self, id: str, symbol: Optional[str] = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -4052,7 +4052,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_unified_margin_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_unified_margin_order(self, id: str, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelUnifiedMarginOrder() requires a symbol argument')
         self.load_markets()
@@ -4090,7 +4090,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_usdc_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_usdc_order(self, id: str, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelUSDCOrder() requires a symbol argument')
         self.load_markets()
@@ -4127,7 +4127,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_derivatives_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_derivatives_order(self, id: str, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelDerivativesOrder() requires a symbol argument')
         self.load_markets()
@@ -4154,7 +4154,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -5217,7 +5217,7 @@ class bybit(Exchange):
         else:
             return self.fetch_derivatives_open_orders(symbol, since, limit, query)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id

@@ -961,7 +961,7 @@ class hitbtc(Exchange):
             raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
         return order
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         # we use clientOrderId order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
@@ -982,7 +982,7 @@ class hitbtc(Exchange):
         response = await self.privatePatchOrderClientOrderId(self.extend(request, params))
         return self.parse_order(response)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1098,7 +1098,7 @@ class hitbtc(Exchange):
             'info': order,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by hitbtc fetchOrder
@@ -1118,7 +1118,7 @@ class hitbtc(Exchange):
             return self.parse_order(response[0])
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
-    async def fetch_open_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1239,7 +1239,7 @@ class hitbtc(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id

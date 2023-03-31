@@ -34,15 +34,15 @@ export default class bitso extends Exchange {
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<import("./base/types.js").Trade[]>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchDeposit(id: any, code?: string, params?: {}): Promise<{
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
         id: string;
         txid: string;
         timestamp: number;

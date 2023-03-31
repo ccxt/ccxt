@@ -2260,7 +2260,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * edit a trade $order
          * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-$order
@@ -2322,7 +2322,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -2667,7 +2667,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an $order by the $id
          * @param {string} $id the $order $id
@@ -3350,7 +3350,7 @@ class okx extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit, $query);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -3933,7 +3933,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_deposit($id, ?string $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a $currency $deposit via the $deposit $id
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$deposit-history
@@ -4021,7 +4021,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a $currency $withdrawal via the $withdrawal $id
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$withdrawal-history
@@ -4649,7 +4649,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_transfer($id, ?string $code = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'transId' => $id,

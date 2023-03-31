@@ -996,7 +996,7 @@ class kraken(Exchange):
             items.append(value)
         return self.parse_ledger(items)
 
-    async def fetch_ledger_entry(self, id, code: Optional[str] = None, params={}):
+    async def fetch_ledger_entry(self, id: str, code: Optional[str] = None, params={}):
         items = await self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
@@ -1442,7 +1442,7 @@ class kraken(Exchange):
         params = self.omit(params, ['price', 'stopPrice', 'price2', 'close'])
         return [request, params]
 
-    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
@@ -1486,7 +1486,7 @@ class kraken(Exchange):
         data = self.safe_value(response, 'result', {})
         return self.parse_order(data, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by kraken fetchOrder
@@ -1550,7 +1550,7 @@ class kraken(Exchange):
         order = self.parse_order(self.extend({'id': id}, result[id]))
         return self.extend({'info': response}, order)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1690,7 +1690,7 @@ class kraken(Exchange):
             market = self.market(symbol)
         return self.parse_trades(trades, market, since, limit)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

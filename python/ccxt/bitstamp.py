@@ -1233,7 +1233,7 @@ class bitstamp(Exchange):
             'type': type,
         })
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1273,7 +1273,7 @@ class bitstamp(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_order_status(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
         self.load_markets()
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         request = {}
@@ -1285,7 +1285,7 @@ class bitstamp(Exchange):
         response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in

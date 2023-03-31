@@ -1045,7 +1045,7 @@ class cryptocom(Exchange):
         })
         return getattr(self, parser)(response)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1192,7 +1192,7 @@ class cryptocom(Exchange):
             method = 'v2PrivatePostPrivateMarginCancelAllOrders'
         return await getattr(self, method)(self.extend(request, query))
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

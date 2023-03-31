@@ -46,18 +46,18 @@ export default class okx extends Exchange {
     }>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseIds(ids: any): any;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
@@ -110,7 +110,7 @@ export default class okx extends Exchange {
         };
     }>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposit(id: any, code?: string, params?: {}): Promise<{
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: any;
         currency: any;
@@ -134,7 +134,7 @@ export default class okx extends Exchange {
         };
     }>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: any, code?: string, params?: {}): Promise<{
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: any;
         currency: any;
@@ -207,7 +207,7 @@ export default class okx extends Exchange {
         toAccount: string;
         status: string;
     };
-    fetchTransfer(id: any, code?: string, params?: {}): Promise<{
+    fetchTransfer(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;

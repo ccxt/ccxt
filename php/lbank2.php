@@ -1160,7 +1160,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the market the order was made in
@@ -1177,7 +1177,7 @@ class lbank2 extends Exchange {
         return $result;
     }
 
-    public function fetch_order_supplement($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder () requires a $symbol argument');
@@ -1213,7 +1213,7 @@ class lbank2 extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function fetch_order_default($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_default(string $id, ?string $symbol = null, $params = array ()) {
         // Id can be a list of ids delimited by a comma
         $this->load_markets();
         if ($symbol === null) {
@@ -1428,7 +1428,7 @@ class lbank2 extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id

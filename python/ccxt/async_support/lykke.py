@@ -811,7 +811,7 @@ class lykke(Exchange):
             'trades': None,
         }
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -853,7 +853,7 @@ class lykke(Exchange):
         #
         return await self.privateDeleteOrders(self.extend(request, params))
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by lykke fetchOrder

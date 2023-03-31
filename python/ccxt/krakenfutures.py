@@ -846,7 +846,7 @@ class krakenfutures(Exchange):
         self.verify_order_action_success(status, 'createOrder', ['filled'])
         return self.parse_order(sendStatus)
 
-    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         Edit an open order on the exchange
         :param str id: order id
@@ -872,7 +872,7 @@ class krakenfutures(Exchange):
         order = self.parse_order(response['editStatus'])
         return self.extend({'info': response}, order)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         :param str id: Order id
         :param str|None symbol: Not used by Krakenfutures

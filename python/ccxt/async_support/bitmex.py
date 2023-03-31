@@ -658,7 +658,7 @@ class bitmex(Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1749,7 +1749,7 @@ class bitmex(Exchange):
         response = await self.privatePostOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         request = {}
         origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
@@ -1770,7 +1770,7 @@ class bitmex(Exchange):
         response = await self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

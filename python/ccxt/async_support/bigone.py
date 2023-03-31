@@ -854,7 +854,7 @@ class bigone(Exchange):
         order = self.safe_value(response, 'data')
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -907,7 +907,7 @@ class bigone(Exchange):
         #
         return response
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by bigone fetchOrder

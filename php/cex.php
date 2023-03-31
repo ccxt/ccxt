@@ -802,7 +802,7 @@ class cex extends Exchange {
         );
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1120,7 +1120,7 @@ class cex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol not used by cex fetchOrder
@@ -1458,7 +1458,7 @@ class cex extends Exchange {
         return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a $amount argument');
         }

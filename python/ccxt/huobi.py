@@ -1354,7 +1354,7 @@ class huobi(Exchange):
             result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
         return result
 
-    def fetch_trading_limits_by_id(self, id, params={}):
+    def fetch_trading_limits_by_id(self, id: str, params={}):
         request = {
             'symbol': id,
         }
@@ -2230,7 +2230,7 @@ class huobi(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -2252,7 +2252,7 @@ class huobi(Exchange):
         })
         return getattr(self, method)(id, symbol, since, limit, params)
 
-    def fetch_spot_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_spot_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         request = {
             'order-id': id,
@@ -3058,7 +3058,7 @@ class huobi(Exchange):
             result = self.safe_balance(result)
         return result
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -4134,7 +4134,7 @@ class huobi(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

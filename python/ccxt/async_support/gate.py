@@ -2554,7 +2554,7 @@ class gate(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -3268,7 +3268,7 @@ class gate(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -3590,7 +3590,7 @@ class gate(Exchange):
             'info': order,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         Retrieves information on an order
         :param str id: Order id
@@ -3813,7 +3813,7 @@ class gate(Exchange):
         orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         Cancels an open order
         :param str id: Order id

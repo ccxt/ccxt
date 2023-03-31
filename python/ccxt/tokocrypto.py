@@ -1625,7 +1625,7 @@ class tokocrypto(Exchange):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1760,7 +1760,7 @@ class tokocrypto(Exchange):
         request = {'type': 2}  # -1 = all, 1 = open, 2 = closed
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

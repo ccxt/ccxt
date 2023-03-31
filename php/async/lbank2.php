@@ -1184,7 +1184,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1203,7 +1203,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_order_supplement($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -1241,7 +1241,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function fetch_order_default($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_default(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             // Id can be a list of ids delimited by a comma
             Async\await($this->load_markets());
@@ -1464,7 +1464,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order

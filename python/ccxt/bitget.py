@@ -2364,7 +2364,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         :param str id: cancel order id
@@ -2450,7 +2450,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2611,7 +2611,7 @@ class bitget(Exchange):
         #
         return response
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -3151,7 +3151,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id

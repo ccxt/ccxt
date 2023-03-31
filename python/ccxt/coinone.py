@@ -502,7 +502,7 @@ class coinone(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -719,7 +719,7 @@ class coinone(Exchange):
         completeOrders = self.safe_value(response, 'completeOrders', [])
         return self.parse_trades(completeOrders, market, since, limit)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

@@ -1620,7 +1620,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_orders($orders);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -1650,7 +1650,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_open_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open $order by it's $id
          * @param {string} $id $order $id
@@ -1669,7 +1669,7 @@ class bitfinex2 extends Exchange {
         return $order;
     }
 
-    public function fetch_closed_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open $order by it's $id
          * @param {string} $id $order $id
@@ -1817,7 +1817,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id

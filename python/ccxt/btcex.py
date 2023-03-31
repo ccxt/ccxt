@@ -1186,7 +1186,7 @@ class btcex(Exchange):
             'trades': trades,
         }, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         self.sign_in()
         self.load_markets()
         request = {
@@ -1358,7 +1358,7 @@ class btcex(Exchange):
         order = self.safe_value(result, 'order')
         return self.parse_order(order, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         self.sign_in()
         self.load_markets()
         request = {
@@ -1489,7 +1489,7 @@ class btcex(Exchange):
         #
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if id is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a id argument')
         self.load_markets()
@@ -1888,7 +1888,7 @@ class btcex(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires the code argument')
         self.sign_in()

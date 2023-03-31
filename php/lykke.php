@@ -825,7 +825,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -870,7 +870,7 @@ class lykke extends Exchange {
         return $this->privateDeleteOrders (array_merge($request, $params));
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol not used by lykke fetchOrder

@@ -3964,7 +3964,7 @@ class Exchange {
         return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->cancelOrder ($id, $symbol);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
@@ -4382,7 +4382,7 @@ class Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
     }
 
@@ -4398,7 +4398,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderTrades() is not supported yet');
     }
 

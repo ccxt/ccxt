@@ -49,29 +49,29 @@ export default class bybit extends Exchange {
     parseOrder(order: any, market?: any): any;
     parseContractOrder(order: any, market?: any): any;
     parseSpotOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     createUnifiedAccountOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     createUnifiedMarginOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     createContractV3Order(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     createUsdcOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    editUnifiedAccountOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
+    editUnifiedAccountOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
         info: any;
         id: string;
     }>;
-    editUnifiedMarginOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    editContractV3Order(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
+    editUnifiedMarginOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    editContractV3Order(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<{
         info: any;
         id: string;
     }>;
-    editOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
-    cancelUnifiedAccountOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    cancelSpotOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    cancelUnifiedMarginOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    cancelUSDCOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    cancelDerivativesOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
+    cancelUnifiedAccountOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelSpotOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelUnifiedMarginOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelUSDCOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelDerivativesOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllUnifiedAccountOrders(symbol?: string, params?: {}): Promise<any>;
     cancelAllSpotOrders(symbol?: string, params?: {}): Promise<any>;
     cancelAllUnifiedMarginOrders(symbol?: string, params?: {}): Promise<any>;
@@ -91,7 +91,7 @@ export default class bybit extends Exchange {
     fetchDerivativesOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchUSDCOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyUnifiedTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMySpotTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyUnifiedMarginTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

@@ -851,7 +851,7 @@ class idex(Exchange):
                 raise e
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1342,7 +1342,7 @@ class idex(Exchange):
         response = self.privateDeleteOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1387,7 +1387,7 @@ class idex(Exchange):
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
 
-    def fetch_deposit(self, id, code: Optional[str] = None, params={}):
+    def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1431,7 +1431,7 @@ class idex(Exchange):
         #
         return self.safe_number(response, 'serverTime')
 
-    def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id

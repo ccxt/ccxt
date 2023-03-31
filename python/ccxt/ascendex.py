@@ -1514,7 +1514,7 @@ class ascendex(Exchange):
         order = self.safe_value_2(data, 'order', 'info', {})
         return self.parse_order(order, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1890,7 +1890,7 @@ class ascendex(Exchange):
             data = self.safe_value(data, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

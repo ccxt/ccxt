@@ -1071,7 +1071,7 @@ class poloniex(Exchange):
         # remember the timestamp before issuing the request
         return [request, params]
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
@@ -1105,7 +1105,7 @@ class poloniex(Exchange):
         })
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1159,7 +1159,7 @@ class poloniex(Exchange):
         #
         return response
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an order by it's id
         :param str id: order id
@@ -1197,13 +1197,13 @@ class poloniex(Exchange):
             'id': id,
         })
 
-    def fetch_order_status(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
         self.load_markets()
         orders = self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
         return 'open' if (id in indexed) else 'closed'
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id

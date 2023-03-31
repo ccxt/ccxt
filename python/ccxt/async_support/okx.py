@@ -2192,7 +2192,7 @@ class okx(Exchange):
             'side': side,
         })
 
-    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
@@ -2248,7 +2248,7 @@ class okx(Exchange):
             'side': side,
         })
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2571,7 +2571,7 @@ class okx(Exchange):
             'reduceOnly': reduceOnly,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an order by the id
         :param str id: the order id
@@ -3223,7 +3223,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit, query)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -3774,7 +3774,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_deposit(self, id, code: Optional[str] = None, params={}):
+    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -3856,7 +3856,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -4453,7 +4453,7 @@ class okx(Exchange):
             'status': status,
         }
 
-    async def fetch_transfer(self, id, code: Optional[str] = None, params={}):
+    async def fetch_transfer(self, id: str, code: Optional[str] = None, params={}):
         await self.load_markets()
         request = {
             'transId': id,

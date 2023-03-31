@@ -1210,7 +1210,7 @@ class btcex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         $this->sign_in();
         $this->load_markets();
         $request = array(
@@ -1399,7 +1399,7 @@ class btcex extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         $this->sign_in();
         $this->load_markets();
         $request = array(
@@ -1538,7 +1538,7 @@ class btcex extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($id === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $id argument');
         }
@@ -1953,7 +1953,7 @@ class btcex extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_withdrawal($id, ?string $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
         }

@@ -600,7 +600,7 @@ class ace(Exchange):
         data = self.safe_value(response, 'attachment')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
@@ -624,7 +624,7 @@ class ace(Exchange):
         #
         return response
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
@@ -791,7 +791,7 @@ class ace(Exchange):
             'datetime': self.iso8601(timestamp),
         }, market)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history

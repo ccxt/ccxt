@@ -665,7 +665,7 @@ class buda extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol not used by buda fetchOrder
@@ -762,7 +762,7 @@ class buda extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id

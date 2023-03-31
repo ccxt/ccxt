@@ -1174,7 +1174,7 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1211,7 +1211,7 @@ class stex(Exchange):
             market = self.market(symbol)
         return self.parse_order(data, market)
 
-    async def fetch_closed_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_closed_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1265,7 +1265,7 @@ class stex(Exchange):
             market = self.market(symbol)
         return self.parse_order(data, market)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1325,7 +1325,7 @@ class stex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1770,7 +1770,7 @@ class stex(Exchange):
             'fee': fee,
         }
 
-    async def fetch_deposit(self, id, code: Optional[str] = None, params={}):
+    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1870,7 +1870,7 @@ class stex(Exchange):
         deposits = self.safe_value(response, 'data', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id

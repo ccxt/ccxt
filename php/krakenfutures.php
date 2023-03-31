@@ -864,7 +864,7 @@ class krakenfutures extends Exchange {
         return $this->parse_order($sendStatus);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * Edit an open $order on the exchange
          * @param {string} $id $order $id
@@ -893,7 +893,7 @@ class krakenfutures extends Exchange {
         return array_merge(array( 'info' => $response ), $order);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * @param {string} $id Order $id
          * @param {string|null} $symbol Not used by Krakenfutures

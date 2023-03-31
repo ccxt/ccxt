@@ -826,7 +826,7 @@ class hollaex(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_open_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -893,7 +893,7 @@ class hollaex(Exchange):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1132,7 +1132,7 @@ class hollaex(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1381,7 +1381,7 @@ class hollaex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawal(self, id, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id

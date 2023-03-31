@@ -1600,7 +1600,7 @@ class digifinex(Exchange):
             'price': price,
         })
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
@@ -2018,7 +2018,7 @@ class digifinex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-order-status
