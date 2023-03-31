@@ -88,6 +88,9 @@ trait ClientTrait {
         $client = $this->client($url);
         // todo: calculate the backoff delay in php
         $backoff_delay = 0; // milliseconds
+        if (($subscribe_hash == null) && array_key_exists($message_hash, $client->futures)) {
+            return $client->futures[$message_hash];
+        }
         $future = $client->future($message_hash);
         $connected = $client->connect($backoff_delay);
         $connected->then(

@@ -336,6 +336,8 @@ class Exchange(BaseExchange):
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
         backoff_delay = 0
         client = self.client(url)
+        if subscribe_hash is None and message_hash in client.futures:
+            return client.futures[message_hash]
         future = client.future(message_hash)
 
         # base exchange self.open starts the aiohttp Session in an async context
