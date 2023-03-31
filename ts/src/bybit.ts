@@ -3319,7 +3319,7 @@ export default class bybit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOrder
@@ -3971,7 +3971,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (order);
     }
 
-    async editUnifiedAccountOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editUnifiedAccountOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] && !market['option']) {
@@ -4034,7 +4034,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async editUnifiedMarginOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editUnifiedMarginOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] && !market['option']) {
@@ -4117,7 +4117,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (order);
     }
 
-    async editContractV3Order (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editContractV3Order (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -4165,7 +4165,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
         }
@@ -4182,7 +4182,7 @@ export default class bybit extends Exchange {
         return await this.editContractV3Order (id, symbol, type, side, amount, price, params);
     }
 
-    async cancelUnifiedAccountOrder (id, symbol: string = undefined, params = {}) {
+    async cancelUnifiedAccountOrder (id: string, symbol: string = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -4230,7 +4230,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelSpotOrder (id, symbol: string = undefined, params = {}) {
+    async cancelSpotOrder (id: string, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -4269,7 +4269,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelUnifiedMarginOrder (id, symbol: string = undefined, params = {}) {
+    async cancelUnifiedMarginOrder (id: string, symbol: string = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelUnifiedMarginOrder() requires a symbol argument');
         }
@@ -4311,7 +4311,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelUSDCOrder (id, symbol: string = undefined, params = {}) {
+    async cancelUSDCOrder (id: string, symbol: string = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelUSDCOrder() requires a symbol argument');
         }
@@ -4352,7 +4352,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelDerivativesOrder (id, symbol: string = undefined, params = {}) {
+    async cancelDerivativesOrder (id: string, symbol: string = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelDerivativesOrder() requires a symbol argument');
         }
@@ -4381,7 +4381,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bybit#cancelOrder
@@ -5549,7 +5549,7 @@ export default class bybit extends Exchange {
         }
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchOrderTrades

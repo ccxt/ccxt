@@ -436,7 +436,7 @@ export default class btctradeua extends Exchange {
         return this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btctradeua#cancelOrder
