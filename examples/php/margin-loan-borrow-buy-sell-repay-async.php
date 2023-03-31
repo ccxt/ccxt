@@ -104,4 +104,4 @@ function example() {
 }
 
 
-example();
+Async\await(example());

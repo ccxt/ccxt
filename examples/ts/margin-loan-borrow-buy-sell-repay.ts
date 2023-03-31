@@ -70,4 +70,4 @@ async function example () {
     }
 }
 
-example ();
+await example ();

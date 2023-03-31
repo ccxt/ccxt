@@ -18,8 +18,8 @@ import ccxt.async_support as ccxt  # noqa: E402
 async def example():
     # ########## user inputs ##########
     exchange = getattr(ccxt, 'binance')({
-	  "apiKey":"0m906VzONGSfVKhoKGIrrcp81FftHuCQyd5v4OVfKck8FzwbouPTGq4w6ViK2cxf",
-	  "secret":"vOsAEhr7U8XrrJsbUu3BTCziQsJI20No3apvDcpZVXQQ3QZADaMkFOAUhn1rp7vR"
+    'apiKey': 'xxx',
+    'secret': 'xxx',
 })
     symbol = 'BUSD/USDT'  # set target symbol
     margin_mode = 'isolated'  # margin mode (cross or isolated)
@@ -95,5 +95,6 @@ async def example():
         print('finished.')
 
     await exchange.close()
+
 
 asyncio.run(example())
