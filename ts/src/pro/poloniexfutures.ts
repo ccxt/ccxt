@@ -338,40 +338,39 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleTrade (client, message) {
         //
-        //       {
-        //        "topic": "/contractMarket/level3v2:BTCUSDTPERP",
-        //        "subject": "match",
-        //        "data": {
-        //            "symbol": "BTCUSDTPERP",                          // symbol
-        //            "sequence": 3262786901,                           // sequence
-        //            "side": "buy",                                    // buy or sell of taker
-        //            "price": "3634",                                  // filled price
-        //            "size": "10",                                     // filled size
-        //            "makerOrderId": "5c0b520032eba53a888fd01e",       // maker order ID
-        //            "takerOrderId": "5c0b520032eba53a888fd01f",       // taker order ID
-        //            "tradeId": "6c23b5454353a8882d023b3o",            // trade ID
-        //            "ts": 1547697294838004923                         // transaction time - nanosecond
-        //        }
+        //    {
+        //        data: {
+        //            makerUserId: "1410336",
+        //            symbol: "BTCUSDTPERP",
+        //            sequence: 267913,
+        //            side: "buy",
+        //            size: 2,
+        //            price: 28409.5,
+        //            takerOrderId: "6426f9f15782c8000776995f",
+        //            makerOrderId: "6426f9f141406b0008df976e",
+        //            takerUserId: "1410880",
+        //            tradeId: "6426f9f1de029f0001e334dd",
+        //            ts: 1680275953739092500,
+        //        },
+        //        subject: "match",
+        //        topic: "/contractMarket/execution:BTCUSDTPERP",
+        //        type: "message",
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const marketId = this.safeString (item, 'symbol');
-            if (marketId !== undefined) {
-                const trade = this.parseWsTrade (item);
-                const symbol = trade['symbol'];
-                const type = 'trades';
-                const messageHash = type + ':' + marketId;
-                let tradesArray = this.safeValue (this.trades, symbol);
-                if (tradesArray === undefined) {
-                    const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                    tradesArray = new ArrayCache (tradesLimit);
-                    this.trades[symbol] = tradesArray;
-                }
-                tradesArray.append (trade);
-                client.resolve (tradesArray, messageHash);
+        const marketId = this.safeString (data, 'symbol');
+        if (marketId !== undefined) {
+            const trade = this.parseWsTrade (data);
+            const symbol = trade['symbol'];
+            const messageHash = '/contractMarket/execution:' + marketId;
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                tradesArray = new ArrayCache (tradesLimit);
+                this.trades[symbol] = tradesArray;
             }
+            tradesArray.append (trade);
+            client.resolve (tradesArray, messageHash);
         }
         return message;
     }
@@ -835,7 +834,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'book': this.handleOrderBook,
             'book_lv2': this.handleOrderBook,
             'ticker': this.handleTicker,
-            'trades': this.handleTrade,
+            // 'trades': this.handleTrade,
+            'match': this.handleTrade,
             'orders': this.handleOrder,
             'balances': this.handleBalance,
         };
