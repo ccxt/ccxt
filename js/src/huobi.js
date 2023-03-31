@@ -2945,7 +2945,7 @@ export default class huobi extends Exchange {
         }
         const uniqueNetworkIds = this.safeValue(this.options['networkChainIdsByNames'], currencyCode, {});
         const networkTitle = super.networkCodeToId(networkCode);
-        return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
+        return this.safeValue(uniqueNetworkIds, uniqueNetworkIds[networkCode] ? networkCode : networkTitle, uniqueNetworkIds[networkCode] ? networkCode : networkTitle);
     }
     async fetchBalance(params = {}) {
         /**
