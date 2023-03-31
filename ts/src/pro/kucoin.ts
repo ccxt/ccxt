@@ -5,6 +5,7 @@ import kucoinRest from '../kucoin.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -141,7 +142,7 @@ export default class kucoin extends kucoinRest {
         return await this.subscribe (url, messageHash, topic, undefined, query);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         // market/snapshot
         //
@@ -238,7 +239,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         data: {
@@ -306,7 +307,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         data: {
@@ -385,7 +386,7 @@ export default class kucoin extends kucoinRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -469,7 +470,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -479,7 +480,7 @@ export default class kucoin extends kucoinRest {
         // but not before, because otherwise we cannot synchronize the feed
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         id: '1578090438322',
@@ -496,7 +497,7 @@ export default class kucoin extends kucoinRest {
         return message;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -608,7 +609,7 @@ export default class kucoin extends kucoinRest {
         }, market);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsOrder (data);
@@ -667,7 +668,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client: Client, message) {
         let trades = this.myTrades;
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -751,7 +752,7 @@ export default class kucoin extends kucoinRest {
         return await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         // {
         //     "id":"6217a451294b030001e3a26a",
@@ -806,7 +807,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //     {
         //         "type":"message",
@@ -853,16 +854,16 @@ export default class kucoin extends kucoinRest {
         };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         client.lastPong = this.milliseconds ();
         // https://docs.kucoin.com/#ping
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
         const methods = {
             // 'heartbeat': this.handleHeartbeat,

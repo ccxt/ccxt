@@ -4,6 +4,7 @@
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,7 +73,7 @@ export default class hitbtc extends hitbtcRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message) {
+    handleOrderBookSnapshot (client: Client, message) {
         //
         //     {
         //         jsonrpc: "2.0",
@@ -111,7 +112,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookUpdate (client, message) {
+    handleOrderBookUpdate (client: Client, message) {
         //
         //     {
         //         jsonrpc: "2.0",
@@ -178,7 +179,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watchPublic (symbol, 'ticker', undefined, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -226,7 +227,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -307,7 +308,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -362,14 +363,14 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    handleNotification (client, message) {
+    handleNotification (client: Client, message) {
         //
         //     { jsonrpc: '2.0', result: true, id: null }
         //
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'snapshotOrderbook': this.handleOrderBookSnapshot,
             'updateOrderbook': this.handleOrderBookUpdate,

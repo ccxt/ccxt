@@ -6,6 +6,7 @@ import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -143,7 +144,7 @@ export default class bitmart extends bitmartRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         //
         // {
         //     "data":[
@@ -253,7 +254,7 @@ export default class bitmart extends bitmartRest {
         }, market);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         table: 'spot/trade',
@@ -287,7 +288,7 @@ export default class bitmart extends bitmartRest {
         return message;
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         data: [
@@ -341,7 +342,7 @@ export default class bitmart extends bitmartRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         data: [
@@ -418,7 +419,7 @@ export default class bitmart extends bitmartRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
         //         asks: [
@@ -452,7 +453,7 @@ export default class bitmart extends bitmartRest {
         return orderbook;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         data: [
@@ -529,14 +530,14 @@ export default class bitmart extends bitmartRest {
         return future;
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         //
         return message;
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //     { event: 'login' }
         //
@@ -544,7 +545,7 @@ export default class bitmart extends bitmartRest {
         client.resolve (message, messageHash);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
@@ -572,7 +573,7 @@ export default class bitmart extends bitmartRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }

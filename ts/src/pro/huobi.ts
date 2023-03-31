@@ -6,6 +6,7 @@ import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, 
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -137,7 +138,7 @@ export default class huobi extends huobiRest {
         return await this.subscribePublic (url, symbol, messageHash, undefined, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         // 'market.btcusdt.detail'
         //     {
@@ -208,7 +209,7 @@ export default class huobi extends huobiRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         ch: "market.btcusdt.trade.detail",
@@ -275,7 +276,7 @@ export default class huobi extends huobiRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         ch: 'market.btcusdt.kline.1min',
@@ -353,7 +354,7 @@ export default class huobi extends huobiRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message, subscription) {
+    handleOrderBookSnapshot (client: Client, message, subscription) {
         //
         //     {
         //         id: 1583473663565,
@@ -466,7 +467,7 @@ export default class huobi extends huobiRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         // spot markets
         //
         //     {
@@ -559,7 +560,7 @@ export default class huobi extends huobiRest {
         return orderbook;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // deltas
         //
@@ -628,7 +629,7 @@ export default class huobi extends huobiRest {
         }
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
@@ -784,7 +785,7 @@ export default class huobi extends huobiRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         // spot
         //
@@ -1272,7 +1273,7 @@ export default class huobi extends huobiRest {
         return await this.subscribePrivate (channel, messageHash, type, subType, params, subscriptionParams);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         // spot
         //
         //     {
@@ -1483,7 +1484,7 @@ export default class huobi extends huobiRest {
         }
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         "id": 1583414227,
@@ -1508,7 +1509,7 @@ export default class huobi extends huobiRest {
         return message;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -1522,7 +1523,7 @@ export default class huobi extends huobiRest {
         return message;
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         // spot
         //     {
         //         ch: "market.btcusdt.mbp.150",
@@ -1680,11 +1681,11 @@ export default class huobi extends huobiRest {
         }
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         this.spawn (this.pong, client, message);
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         // spot
         //
@@ -1709,7 +1710,7 @@ export default class huobi extends huobiRest {
         return message;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         action: 'sub',
@@ -1767,7 +1768,7 @@ export default class huobi extends huobiRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
@@ -1863,7 +1864,7 @@ export default class huobi extends huobiRest {
         }
     }
 
-    handleMyTrade (client, message, extendParams = {}) {
+    handleMyTrade (client: Client, message, extendParams = {}) {
         //
         // spot
         //

@@ -47,7 +47,7 @@ trait ClientTrait {
         return new CountedOrderBook($snapshot, $depth);
     }
 
-    public function client($url) {
+    public function client($url) : Client {
         if (!array_key_exists($url, $this->clients)) {
             $on_message = array($this, 'handle_message');
             $on_error = array($this, 'on_error');
@@ -126,13 +126,13 @@ trait ClientTrait {
         // echo "Connected to " . $client->url . "\n";
     }
 
-    public function on_error($client, $error) {
+    public function on_error(Client $client, $error) {
         if (array_key_exists($client->url, $this->clients) && $this->clients[$client->url]->error) {
             unset($this->clients[$client->url]);
         }
     }
 
-    public function on_close($client, $message) {
+    public function on_close(Client $client, $message) {
         if ($client->error) {
             // connection closed due to an error, do nothing
         } else {

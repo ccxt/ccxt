@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -138,7 +139,7 @@ export default class phemex extends phemexRest {
         return result;
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         spot_market24h: {
@@ -265,7 +266,7 @@ export default class phemex extends phemexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         sequence: 1795484727,
@@ -297,7 +298,7 @@ export default class phemex extends phemexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         kline: [
@@ -473,7 +474,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         book: {
@@ -559,7 +560,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         // [
         //    {
@@ -654,7 +655,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         // spot update
         // {
         //        "closed":[
@@ -911,7 +912,7 @@ export default class phemex extends phemexRest {
         }, market);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         // private spot update
         // {
         //     orders: { closed: [ ], fills: [ ], open: [] },
@@ -1033,7 +1034,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         // {
         //     "error": null,

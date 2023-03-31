@@ -6,6 +6,7 @@ import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
@@ -81,7 +82,7 @@ export default class bitopro extends bitoproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         event: 'ORDER_BOOK',
@@ -140,7 +141,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         event: 'TRADE',
@@ -195,7 +196,7 @@ export default class bitopro extends bitoproRest {
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         event: 'TICKER',
@@ -277,7 +278,7 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         event: 'ACCOUNT_BALANCE',
@@ -318,7 +319,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (this.balance, event);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

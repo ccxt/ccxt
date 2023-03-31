@@ -6,6 +6,7 @@ import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../ba
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
@@ -87,7 +88,7 @@ export default class woo extends wooRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         topic: 'PERP_BTC_USDT@orderbook',
@@ -175,7 +176,7 @@ export default class woo extends wooRest {
         }, market);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         topic: 'PERP_BTC_USDT@ticker',
@@ -218,7 +219,7 @@ export default class woo extends wooRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTickers (client, message) {
+    handleTickers (client: Client, message) {
         //
         //     {
         //         "topic":"tickers",
@@ -283,7 +284,7 @@ export default class woo extends wooRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         "topic":"SPOT_BTC_USDT@kline_1m",
@@ -344,7 +345,7 @@ export default class woo extends wooRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         // {
         //     "topic":"SPOT_ADA_USDT@trade",
@@ -556,7 +557,7 @@ export default class woo extends wooRest {
         };
     }
 
-    handleOrderUpdate (client, message) {
+    handleOrderUpdate (client: Client, message) {
         //
         //     {
         //         topic: 'executionreport',
@@ -590,7 +591,7 @@ export default class woo extends wooRest {
         this.handleOrder (client, order);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         const topic = 'executionreport';
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
@@ -623,7 +624,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'ping': this.handlePing,
             'pong': this.handlePong,
@@ -672,11 +673,11 @@ export default class woo extends wooRest {
         return { 'event': 'ping' };
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         return { 'event': 'pong' };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         //
         // { event: 'pong', ts: 1657117026090 }
         //
@@ -684,7 +685,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    handleSubscribe (client, message) {
+    handleSubscribe (client: Client, message) {
         //
         //     {
         //         id: '666888',
@@ -696,7 +697,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    handleAuth (client, message) {
+    handleAuth (client: Client, message) {
         //
         //     {
         //         event: 'auth',

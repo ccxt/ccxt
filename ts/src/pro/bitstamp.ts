@@ -5,6 +5,7 @@ import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -71,7 +72,7 @@ export default class bitstamp extends bitstampRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -230,7 +231,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         data: {
@@ -301,7 +302,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         //
         // {
         //     "data":{
@@ -381,7 +382,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrderBookSubscription (client, message) {
+    handleOrderBookSubscription (client: Client, message) {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
@@ -389,7 +390,7 @@ export default class bitstamp extends bitstampRest {
         this.orderbooks[symbol] = this.orderBook ();
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         'event': "bts:subscription_succeeded",
@@ -408,7 +409,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //     {
         //         data: {
@@ -461,7 +462,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         // {
         //     event: 'bts:error',
         //     channel: '',
@@ -477,7 +478,7 @@ export default class bitstamp extends bitstampRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

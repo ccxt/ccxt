@@ -6,6 +6,7 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce } from
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -116,13 +117,13 @@ export default class gate extends gateRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // spot
         //
@@ -314,7 +315,7 @@ export default class gate extends gateRest {
         return this.filterByArray (result, 'symbol', symbols, true);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //    {
         //        time: 1649326221,
@@ -396,7 +397,7 @@ export default class gate extends gateRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         // {
         //     time: 1648725035,
@@ -462,7 +463,7 @@ export default class gate extends gateRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         // {
         //     "time": 1606292600,
@@ -563,7 +564,7 @@ export default class gate extends gateRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         // {
         //     "time": 1543205083,
@@ -640,7 +641,7 @@ export default class gate extends gateRest {
         return await this.subscribePrivate (url, messageHash, undefined, channel, params, requiresUid);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         // spot order fill
         //   {
@@ -777,7 +778,7 @@ export default class gate extends gateRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         // {
         //     "time": 1605175506,
@@ -844,7 +845,7 @@ export default class gate extends gateRest {
         client.resolve (this.orders, 'orders');
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         // {
         //     time: 1647274664,
         //     channel: 'futures.orders',
@@ -885,11 +886,11 @@ export default class gate extends gateRest {
         return false;
     }
 
-    handleBalanceSubscription (client, message, subscription = undefined) {
+    handleBalanceSubscription (client: Client, message, subscription = undefined) {
         this.balance = {};
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         const channel = this.safeString (message, 'channel');
         const methods = {
             'balance': this.handleBalanceSubscription,
@@ -906,7 +907,7 @@ export default class gate extends gateRest {
         delete client.subscriptions[id];
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         // subscribe
         //    {
