@@ -1069,11 +1069,7 @@ export default class phemex extends phemexRest {
             'params': [],
         };
         request = this.extend (request, params);
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-        };
-        return await this.watch (url, messageHash, request, channel, subscription);
+        return await this.watch (url, messageHash, request, channel);
     }
 
     async authenticate (params = {}) {
