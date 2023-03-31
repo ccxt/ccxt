@@ -3703,52 +3703,61 @@ export default class bybit extends Exchange {
         return this.parseOrder (result);
     }
 
-    async editContractV3Order (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editUsdcOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'orderId': id,
-            'qty': this.amountToPrecision (symbol, amount),
         };
+        if (amount !== undefined) {
+            request['orderQty'] = this.amountToPrecision (symbol, amount);
+        }
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
+        let method = undefined;
+        if (market['option']) {
+            method = 'privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder';
+        } else {
+            method = 'privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder';
+            const isStop = this.safeValue (params, 'stop', false);
+            const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+            const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+            const isStopLossOrder = stopLossPrice !== undefined;
+            const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+            const isTakeProfitOrder = takeProfitPrice !== undefined;
+            const isStopOrder = isStopLossOrder || isTakeProfitOrder || isStop;
+            if (isStopOrder) {
+                request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+                if (triggerPrice !== undefined) {
+                    request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                }
+                if (stopLossPrice !== undefined) {
+                    request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
+                }
+                if (takeProfitPrice !== undefined) {
+                    request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
+                }
+            }
+            params = this.omit (params, [ 'stop', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
-        }
-        if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-        }
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        const response = await this.privatePostContractV3PrivateOrderReplace (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
-        // contract v3
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "db8b74b3-72d3-4264-bf3f-52d39b41956e",
-        //             "orderLinkId": "x002"
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1658902610749
-        //     }
+        //    {
+        //        "retCode": 0,
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "outRequestId": "",
+        //            "symbol": "BTC-13MAY22-40000-C",
+        //            "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
+        //            "orderLinkId": "AAAAA41133"
+        //        },
+        //        "retExtMap": {}
+        //   }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
-            'info': response,
-            'id': this.safeString (result, 'orderId'),
-        };
+        return this.parseOrder (result);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -3762,7 +3771,7 @@ export default class bybit extends Exchange {
         if (market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support spot markets');
         } else if (!(enableUnifiedMargin || enableUnifiedAccount) && isUSDCSettled) {
-            return await this.editContractV3Order (id, symbol, type, side, amount, price, params);
+            return await this.editUsdcOrder (id, symbol, type, side, amount, price, params);
         } else {
             return await this.editUnifiedAccountOrder (id, symbol, type, side, amount, price, params);
         }
