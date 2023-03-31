@@ -20,7 +20,7 @@ use React\Promise;
 function example() {
     // ########## user inputs ##########
     return Async\async(function () {
-        $exchange = new ($classname = '\\ccxt\\async\\binance')(array(
+        $exchange = new ('\\ccxt\\async\\binance')(array(
     'apiKey' => 'xxx',
     'secret' => 'xxx',
 ));

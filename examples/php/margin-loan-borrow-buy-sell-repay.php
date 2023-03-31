@@ -15,7 +15,7 @@ date_default_timezone_set('UTC');
 // Note, this is just an example and might not yet work on other exchanges, which are being still unified.
 function example() {
     // ########## user inputs ##########
-    $exchange = new ($classname = '\\ccxt\\binance')(array(
+    $exchange = new ('\\ccxt\\binance')(array(
     'apiKey' => 'xxx',
     'secret' => 'xxx',
 ));
