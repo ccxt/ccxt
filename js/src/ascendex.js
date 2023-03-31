@@ -2415,6 +2415,9 @@ export default class ascendex extends Exchange {
         const tag = this.safeString(destAddress, 'destTag');
         const timestamp = this.safeInteger(transaction, 'time');
         const currencyId = this.safeString(transaction, 'asset');
+        let amountString = this.safeString(transaction, 'amount');
+        const feeCostString = this.safeString(transaction, 'commission');
+        amountString = Precise.stringSub(amountString, feeCostString);
         const code = this.safeCurrencyCode(currencyId, currency);
         return {
             'info': transaction,
@@ -2423,7 +2426,7 @@ export default class ascendex extends Exchange {
             'type': this.safeString(transaction, 'transactionType'),
             'currency': code,
             'network': undefined,
-            'amount': this.safeNumber(transaction, 'amount'),
+            'amount': this.parseNumber(amountString),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2437,7 +2440,7 @@ export default class ascendex extends Exchange {
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': this.safeNumber(transaction, 'commission'),
+                'cost': this.parseNumber(feeCostString),
                 'rate': undefined,
             },
         };

@@ -2440,6 +2440,9 @@ class ascendex extends Exchange {
         $tag = $this->safe_string($destAddress, 'destTag');
         $timestamp = $this->safe_integer($transaction, 'time');
         $currencyId = $this->safe_string($transaction, 'asset');
+        $amountString = $this->safe_string($transaction, 'amount');
+        $feeCostString = $this->safe_string($transaction, 'commission');
+        $amountString = Precise::string_sub($amountString, $feeCostString);
         $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
@@ -2448,7 +2451,7 @@ class ascendex extends Exchange {
             'type' => $this->safe_string($transaction, 'transactionType'),
             'currency' => $code,
             'network' => null,
-            'amount' => $this->safe_number($transaction, 'amount'),
+            'amount' => $this->parse_number($amountString),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2462,7 +2465,7 @@ class ascendex extends Exchange {
             'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $this->safe_number($transaction, 'commission'),
+                'cost' => $this->parse_number($feeCostString),
                 'rate' => null,
             ),
         );
