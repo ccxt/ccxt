@@ -896,14 +896,14 @@ export default class gate extends gateRest {
             'spot.order_book_update': this.handleOrderBookSubscription,
             'futures.order_book_update': this.handleOrderBookSubscription,
         };
+        const id = this.safeInteger (message, 'id');
         if (channel in methods) {
-            const id = this.safeInteger (message, 'id');
             const subscriptionHash = this.safeString (client.subscriptions, id);
-            delete client.subscriptions[id];
             const subscription = this.safeValue (client.subscriptions, subscriptionHash);
             const method = methods[channel];
             method.call (this, client, message, subscription);
         }
+        delete client.subscriptions[id];
     }
 
     handleMessage (client, message) {
@@ -1080,7 +1080,7 @@ export default class gate extends gateRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async subscribePrivate (url, messageHash, payload, subscriptionHash, params, requiresUid = false) {
+    async subscribePrivate (url, messageHash, payload, channel, params, requiresUid = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {
@@ -1096,7 +1096,7 @@ export default class gate extends gateRest {
         }
         const time = this.seconds ();
         const event = 'subscribe';
-        const signaturePayload = 'channel=' + subscriptionHash + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
+        const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
         const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), sha512, 'hex');
         const auth = {
             'method': 'api_key',
@@ -1107,7 +1107,7 @@ export default class gate extends gateRest {
         const request = {
             'id': requestId,
             'time': time,
-            'channel': subscriptionHash,
+            'channel': channel,
             'event': 'subscribe',
             'auth': auth,
         };
@@ -1115,7 +1115,7 @@ export default class gate extends gateRest {
             request['payload'] = payload;
         }
         const client = this.client (url);
-        if (!(subscriptionHash in client.subscriptions)) {
+        if (!(messageHash in client.subscriptions)) {
             const tempSubscriptionHash = requestId.toString ();
             // in case of authenticationError we will throw
             client.subscriptions[tempSubscriptionHash] = messageHash;
