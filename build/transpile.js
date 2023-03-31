@@ -2068,7 +2068,7 @@ class Transpiler {
             'php':{
                 'uncamelcaseIdentifiers': true,
                 'parser': parser
-            }
+            },
         };
         const transpiler = new astTranspiler(parserConfig);
 
@@ -2155,8 +2155,8 @@ class Transpiler {
 
                 // exec the main transpile function
                 const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
-                let [ phpAsyncBody, phpSyncBody, pythonSyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content, transpiled[2].content, transpiled[3].content ];
-
+                var x = [ transpiled[0].content, transpiled[1].content, transpiled[2].content, transpiled[3].content ];
+                let [ phpAsyncBody, phpSyncBody, pythonSyncBody, pythonAsyncBody ] =null;
                 // ###### replace common (synchronity agnostic) syntaxes ######
                 const fixPython = (body, isAsync)=> {
                     return this.regexAll (body, [

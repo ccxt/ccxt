@@ -1,5 +1,7 @@
 import { binance } from '../../ts/ccxt.js';
 
+// AUTO-TRANSPILE //
+
 async function example () {
     const exchange = new binance ({});
     const ob = await exchange.fetchOrderBook ('BTC/USDT', 3);
