@@ -10,7 +10,6 @@ from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
 
@@ -114,7 +113,7 @@ class gate(ccxt.async_support.gate):
             'symbol': symbol,
             'limit': limit,
         }
-        orderbook = await self.subscribe_public(url, messageHash, payload, channel, subscription, query)
+        orderbook = await self.subscribe_public(url, messageHash, payload, channel, query, subscription)
         return orderbook.limit()
 
     def handle_order_book_subscription(self, client, message, subscription):
@@ -197,7 +196,7 @@ class gate(ccxt.async_support.gate):
             waitAmount = snapshotDelay if isSpot else 0
             if cacheLength == waitAmount:
                 # max limit is 100
-                subscription = client.subscriptions[messageHash]
+                subscription = client.subscriptions[channel]
                 limit = self.safe_integer(subscription, 'limit')
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit)
             storedOrderBook.cache.append(delta)
@@ -266,7 +265,7 @@ class gate(ccxt.async_support.gate):
         channel = messageType + '.' + topic
         messageHash = 'ticker:' + symbol
         payload = [marketId]
-        return await self.subscribe_public(url, messageHash, payload, channel, None, query)
+        return await self.subscribe_public(url, messageHash, payload, channel, query)
 
     async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -286,7 +285,7 @@ class gate(ccxt.async_support.gate):
         channel = messageType + '.' + topic
         messageHash = 'tickers'
         url = self.get_url_by_market(market)
-        ticker = await self.subscribe_public(url, messageHash, marketIds, channel, None, query)
+        ticker = await self.subscribe_public(url, messageHash, marketIds, channel, query)
         result = {}
         if self.newUpdates:
             result[ticker['symbol']] = ticker
@@ -364,7 +363,7 @@ class gate(ccxt.async_support.gate):
         messageHash = 'trades:' + symbol
         url = self.get_url_by_market(market)
         payload = [marketId]
-        trades = await self.subscribe_public(url, messageHash, payload, channel, None, params)
+        trades = await self.subscribe_public(url, messageHash, payload, channel, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -422,7 +421,7 @@ class gate(ccxt.async_support.gate):
         messageHash = 'candles:' + interval + ':' + market['symbol']
         url = self.get_url_by_market(market)
         payload = [interval, marketId]
-        ohlcv = await self.subscribe_public(url, messageHash, payload, channel, None, params)
+        ohlcv = await self.subscribe_public(url, messageHash, payload, channel, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
@@ -700,7 +699,7 @@ class gate(ccxt.async_support.gate):
         })
         channel = typeId + '.orders'
         messageHash = 'orders'
-        payload = ['!' + 'all']
+        payload = ['not all']
         if symbol is not None:
             messageHash += ':' + market['id']
             payload = [market['id']]
@@ -794,40 +793,41 @@ class gate(ccxt.async_support.gate):
         #     },
         #     result: null
         #   }
-        error = self.safe_value(message, 'error', {})
+        error = self.safe_value(message, 'error')
         code = self.safe_integer(error, 'code')
+        id = self.safe_string(message, 'id')
+        if id is None:
+            return False
         if code is not None:
-            id = self.safe_string(message, 'id')
-            subscriptionsById = self.index_by(client.subscriptions, 'id')
-            subscription = self.safe_value(subscriptionsById, id)
-            if subscription is not None:
+            messageHash = self.safe_string(client.subscriptions, id)
+            if messageHash is not None:
                 try:
                     self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, self.json(message))
                 except Exception as e:
-                    messageHash = self.safe_string(subscription, 'messageHash')
                     client.reject(e, messageHash)
-                    if id in client.subscriptions:
-                        del client.subscriptions[id]
+                    if messageHash in client.subscriptions:
+                        del client.subscriptions[messageHash]
+            del client.subscriptions[id]
+            return True
+        return False
 
     def handle_balance_subscription(self, client, message, subscription=None):
         self.balance = {}
 
     def handle_subscription_status(self, client, message):
-        channel = self.safe_string(message, 'channel', '')
+        channel = self.safe_string(message, 'channel')
         methods = {
             'balance': self.handle_balance_subscription,
-            'order_book': self.handle_order_book_subscription,
+            'spot.order_book_update': self.handle_order_book_subscription,
+            'futures.order_book_update': self.handle_order_book_subscription,
         }
         id = self.safe_integer(message, 'id')
-        subscriptionsById = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_value(subscriptionsById, id)
-        if subscription is not None:
-            keys = list(methods.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
-                if channel.find(key) >= 0:
-                    method = methods[key]
-                    method(client, message, subscription)
+        if channel in methods:
+            subscriptionHash = self.safe_string(client.subscriptions, id)
+            subscription = self.safe_value(client.subscriptions, subscriptionHash)
+            method = methods[channel]
+            method(client, message, subscription)
+        del client.subscriptions[id]
 
     def handle_message(self, client, message):
         #
@@ -919,7 +919,8 @@ class gate(ccxt.async_support.gate):
         #        ]
         #    }
         #
-        self.handle_error_message(client, message)
+        if self.handle_error_message(client, message):
+            return
         event = self.safe_string(message, 'event')
         if event == 'subscribe':
             self.handle_subscription_status(client, message)
@@ -957,19 +958,12 @@ class gate(ccxt.async_support.gate):
             return 'futures'
 
     def get_url_by_market_type(self, type, isInverse=False):
-        if type == 'spot':
-            spotUrl = self.urls['api']['spot']
-            if spotUrl is None:
-                raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')
-            return spotUrl
-        elif type == 'swap':
-            baseUrl = self.urls['api']['swap']
-            return baseUrl['btc'] if isInverse else baseUrl['usdt']
-        elif type == 'future':
-            baseUrl = self.urls['api']['future']
-            return baseUrl['btc'] if isInverse else baseUrl['usdt']
-        elif type == 'option':
-            return self.urls['api']['option']
+        api = self.urls['api']
+        url = api[type]
+        if (type == 'swap') or (type == 'future'):
+            return url['btc'] if isInverse else url['usdt']
+        else:
+            return url
 
     def request_id(self):
         # their support said that reqid must be an int32, not documented
@@ -977,26 +971,25 @@ class gate(ccxt.async_support.gate):
         self.options['reqid'] = reqid
         return reqid
 
-    async def subscribe_public(self, url, messageHash, payload, subscriptionHash, subscription, params={}):
+    async def subscribe_public(self, url, messageHash, payload, channel, params={}, subscription=None):
         requestId = self.request_id()
         time = self.seconds()
         request = {
             'id': requestId,
             'time': time,
-            'channel': subscriptionHash,
+            'channel': channel,
             'event': 'subscribe',
             'payload': payload,
         }
-        if subscription is None:
-            subscription = {}
-        subscription = self.extend(subscription, {
-            'id': requestId,
-            'messageHash': messageHash,
-        })
+        if subscription is not None:
+            client = self.client(url)
+            if not (messageHash in client.subscriptions):
+                tempSubscriptionHash = str(requestId)
+                client.subscriptions[tempSubscriptionHash] = messageHash
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash, subscription)
 
-    async def subscribe_private(self, url, messageHash, payload, subscriptionHash, params, requiresUid=False):
+    async def subscribe_private(self, url, messageHash, payload, channel, params, requiresUid=False):
         self.check_required_credentials()
         # uid is required for some subscriptions only so it's not a part of required credentials
         if requiresUid:
@@ -1009,7 +1002,7 @@ class gate(ccxt.async_support.gate):
                 payload = self.array_concat(idArray, payload)
         time = self.seconds()
         event = 'subscribe'
-        signaturePayload = 'channel=' + subscriptionHash + '&' + 'event=' + event + '&' + 'time=' + str(time)
+        signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
         signature = self.hmac(self.encode(signaturePayload), self.encode(self.secret), hashlib.sha512, 'hex')
         auth = {
             'method': 'api_key',
@@ -1020,15 +1013,16 @@ class gate(ccxt.async_support.gate):
         request = {
             'id': requestId,
             'time': time,
-            'channel': subscriptionHash,
+            'channel': channel,
             'event': 'subscribe',
             'auth': auth,
         }
         if payload is not None:
             request['payload'] = payload
+        client = self.client(url)
+        if not (messageHash in client.subscriptions):
+            tempSubscriptionHash = str(requestId)
+            # in case of authenticationError we will throw
+            client.subscriptions[tempSubscriptionHash] = messageHash
         message = self.extend(request, params)
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-        }
-        return await self.watch(url, messageHash, message, messageHash, subscription)
+        return await self.watch(url, messageHash, message, messageHash)

@@ -21,7 +21,7 @@ export default class gate extends gateRest {
     handleBalance(client: any, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: any, message: any): void;
-    handleErrorMessage(client: any, message: any): void;
+    handleErrorMessage(client: any, message: any): boolean;
     handleBalanceSubscription(client: any, message: any, subscription?: any): void;
     handleSubscriptionStatus(client: any, message: any): void;
     handleMessage(client: any, message: any): void;
@@ -29,6 +29,6 @@ export default class gate extends gateRest {
     getTypeByMarket(market: any): "spot" | "futures" | "options";
     getUrlByMarketType(type: any, isInverse?: boolean): any;
     requestId(): any;
-    subscribePublic(url: any, messageHash: any, payload: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
-    subscribePrivate(url: any, messageHash: any, payload: any, subscriptionHash: any, params: any, requiresUid?: boolean): Promise<any>;
+    subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: any): Promise<any>;
+    subscribePrivate(url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid?: boolean): Promise<any>;
 }
