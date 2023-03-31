@@ -581,43 +581,53 @@ class bitmart(Exchange):
         return result
 
     def fetch_contract_markets(self, params={}):
-        response = self.publicGetContractV1Tickers(params)
+        response = self.publicGetContractPublicDetails(params)
         #
-        #    {
-        #        "message": "OK",
-        #        "code": 1000,
-        #        "trace": "045d13a8-4bc7-4974-9748-97d0ea183ef0",
-        #        "data": {
-        #            "tickers": [
-        #                {
-        #                    "contract_symbol": "RAYUSDT",
-        #                    "last_price": "3.893",
-        #                    "index_price": "3.90248043",
-        #                    "last_funding_rate": "-0.00054285",
-        #                    "price_change_percent_24h": "-6.955",
-        #                    "volume_24h": "10450969.34602996",
-        #                    "url": "https://futures.bitmart.com/en?symbol=RAYUSDT",
-        #                    "high_price": "4.299",
-        #                    "low_price": "3.887",
-        #                    "legal_coin_price": "3.893056"
-        #                },
-        #                ...
-        #            ]
-        #        }
-        #    }
+        #     {
+        #       "code": 1000,
+        #       "message": "Ok",
+        #       "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
+        #       "data": {
+        #       "symbols": [{
+        #             "symbol": "BTCUSDT",
+        #             "product_type": 1,
+        #             "open_timestamp": 1594080000,
+        #             "expire_timestamp": 0,
+        #             "settle_timestamp": 0,
+        #             "base_currency": "BTC",
+        #             "quote_currency": "USDT",
+        #             "last_price": "23920",
+        #             "volume_24h": "18969368",
+        #             "turnover_24h": "458933659.7858",
+        #             "index_price": "23945.25191635",
+        #             "index_name": "BTCUSDT",
+        #             "contract_size": "0.001",
+        #             "min_leverage": "1",
+        #             "max_leverage": "100",
+        #             "price_precision": "0.1",
+        #             "vol_precision": "1",
+        #             "max_volume": "500000",
+        #             "min_volume": "1"
+        #           },
+        #           ...
+        #         ]
+        #       }
+        #     }
         #
         data = self.safe_value(response, 'data', {})
-        tickers = self.safe_value(data, 'tickers', [])
+        symbols = self.safe_value(data, 'symbols', [])
         result = []
-        for i in range(0, len(tickers)):
-            market = tickers[i]
-            id = self.safe_string(market, 'contract_symbol')
-            baseId = id[0:-4]
-            quoteId = id[-4:]
+        for i in range(0, len(symbols)):
+            market = symbols[i]
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = 'USDT'
             symbol = base + '/' + quote + ':' + settle
+            productType = self.safe_number(market, 'product_type')
+            expiry = self.safe_integer(market, 'expire_timestamp')
             result.append({
                 'id': id,
                 'numericId': None,
@@ -631,30 +641,30 @@ class bitmart(Exchange):
                 'type': 'swap',
                 'spot': False,
                 'margin': False,
-                'swap': True,
-                'future': False,
+                'swap': (productType == 1),
+                'future': (productType == 2),
                 'option': False,
                 'active': True,
                 'contract': True,
                 'linear': True,
                 'inverse': False,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
+                'contractSize': self.safe_number(market, 'contract_size'),
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': None,
-                    'price': None,
+                    'amount': self.safe_number(market, 'vol_precision'),
+                    'price': self.safe_number(market, 'price_precision'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_leverage'),
+                        'max': self.safe_number(market, 'max_leverage'),
                     },
                     'amount': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_volume'),
+                        'max': self.safe_number(market, 'max_volume'),
                     },
                     'price': {
                         'min': None,
