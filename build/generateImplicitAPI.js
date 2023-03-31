@@ -72,8 +72,8 @@ function generateImplicitMethodNames(id, api, paths = []){
                 storedPhpResult[id].push (underscorePath)
                 storedPhpContext[id].push ({
                     endpoint,
-                    path: paths.length === 1 ? paths[0] : 'array(' + paths.join (',') + ')',
-                    'method': key.toUpperCase (),
+                    path: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
+                    method: key.toUpperCase (),
                 })
             }
         } else {
@@ -98,7 +98,7 @@ function createImplicitMethods(){
             const i = idx % underscoreMethods.length
             const context = storedPhpContext[exchange][i]
             return `${IDEN}public function ${method}($params = array()) {
-${IDEN}${IDEN}return $this->request('${context.endpoint}', '${context.path}', '${context.method}', $params);
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.path}, '${context.method}', $params);
 ${IDEN}}`
         })
         typeScriptMethods.push ('}')
