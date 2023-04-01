@@ -6928,7 +6928,7 @@ export default class binance extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name binance#setMarginMode
