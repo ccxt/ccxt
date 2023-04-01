@@ -25,7 +25,7 @@ export default class xt extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': false,
@@ -1834,13 +1834,17 @@ export default class xt extends Exchange {
                 response = await this.privateInverseGetFutureTradeV1OrderTradeList (this.extend (request, params));
             }
         } else {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            request['bizType'] = marginOrSpotRequest;
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
             response = await this.privateSpotGetTrade (this.extend (request, params));
         }
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "rc": 0,
@@ -2143,14 +2147,15 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let timeInForce = this.safeStringUpper (params, 'timeInForce', 'GTC');
         let response = undefined;
         if (market['spot']) {
             request['side'] = side.toUpperCase ();
             request['type'] = type.toUpperCase ();
-            request['bizType'] = (marketType === 'margin') ? 'LEVER' : 'SPOT';
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            request['bizType'] = marginOrSpotRequest;
             if (type === 'market') {
                 timeInForce = this.safeStringUpper (params, 'timeInForce', 'FOK');
                 if (side === 'buy') {
@@ -2202,7 +2207,7 @@ export default class xt extends Exchange {
             }
         }
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "rc": 0,
@@ -2360,10 +2365,14 @@ export default class xt extends Exchange {
         } else if (subType === 'inverse') {
             response = await this.privateInverseGetFutureTradeV1OrderListHistory (this.extend (request, params));
         } else {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
+            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            request['bizType'] = marginOrSpotRequest;
             response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
         }
         //
-        //  spot
+        //  spot and margin
         //
         //     {
         //         "rc": 0,
@@ -2480,6 +2489,10 @@ export default class xt extends Exchange {
                 response = await this.privateInverseGetFutureTradeV1OrderList (this.extend (request, params));
             }
         } else {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
+            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            request['bizType'] = marginOrSpotRequest;
             if (status !== 'open') {
                 if (since !== undefined) {
                     request['startTime'] = since;
@@ -2493,7 +2506,7 @@ export default class xt extends Exchange {
             }
         }
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "rc": 0,
@@ -2531,7 +2544,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        // spot: fetchOpenOrders
+        // spot and margin: fetchOpenOrders
         //
         //     {
         //         "rc": 0,
@@ -2740,10 +2753,14 @@ export default class xt extends Exchange {
         } else if (subType === 'inverse') {
             response = await this.privateInversePostFutureTradeV1OrderCancelAll (this.extend (request, params));
         } else {
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+            request['bizType'] = marginOrSpotRequest;
             response = await this.privateSpotDeleteOpenOrder (this.extend (request, params));
         }
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "rc": 0,
