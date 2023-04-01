@@ -113,6 +113,185 @@ class NewTranspiler {
         ]
     }
 
+    isObject(type: string) {
+        return (type === 'any') || (type === 'unknown');
+    }
+
+    isDictionary(type: string): boolean {
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || ((type.startsWith('{')) && (type.endsWith('}')))
+    }
+
+    isStringType(type: string) {
+        return (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"))
+    }
+
+    isNumberType(type: string) {
+        return (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
+    }
+
+    isIntegerType(type: string) {
+        return type !== undefined && type.toLowerCase().includes('int');
+    }
+
+    isBooleanType(type: string) {
+        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType')
+    }
+
+    convertJavascriptTypeToCsharpType(type: string): string | undefined {
+        const isPromise = type.startsWith('Promise<') && type.endsWith('>');
+        const wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
+
+        function addTaskIfNeeded(type) {
+            if (type == 'void') {
+                return isPromise ? `Task` : 'void';
+            }
+            return isPromise ? `Task<${type}>` : type;
+        }
+
+        if (this.isObject(wrappedType)) {
+            return addTaskIfNeeded('object');
+        }
+        if (this.isDictionary(wrappedType)) {
+            return addTaskIfNeeded('Dictionary<string, object>');
+        }
+        if (this.isStringType(wrappedType)) {
+            return addTaskIfNeeded('string');
+        }
+        if (this.isNumberType(wrappedType)) {
+            return addTaskIfNeeded('float');
+        }
+        if (this.isBooleanType(wrappedType)) {
+            return addTaskIfNeeded('bool');
+        }
+        if (this.isIntegerType(wrappedType)) {
+            return addTaskIfNeeded('Int64');
+        }
+        return addTaskIfNeeded('object'); // default if type is unknown
+    }
+
+    safeCsharpName(name: string): string {
+        const csharpReservedWordsReplacement = {
+            'params': 'parameters',
+            'base': 'baseArg',
+        }
+        return csharpReservedWordsReplacement[name] || name;
+    }
+
+    convertJavascriptParamToCsharpParam(param): string | undefined {
+        const name = param.name;
+        const safeName = this.safeCsharpName(name);
+        const isOptional =  param.optional || param.initializer !== undefined;
+        const op = isOptional ? '?' : '';
+        // let op = '';
+        // if (isOptional) {
+        //     if (t)
+        // }
+        let paramType: any = undefined;
+        if (param.type == undefined) {
+            paramType = 'object';
+        } else {
+            paramType = this.convertJavascriptTypeToCsharpType(param.type);
+        }
+        const isNonNullableType = this.isNumberType(param.type) || this.isBooleanType(param.type) || this.isIntegerType(param.type);
+        if (isNonNullableType) {
+            if (isOptional) {
+                if (param.initializer !== undefined && param.initializer !== 'undefined') {
+                    return `${paramType} ${safeName} = ${param.initializer}`
+                } else {
+                    return `${paramType}? ${safeName}`
+                }
+            }
+        } else {
+            if (isOptional) {
+                if (param.initializer !== undefined) {
+                //    if (param.initializer === 'undefined' || param.initializer === '{}') {
+                          return `${paramType}? ${safeName}`
+                //    } else {
+                        //   return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
+                //    }
+                }
+            } else {
+                return `${paramType} ${safeName}`
+            }
+        }
+        // if (param.type && this.isBooleanType(param.type)) {
+        //     paramType = 'bool';
+        //     if (param.initializer !== undefined) {
+        //         return `${paramType}${op} ${safeName} = ${param.initializer}`
+        //     }
+        // } else if (paramType === 'Dictionary<string, object>') {
+        //     if (param.initializer !== undefined) {
+        //         return `${paramType}${op} ${safeName} = null`
+        //     }
+        // }
+        return `${paramType}${op} ${safeName}`
+    }
+
+    shouldCreateWrapper(methodName: string): boolean {
+        const allowedPrefixes = [
+            'fetch',
+            'create',
+            'edit',
+            'cancel',
+            'setP',
+            'setM',
+            'setL',
+            // 'load',
+        ];
+        const blacklistMethods = [
+            'fetch',
+            'setSandBoxMode',
+            'loadOrderBook',
+            'fetchCurrencies',
+            'loadMarketsHelper',
+        ] // improve this later
+        const isBlackListed = blacklistMethods.includes(methodName);
+        const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
+        return !isBlackListed && startsWithAllowedPrefix;
+    }
+
+    unwrapTaskIfNeeded(type: string): string {
+        return type.startsWith('Task<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
+    }
+
+    createWrapper (methodWrapper) {
+        const isAsync = methodWrapper.async;
+        const methodName = methodWrapper.name;
+        if (!this.shouldCreateWrapper(methodName)) {
+            return ''; // skip aux methods like encodeUrl, parseOrder, etc
+        }
+        const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+        const returnType = this.convertJavascriptTypeToCsharpType(methodWrapper.returnType);
+        const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param)).join(', ');
+        const params = methodWrapper.parameters.map(param => this.safeCsharpName(param.name)).join(', ');
+        const method = [
+            `public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized} (${args})`,
+            '{',
+            `    var res = ${isAsync ? 'await ' : ''}this.${methodName} (${params});`,
+            `    return (${this.unwrapTaskIfNeeded(returnType as string)})res;`,
+            '}'
+        ].map(line => '    ' + line);
+        return method.join('\n')
+    }
+
+    createMethodsWrappers(wrappers) {
+        const wrapperFile = "./c#/src/base/Exchange.Wrappers.cs";
+        // wrappers = wrappers.filter(wrapper => wrapper.name == 'fetchTrades'); // debug only
+        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(wrapper)).filter(wrapper => wrapper !== '').join('\n');
+        const file = [
+            'namespace Main;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            'public partial class Exchange',
+            '{',
+            wrappersIndented,
+            '}',
+        ].join('\n')
+        log.magenta ('→', (wrapperFile as any).yellow)
+
+        overwriteFile (wrapperFile, file);
+    }
+
     transpileErrorHierarchy ({ tsFilename }) {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
@@ -275,6 +454,10 @@ class NewTranspiler {
         // to c#
         const baseFile = this.transpiler.transpileCSharpByPath(baseExchangeFile);
         let baseClass = baseFile.content;
+
+        // create wrappers with specific types
+        this.createMethodsWrappers(baseFile.methodsTypes)
+
 
         // custom transformations needed for c#
         baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
