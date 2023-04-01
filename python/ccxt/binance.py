@@ -6480,7 +6480,7 @@ class binance(Exchange):
         }
         return getattr(self, method)(self.extend(request, params))
 
-    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+    def set_margin_mode(self, marginMode: str, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -6530,6 +6530,8 @@ class binance(Exchange):
                     raise e
                 else:
                     response = {'code': -4046, 'msg': 'No need to change margin type.'}
+            else:
+                raise e
         return response
 
     def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
