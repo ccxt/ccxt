@@ -4,7 +4,7 @@
 import Exchange from './abstract/xt.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
+import { AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
@@ -333,7 +333,12 @@ export default class xt extends Exchange {
                 },
             },
             'exceptions': {
-                'exact': { // TODO: Error codes, https://doc.xt.com/#documentationerrorCode
+                'exact': {
+                    '404': ExchangeError, // interface does not exist
+                    '429': RateLimitExceeded, // The request is too frequent, please control the request rate according to the speed limit requirement
+                    '500': ExchangeError, // Service exception
+                    '502': ExchangeError, // Gateway exception
+                    '503': OnMaintenance, // Service unavailable, please try again later
                     'AUTH_001': AuthenticationError, // missing request header xt-validate-appkey
                     'AUTH_002': AuthenticationError, // missing request header xt-validate-timestamp
                     'AUTH_003': AuthenticationError, // missing request header xt-validate-recvwindow
@@ -346,9 +351,72 @@ export default class xt extends Exchange {
                     'AUTH_103': AuthenticationError, // Signature error, {"rc":1,"mc":"AUTH_103","ma":[],"result":null}
                     'AUTH_104': AuthenticationError, // Unbound IP request
                     'AUTH_105': AuthenticationError, // outdated message
-                    'AUTH_106': AuthenticationError, // Exceeded apikey permission
+                    'AUTH_106': PermissionDenied, // Exceeded apikey permission
+                    'SYMBOL_001': BadSymbol, // Symbol not exist
+                    'SYMBOL_002': BadSymbol, // Symbol offline
+                    'SYMBOL_003': BadSymbol, // Symbol suspend trading
+                    'SYMBOL_004': BadSymbol, // Symbol country disallow trading
+                    'SYMBOL_005': BadSymbol, // The symbol does not support trading via API
+                    'ORDER_001': InvalidOrder, // Platform rejection
+                    'ORDER_002': InsufficientFunds, // insufficient funds
+                    'ORDER_003': InvalidOrder, // Trading Pair Suspended
+                    'ORDER_004': InvalidOrder, // no transaction
+                    'ORDER_005': InvalidOrder, // Order not exist
+                    'ORDER_006': InvalidOrder, // Too many open orders
+                    'ORDER_F0101': InvalidOrder, // Trigger Price Filter - Min
+                    'ORDER_F0102': InvalidOrder, // Trigger Price Filter - Max
+                    'ORDER_F0103': InvalidOrder, // Trigger Price Filter - Step Value
+                    'ORDER_F0201': InvalidOrder, // Trigger Quantity Filter - Min
+                    'ORDER_F0202': InvalidOrder, // Trigger Quantity Filter - Max
+                    'ORDER_F0203': InvalidOrder, // Trigger Quantity Filter - Step Value
+                    'ORDER_F0301': InvalidOrder, // Trigger QUOTE_QTY Filter - Min Value
+                    'ORDER_F0401': InvalidOrder, // Trigger PROTECTION_ONLINE Filter
+                    'ORDER_F0501': InvalidOrder, // Trigger PROTECTION_LIMIT Filter - Buy Max Deviation
+                    'ORDER_F0502': InvalidOrder, // Trigger PROTECTION_LIMIT Filter - Sell Max Deviation
+                    'ORDER_F0601': InvalidOrder, // Trigger PROTECTION_MARKET Filter
+                    'COMMON_001': ExchangeError, // The user does not exist
+                    'COMMON_002': ExchangeError, // System busy, please try it later
+                    'COMMON_003': BadRequest, // Operation failed, please try it later
+                    'CURRENCY_001': BadRequest, // Information of currency is abnormal
+                    'DEPOSIT_001': BadRequest, // Deposit is not open
+                    'DEPOSIT_002': PermissionDenied, // The current account security level is low, please bind any two security verifications in mobile phone/email/Google Authenticator before deposit
+                    'DEPOSIT_003': BadRequest, // The format of address is incorrect, please enter again
+                    'DEPOSIT_004': BadRequest, // The address is already exists, please enter again
+                    'DEPOSIT_005': BadRequest, // Can not find the address of offline wallet
+                    'DEPOSIT_006': BadRequest, // No deposit address, please try it later
+                    'DEPOSIT_007': BadRequest, // Address is being generated, please try it later
+                    'DEPOSIT_008': BadRequest, // Deposit is not available
+                    'WITHDRAW_001': BadRequest, // Withdraw is not open
+                    'WITHDRAW_002': BadRequest, // The withdrawal address is invalid
+                    'WITHDRAW_003': PermissionDenied, // The current account security level is low, please bind any two security verifications in mobile phone/email/Google Authenticator before withdraw
+                    'WITHDRAW_004': BadRequest, // The withdrawal address is not added
+                    'WITHDRAW_005': BadRequest, // The withdrawal address cannot be empty
+                    'WITHDRAW_006': BadRequest, // Memo cannot be empty
+                    'WITHDRAW_008': PermissionDenied, // Risk control is triggered, withdraw of this currency is not currently supported
+                    'WITHDRAW_009': PermissionDenied, // Withdraw failed, some assets in this withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_010': BadRequest, // The precision of withdrawal is invalid
+                    'WITHDRAW_011': InsufficientFunds, // free balance is not enough
+                    'WITHDRAW_012': PermissionDenied, // Withdraw failed, your remaining withdrawal limit today is not enough
+                    'WITHDRAW_013': PermissionDenied, // Withdraw failed, your remaining withdrawal limit today is not enough, the withdrawal amount can be increased by completing a higher level of real-name authentication
+                    'WITHDRAW_014': BadRequest, // This withdrawal address cannot be used in the internal transfer function, please cancel the internal transfer function before submitting
+                    'WITHDRAW_015': BadRequest, // The withdrawal amount is not enough to deduct the handling fee
+                    'WITHDRAW_016': BadRequest, // This withdrawal address is already exists
+                    'WITHDRAW_017': BadRequest, // This withdrawal has been processed and cannot be canceled
+                    'WITHDRAW_018': BadRequest, // Memo must be a number
+                    'WITHDRAW_019': BadRequest, // Memo is incorrect, please enter again
+                    'WITHDRAW_020': PermissionDenied, // Your withdrawal amount has reached the upper limit for today, please try it tomorrow
+                    'WITHDRAW_021': PermissionDenied, // Your withdrawal amount has reached the upper limit for today, you can only withdraw up to {0} this time
+                    'WITHDRAW_022': BadRequest, // Withdrawal amount must be greater than {0}
+                    'WITHDRAW_023': BadRequest, // Withdrawal amount must be less than {0}
+                    'WITHDRAW_024': BadRequest, // Withdraw is not supported
+                    'WITHDRAW_025': BadRequest, // Please create a FIO address in the deposit page
+                    'symbol_not_support_trading_via_api': BadSymbol, // {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
+                    'open_order_min_nominal_value_limit': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
                 },
-                'broad': {},
+                'broad': {
+                    'The symbol does not support trading via API': BadSymbol, // {"returnCode":1,"msgInfo":"failure","error":{"code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"},"result":null}
+                    'Exceeds the minimum notional value of a single order': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                },
             },
             'timeframes': {
                 '1m': '1m',
