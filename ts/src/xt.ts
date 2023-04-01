@@ -1334,13 +1334,14 @@ export default class xt extends Exchange {
         //         "v": "702461.58895"
         //     }
         //
+        const volumeIndex = (market['inverse']) ? 'v' : 'a';
         return [
             this.safeInteger (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),
             this.safeNumber (ohlcv, 'c'),
-            this.safeNumber2 (ohlcv, 'a', 'v'),
+            this.safeNumber2 (ohlcv, volumeIndex, 'v'),
         ];
     }
 
