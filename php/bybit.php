@@ -7156,7 +7156,7 @@ class bybit extends Exchange {
         $maintenanceMarginString = $this->safe_string($position, 'positionMM');
         $timestamp = $this->parse8601($this->safe_string($position, 'updated_at'));
         if ($timestamp === null) {
-            $timestamp = $this->safe_integer($position, 'updatedAt');
+            $timestamp = $this->safe_integer_n($position, array( 'updatedTime', 'updatedAt' ));
         }
         // default to cross of USDC margined positions
         $tradeMode = $this->safe_integer($position, 'tradeMode', 0);
