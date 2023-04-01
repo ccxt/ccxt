@@ -189,7 +189,7 @@ class Exchange(BaseExchange):
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
-                    return self.set_markets(self.markets)
+                    return self.set_markets(list(self.markets.values()))
                 return self.markets
         currencies = None
         if self.has['fetchCurrencies'] is True:
@@ -618,11 +618,11 @@ class Exchange(BaseExchange):
         self.markets_by_id = {}
         # handle marketId conflicts
         # we insert spot markets first
-        marketValues = self.sort_by(self.to_array(markets), 'spot', True)
+        marketValues = self.sort_by(markets, 'spot', True)
         for i in range(0, len(marketValues)):
             value = marketValues[i]
             if value['id'] in self.markets_by_id:
-                (self.markets_by_id[value['id']]).append(value)
+                self.markets_by_id[value['id']].append(value)
             else:
                 self.markets_by_id[value['id']] = [value]
             market = self.deep_extend(self.safe_market(), {

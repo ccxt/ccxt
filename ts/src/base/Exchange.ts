@@ -231,7 +231,7 @@ export default class Exchange {
 
     id: string = undefined
 
-    markets: Dictionary<any> = undefined
+    markets: Dictionary<Market> = undefined;
     has: Dictionary<boolean | 'emulated'>
 
     status = undefined
@@ -261,7 +261,7 @@ export default class Exchange {
         price?: MinMax,
     };
     fees: object;
-    markets_by_id: Dictionary<any> = undefined;
+    markets_by_id: Dictionary<Market[]> = undefined;
     symbols: string[] = undefined;
     ids: string[] = undefined;
     currencies: Dictionary<Currency> = undefined;
@@ -271,8 +271,8 @@ export default class Exchange {
     currencies_by_id = undefined
     codes = undefined
 
-    reloadingMarkets = undefined
-    marketsLoading = undefined
+    reloadingMarkets: boolean = undefined;
+    marketsLoading: Promise<Dictionary<Market>> = undefined;
 
     accounts = undefined
     accountsById = undefined
@@ -291,7 +291,7 @@ export default class Exchange {
 
     marketsByAltname = undefined
 
-    name:string = undefined
+    name: string = undefined;
 
     lastRestRequestTimestamp:number;
 
@@ -708,7 +708,7 @@ export default class Exchange {
         this.initRestRateLimiter ()
         // init predefined markets if any
         if (this.markets) {
-            this.setMarkets (this.markets)
+            this.setMarkets ( Object.values (this.markets));
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
     }
@@ -987,14 +987,14 @@ export default class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
-    async loadMarketsHelper (reload = false, params = {}) {
+    async loadMarketsHelper (reload: boolean = false, params = {}): Promise<Dictionary<Market>> {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
-                return this.setMarkets (this.markets)
+                return this.setMarkets (Object.values (this.markets));
             }
             return this.markets
         }
-        let currencies = undefined
+        let currencies: Dictionary<Currency> | undefined = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ()
@@ -1018,7 +1018,7 @@ export default class Exchange {
         return this.marketsLoading
     }
 
-    fetchCurrencies (params = {}) {
+    fetchCurrencies (params = {}): Promise<Dictionary<Currency>> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1548,18 +1548,18 @@ export default class Exchange {
         };
     }
 
-    setMarkets (markets, currencies = undefined) {
+    setMarkets (markets: Market[], currencies: Dictionary<Currency> = undefined): Dictionary<Market> {
         const values = [];
         this.markets_by_id = {};
         // handle marketId conflicts
         // we insert spot markets first
-        const marketValues = this.sortBy (this.toArray (markets), 'spot', true);
+        const marketValues = this.sortBy (markets, 'spot', true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
-                (this.markets_by_id[value['id']] as any).push (value);
+                this.markets_by_id[value['id']].push (value);
             } else {
-                this.markets_by_id[value['id']] = [ value ] as any;
+                this.markets_by_id[value['id']] = [ value ];
             }
             const market = this.deepExtend (this.safeMarket (), {
                 'precision': this.precision,
@@ -2548,7 +2548,7 @@ export default class Exchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
+    parseOHLCVs (ohlcvs: object[], market: Market = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));
@@ -3296,7 +3296,7 @@ export default class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code);
     }
 
-    market (symbol: string) {
+    market (symbol: string): Market {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
