@@ -267,7 +267,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         $u = $this->safe_integer($message, 'u');
         $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'a', array()));
         $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'b', array()));
@@ -278,7 +278,7 @@ class binance extends \ccxt\async\binance {
         return $orderbook;
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -373,7 +373,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order_book_subscription($client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
@@ -385,7 +385,7 @@ class binance extends \ccxt\async\binance {
         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         "result" => null,
@@ -605,7 +605,7 @@ class binance extends \ccxt\async\binance {
         ));
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
         $index = mb_strpos($client->url, '/stream');
@@ -675,7 +675,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         e => 'kline',
@@ -936,7 +936,7 @@ class binance extends \ccxt\async\binance {
         return $ticker;
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         // 24hr rolling window ticker statistics for a single $symbol
         // These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
@@ -988,7 +988,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_tickers($client, $message) {
+    public function handle_tickers(Client $client, $message) {
         $event = null;
         $index = mb_strpos($client->url, '/stream');
         $marketType = ($index >= 0) ? 'spot' : 'contract';
@@ -1126,7 +1126,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function set_balance_cache($client, $type) {
+    public function set_balance_cache(Client $client, $type) {
         if (is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions)) {
             return null;
         }
@@ -1187,7 +1187,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // sent upon a balance update not related to orders
         //
@@ -1478,7 +1478,7 @@ class binance extends \ccxt\async\binance {
         ));
     }
 
-    public function handle_order_update($client, $message) {
+    public function handle_order_update(Client $client, $message) {
         //
         // spot
         //
@@ -1607,7 +1607,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function handle_my_trade($client, $message) {
+    public function handle_my_trade(Client $client, $message) {
         $messageHash = 'myTrades';
         $executionType = $this->safe_string($message, 'x');
         if ($executionType === 'TRADE') {
@@ -1672,7 +1672,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         $messageHash = 'orders';
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
@@ -1705,7 +1705,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $methods = array(
             'depthUpdate' => array($this, 'handle_order_book'),
             'trade' => array($this, 'handle_trade'),

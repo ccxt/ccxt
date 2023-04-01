@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\hollaex as Exchange;
 
 class hollaex extends Exchange {
 
@@ -841,7 +842,7 @@ class hollaex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_open_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open order by it's $id
          * @param {string} $id order $id
@@ -911,7 +912,7 @@ class hollaex extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol unified $symbol of the market the $order was made in
@@ -1162,7 +1163,7 @@ class hollaex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1367,7 +1368,7 @@ class hollaex extends Exchange {
         return $this->parse_deposit_addresses($addresses, $codes);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -1425,7 +1426,7 @@ class hollaex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -1471,7 +1472,7 @@ class hollaex extends Exchange {
         return $this->parse_transaction($transaction, $currency);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -1626,7 +1627,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

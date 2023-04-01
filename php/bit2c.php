@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bit2c as Exchange;
 
 class bit2c extends Exchange {
 
@@ -422,7 +423,7 @@ class bit2c extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -460,7 +461,7 @@ class bit2c extends Exchange {
         return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $market $symbol
@@ -784,7 +785,7 @@ class bit2c extends Exchange {
         return $code === 'NIS';
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code

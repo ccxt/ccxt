@@ -1668,7 +1668,7 @@ export default class digifinex extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#cancelOrder
@@ -2125,7 +2125,7 @@ export default class digifinex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchOrder
@@ -2373,7 +2373,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchLedger
@@ -2485,7 +2485,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name digifinex#fetchDepositAddress
@@ -2522,7 +2522,7 @@ export default class digifinex extends Exchange {
         return address;
     }
 
-    async fetchTransactionsByType (type, code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsByType (type, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {
@@ -2564,7 +2564,7 @@ export default class digifinex extends Exchange {
         return this.parseTransactions (data, currency, since, limit, { 'type': type });
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchDeposits
@@ -2578,7 +2578,7 @@ export default class digifinex extends Exchange {
         return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchWithdrawals
@@ -2716,7 +2716,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name digifinex#transfer
@@ -2748,7 +2748,7 @@ export default class digifinex extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#withdraw
@@ -2783,7 +2783,7 @@ export default class digifinex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchBorrowInterest (code = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2850,7 +2850,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchBorrowRate (code, params = {}) {
+    async fetchBorrowRate (code: string, params = {}) {
         await this.loadMarkets ();
         const request = {};
         const response = await this.privateSpotGetMarginAssets (this.extend (request, params));
@@ -3473,7 +3473,7 @@ export default class digifinex extends Exchange {
         //
     }
 
-    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchTransfers

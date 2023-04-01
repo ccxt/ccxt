@@ -1082,7 +1082,7 @@ class latoken(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by latoken fetchOrder
@@ -1159,7 +1159,7 @@ class latoken(Exchange):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1211,7 +1211,7 @@ class latoken(Exchange):
         #
         return response
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1331,7 +1331,7 @@ class latoken(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -1377,7 +1377,7 @@ class latoken(Exchange):
         transfers = self.safe_value(response, 'content', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code

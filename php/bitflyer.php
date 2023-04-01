@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitflyer as Exchange;
 
 class bitflyer extends Exchange {
 
@@ -535,7 +536,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -668,7 +669,7 @@ class bitflyer extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the market the order was made in
@@ -746,7 +747,7 @@ class bitflyer extends Exchange {
         return $response;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -776,7 +777,7 @@ class bitflyer extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -812,7 +813,7 @@ class bitflyer extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code

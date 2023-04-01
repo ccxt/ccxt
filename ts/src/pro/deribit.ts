@@ -5,6 +5,7 @@ import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -89,7 +90,7 @@ export default class deribit extends deribitRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         // subscription
         //     {
@@ -176,7 +177,7 @@ export default class deribit extends deribitRest {
         return await this.watch (url, channel, request, channel, request);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -251,7 +252,7 @@ export default class deribit extends deribitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -330,7 +331,7 @@ export default class deribit extends deribitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -416,7 +417,7 @@ export default class deribit extends deribitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //  snapshot
         //     {
@@ -555,7 +556,7 @@ export default class deribit extends deribitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         // Does not return a snapshot of current orders
         //
         //     {
@@ -648,7 +649,7 @@ export default class deribit extends deribitRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',
@@ -691,7 +692,7 @@ export default class deribit extends deribitRest {
         client.resolve (stored, channel);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         // error
         //     {
@@ -786,7 +787,7 @@ export default class deribit extends deribitRest {
         return message;
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         //
         //     {
         //         jsonrpc: '2.0',

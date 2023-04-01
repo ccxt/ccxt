@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\btcex as Exchange;
 
 class btcex extends Exchange {
 
@@ -1209,7 +1210,7 @@ class btcex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         $this->sign_in();
         $this->load_markets();
         $request = array(
@@ -1398,7 +1399,7 @@ class btcex extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         $this->sign_in();
         $this->load_markets();
         $request = array(
@@ -1537,7 +1538,7 @@ class btcex extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($id === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $id argument');
         }
@@ -1882,7 +1883,7 @@ class btcex extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
         }
@@ -1917,7 +1918,7 @@ class btcex extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
         }
@@ -1952,7 +1953,7 @@ class btcex extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
         }
@@ -2412,7 +2413,7 @@ class btcex extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://docs.btcex.com/#asset-transfer

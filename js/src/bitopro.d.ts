@@ -19,10 +19,10 @@ export default class bitopro extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -53,9 +53,9 @@ export default class bitopro extends Exchange {
             rate: any;
         };
     };
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -80,7 +80,7 @@ export default class bitopro extends Exchange {
             rate: any;
         };
     }>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;

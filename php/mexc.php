@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\mexc as Exchange;
 
 class mexc extends Exchange {
 
@@ -1923,7 +1924,7 @@ class mexc extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -2396,7 +2397,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -3299,7 +3300,7 @@ class mexc extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
          * @param {string} $id order $id
@@ -3811,7 +3812,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by $network
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-$address-supporting-$network
@@ -3844,7 +3845,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
@@ -3871,7 +3872,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
@@ -3930,7 +3931,7 @@ class mexc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
@@ -4230,7 +4231,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_transfer($id, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?int $since = null, ?int $limit = null, $params = array ()) {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
         $this->load_markets();
         if ($marketType === 'spot') {
@@ -4258,7 +4259,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
@@ -4343,7 +4344,7 @@ class mexc extends Exchange {
         return $this->parse_transfers($resultList, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
@@ -4477,7 +4478,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
@@ -4546,7 +4547,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
@@ -4580,7 +4581,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment

@@ -37,7 +37,7 @@ export default class poloniexfutures extends Exchange {
         stopPrice: any;
         info: any;
     }>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): {
         info: any;

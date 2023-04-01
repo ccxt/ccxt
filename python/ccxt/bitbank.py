@@ -616,7 +616,7 @@ class bitbank(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -634,7 +634,7 @@ class bitbank(Exchange):
         data = self.safe_value(response, 'data')
         return data
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -698,7 +698,7 @@ class bitbank(Exchange):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -724,7 +724,7 @@ class bitbank(Exchange):
             'info': response,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -1104,7 +1104,7 @@ class ndax(Exchange):
             'fee': None,
         }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1307,7 +1307,7 @@ class ndax(Exchange):
         #
         return self.parse_order(response, market)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.load_markets()
         self.load_accounts()
@@ -1465,7 +1465,7 @@ class ndax(Exchange):
         #
         return response
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1663,7 +1663,7 @@ class ndax(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1735,7 +1735,7 @@ class ndax(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1814,7 +1814,7 @@ class ndax(Exchange):
         trades = self.safe_value(grouped, 'Trade', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1883,7 +1883,7 @@ class ndax(Exchange):
             'info': depositAddress,
         }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1895,7 +1895,7 @@ class ndax(Exchange):
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         see https://apidoc.ndax.io/#getdeposits
@@ -1951,7 +1951,7 @@ class ndax(Exchange):
             return self.parse_transactions(json.loads(response), currency, since, limit)
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2140,7 +2140,7 @@ class ndax(Exchange):
             'fee': fee,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

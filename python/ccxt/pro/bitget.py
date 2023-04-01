@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -112,7 +113,7 @@ class bitget(ccxt.async_support.bitget):
         }
         return await self.watch_public(messageHash, args, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #   {
         #       action: 'snapshot',
@@ -258,7 +259,7 @@ class bitget(ccxt.async_support.bitget):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #   {
         #       "action":"snapshot",
@@ -357,7 +358,7 @@ class bitget(ccxt.async_support.bitget):
         else:
             return orderbook
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #   {
         #       "action":"snapshot",
@@ -468,7 +469,7 @@ class bitget(ccxt.async_support.bitget):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #    {
         #        action: 'snapshot',
@@ -577,7 +578,7 @@ class bitget(ccxt.async_support.bitget):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message, subscription=None):
+    def handle_order(self, client: Client, message, subscription=None):
         #
         #
         # spot order
@@ -800,7 +801,7 @@ class bitget(ccxt.async_support.bitget):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         # order and trade mixin(contract)
         #
@@ -937,7 +938,7 @@ class bitget(ccxt.async_support.bitget):
         messageHash = 'balance:' + instType.lower()
         return await self.watch_private(messageHash, messageHash, args, params)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         # spot
         #
         #    {
@@ -1031,14 +1032,14 @@ class bitget(ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, subscriptionHash)
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #  {event: 'login', code: 0}
         #
         messageHash = 'authenticated'
         client.resolve(message, messageHash)
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #    {event: 'error', code: 30015, msg: 'Invalid sign'}
         #
@@ -1057,7 +1058,7 @@ class bitget(ccxt.async_support.bitget):
                     del client.subscriptions[messageHash]
             return True
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         #   {
         #       action: 'snapshot',
@@ -1127,11 +1128,11 @@ class bitget(ccxt.async_support.bitget):
     def ping(self, client):
         return 'ping'
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #    {
         #        event: 'subscribe',

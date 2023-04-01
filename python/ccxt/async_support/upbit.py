@@ -191,14 +191,14 @@ class upbit(Exchange):
             },
         })
 
-    async def fetch_currency(self, code, params={}):
+    async def fetch_currency(self, code: str, params={}):
         # self method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
         await self.load_markets()
         currency = self.currency(code)
         return await self.fetch_currency_by_id(currency['id'], params)
 
-    async def fetch_currency_by_id(self, id, params={}):
+    async def fetch_currency_by_id(self, id: str, params={}):
         # self method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
         request = {
@@ -292,7 +292,7 @@ class upbit(Exchange):
         market = self.market(symbol)
         return await self.fetch_market_by_id(market['id'], params)
 
-    async def fetch_market_by_id(self, id, params={}):
+    async def fetch_market_by_id(self, id: str, params={}):
         # self method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
         request = {
@@ -1039,7 +1039,7 @@ class upbit(Exchange):
         #
         return self.parse_order(response)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1073,7 +1073,7 @@ class upbit(Exchange):
         #
         return self.parse_order(response)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1112,7 +1112,7 @@ class upbit(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1433,7 +1433,7 @@ class upbit(Exchange):
         """
         return await self.fetch_orders_by_state('cancel', symbol, since, limit, params)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by upbit fetchOrder
@@ -1541,7 +1541,7 @@ class upbit(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1562,7 +1562,7 @@ class upbit(Exchange):
         #
         return self.parse_deposit_address(response)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1596,7 +1596,7 @@ class upbit(Exchange):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

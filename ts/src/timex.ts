@@ -336,7 +336,7 @@ export default class timex extends Exchange {
         return this.indexBy (result, 'code');
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchDeposits
@@ -371,7 +371,7 @@ export default class timex extends Exchange {
         return this.parseTransactions (response, code, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchWithdrawals
@@ -786,7 +786,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -838,7 +838,7 @@ export default class timex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#cancelOrder
@@ -894,7 +894,7 @@ export default class timex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name timex#fetchOrder

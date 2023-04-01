@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
+import json
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -197,6 +198,7 @@ class bitget(Exchange):
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
                             'trade/cancel-batch-orders': 4,
+                            'trade/cancel-batch-orders-v2': 4,
                             'trade/orderInfo': 1,
                             'trade/open-orders': 1,
                             'trade/history': 1,
@@ -1224,7 +1226,7 @@ class bitget(Exchange):
             }
         return result
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
@@ -1274,7 +1276,7 @@ class bitget(Exchange):
         rawTransactions = self.safe_value(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1341,7 +1343,7 @@ class bitget(Exchange):
             result['network'] = chain
         return result
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
@@ -1444,7 +1446,7 @@ class bitget(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2126,6 +2128,7 @@ class bitget(Exchange):
             'new': 'open',
             'init': 'open',
             'not_trigger': 'open',
+            'partial_fill': 'open',
             'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
@@ -2362,7 +2365,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         :param str id: cancel order id
@@ -2448,7 +2451,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2495,18 +2498,14 @@ class bitget(Exchange):
         self.check_required_symbol('cancelOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
-        type = self.safe_string(params, 'type', market['type'])
-        if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrders() requires a type parameter(one of 'spot', 'swap').")
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('cancelOrders', market, params)
         request = {}
         method = None
         if type == 'spot':
-            method = 'apiPostOrderOrdersBatchcancel'
-            request['method'] = 'batchcancel'
-            jsonIds = self.json(ids)
-            parts = jsonIds.split('"')
-            request['order_ids'] = ''.join(parts)
+            method = 'privateSpotPostTradeCancelBatchOrdersV2'
+            request['symbol'] = market['id']
+            request['orderIds'] = ids
         elif type == 'swap':
             method = 'privateMixPostOrderCancelBatchOrders'
             request['symbol'] = market['id']
@@ -2517,18 +2516,17 @@ class bitget(Exchange):
         #     spot
         #
         #     {
-        #         "status": "ok",
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": "1680008815965",
         #         "data": {
-        #             "success": [
-        #                 "673451224205135872",
-        #             ],
-        #             "failed": [
+        #             "resultList": [
         #                 {
-        #                 "err-msg": "invalid record",
-        #                 "order-id": "673451224205135873",
-        #                 "err-code": "base record invalid"
-        #                 }
-        #             ]
+        #                     "orderId": "1024598257429823488",
+        #                     "clientOrderId": "876493ce-c287-4bfc-9f4a-8b1905881313"
+        #                 },
+        #             ],
+        #             "failed": []
         #         }
         #     }
         #
@@ -2614,7 +2612,7 @@ class bitget(Exchange):
         #
         return response
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2824,6 +2822,8 @@ class bitget(Exchange):
         #         }
         #     }
         #
+        if isinstance(response, str):
+            response = json.loads(response)
         data = self.safe_value(response, 'data', [])
         if not isinstance(data, list):
             data = self.safe_value(data, 'orderList', [])
@@ -3022,7 +3022,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.safe_value(data, 'orderList', data)
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -3152,7 +3152,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -3829,7 +3829,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
@@ -3878,7 +3878,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transfers(data, currency, since, limit)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
         transfer currency internally between wallets on the same account

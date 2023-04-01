@@ -577,7 +577,7 @@ class indodax(Exchange):
             'trades': None,
         })
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -688,7 +688,7 @@ class indodax(Exchange):
             'id': id,
         }, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -710,7 +710,7 @@ class indodax(Exchange):
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
 
-    async def fetch_transaction_fee(self, code, params={}):
+    async def fetch_transaction_fee(self, code: str, params={}):
         """
         fetch the fee for a transaction
         :param str code: unified currency code
@@ -741,7 +741,7 @@ class indodax(Exchange):
             'currency': self.safe_currency_code(currencyId, currency),
         }
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -835,7 +835,7 @@ class indodax(Exchange):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

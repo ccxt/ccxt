@@ -36,6 +36,7 @@ class bitmex(Exchange):
             # 120 per minute => 2 per second => weight = 5(authenticated)
             # 30 per minute => 0.5 per second => weight = 20(unauthenticated)
             'rateLimit': 100,
+            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -657,7 +658,7 @@ class bitmex(Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -918,7 +919,7 @@ class bitmex(Exchange):
             'fee': fee,
         }
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -964,7 +965,7 @@ class bitmex(Exchange):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1748,7 +1749,7 @@ class bitmex(Exchange):
         response = self.privatePostOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
         request = {}
         origClOrdID = self.safe_string_2(params, 'origClOrdID', 'clientOrderId')
@@ -1769,7 +1770,7 @@ class bitmex(Exchange):
         response = self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2141,7 +2142,7 @@ class bitmex(Exchange):
             return True
         return False
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2550,7 +2551,7 @@ class bitmex(Exchange):
         }
         return self.privatePostPositionIsolate(self.extend(request, params))
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         see https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress

@@ -479,7 +479,7 @@ export default class zaif extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zaif#cancelOrder
@@ -596,7 +596,7 @@ export default class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name zaif#withdraw

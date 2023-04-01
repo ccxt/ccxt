@@ -4,8 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1007,7 +1005,7 @@ class bitpanda(Exchange):
             'info': depositAddress,
         }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1030,7 +1028,7 @@ class bitpanda(Exchange):
         #
         return self.parse_deposit_address(response, currency)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1054,7 +1052,7 @@ class bitpanda(Exchange):
         #
         return self.parse_deposit_address(response, currency)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1112,7 +1110,7 @@ class bitpanda(Exchange):
         depositHistory = self.safe_value(response, 'deposit_history', [])
         return self.parse_transactions(depositHistory, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1171,7 +1169,7 @@ class bitpanda(Exchange):
         withdrawalHistory = self.safe_value(response, 'withdrawal_history', [])
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1433,7 +1431,7 @@ class bitpanda(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1492,7 +1490,7 @@ class bitpanda(Exchange):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1556,7 +1554,7 @@ class bitpanda(Exchange):
         #
         return response
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by bitpanda fetchOrder
@@ -1739,7 +1737,7 @@ class bitpanda(Exchange):
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id

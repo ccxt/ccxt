@@ -100,7 +100,7 @@ class btcex extends \ccxt\async\btcex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -173,7 +173,7 @@ class btcex extends \ccxt\async\btcex {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         "params" => array(
@@ -247,7 +247,7 @@ class btcex extends \ccxt\async\btcex {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         "params" => array(
@@ -321,7 +321,7 @@ class btcex extends \ccxt\async\btcex {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -402,7 +402,7 @@ class btcex extends \ccxt\async\btcex {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -487,7 +487,7 @@ class btcex extends \ccxt\async\btcex {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -563,7 +563,7 @@ class btcex extends \ccxt\async\btcex {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         "params" => array(
@@ -657,7 +657,7 @@ class btcex extends \ccxt\async\btcex {
         }
     }
 
-    public function handle_user($client, $message) {
+    public function handle_user(Client $client, $message) {
         $params = $this->safe_value($message, 'params');
         $fullChannel = $this->safe_string($params, 'channel');
         $sliceUser = mb_substr($fullChannel, 5);
@@ -675,7 +675,7 @@ class btcex extends \ccxt\async\btcex {
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         id => '1',
@@ -690,7 +690,7 @@ class btcex extends \ccxt\async\btcex {
         throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //     {
         //         id => '1',
@@ -715,7 +715,7 @@ class btcex extends \ccxt\async\btcex {
         $client->resolve ($accessToken, 'authenticated');
     }
 
-    public function handle_subscription($client, $message) {
+    public function handle_subscription(Client $client, $message) {
         $channels = $this->safe_value($message, 'result', array());
         for ($i = 0; $i < count($channels); $i++) {
             $fullChannel = $channels[$i];
@@ -730,11 +730,11 @@ class btcex extends \ccxt\async\btcex {
         }
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if ($message === 'PONG') {
             $this->handle_pong($client, $message);
             return;

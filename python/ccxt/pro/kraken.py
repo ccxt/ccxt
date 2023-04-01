@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -62,7 +63,7 @@ class kraken(ccxt.async_support.kraken):
             },
         })
 
-    def handle_ticker(self, client, message, subscription):
+    def handle_ticker(self, client: Client, message, subscription):
         #
         #     [
         #         0,  # channelID
@@ -122,7 +123,7 @@ class kraken(ccxt.async_support.kraken):
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
-    def handle_trades(self, client, message, subscription):
+    def handle_trades(self, client: Client, message, subscription):
         #
         #     [
         #         0,  # channelID
@@ -150,7 +151,7 @@ class kraken(ccxt.async_support.kraken):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client, message, subscription):
+    def handle_ohlcv(self, client: Client, message, subscription):
         #
         #     [
         #         216,  # channelID
@@ -333,7 +334,7 @@ class kraken(ccxt.async_support.kraken):
         url = self.urls['api']['ws']['public']
         return await self.watch(url, event)
 
-    def handle_heartbeat(self, client, message):
+    def handle_heartbeat(self, client: Client, message):
         #
         # every second(approx) if no other updates are sent
         #
@@ -342,7 +343,7 @@ class kraken(ccxt.async_support.kraken):
         event = self.safe_string(message, 'event')
         client.resolve(message, event)
 
-    def handle_order_book(self, client, message, subscription):
+    def handle_order_book(self, client: Client, message, subscription):
         #
         # first message(snapshot)
         #
@@ -491,7 +492,7 @@ class kraken(ccxt.async_support.kraken):
             bookside.store(price, amount)
         return timestamp
 
-    def handle_system_status(self, client, message):
+    def handle_system_status(self, client: Client, message):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -561,7 +562,7 @@ class kraken(ccxt.async_support.kraken):
         """
         return await self.watch_private('ownTrades', symbol, since, limit, params)
 
-    def handle_my_trades(self, client, message, subscription=None):
+    def handle_my_trades(self, client: Client, message, subscription=None):
         #
         #     [
         #         [
@@ -711,7 +712,7 @@ class kraken(ccxt.async_support.kraken):
         """
         return await self.watch_private('openOrders', symbol, since, limit, params)
 
-    def handle_orders(self, client, message, subscription=None):
+    def handle_orders(self, client: Client, message, subscription=None):
         #
         #     [
         #         [
@@ -945,7 +946,7 @@ class kraken(ccxt.async_support.kraken):
             'trades': trades,
         })
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         # public
         #
@@ -977,7 +978,7 @@ class kraken(ccxt.async_support.kraken):
         #     del client.futures[requestId]
         # }
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {
         #         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
@@ -1003,7 +1004,7 @@ class kraken(ccxt.async_support.kraken):
                 return False
         return True
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if isinstance(message, list):
             channelId = self.safe_string(message, 0)
             subscription = self.safe_value(client.subscriptions, channelId, {})

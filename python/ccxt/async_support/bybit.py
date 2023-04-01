@@ -3200,7 +3200,7 @@ class bybit(Exchange):
             'info': order,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -3787,7 +3787,7 @@ class bybit(Exchange):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order)
 
-    async def edit_unified_account_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_unified_account_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -3843,7 +3843,7 @@ class bybit(Exchange):
             'id': self.safe_string(result, 'orderId'),
         }
 
-    async def edit_unified_margin_order(self, id, symbol, type, side, amount, price=None, params={}):
+    async def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -3916,7 +3916,7 @@ class bybit(Exchange):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order)
 
-    async def edit_contract_v3_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_contract_v3_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3959,7 +3959,7 @@ class bybit(Exchange):
             'id': self.safe_string(result, 'orderId'),
         }
 
-    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an symbol argument')
         await self.load_markets()
@@ -3973,7 +3973,7 @@ class bybit(Exchange):
             return await self.edit_unified_margin_order(id, symbol, type, side, amount, price, params)
         return await self.edit_contract_v3_order(id, symbol, type, side, amount, price, params)
 
-    async def cancel_unified_account_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_unified_account_order(self, id: str, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -4016,7 +4016,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_spot_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_spot_order(self, id: str, symbol: Optional[str] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -4053,7 +4053,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_unified_margin_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_unified_margin_order(self, id: str, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelUnifiedMarginOrder() requires a symbol argument')
         await self.load_markets()
@@ -4091,7 +4091,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_usdc_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_usdc_order(self, id: str, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelUSDCOrder() requires a symbol argument')
         await self.load_markets()
@@ -4128,7 +4128,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_derivatives_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_derivatives_order(self, id: str, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelDerivativesOrder() requires a symbol argument')
         await self.load_markets()
@@ -4155,7 +4155,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -5218,7 +5218,7 @@ class bybit(Exchange):
         else:
             return await self.fetch_derivatives_open_orders(symbol, since, limit, query)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -5603,7 +5603,7 @@ class bybit(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -5645,7 +5645,7 @@ class bybit(Exchange):
         })
         return self.index_by(parsed, 'network')
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -5689,7 +5689,7 @@ class bybit(Exchange):
         addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
         return self.parse_deposit_address(addressObject, currency)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         see https://bybit-exchange.github.io/docs/v5/asset/deposit-record
@@ -5749,7 +5749,7 @@ class bybit(Exchange):
         data = self.safe_value(result, 'rows', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         see https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
@@ -5919,7 +5919,7 @@ class bybit(Exchange):
             'fee': fee,
         }
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         see https://bybit-exchange.github.io/docs/v5/account/transaction-log
@@ -6168,7 +6168,7 @@ class bybit(Exchange):
         }
         return self.safe_string(types, type, type)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         see https://bybit-exchange.github.io/docs/v5/asset/withdraw
@@ -7136,7 +7136,7 @@ class bybit(Exchange):
             'info': interest,
         }
 
-    async def fetch_borrow_rate(self, code, params={}):
+    async def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         see https://bybit-exchange.github.io/docs/spot/v3/#t-queryinterestquota
@@ -7187,7 +7187,7 @@ class bybit(Exchange):
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str|None code: unified currency code
@@ -7253,7 +7253,7 @@ class bybit(Exchange):
             'info': info,
         }
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
@@ -7317,7 +7317,7 @@ class bybit(Exchange):
             'status': status,
         })
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
@@ -7364,7 +7364,7 @@ class bybit(Exchange):
         transfers = self.safe_value(data, 'list', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
@@ -7402,7 +7402,7 @@ class bybit(Exchange):
             'amount': amount,
         })
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan

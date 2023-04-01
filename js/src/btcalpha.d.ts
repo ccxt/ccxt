@@ -10,8 +10,8 @@ export default class btcalpha extends Exchange {
     parseBidsAsks(bidasks: any, priceKey?: number, amountKey?: number): any[];
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         id: string;
         info: any;
@@ -41,8 +41,8 @@ export default class btcalpha extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

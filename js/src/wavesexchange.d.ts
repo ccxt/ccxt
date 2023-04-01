@@ -28,10 +28,10 @@ export default class wavesexchange extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     filterFutureCandles(ohlcvs: any): any[];
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         address: string;
-        code: any;
-        currency: any;
+        code: string;
+        currency: string;
         network: string;
         tag: any;
         info: any;
@@ -49,7 +49,7 @@ export default class wavesexchange extends Exchange {
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<{
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
         info: any;
         id: string;
         clientOrderId: any;
@@ -69,7 +69,7 @@ export default class wavesexchange extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -82,7 +82,7 @@ export default class wavesexchange extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: any;
         txid: any;
         timestamp: any;

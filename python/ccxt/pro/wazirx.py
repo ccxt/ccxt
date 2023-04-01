@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -65,7 +66,7 @@ class wazirx(ccxt.async_support.wazirx):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         "data":
@@ -204,7 +205,7 @@ class wazirx(ccxt.async_support.wazirx):
         tickers = await self.watch(url, messageHash, request, messageHash)
         return self.filter_by_array(tickers, 'symbol', symbols, False)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         "data":
@@ -303,7 +304,7 @@ class wazirx(ccxt.async_support.wazirx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "data": {
@@ -393,7 +394,7 @@ class wazirx(ccxt.async_support.wazirx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         "data": {
@@ -482,7 +483,7 @@ class wazirx(ccxt.async_support.wazirx):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "data": {
@@ -539,7 +540,7 @@ class wazirx(ccxt.async_support.wazirx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         #     {
         #         "data": {
@@ -616,7 +617,7 @@ class wazirx(ccxt.async_support.wazirx):
             'trades': None,
         }, market)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         "data": {
@@ -652,7 +653,7 @@ class wazirx(ccxt.async_support.wazirx):
         myTrades.append(parsedTrade)
         client.resolve(myTrades, messageHash)
 
-    def handle_connected(self, client, message):
+    def handle_connected(self, client: Client, message):
         #
         #     {
         #         data: {
@@ -663,7 +664,7 @@ class wazirx(ccxt.async_support.wazirx):
         #
         return message
 
-    def handle_subscribed(self, client, message):
+    def handle_subscribed(self, client: Client, message):
         #
         #     {
         #         data: {
@@ -675,7 +676,7 @@ class wazirx(ccxt.async_support.wazirx):
         #
         return message
 
-    def handle_error(self, client, message):
+    def handle_error(self, client: Client, message):
         #
         #     {
         #         "data": {
@@ -693,7 +694,7 @@ class wazirx(ccxt.async_support.wazirx):
         #
         raise ExchangeError(self.id + ' ' + self.json(message))
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         status = self.safe_string(message, 'status')
         if status == 'error':
             return self.handle_error(client, message)

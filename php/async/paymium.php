@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\paymium as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
@@ -292,7 +293,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
@@ -314,7 +315,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -414,7 +415,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -430,7 +431,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account

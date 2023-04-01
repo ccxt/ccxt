@@ -76,7 +76,7 @@ class bitmex extends \ccxt\async\bitmex {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $table => 'instrument',
@@ -341,7 +341,7 @@ class bitmex extends \ccxt\async\bitmex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         table => 'margin',
@@ -447,7 +447,7 @@ class bitmex extends \ccxt\async\bitmex {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         // initial snapshot
         //
@@ -585,7 +585,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $future;
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         $authenticated = $this->safe_value($message, 'success', false);
         $messageHash = 'authenticated';
         if ($authenticated) {
@@ -634,7 +634,7 @@ class bitmex extends \ccxt\async\bitmex {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         //     {
         //         table => 'order',
@@ -851,7 +851,7 @@ class bitmex extends \ccxt\async\bitmex {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         "table":"execution",
@@ -1001,7 +1001,7 @@ class bitmex extends \ccxt\async\bitmex {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         $table => 'tradeBin1m',
@@ -1113,7 +1113,7 @@ class bitmex extends \ccxt\async\bitmex {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // first snapshot
         //
@@ -1229,7 +1229,7 @@ class bitmex extends \ccxt\async\bitmex {
         }
     }
 
-    public function handle_system_status($client, $message) {
+    public function handle_system_status(Client $client, $message) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
         // and unified for any usage pattern that
@@ -1246,7 +1246,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         success => true,
@@ -1257,7 +1257,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         // generic $error format
         //
@@ -1296,7 +1296,7 @@ class bitmex extends \ccxt\async\bitmex {
         return true;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         info => 'Welcome to the BitMEX Realtime API.',

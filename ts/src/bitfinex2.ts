@@ -820,7 +820,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeBalance (result);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name bitfinex2#transfer
@@ -1643,7 +1643,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrders (orders);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#cancelOrder
@@ -1675,7 +1675,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOpenOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOpenOrder
@@ -1696,7 +1696,7 @@ export default class bitfinex2 extends Exchange {
         return order;
     }
 
-    async fetchClosedOrder (id, symbol: string = undefined, params = {}) {
+    async fetchClosedOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchClosedOrder
@@ -1850,7 +1850,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOrderTrades
@@ -1909,7 +1909,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitfinex2#createDepositAddress
@@ -1925,7 +1925,7 @@ export default class bitfinex2 extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchDepositAddress
@@ -2246,7 +2246,7 @@ export default class bitfinex2 extends Exchange {
         return result;
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchTransactions
@@ -2304,7 +2304,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#withdraw
@@ -2565,7 +2565,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchLedger

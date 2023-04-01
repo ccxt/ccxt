@@ -1,5 +1,6 @@
 import coinbaseproRest from '../coinbasepro.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 export default class coinbasepro extends coinbaseproRest {
     describe(): any;
     authenticate(): {
@@ -14,11 +15,11 @@ export default class coinbasepro extends coinbaseproRest {
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    handleTrade(client: any, message: any): any;
-    handleMyTrade(client: any, message: any): any;
+    handleTrade(client: Client, message: any): any;
+    handleMyTrade(client: Client, message: any): any;
     parseWsTrade(trade: any): import("../base/types.js").Trade;
     parseWsOrderStatus(status: any): string;
-    handleOrder(client: any, message: any): void;
+    handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any): {
         info: any;
         symbol: any;
@@ -43,7 +44,7 @@ export default class coinbasepro extends coinbaseproRest {
         fee: any;
         trades: any;
     };
-    handleTicker(client: any, message: any): any;
+    handleTicker(client: Client, message: any): any;
     parseTicker(ticker: any, market?: any): import("../base/types.js").Ticker | {
         symbol: any;
         timestamp: number;
@@ -68,7 +69,7 @@ export default class coinbasepro extends coinbaseproRest {
     };
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBook(client: any, message: any): void;
-    handleSubscriptionStatus(client: any, message: any): any;
-    handleMessage(client: any, message: any): any;
+    handleOrderBook(client: Client, message: any): void;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): any;
 }

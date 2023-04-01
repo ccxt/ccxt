@@ -291,7 +291,7 @@ export default class paymium extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name paymium#createDepositAddress
@@ -313,7 +313,7 @@ export default class paymium extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name paymium#fetchDepositAddress
@@ -413,7 +413,7 @@ export default class paymium extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name paymium#cancelOrder
@@ -429,7 +429,7 @@ export default class paymium extends Exchange {
         return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name paymium#transfer

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\delta as Exchange;
 
 class delta extends Exchange {
 
@@ -1398,7 +1399,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1435,7 +1436,7 @@ class delta extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1675,7 +1676,7 @@ class delta extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -1799,7 +1800,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code

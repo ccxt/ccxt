@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\alpaca as Exchange;
 
 class alpaca extends Exchange {
 
@@ -575,7 +576,7 @@ class alpaca extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -596,7 +597,7 @@ class alpaca extends Exchange {
         return $this->safe_value($response, 'message', array());
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in

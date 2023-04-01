@@ -807,7 +807,7 @@ export default class deribit extends Exchange {
         return this.parseBalance (result);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name deribit#createDepositAddress
@@ -845,7 +845,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name deribit#fetchDepositAddress
@@ -1586,7 +1586,7 @@ export default class deribit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOrder
@@ -1800,7 +1800,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
@@ -1828,7 +1828,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (order);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name deribit#cancelOrder
@@ -1930,7 +1930,7 @@ export default class deribit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOrderTrades
@@ -2063,7 +2063,7 @@ export default class deribit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchDeposits
@@ -2111,7 +2111,7 @@ export default class deribit extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchWithdrawals
@@ -2412,7 +2412,7 @@ export default class deribit extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    async fetchHistoricalVolatility (code, params = {}) {
+    async fetchHistoricalVolatility (code: string, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -2448,7 +2448,7 @@ export default class deribit extends Exchange {
         return result;
     }
 
-    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchTransfers
@@ -2509,7 +2509,7 @@ export default class deribit extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name deribit#transfer
@@ -2598,7 +2598,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name deribit#withdraw

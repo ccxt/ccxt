@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitfinex as Exchange;
 
 class bitfinex extends Exchange {
 
@@ -723,7 +724,7 @@ class bitfinex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -1066,7 +1067,7 @@ class bitfinex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $order = array(
             'order_id' => intval($id),
@@ -1090,7 +1091,7 @@ class bitfinex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1234,7 +1235,7 @@ class bitfinex extends Exchange {
         return $orders;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol not used by bitfinex fetchOrder
@@ -1314,7 +1315,7 @@ class bitfinex extends Exchange {
         throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
          * @param {string} $code unified currency $code of the currency for the deposit address
@@ -1328,7 +1329,7 @@ class bitfinex extends Exchange {
         return $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a currency associated with this account
          * @param {string} $code unified currency $code
@@ -1360,7 +1361,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
@@ -1495,7 +1496,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

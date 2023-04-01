@@ -6,6 +6,7 @@ import { AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -119,7 +120,7 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         arg: { channel: 'trades', instId: 'BTC-USDT' },
@@ -167,7 +168,7 @@ export default class okx extends okxRest {
         return await this.subscribe ('public', 'tickers', symbol, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         arg: { channel: 'tickers', instId: 'BTC-USDT' },
@@ -230,7 +231,7 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         arg: { channel: 'candle1m', instId: 'BTC-USDT' },
@@ -333,7 +334,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook, messageHash) {
+    handleOrderBookMessage (client: Client, message, orderbook, messageHash) {
         //
         //     {
         //         asks: [
@@ -385,7 +386,7 @@ export default class okx extends okxRest {
         return orderbook;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // snapshot
         //
@@ -568,7 +569,7 @@ export default class okx extends okxRest {
         return await this.subscribe ('private', 'account', undefined, params);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         arg: { channel: 'account' },
@@ -676,7 +677,7 @@ export default class okx extends okxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message, subscription = undefined) {
+    handleOrders (client: Client, message, subscription = undefined) {
         //
         //     {
         //         "arg":{
@@ -758,7 +759,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     { event: 'subscribe', arg: { channel: 'tickers', instId: 'BTC-USDT' } }
         //
@@ -767,7 +768,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //     { event: 'login', success: true }
         //
@@ -780,12 +781,12 @@ export default class okx extends okxRest {
         return 'ping';
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     { event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012' }
         //     { event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018' }
@@ -813,7 +814,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

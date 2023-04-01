@@ -599,7 +599,7 @@ export default class kucoinfutures extends kucoin {
         ];
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchDepositAddress
@@ -1134,7 +1134,7 @@ export default class kucoinfutures extends kucoin {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#cancelOrder
@@ -1600,7 +1600,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseBalance (response);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name kucoinfutures#transfer
@@ -1909,7 +1909,7 @@ export default class kucoinfutures extends kucoin {
         }, market);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchDeposits
@@ -1965,7 +1965,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchWithdrawals
@@ -2021,7 +2021,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchTransactionFee (code: string, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchTransactionFee
@@ -2034,7 +2034,7 @@ export default class kucoinfutures extends kucoin {
         return undefined;
     }
 
-    async fetchDepositWithdrawFee (code, params = {}) {
+    async fetchDepositWithdrawFee (code: string, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchDepositWithdrawFee
@@ -2046,7 +2046,7 @@ export default class kucoinfutures extends kucoin {
         throw new BadRequest (this.id + ' fetchDepositWithdrawFee() is not supported');
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         // throw new BadRequest (this.id + ' fetchLedger() is not supported yet');
         return undefined;
     }

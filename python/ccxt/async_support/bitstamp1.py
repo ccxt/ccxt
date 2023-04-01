@@ -304,7 +304,7 @@ class bitstamp1(Exchange):
             'id': id,
         })
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -323,7 +323,7 @@ class bitstamp1(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_order_status(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
         await self.load_markets()
         request = {
             'id': id,

@@ -1186,7 +1186,7 @@ class btcex(Exchange):
             'trades': trades,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         await self.sign_in()
         await self.load_markets()
         request = {
@@ -1358,7 +1358,7 @@ class btcex(Exchange):
         order = self.safe_value(result, 'order')
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         await self.sign_in()
         await self.load_markets()
         request = {
@@ -1489,7 +1489,7 @@ class btcex(Exchange):
         #
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if id is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a id argument')
         await self.load_markets()
@@ -1822,7 +1822,7 @@ class btcex(Exchange):
             'fee': None,
         }
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires the code argument')
         await self.sign_in()
@@ -1855,7 +1855,7 @@ class btcex(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires the code argument')
         await self.sign_in()
@@ -1888,7 +1888,7 @@ class btcex(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires the code argument')
         await self.sign_in()
@@ -2320,7 +2320,7 @@ class btcex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://docs.btcex.com/#asset-transfer

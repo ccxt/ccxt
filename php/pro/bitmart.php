@@ -149,7 +149,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         // {
         //     "data":array(
@@ -259,7 +259,7 @@ class bitmart extends \ccxt\async\bitmart {
         ), $market);
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         $table => 'spot/trade',
@@ -293,7 +293,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $message;
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $data => array(
@@ -347,7 +347,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         $data => array(
@@ -424,7 +424,7 @@ class bitmart extends \ccxt\async\bitmart {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
         //         $asks => array(
@@ -458,7 +458,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $orderbook;
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         $data => array(
@@ -535,14 +535,14 @@ class bitmart extends \ccxt\async\bitmart {
         return $future;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
         //
         return $message;
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //     array( event => 'login' )
         //
@@ -550,7 +550,7 @@ class bitmart extends \ccxt\async\bitmart {
         $client->resolve ($message, $messageHash);
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     array( event => 'error', $message => 'Invalid sign', $errorCode => 30013 )
         //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
@@ -578,7 +578,7 @@ class bitmart extends \ccxt\async\bitmart {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }

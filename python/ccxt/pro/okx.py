@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
@@ -115,7 +116,7 @@ class okx(ccxt.async_support.okx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         arg: {channel: 'trades', instId: 'BTC-USDT'},
@@ -157,7 +158,7 @@ class okx(ccxt.async_support.okx):
         """
         return await self.subscribe('public', 'tickers', symbol, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         arg: {channel: 'tickers', instId: 'BTC-USDT'},
@@ -214,7 +215,7 @@ class okx(ccxt.async_support.okx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         arg: {channel: 'candle1m', instId: 'BTC-USDT'},
@@ -307,7 +308,7 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook, messageHash):
+    def handle_order_book_message(self, client: Client, message, orderbook, messageHash):
         #
         #     {
         #         asks: [
@@ -353,7 +354,7 @@ class okx(ccxt.async_support.okx):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # snapshot
         #
@@ -524,7 +525,7 @@ class okx(ccxt.async_support.okx):
         await self.authenticate()
         return await self.subscribe('private', 'account', None, params)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         arg: {channel: 'account'},
@@ -625,7 +626,7 @@ class okx(ccxt.async_support.okx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message, subscription=None):
+    def handle_orders(self, client: Client, message, subscription=None):
         #
         #     {
         #         "arg":{
@@ -702,7 +703,7 @@ class okx(ccxt.async_support.okx):
                 messageHash = channel + ':' + marketIds[i]
                 client.resolve(self.orders, messageHash)
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {event: 'subscribe', arg: {channel: 'tickers', instId: 'BTC-USDT'}}
         #
@@ -710,7 +711,7 @@ class okx(ccxt.async_support.okx):
         # client.subscriptions[channel] = message
         return message
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #     {event: 'login', success: True}
         #
@@ -721,11 +722,11 @@ class okx(ccxt.async_support.okx):
         # instead it requires custom text-based ping-pong
         return 'ping'
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012'}
         #     {event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018'}
@@ -747,7 +748,7 @@ class okx(ccxt.async_support.okx):
                 return False
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if not self.handle_error_message(client, message):
             return
         #

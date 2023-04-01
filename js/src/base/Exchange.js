@@ -962,6 +962,9 @@ export default class Exchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
+        if ((subscribeHash === undefined) && (messageHash in client.futures)) {
+            return client.futures[messageHash];
+        }
         const future = client.future(messageHash);
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
@@ -973,7 +976,9 @@ export default class Exchange {
         // (connection established successfully)
         connected.then(() => {
             if (!client.subscriptions[subscribeHash]) {
-                client.subscriptions[subscribeHash] = subscription || true;
+                if (subscribeHash !== undefined) {
+                    client.subscriptions[subscribeHash] = subscription || true;
+                }
                 const options = this.safeValue(this.options, 'ws');
                 const cost = this.safeValue(options, 'cost', 1);
                 if (message) {

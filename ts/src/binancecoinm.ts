@@ -34,12 +34,12 @@ export default class binancecoinm extends binance {
         });
     }
 
-    async transferIn (code, amount, params = {}) {
+    async transferIn (code: string, amount, params = {}) {
         // transfer from spot wallet to coinm futures wallet
         return await this.futuresTransfer (code, amount, 3, params);
     }
 
-    async transferOut (code, amount, params = {}) {
+    async transferOut (code: string, amount, params = {}) {
         // transfer from coinm futures wallet to spot wallet
         return await this.futuresTransfer (code, amount, 4, params);
     }

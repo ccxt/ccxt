@@ -72,7 +72,7 @@ class ndax extends \ccxt\async\ndax {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         $payload = $this->safe_value($message, 'o', array());
         //
         //     {
@@ -146,7 +146,7 @@ class ndax extends \ccxt\async\ndax {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         $payload = $this->safe_value($message, 'o', array());
         //
         // initial snapshot
@@ -231,7 +231,7 @@ class ndax extends \ccxt\async\ndax {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         m => 1,
@@ -369,7 +369,7 @@ class ndax extends \ccxt\async\ndax {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         m => 3,
@@ -445,7 +445,7 @@ class ndax extends \ccxt\async\ndax {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_order_book_subscription($client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
         //
         //     {
         //         m => 1,
@@ -480,7 +480,7 @@ class ndax extends \ccxt\async\ndax {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         m => 1,
@@ -502,7 +502,7 @@ class ndax extends \ccxt\async\ndax {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         "m" => 0, // $message type, 0 request, 1 reply, 2 subscribe, 3 $event, unsubscribe, 5 error

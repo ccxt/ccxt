@@ -58,8 +58,8 @@ export default class bitget extends Exchange {
     };
     fetchMarketsByType(type: any, params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         info: any;
         txid: any;
@@ -80,7 +80,7 @@ export default class bitget extends Exchange {
         comment: any;
         fee: any;
     }>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         id: string;
         info: any;
@@ -103,7 +103,7 @@ export default class bitget extends Exchange {
         fee: any;
     };
     parseTransactionStatus(status: any): string;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
@@ -143,16 +143,16 @@ export default class bitget extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchCanceledAndClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         info: any;
         id: string;
@@ -171,7 +171,7 @@ export default class bitget extends Exchange {
         fee: number;
     };
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): any;
@@ -248,8 +248,8 @@ export default class bitget extends Exchange {
         datetime: string;
         info: any;
     }>;
-    fetchTransfers(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;

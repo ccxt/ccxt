@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\latoken as Exchange;
 
 class latoken extends Exchange {
 
@@ -1115,7 +1116,7 @@ class latoken extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol not used by latoken fetchOrder
@@ -1195,7 +1196,7 @@ class latoken extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1250,7 +1251,7 @@ class latoken extends Exchange {
         return $response;
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
@@ -1376,7 +1377,7 @@ class latoken extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal $transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
@@ -1423,7 +1424,7 @@ class latoken extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code

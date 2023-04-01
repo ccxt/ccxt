@@ -6,6 +6,7 @@ import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -68,7 +69,7 @@ export default class exmo extends exmoRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //  spot
         //     {
@@ -231,7 +232,7 @@ export default class exmo extends exmoRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //  spot
         //      {
@@ -291,7 +292,7 @@ export default class exmo extends exmoRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //      {
         //          ts: 1654206084001,
@@ -364,7 +365,7 @@ export default class exmo extends exmoRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //  spot
         //     {
@@ -486,7 +487,7 @@ export default class exmo extends exmoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "ts": 1574427585174,
@@ -558,7 +559,7 @@ export default class exmo extends exmoRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         // {
         //     ts: 1654206362552,
@@ -611,7 +612,7 @@ export default class exmo extends exmoRest {
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
 
-    handleSubscribed (client, message) {
+    handleSubscribed (client: Client, message) {
         //
         // {
         //     method: 'subscribe',
@@ -622,7 +623,7 @@ export default class exmo extends exmoRest {
         return message;
     }
 
-    handleInfo (client, message) {
+    handleInfo (client: Client, message) {
         //
         // {
         //     ts: 1654215731659,
@@ -635,7 +636,7 @@ export default class exmo extends exmoRest {
         return message;
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         //
         //     {
         //         method: 'login',

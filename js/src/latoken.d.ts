@@ -34,11 +34,11 @@ export default class latoken extends Exchange {
     parseOrder(order: any, market?: any): any;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -61,8 +61,8 @@ export default class latoken extends Exchange {
     };
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
-    fetchTransfers(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;

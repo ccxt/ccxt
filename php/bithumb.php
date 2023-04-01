@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bithumb as Exchange;
 
 class bithumb extends Exchange {
 
@@ -690,7 +691,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -895,7 +896,7 @@ class bithumb extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -930,7 +931,7 @@ class bithumb extends Exchange {
         return $this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params));
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\poloniex as Exchange;
 
 class poloniex extends Exchange {
 
@@ -1093,7 +1094,7 @@ class poloniex extends Exchange {
         return array( $request, $params );
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
@@ -1129,7 +1130,7 @@ class poloniex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1187,7 +1188,7 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an order by it's $id
          * @param {string} $id order $id
@@ -1226,14 +1227,14 @@ class poloniex extends Exchange {
         ));
     }
 
-    public function fetch_order_status($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {
         $this->load_markets();
         $orders = $this->fetch_open_orders($symbol, null, null, $params);
         $indexed = $this->index_by($orders, 'id');
         return (is_array($indexed) && array_key_exists($id, $indexed)) ? 'open' : 'closed';
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
          * @param {string} $id order $id
@@ -1410,7 +1411,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
@@ -1458,7 +1459,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1506,7 +1507,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -1572,7 +1573,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1612,7 +1613,7 @@ class poloniex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_transactions_helper($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
         $now = $this->seconds();
@@ -1696,7 +1697,7 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of $deposits and $withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
@@ -1719,7 +1720,7 @@ class poloniex extends Exchange {
         return $this->filter_by_currency_since_limit($this->sort_by($transactions, 'timestamp'), $code, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -1863,7 +1864,7 @@ class poloniex extends Exchange {
         return $depositWithdrawFee;
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $deposits made to an account
          * @param {string|null} $code unified $currency $code

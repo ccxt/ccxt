@@ -416,7 +416,7 @@ class bit2c(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -451,7 +451,7 @@ class bit2c(Exchange):
         bids = self.safe_value(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified market symbol
@@ -753,7 +753,7 @@ class bit2c(Exchange):
     def is_fiat(self, code):
         return code == 'NIS'
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code

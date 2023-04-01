@@ -4,7 +4,7 @@ export default class huobijp extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<{}>;
-    fetchTradingLimitsById(id: any, params?: {}): Promise<{
+    fetchTradingLimitsById(id: string, params?: {}): Promise<{
         info: any;
         limits: {
             amount: {
@@ -43,7 +43,7 @@ export default class huobijp extends Exchange {
         cost: number;
         fee: any;
     };
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: number, params?: {}): Promise<any>;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -53,7 +53,7 @@ export default class huobijp extends Exchange {
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrdersByStates(states: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOpenOrdersV1(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -81,7 +81,7 @@ export default class huobijp extends Exchange {
         clientOrderId: any;
         average: any;
     }>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     currencyToPrecision(code: any, fee: any, networkCode?: any): any;
@@ -93,8 +93,8 @@ export default class huobijp extends Exchange {
         network: string;
         info: any;
     };
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -120,7 +120,7 @@ export default class huobijp extends Exchange {
         };
     };
     parseTransactionStatus(status: any): string;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;

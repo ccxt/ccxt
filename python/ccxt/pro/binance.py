@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -244,7 +245,7 @@ class binance(ccxt.async_support.binance):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         u = self.safe_integer(message, 'u')
         self.handle_deltas(orderbook['asks'], self.safe_value(message, 'a', []))
         self.handle_deltas(orderbook['bids'], self.safe_value(message, 'b', []))
@@ -254,7 +255,7 @@ class binance(ccxt.async_support.binance):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -337,7 +338,7 @@ class binance(ccxt.async_support.binance):
                 del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
-    def handle_order_book_subscription(self, client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit', defaultLimit)
@@ -347,7 +348,7 @@ class binance(ccxt.async_support.binance):
         # fetch the snapshot in a separate async call
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         "result": null,
@@ -552,7 +553,7 @@ class binance(ccxt.async_support.binance):
             'fee': fee,
         })
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
         index = client.url.find('/stream')
@@ -614,7 +615,7 @@ class binance(ccxt.async_support.binance):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         e: 'kline',
@@ -853,7 +854,7 @@ class binance(ccxt.async_support.binance):
         }
         return ticker
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         # 24hr rolling window ticker statistics for a single symbol
         # These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
@@ -902,7 +903,7 @@ class binance(ccxt.async_support.binance):
             # watch bookTickers
             client.resolve([result], '!' + 'bookTicker@arr')
 
-    def handle_tickers(self, client, message):
+    def handle_tickers(self, client: Client, message):
         event = None
         index = client.url.find('/stream')
         marketType = 'spot' if (index >= 0) else 'contract'
@@ -1019,7 +1020,7 @@ class binance(ccxt.async_support.binance):
                 if subscribeType == type:
                     return self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
-    def set_balance_cache(self, client, type):
+    def set_balance_cache(self, client: Client, type):
         if type in client.subscriptions:
             return None
         options = self.safe_value(self.options, 'watchBalance')
@@ -1068,7 +1069,7 @@ class binance(ccxt.async_support.binance):
         message = None
         return await self.watch(url, messageHash, message, type)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # sent upon a balance update not related to orders
         #
@@ -1342,7 +1343,7 @@ class binance(ccxt.async_support.binance):
             'trades': trades,
         })
 
-    def handle_order_update(self, client, message):
+    def handle_order_update(self, client: Client, message):
         #
         # spot
         #
@@ -1463,7 +1464,7 @@ class binance(ccxt.async_support.binance):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client: Client, message):
         messageHash = 'myTrades'
         executionType = self.safe_string(message, 'x')
         if executionType == 'TRADE':
@@ -1517,7 +1518,7 @@ class binance(ccxt.async_support.binance):
             messageHashSymbol = messageHash + ':' + symbol
             client.resolve(self.myTrades, messageHashSymbol)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         messageHash = 'orders'
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
@@ -1544,7 +1545,7 @@ class binance(ccxt.async_support.binance):
             messageHashSymbol = messageHash + ':' + symbol
             client.resolve(self.orders, messageHashSymbol)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         methods = {
             'depthUpdate': self.handle_order_book,
             'trade': self.handle_trade,

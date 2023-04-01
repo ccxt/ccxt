@@ -810,7 +810,7 @@ export default class novadax extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name novadax#cancelOrder
@@ -838,7 +838,7 @@ export default class novadax extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name novadax#fetchOrder
@@ -971,7 +971,7 @@ export default class novadax extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name novadax#fetchOrderTrades
@@ -1105,7 +1105,7 @@ export default class novadax extends Exchange {
         }, market);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name novadax#transfer
@@ -1182,7 +1182,7 @@ export default class novadax extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name novadax#withdraw
@@ -1255,7 +1255,7 @@ export default class novadax extends Exchange {
         return result;
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name novadax#fetchDeposits
@@ -1272,7 +1272,7 @@ export default class novadax extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name novadax#fetchWithdrawals
@@ -1289,7 +1289,7 @@ export default class novadax extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name novadax#fetchTransactions

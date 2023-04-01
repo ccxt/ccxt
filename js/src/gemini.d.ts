@@ -68,12 +68,12 @@ export default class gemini extends Exchange {
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -94,7 +94,7 @@ export default class gemini extends Exchange {
         fee: any;
     }>;
     nonce(): number;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -123,7 +123,7 @@ export default class gemini extends Exchange {
         tag: any;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: any, params?: {}): Promise<{}>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
@@ -131,8 +131,8 @@ export default class gemini extends Exchange {
         headers: any;
     };
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
-    createDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    createDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: any;
         info: any;

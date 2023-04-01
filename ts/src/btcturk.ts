@@ -685,7 +685,7 @@ export default class btcturk extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#cancelOrder

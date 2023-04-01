@@ -1222,7 +1222,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOrder
@@ -1263,7 +1263,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchClosedOrder (id, symbol: string = undefined, params = {}) {
+    async fetchClosedOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchClosedOrder
@@ -1321,7 +1321,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOrderTrades
@@ -1389,7 +1389,7 @@ export default class stex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#cancelOrder
@@ -1545,7 +1545,7 @@ export default class stex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name stex#createDepositAddress
@@ -1628,7 +1628,7 @@ export default class stex extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name stex#fetchDepositAddress
@@ -1869,7 +1869,7 @@ export default class stex extends Exchange {
         };
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchDeposit
@@ -1920,7 +1920,7 @@ export default class stex extends Exchange {
         return this.parseTransaction (data);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchDeposits
@@ -1978,7 +1978,7 @@ export default class stex extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchWithdrawal
@@ -2036,7 +2036,7 @@ export default class stex extends Exchange {
         return this.parseTransaction (data);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchWithdrawals
@@ -2105,7 +2105,7 @@ export default class stex extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name stex#transfer
@@ -2341,7 +2341,7 @@ export default class stex extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name stex#withdraw

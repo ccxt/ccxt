@@ -1285,7 +1285,7 @@ class bitrue(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1398,7 +1398,7 @@ class bitrue(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1482,7 +1482,7 @@ class bitrue(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1548,7 +1548,7 @@ class bitrue(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1726,7 +1726,7 @@ class bitrue(Exchange):
             'fee': fee,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\ascendex as Exchange;
 
 class ascendex extends Exchange {
 
@@ -1561,7 +1562,7 @@ class ascendex extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -1954,7 +1955,7 @@ class ascendex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -2196,7 +2197,7 @@ class ascendex extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -2266,7 +2267,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified currency $code
@@ -2281,7 +2282,7 @@ class ascendex extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified currency $code
@@ -2296,7 +2297,7 @@ class ascendex extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
@@ -2390,6 +2391,9 @@ class ascendex extends Exchange {
         $tag = $this->safe_string($destAddress, 'destTag');
         $timestamp = $this->safe_integer($transaction, 'time');
         $currencyId = $this->safe_string($transaction, 'asset');
+        $amountString = $this->safe_string($transaction, 'amount');
+        $feeCostString = $this->safe_string($transaction, 'commission');
+        $amountString = Precise::string_sub($amountString, $feeCostString);
         $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
@@ -2398,7 +2402,7 @@ class ascendex extends Exchange {
             'type' => $this->safe_string($transaction, 'transactionType'),
             'currency' => $code,
             'network' => null,
-            'amount' => $this->safe_number($transaction, 'amount'),
+            'amount' => $this->parse_number($amountString),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2412,7 +2416,7 @@ class ascendex extends Exchange {
             'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $this->safe_number($transaction, 'commission'),
+                'cost' => $this->parse_number($feeCostString),
                 'rate' => null,
             ),
         );
@@ -2838,7 +2842,7 @@ class ascendex extends Exchange {
         return $tiers;
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same $account
          * @param {string} $code unified $currency $code

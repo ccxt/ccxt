@@ -1851,7 +1851,7 @@ class mexc(Exchange):
         data = self.safe_string(response, 'data')
         return self.parse_order(data, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2292,7 +2292,7 @@ class mexc(Exchange):
             params['states'] = state
             return await self.fetch_orders(symbol, since, limit, params)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -3147,7 +3147,7 @@ class mexc(Exchange):
             trades = self.safe_value(response, 'data')
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -3633,7 +3633,7 @@ class mexc(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
@@ -3664,7 +3664,7 @@ class mexc(Exchange):
             })
         return result
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
@@ -3686,7 +3686,7 @@ class mexc(Exchange):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', consider creating one using the MEXC platform')
         return result
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
@@ -3739,7 +3739,7 @@ class mexc(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
@@ -4025,7 +4025,7 @@ class mexc(Exchange):
             'lastUpdateTimestamp': None,
         })
 
-    async def fetch_transfer(self, id, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfer(self, id: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
         await self.load_markets()
         if marketType == 'spot':
@@ -4051,7 +4051,7 @@ class mexc(Exchange):
         elif marketType == 'swap':
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
 
-    async def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -4129,7 +4129,7 @@ class mexc(Exchange):
             #
         return self.parse_transfers(resultList, currency, since, limit)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
@@ -4254,7 +4254,7 @@ class mexc(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
@@ -4318,7 +4318,7 @@ class mexc(Exchange):
             'hedged': (positionMode == 1),
         }
 
-    async def borrow_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
@@ -4350,7 +4350,7 @@ class mexc(Exchange):
             'symbol': symbol,
         })
 
-    async def repay_margin(self, code, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment

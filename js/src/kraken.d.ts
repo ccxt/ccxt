@@ -51,9 +51,9 @@ export default class kraken extends Exchange {
             currency: any;
         };
     };
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchLedgerEntriesByIds(ids: any, code?: any, params?: {}): Promise<any>;
-    fetchLedgerEntry(id: any, code?: any, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedgerEntriesByIds(ids: any, code?: string, params?: {}): Promise<any>;
+    fetchLedgerEntry(id: string, code?: string, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
@@ -64,12 +64,12 @@ export default class kraken extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     orderRequest(method: any, symbol: any, type: any, request: any, price?: any, params?: {}): any[];
-    editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     fetchOrdersByIds(ids: any, symbol?: string, params?: {}): Promise<any[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
@@ -98,19 +98,19 @@ export default class kraken extends Exchange {
             cost: number;
         };
     };
-    parseTransactionsByType(type: any, transactions: any, code?: any, since?: Int, limit?: Int): any;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseTransactionsByType(type: any, transactions: any, code?: string, since?: Int, limit?: Int): any;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchTime(params?: {}): Promise<number>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    createDepositAddress(code: any, params?: {}): Promise<{
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    createDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
         network: any;
         info: any;
     }>;
-    fetchDepositMethods(code: any, params?: {}): Promise<any>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositMethods(code: string, params?: {}): Promise<any>;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
@@ -124,7 +124,7 @@ export default class kraken extends Exchange {
         network: any;
         info: any;
     };
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: string;
         currency: any;

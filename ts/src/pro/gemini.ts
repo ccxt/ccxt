@@ -5,6 +5,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 import { ExchangeError } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -105,7 +106,7 @@ export default class gemini extends geminiRest {
         }, market);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         type: 'trade',
@@ -130,7 +131,7 @@ export default class gemini extends geminiRest {
         client.resolve (stored, messageHash);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         type: 'l2_updates',
@@ -224,7 +225,7 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         "type": "candles_15m_updates",
@@ -313,7 +314,7 @@ export default class gemini extends geminiRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         const changes = this.safeValue (message, 'changes', []);
         const marketId = this.safeStringLower (message, 'symbol');
         const market = this.safeMarket (marketId);
@@ -337,7 +338,7 @@ export default class gemini extends geminiRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleL2Updates (client, message) {
+    handleL2Updates (client: Client, message) {
         //
         //     {
         //         type: 'l2_updates',
@@ -409,7 +410,7 @@ export default class gemini extends geminiRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleHeartbeat (client, message) {
+    handleHeartbeat (client: Client, message) {
         //
         //     {
         //         type: 'heartbeat',
@@ -422,7 +423,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    handleSubscription (client, message) {
+    handleSubscription (client: Client, message) {
         //
         //     {
         //         type: 'subscription_ack',
@@ -436,7 +437,7 @@ export default class gemini extends geminiRest {
         return message;
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //     [
         //         {
@@ -556,7 +557,7 @@ export default class gemini extends geminiRest {
         return this.safeString (types, type, type);
     }
 
-    handleError (client, message) {
+    handleError (client: Client, message) {
         //
         //     {
         //         reason: 'NoValidTradingPairs',
@@ -566,7 +567,7 @@ export default class gemini extends geminiRest {
         throw new ExchangeError (this.json (message));
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //  public
         //     {

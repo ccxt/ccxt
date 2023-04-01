@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitbank as Exchange;
 
 class bitbank extends Exchange {
 
@@ -629,7 +630,7 @@ class bitbank extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -648,7 +649,7 @@ class bitbank extends Exchange {
         return $data;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the $market the order was made in
@@ -720,7 +721,7 @@ class bitbank extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -747,7 +748,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

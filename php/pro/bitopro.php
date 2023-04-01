@@ -84,7 +84,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         $event => 'ORDER_BOOK',
@@ -143,7 +143,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         $event => 'TRADE',
@@ -198,7 +198,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $event => 'TICKER',
@@ -280,7 +280,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         $event => 'ACCOUNT_BALANCE',
@@ -321,7 +321,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve ($this->balance, $event);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $methods = array(
             'TRADE' => array($this, 'handle_trade'),
             'TICKER' => array($this, 'handle_ticker'),

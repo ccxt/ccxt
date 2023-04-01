@@ -669,7 +669,7 @@ class tidex(Exchange):
             'trades': None,
         }, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -732,7 +732,7 @@ class tidex(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by tidex fetchOrder
@@ -823,7 +823,7 @@ class tidex(Exchange):
         trades = self.safe_value(response, 'return', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

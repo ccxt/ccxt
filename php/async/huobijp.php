@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\huobijp as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadSymbol;
@@ -361,7 +362,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_limits_by_id($id, $params = array ()) {
+    public function fetch_trading_limits_by_id(string $id, $params = array ()) {
         return Async\async(function () use ($id, $params) {
             $request = array(
                 'symbol' => $id,
@@ -824,7 +825,7 @@ class huobijp extends Exchange {
         );
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -1179,7 +1180,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -1481,7 +1482,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1638,7 +1639,7 @@ class huobijp extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1672,7 +1673,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1809,7 +1810,7 @@ class huobijp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

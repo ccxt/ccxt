@@ -2042,7 +2042,7 @@ export default class okcoin extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#cancelOrder
@@ -2277,7 +2277,7 @@ export default class okcoin extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOrder
@@ -2548,7 +2548,7 @@ export default class okcoin extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name okcoin#fetchDepositAddress
@@ -2580,7 +2580,7 @@ export default class okcoin extends Exchange {
         return address;
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name okcoin#transfer
@@ -2660,7 +2660,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#withdraw
@@ -2713,7 +2713,7 @@ export default class okcoin extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchDeposits
@@ -2737,7 +2737,7 @@ export default class okcoin extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchWithdrawals
@@ -3156,7 +3156,7 @@ export default class okcoin extends Exchange {
         return this.parseMyTrades (response, market, since, limit, params) as any;
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOrderTrades
@@ -3465,7 +3465,7 @@ export default class okcoin extends Exchange {
         return response;
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchLedger

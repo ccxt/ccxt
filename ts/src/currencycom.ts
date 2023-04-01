@@ -1406,7 +1406,7 @@ export default class currencycom extends Exchange {
         return this.parseOrders (response, market, since, limit, params);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#cancelOrder
@@ -1493,7 +1493,7 @@ export default class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchDeposits
@@ -1507,7 +1507,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchWithdrawals
@@ -1521,7 +1521,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Withdrawals', code, since, limit, params);
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchTransactions
@@ -1535,7 +1535,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Transactions', code, since, limit, params);
     }
 
-    async fetchTransactionsByMethod (method, code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsByMethod (method, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -1636,7 +1636,7 @@ export default class currencycom extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchLedger
@@ -1765,7 +1765,7 @@ export default class currencycom extends Exchange {
         return this.safeNumber (response, 'value');
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name currencycom#fetchDepositAddress

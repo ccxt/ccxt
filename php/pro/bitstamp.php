@@ -73,7 +73,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -232,7 +232,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         ), $market);
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         $data => array(
@@ -303,7 +303,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         // {
         //     "data":array(
@@ -383,7 +383,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         ), $market);
     }
 
-    public function handle_order_book_subscription($client, $message) {
+    public function handle_order_book_subscription(Client $client, $message) {
         $channel = $this->safe_string($message, 'channel');
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 3);
@@ -391,7 +391,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $this->orderbooks[$symbol] = $this->order_book();
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         'event' => "bts:subscription_succeeded",
@@ -410,7 +410,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_subject($client, $message) {
+    public function handle_subject(Client $client, $message) {
         //
         //     {
         //         data => array(
@@ -463,7 +463,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         // {
         //     $event => 'bts:error',
         //     channel => '',
@@ -479,7 +479,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }

@@ -808,7 +808,7 @@ class bitfinex2(Exchange):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1563,7 +1563,7 @@ class bitfinex2(Exchange):
         orders = self.safe_value(response, 4, [])
         return self.parse_orders(orders)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1590,7 +1590,7 @@ class bitfinex2(Exchange):
         order = self.safe_value(response, 4)
         return self.parse_order(order)
 
-    async def fetch_open_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1607,7 +1607,7 @@ class bitfinex2(Exchange):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    async def fetch_closed_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_closed_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1747,7 +1747,7 @@ class bitfinex2(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1796,7 +1796,7 @@ class bitfinex2(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1809,7 +1809,7 @@ class bitfinex2(Exchange):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2112,7 +2112,7 @@ class bitfinex2(Exchange):
             result[symbol] = fee
         return result
 
-    async def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -2164,7 +2164,7 @@ class bitfinex2(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2401,7 +2401,7 @@ class bitfinex2(Exchange):
             'info': item,
         }
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None

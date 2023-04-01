@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\currencycom as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
@@ -1410,7 +1411,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1497,7 +1498,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1511,7 +1512,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1525,7 +1526,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1539,7 +1540,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions_by_method($method, $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions_by_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($method, $code, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array();
@@ -1642,7 +1643,7 @@ class currencycom extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1771,7 +1772,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account

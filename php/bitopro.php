@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitopro as Exchange;
 
 class bitopro extends Exchange {
 
@@ -1016,7 +1017,7 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1109,7 +1110,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1373,7 +1374,7 @@ class bitopro extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -1423,7 +1424,7 @@ class bitopro extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -1472,7 +1473,7 @@ class bitopro extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
@@ -1510,7 +1511,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

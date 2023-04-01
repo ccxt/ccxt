@@ -1218,7 +1218,7 @@ export default class zb extends Exchange {
         return this.parseDepositAddresses (datas, codes);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name zb#fetchDepositAddress
@@ -1965,7 +1965,7 @@ export default class zb extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#cancelOrder
@@ -2046,7 +2046,7 @@ export default class zb extends Exchange {
         return await this[method] (this.extend (request, query));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchOrder
@@ -3298,7 +3298,7 @@ export default class zb extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name zb#withdraw
@@ -3351,7 +3351,7 @@ export default class zb extends Exchange {
         });
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchWithdrawals
@@ -3409,7 +3409,7 @@ export default class zb extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchDeposits
@@ -3803,7 +3803,7 @@ export default class zb extends Exchange {
         };
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchLedger
@@ -3864,7 +3864,7 @@ export default class zb extends Exchange {
         return this.parseLedger (list, currency, since, limit);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name zb#transfer
@@ -4072,7 +4072,7 @@ export default class zb extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 0, params);
     }
 
-    async fetchBorrowRate (code, params = {}) {
+    async fetchBorrowRate (code: string, params = {}) {
         /**
          * @method
          * @name zb#fetchBorrowRate
@@ -4218,7 +4218,7 @@ export default class zb extends Exchange {
         return response;
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name zb#borrowMargin

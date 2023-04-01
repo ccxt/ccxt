@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import json
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 
 
@@ -48,7 +49,7 @@ class ripio(ccxt.async_support.ripio):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message, subscription):
+    def handle_trade(self, client: Client, message, subscription):
         #
         #     {
         #         messageId: 'CAAQAA==',
@@ -108,7 +109,7 @@ class ripio(ccxt.async_support.ripio):
         }
         return await self.watch(url, messageHash, None, messageHash, subscription)
 
-    def handle_ticker(self, client, message, subscription):
+    def handle_ticker(self, client: Client, message, subscription):
         #
         #     {
         #         messageId: 'CAAQAA==',
@@ -191,7 +192,7 @@ class ripio(ccxt.async_support.ripio):
         except Exception as e:
             client.reject(e, messageHash)
 
-    def handle_order_book(self, client, message, subscription):
+    def handle_order_book(self, client: Client, message, subscription):
         messageHash = self.safe_string(subscription, 'messageHash')
         symbol = self.safe_string(subscription, 'symbol')
         orderbook = self.safe_value(self.orderbooks, symbol)
@@ -204,7 +205,7 @@ class ripio(ccxt.async_support.ripio):
             client.resolve(orderbook, messageHash)
         return message
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
         #         messageId: 'CAAQAA==',
@@ -253,7 +254,7 @@ class ripio(ccxt.async_support.ripio):
         # the exchange requires acknowledging each received message
         await client.send({'messageId': messageId})
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         #     {
         #         messageId: 'CAAQAA==',

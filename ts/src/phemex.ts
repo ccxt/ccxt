@@ -2391,7 +2391,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name phemex#editOrder
@@ -2466,7 +2466,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#cancelOrder
@@ -2538,7 +2538,7 @@ export default class phemex extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOrder
@@ -2903,7 +2903,7 @@ export default class phemex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name phemex#fetchDepositAddress
@@ -2951,7 +2951,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchDeposits
@@ -2992,7 +2992,7 @@ export default class phemex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchWithdrawals
@@ -3890,7 +3890,7 @@ export default class phemex extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name phemex#transfer
@@ -3976,7 +3976,7 @@ export default class phemex extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchTransfers

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\coinex as Exchange;
 
 class coinex extends Exchange {
 
@@ -1946,7 +1947,7 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -2139,7 +2140,7 @@ class coinex extends Exchange {
         return $response;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -2500,7 +2501,7 @@ class coinex extends Exchange {
         return $this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit address
          * @param {string} $code unified $currency $code of the $currency for the deposit address
@@ -2531,7 +2532,7 @@ class coinex extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -3557,7 +3558,7 @@ class coinex extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -3790,7 +3791,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -3899,7 +3900,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal $transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred
@@ -3982,7 +3983,7 @@ class coinex extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -4048,7 +4049,7 @@ class coinex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -4143,7 +4144,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         /**
          * fetch the rate of interest to borrow a currency for margin trading
          * @param {string} $code unified currency $code
@@ -4236,7 +4237,7 @@ class coinex extends Exchange {
         return $rates;
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -4325,7 +4326,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
@@ -4364,7 +4365,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat

@@ -863,7 +863,7 @@ export default class coinsph extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOrderTrades
@@ -1127,7 +1127,7 @@ export default class coinsph extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOrder
@@ -1202,7 +1202,7 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#cancelOrder
@@ -1495,7 +1495,7 @@ export default class coinsph extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#withdraw
@@ -1525,7 +1525,7 @@ export default class coinsph extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async deposit (code, amount, address, tag = undefined, params = {}) {
+    async deposit (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#deposit
@@ -1555,7 +1555,7 @@ export default class coinsph extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchDeposits
@@ -1584,7 +1584,7 @@ export default class coinsph extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchWithdrawals

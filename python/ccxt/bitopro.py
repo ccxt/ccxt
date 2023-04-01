@@ -984,7 +984,7 @@ class bitopro(Exchange):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1071,7 +1071,7 @@ class bitopro(Exchange):
         #
         return result
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1321,7 +1321,7 @@ class bitopro(Exchange):
             },
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1367,7 +1367,7 @@ class bitopro(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1412,7 +1412,7 @@ class bitopro(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1448,7 +1448,7 @@ class bitopro(Exchange):
         #
         return self.parse_transaction(result, currency)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

@@ -390,7 +390,7 @@ class coinspot(Exchange):
         }
         return await getattr(self, method)(self.extend(request, params))
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id

@@ -1587,7 +1587,7 @@ export default class ascendex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchOrder
@@ -1986,7 +1986,7 @@ export default class ascendex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#cancelOrder
@@ -2232,7 +2232,7 @@ export default class ascendex extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name ascendex#fetchDepositAddress
@@ -2304,7 +2304,7 @@ export default class ascendex extends Exchange {
         });
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchDeposits
@@ -2321,7 +2321,7 @@ export default class ascendex extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchWithdrawals
@@ -2338,7 +2338,7 @@ export default class ascendex extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchTransactions
@@ -2434,6 +2434,9 @@ export default class ascendex extends Exchange {
         const tag = this.safeString (destAddress, 'destTag');
         const timestamp = this.safeInteger (transaction, 'time');
         const currencyId = this.safeString (transaction, 'asset');
+        let amountString = this.safeString (transaction, 'amount');
+        const feeCostString = this.safeString (transaction, 'commission');
+        amountString = Precise.stringSub (amountString, feeCostString);
         const code = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transaction,
@@ -2442,7 +2445,7 @@ export default class ascendex extends Exchange {
             'type': this.safeString (transaction, 'transactionType'),
             'currency': code,
             'network': undefined,
-            'amount': this.safeNumber (transaction, 'amount'),
+            'amount': this.parseNumber (amountString),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2456,7 +2459,7 @@ export default class ascendex extends Exchange {
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': this.safeNumber (transaction, 'commission'),
+                'cost': this.parseNumber (feeCostString),
                 'rate': undefined,
             },
         };
@@ -2896,7 +2899,7 @@ export default class ascendex extends Exchange {
         return tiers;
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name ascendex#transfer

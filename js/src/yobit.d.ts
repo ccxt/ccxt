@@ -14,26 +14,26 @@ export default class yobit extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    createDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    createDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: any;
         info: any;
     }>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
-        currency: any;
+    fetchDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
         address: string;
         tag: any;
         network: any;
         info: any;
     }>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;
         id: any;
     }>;

@@ -19,12 +19,12 @@ export default class probit extends Exchange {
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     costToPrecision(symbol: any, cost: any): any;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
         address: string;
@@ -32,7 +32,7 @@ export default class probit extends Exchange {
         network: string;
         info: any;
     };
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: string;
@@ -40,7 +40,7 @@ export default class probit extends Exchange {
         info: any;
     }>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    withdraw(code: any, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         currency: any;
         amount: number;

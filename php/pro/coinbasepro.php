@@ -198,7 +198,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         $type => 'match',
@@ -234,7 +234,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         return $message;
     }
 
-    public function handle_my_trade($client, $message) {
+    public function handle_my_trade(Client $client, $message) {
         $marketId = $this->safe_string($message, 'product_id');
         if ($marketId !== null) {
             $trade = $this->parse_ws_trade($message);
@@ -336,7 +336,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         return $this->safe_string($statuses, $status, 'open');
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         // Order is created
         //
@@ -555,7 +555,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         );
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $type => 'ticker',
@@ -653,7 +653,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         // first $message (snapshot)
         //
@@ -718,7 +718,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         type => 'subscriptions',
@@ -733,7 +733,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $type = $this->safe_string($message, 'type');
         $methods = array(
             'snapshot' => array($this, 'handle_order_book'),

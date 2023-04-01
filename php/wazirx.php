@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\wazirx as Exchange;
 
 class wazirx extends Exchange {
 
@@ -731,7 +732,7 @@ class wazirx extends Exchange {
         return $this->privateDeleteOpenOrders (array_merge($request, $params));
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id

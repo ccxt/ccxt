@@ -365,7 +365,7 @@ export default class hitbtc extends Exchange {
         return result;
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name hitbtc#transfer
@@ -827,7 +827,7 @@ export default class hitbtc extends Exchange {
         }, market);
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchTransactions
@@ -1019,7 +1019,7 @@ export default class hitbtc extends Exchange {
         return order;
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
@@ -1043,7 +1043,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#cancelOrder
@@ -1164,7 +1164,7 @@ export default class hitbtc extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchOrder
@@ -1188,7 +1188,7 @@ export default class hitbtc extends Exchange {
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
-    async fetchOpenOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchOpenOrder
@@ -1330,7 +1330,7 @@ export default class hitbtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchOrderTrades
@@ -1361,7 +1361,7 @@ export default class hitbtc extends Exchange {
         throw new OrderNotFound (this.id + ' order ' + id + ' not found, ' + this.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]');
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name hitbtc#createDepositAddress
@@ -1387,7 +1387,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchDepositAddress
@@ -1421,7 +1421,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async convertCurrencyNetwork (code, amount, fromNetwork, toNetwork, params) {
+    async convertCurrencyNetwork (code: string, amount, fromNetwork, toNetwork, params) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networks = this.safeValue (this.options, 'networks', {});
@@ -1441,7 +1441,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#withdraw

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\okx as Exchange;
 
 class okx extends Exchange {
 
@@ -2259,7 +2260,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * edit a trade $order
          * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-$order
@@ -2321,7 +2322,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -2666,7 +2667,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an $order by the $id
          * @param {string} $id the $order $id
@@ -3349,7 +3350,7 @@ class okx extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit, $query);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -3369,7 +3370,7 @@ class okx extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
@@ -3712,7 +3713,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
@@ -3752,7 +3753,7 @@ class okx extends Exchange {
         return $this->index_by($parsed, 'network');
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
          * @param {string} $code unified currency $code
@@ -3791,7 +3792,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -3860,7 +3861,7 @@ class okx extends Exchange {
         return $this->parse_transaction($transaction, $currency);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -3932,7 +3933,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a $currency $deposit via the $deposit $id
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$deposit-history
@@ -3956,7 +3957,7 @@ class okx extends Exchange {
         return $this->parse_transaction($deposit, $currency);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -4020,7 +4021,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a $currency $withdrawal via the $withdrawal $id
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$withdrawal-history
@@ -4538,7 +4539,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
@@ -4648,7 +4649,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_transfer($id, $code = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?string $code = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             'transId' => $id,
@@ -5133,7 +5134,7 @@ class okx extends Exchange {
         return $rates;
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         /**
          * fetch the $rate of interest to borrow a $currency for margin trading
          * @param {string} $code unified $currency $code
@@ -5269,7 +5270,7 @@ class okx extends Exchange {
         return $this->parse_borrow_rate_histories($data, $codes, $since, $limit);
     }
 
-    public function fetch_borrow_rate_history($code, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} $code unified $currency $code
@@ -5480,7 +5481,7 @@ class okx extends Exchange {
         return $tiers;
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$interest-accrued-$data
@@ -5561,7 +5562,7 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a $loan to borrow margin
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
@@ -5604,7 +5605,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay

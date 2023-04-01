@@ -810,7 +810,7 @@ export default class woo extends Exchange {
         );
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name woo#editOrder
@@ -854,7 +854,7 @@ export default class woo extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name woo#cancelOrder
@@ -923,7 +923,7 @@ export default class woo extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrder
@@ -1231,7 +1231,7 @@ export default class woo extends Exchange {
         ];
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrderTrades
@@ -1424,7 +1424,7 @@ export default class woo extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name woo#fetchDepositAddress
@@ -1461,7 +1461,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async getAssetHistoryRows (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async getAssetHistoryRows (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { };
         let currency = undefined;
@@ -1518,7 +1518,7 @@ export default class woo extends Exchange {
         return [ currency, this.safeValue (response, 'rows', {}) ];
     }
 
-    async fetchLedger (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchLedger
@@ -1585,7 +1585,7 @@ export default class woo extends Exchange {
         return currency;
     }
 
-    async fetchDeposits (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchDeposits
@@ -1602,7 +1602,7 @@ export default class woo extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchWithdrawals (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchWithdrawals
@@ -1619,7 +1619,7 @@ export default class woo extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
-    async fetchTransactions (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchTransactions
@@ -1691,7 +1691,7 @@ export default class woo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name woo#transfer
@@ -1729,7 +1729,7 @@ export default class woo extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchTransfers
@@ -1821,7 +1821,7 @@ export default class woo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name woo#withdraw
@@ -1864,7 +1864,7 @@ export default class woo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name woo#repayMargin

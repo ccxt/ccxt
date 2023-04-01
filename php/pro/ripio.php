@@ -52,7 +52,7 @@ class ripio extends \ccxt\async\ripio {
         }) ();
     }
 
-    public function handle_trade($client, $message, $subscription) {
+    public function handle_trade(Client $client, $message, $subscription) {
         //
         //     {
         //         messageId => 'CAAQAA==',
@@ -118,7 +118,7 @@ class ripio extends \ccxt\async\ripio {
         }) ();
     }
 
-    public function handle_ticker($client, $message, $subscription) {
+    public function handle_ticker(Client $client, $message, $subscription) {
         //
         //     {
         //         messageId => 'CAAQAA==',
@@ -213,7 +213,7 @@ class ripio extends \ccxt\async\ripio {
         }) ();
     }
 
-    public function handle_order_book($client, $message, $subscription) {
+    public function handle_order_book(Client $client, $message, $subscription) {
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $symbol = $this->safe_string($subscription, 'symbol');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -229,7 +229,7 @@ class ripio extends \ccxt\async\ripio {
         return $message;
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
         //         messageId => 'CAAQAA==',
@@ -287,7 +287,7 @@ class ripio extends \ccxt\async\ripio {
         }) ();
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         $messageId => 'CAAQAA==',

@@ -427,7 +427,7 @@ class btcalpha(Exchange):
         trades = await self.publicGetExchanges(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -453,7 +453,7 @@ class btcalpha(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -716,7 +716,7 @@ class btcalpha(Exchange):
             'amount': self.parse_number(amount),
         })
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -730,7 +730,7 @@ class btcalpha(Exchange):
         response = await self.privatePostOrderCancel(self.extend(request, params))
         return response
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by btcalpha fetchOrder

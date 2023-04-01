@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\kucoinfutures as kucoin;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
@@ -603,7 +604,7 @@ class kucoinfutures extends kucoin {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1138,7 +1139,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1604,7 +1605,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -1913,7 +1914,7 @@ class kucoinfutures extends kucoin {
         ), $market);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1969,7 +1970,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2025,7 +2026,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         /**
          * *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} $code unified currency $code
@@ -2036,7 +2037,7 @@ class kucoinfutures extends kucoin {
         return null;
     }
 
-    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
         /**
          * Not supported
          * @param {string} $code unified currency $code
@@ -2046,7 +2047,7 @@ class kucoinfutures extends kucoin {
         throw new BadRequest($this->id . ' fetchDepositWithdrawFee() is not supported');
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         // throw new BadRequest($this->id . ' fetchLedger() is not supported yet');
         return null;
     }

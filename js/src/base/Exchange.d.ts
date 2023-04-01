@@ -507,7 +507,7 @@ export default class Exchange {
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    createDepositAddress(code: any, params?: {}): Promise<DepositAddressResponse>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
     getDefaultOptions(): {
@@ -599,14 +599,14 @@ export default class Exchange {
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitSellOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitOrder(id: any, symbol: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: any, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<void>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<void>;
     parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType): number[];
-    safeCurrency(currencyId?: string, currency?: string): any;
+    safeCurrency(currencyId?: string, currency?: any): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     checkRequiredCredentials(error?: boolean): boolean;
     oath(): string;
@@ -619,10 +619,10 @@ export default class Exchange {
     fetchStatus(params?: {}): Promise<any>;
     fetchFundingFee(code: string, params?: {}): Promise<any>;
     fetchFundingFees(codes?: string[], params?: {}): Promise<any>;
-    fetchTransactionFee(code: any, params?: {}): Promise<any>;
+    fetchTransactionFee(code: string, params?: {}): Promise<any>;
     fetchTransactionFees(codes?: string[], params?: {}): Promise<any>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
-    fetchDepositWithdrawFee(code: any, params?: {}): Promise<any>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
     getSupportedMapping(key: any, mapping?: {}): any;
     fetchBorrowRate(code: string, params?: {}): Promise<any>;
     handleOptionAndParams(params: any, methodName: any, optionName: any, defaultValue?: any): any[];
@@ -643,11 +643,11 @@ export default class Exchange {
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -685,7 +685,7 @@ export default class Exchange {
     createStopOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, stopPrice?: any, params?: {}): Promise<Order>;
     createStopLimitOrder(symbol: string, side: OrderSide, amount: any, price: any, stopPrice: any, params?: {}): Promise<Order>;
     createStopMarketOrder(symbol: string, side: OrderSide, amount: any, stopPrice: any, params?: {}): Promise<Order>;
-    safeCurrencyCode(currencyId?: string, currency?: string): any;
+    safeCurrencyCode(currencyId?: string, currency?: any): any;
     filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;

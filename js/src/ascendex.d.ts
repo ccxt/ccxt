@@ -28,10 +28,10 @@ export default class ascendex extends Exchange {
     parseOrder(order: any, market?: any): any;
     fetchTradingFees(params?: {}): Promise<{}>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
@@ -41,10 +41,10 @@ export default class ascendex extends Exchange {
         info: any;
     };
     safeNetwork(networkId: any): string;
-    fetchDepositAddress(code: any, params?: {}): Promise<any>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositAddress(code: string, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -108,7 +108,7 @@ export default class ascendex extends Exchange {
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: any;
         timestamp: number;

@@ -453,7 +453,7 @@ class zaif(Exchange):
             'id': str(response['return']['order_id']),
         }, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -558,7 +558,7 @@ class zaif(Exchange):
         response = self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

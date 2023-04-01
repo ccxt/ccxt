@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\ascendex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -1592,7 +1593,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1991,7 +1992,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -2237,7 +2238,7 @@ class ascendex extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -2309,7 +2310,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2326,7 +2327,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2343,7 +2344,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -2439,6 +2440,9 @@ class ascendex extends Exchange {
         $tag = $this->safe_string($destAddress, 'destTag');
         $timestamp = $this->safe_integer($transaction, 'time');
         $currencyId = $this->safe_string($transaction, 'asset');
+        $amountString = $this->safe_string($transaction, 'amount');
+        $feeCostString = $this->safe_string($transaction, 'commission');
+        $amountString = Precise::string_sub($amountString, $feeCostString);
         $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
@@ -2447,7 +2451,7 @@ class ascendex extends Exchange {
             'type' => $this->safe_string($transaction, 'transactionType'),
             'currency' => $code,
             'network' => null,
-            'amount' => $this->safe_number($transaction, 'amount'),
+            'amount' => $this->parse_number($amountString),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2461,7 +2465,7 @@ class ascendex extends Exchange {
             'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $this->safe_number($transaction, 'commission'),
+                'cost' => $this->parse_number($feeCostString),
                 'rate' => null,
             ),
         );
@@ -2903,7 +2907,7 @@ class ascendex extends Exchange {
         return $tiers;
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same $account

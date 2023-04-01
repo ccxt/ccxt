@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 
@@ -74,7 +75,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         e: 'BALANCE',
@@ -190,7 +191,7 @@ class bitrue(ccxt.async_support.bitrue):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         #    {
         #        e: 'ORDER',
@@ -302,7 +303,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "channel": "market_ethbtc_simple_depth_step0",
@@ -366,7 +367,7 @@ class bitrue(ccxt.async_support.bitrue):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_ping(self, client, message):
+    def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
     async def pong(self, client, message):
@@ -381,7 +382,7 @@ class bitrue(ccxt.async_support.bitrue):
         }
         await client.send(pong)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if 'channel' in message:
             self.handle_order_book(client, message)
         elif 'ping' in message:

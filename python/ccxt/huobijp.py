@@ -363,7 +363,7 @@ class huobijp(Exchange):
             result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
         return result
 
-    def fetch_trading_limits_by_id(self, id, params={}):
+    def fetch_trading_limits_by_id(self, id: str, params={}):
         request = {
             'symbol': id,
         }
@@ -794,7 +794,7 @@ class huobijp(Exchange):
             'fee': fee,
         }
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1110,7 +1110,7 @@ class huobijp(Exchange):
         #
         return self.parse_orders(response['data'], market, since, limit)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1375,7 +1375,7 @@ class huobijp(Exchange):
             'average': None,
         }
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1517,7 +1517,7 @@ class huobijp(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1544,7 +1544,7 @@ class huobijp(Exchange):
         # return response
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1670,7 +1670,7 @@ class huobijp(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

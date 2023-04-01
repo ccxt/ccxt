@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\whitebit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -1233,7 +1234,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1536,7 +1537,7 @@ class whitebit extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -1584,7 +1585,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this $account
@@ -1683,7 +1684,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -1732,7 +1733,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1860,7 +1861,7 @@ class whitebit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a deposit
@@ -1925,7 +1926,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1992,7 +1993,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading

@@ -2288,7 +2288,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
+    def edit_order(self, id: str, symbol, type=None, side=None, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
@@ -2350,7 +2350,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
@@ -2410,7 +2410,7 @@ class phemex(Exchange):
         request['symbol'] = market['id']
         return getattr(self, method)(self.extend(request, params))
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2731,7 +2731,7 @@ class phemex(Exchange):
             return self.parse_trades(rows, market, since, limit)
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2775,7 +2775,7 @@ class phemex(Exchange):
             'info': response,
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2812,7 +2812,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -3645,7 +3645,7 @@ class phemex(Exchange):
             request['leverage'] = leverage
         return getattr(self, method)(self.extend(request, params))
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -3721,7 +3721,7 @@ class phemex(Exchange):
                 transfer['currency'] = code
         return transfer
 
-    def fetch_transfers(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred

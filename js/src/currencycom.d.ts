@@ -25,12 +25,12 @@ export default class currencycom extends Exchange {
     parseOrderSide(status: any): string;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactionsByMethod(method: any, code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransactionsByMethod(method: any, code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;
@@ -58,7 +58,7 @@ export default class currencycom extends Exchange {
     };
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
-    fetchLedger(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
         timestamp: number;
@@ -79,7 +79,7 @@ export default class currencycom extends Exchange {
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     fetchLeverage(symbol: string, params?: {}): Promise<number>;
-    fetchDepositAddress(code: any, params?: {}): Promise<{
+    fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;
         tag: any;

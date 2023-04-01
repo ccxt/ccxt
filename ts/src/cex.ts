@@ -823,7 +823,7 @@ export default class cex extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cex#cancelOrder
@@ -1147,7 +1147,7 @@ export default class cex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name cex#fetchOrder
@@ -1489,7 +1489,7 @@ export default class cex extends Exchange {
         return this.safeString (this.options['order']['status'], status, status);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a amount argument');
         }
@@ -1510,7 +1510,7 @@ export default class cex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name cex#fetchDepositAddress

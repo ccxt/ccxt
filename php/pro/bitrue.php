@@ -78,7 +78,7 @@ class bitrue extends \ccxt\async\bitrue {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         e => 'BALANCE',
@@ -205,7 +205,7 @@ class bitrue extends \ccxt\async\bitrue {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         //    {
         //        e => 'ORDER',
@@ -324,7 +324,7 @@ class bitrue extends \ccxt\async\bitrue {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         "channel" => "market_ethbtc_simple_depth_step0",
@@ -391,7 +391,7 @@ class bitrue extends \ccxt\async\bitrue {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_ping($client, $message) {
+    public function handle_ping(Client $client, $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
@@ -410,7 +410,7 @@ class bitrue extends \ccxt\async\bitrue {
         }) ();
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if (is_array($message) && array_key_exists('channel', $message)) {
             $this->handle_order_book($client, $message);
         } elseif (is_array($message) && array_key_exists('ping', $message)) {

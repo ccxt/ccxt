@@ -1976,7 +1976,7 @@ class okcoin(Exchange):
             'side': side,
         })
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2191,7 +2191,7 @@ class okcoin(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2440,7 +2440,7 @@ class okcoin(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2468,7 +2468,7 @@ class okcoin(Exchange):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
         return address
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2542,7 +2542,7 @@ class okcoin(Exchange):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2588,7 +2588,7 @@ class okcoin(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2608,7 +2608,7 @@ class okcoin(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -3003,7 +3003,7 @@ class okcoin(Exchange):
         #
         return self.parse_my_trades(response, market, since, limit, params)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -3299,7 +3299,7 @@ class okcoin(Exchange):
         # todo unify parsePosition/parsePositions
         return response
 
-    def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None

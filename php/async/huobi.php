@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\huobi as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -1365,7 +1366,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_trading_limits_by_id($id, $params = array ()) {
+    public function fetch_trading_limits_by_id(string $id, $params = array ()) {
         return Async\async(function () use ($id, $params) {
             $request = array(
                 'symbol' => $id,
@@ -2312,7 +2313,7 @@ class huobi extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -2338,7 +2339,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_spot_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array(
@@ -3226,7 +3227,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -4412,7 +4413,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -4749,7 +4750,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
@@ -4782,7 +4783,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -4799,7 +4800,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_withdraw_addresses($code, $note = null, $networkCode = null, $params = array ()) {
+    public function fetch_withdraw_addresses(string $code, $note = null, $networkCode = null, $params = array ()) {
         return Async\async(function () use ($code, $note, $networkCode, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -4836,7 +4837,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -4896,7 +4897,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -5066,7 +5067,7 @@ class huobi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -5151,7 +5152,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -5570,7 +5571,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest($code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -6556,7 +6557,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -7050,7 +7051,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a loan to borrow margin
@@ -7105,7 +7106,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest

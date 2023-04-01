@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\gate as Exchange;
 
 class gate extends Exchange {
 
@@ -1547,7 +1548,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_network_deposit_address($code, $params = array ()) {
+    public function fetch_network_deposit_address(string $code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1587,7 +1588,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -1598,7 +1599,7 @@ class gate extends Exchange {
         return $this->fetch_deposit_address($code, $params);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-$currency-deposit-$address
@@ -2640,7 +2641,7 @@ class gate extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -2905,7 +2906,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -2933,7 +2934,7 @@ class gate extends Exchange {
         return $this->parse_transactions($response, $currency);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -2961,7 +2962,7 @@ class gate extends Exchange {
         return $this->parse_transactions($response, $currency);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -3415,7 +3416,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * edit a trade order, gate currently only supports the modification of the $price or $amount fields
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
@@ -3755,7 +3756,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * Retrieves information on an order
          * @param {string} $id Order $id
@@ -3991,7 +3992,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * Cancels an open order
          * @param {string} $id Order $id
@@ -4151,7 +4152,7 @@ class gate extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code for $currency being transferred
@@ -4675,7 +4676,7 @@ class gate extends Exchange {
         return $tiers;
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
@@ -4757,7 +4758,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan

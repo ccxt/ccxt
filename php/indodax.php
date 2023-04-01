@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\indodax as Exchange;
 
 class indodax extends Exchange {
 
@@ -588,7 +589,7 @@ class indodax extends Exchange {
         ));
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string} $symbol unified $symbol of the $market the $order was made in
@@ -712,7 +713,7 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -737,7 +738,7 @@ class indodax extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         /**
          * fetch the fee for a transaction
          * @param {string} $code unified $currency $code
@@ -769,7 +770,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of $deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
@@ -868,7 +869,7 @@ class indodax extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

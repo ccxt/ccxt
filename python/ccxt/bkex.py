@@ -1020,7 +1020,7 @@ class bkex(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1065,7 +1065,7 @@ class bkex(Exchange):
             'info': data,
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1116,7 +1116,7 @@ class bkex(Exchange):
             dataInner[i]['transactType'] = 'deposit'
         return self.parse_transactions(dataInner, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1251,7 +1251,7 @@ class bkex(Exchange):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1357,7 +1357,7 @@ class bkex(Exchange):
         innerData = self.safe_value(result, 'data')
         return self.parse_orders(innerData, market, since, limit, params)
 
-    def fetch_open_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id

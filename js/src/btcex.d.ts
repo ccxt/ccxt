@@ -16,13 +16,13 @@ export default class btcex extends Exchange {
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): any;
-    fetchOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
-    cancelOrder(id: any, symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrderTrades(id: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parsePosition(position: any, market?: any): any;
     fetchPosition(symbol: string, params?: {}): Promise<any>;
@@ -48,9 +48,9 @@ export default class btcex extends Exchange {
         updated: number;
         fee: any;
     };
-    fetchDeposits(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: any, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: any, code?: any, params?: {}): Promise<{
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;
         txid: string;
@@ -116,7 +116,7 @@ export default class btcex extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    transfer(code: any, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
+    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: any;

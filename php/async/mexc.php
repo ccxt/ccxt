@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\mexc as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -1961,7 +1962,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -2448,7 +2449,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -3367,7 +3368,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -3897,7 +3898,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by $network
@@ -3932,7 +3933,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -3961,7 +3962,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -4022,7 +4023,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -4328,7 +4329,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function fetch_transfer($id, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfer(string $id, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $since, $limit, $params) {
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
             Async\await($this->load_markets());
@@ -4358,7 +4359,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_transfers($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -4445,7 +4446,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -4581,7 +4582,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4656,7 +4657,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function borrow_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a loan to borrow margin
@@ -4692,7 +4693,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function repay_margin($code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest

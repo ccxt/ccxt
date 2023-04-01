@@ -410,7 +410,7 @@ class luno(Exchange):
             'average': None,
         }, market)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by luno fetchOrder
@@ -777,7 +777,7 @@ class luno(Exchange):
             'id': response['order_id'],
         }, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -791,7 +791,7 @@ class luno(Exchange):
         }
         return await self.privatePostStoporder(self.extend(request, params))
 
-    async def fetch_ledger_by_entries(self, code=None, entry=-1, limit=1, params={}):
+    async def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=-1, limit=1, params={}):
         # by default without entry number or limit number, return most recent entry
         since = None
         request = {
@@ -800,7 +800,7 @@ class luno(Exchange):
         }
         return await self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None

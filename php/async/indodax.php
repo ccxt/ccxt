@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\indodax as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use React\Async;
@@ -605,7 +606,7 @@ class indodax extends Exchange {
         ));
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -737,7 +738,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -764,7 +765,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the fee for a transaction
@@ -798,7 +799,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of $deposits and withdrawals
@@ -899,7 +900,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

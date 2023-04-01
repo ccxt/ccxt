@@ -646,7 +646,7 @@ export default class bitbank extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#cancelOrder
@@ -667,7 +667,7 @@ export default class bitbank extends Exchange {
         return data;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchOrder
@@ -745,7 +745,7 @@ export default class bitbank extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bitbank#fetchDepositAddress
@@ -774,7 +774,7 @@ export default class bitbank extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#withdraw

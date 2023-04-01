@@ -36,7 +36,7 @@ class idex(Exchange):
             'rateLimit': 200,
             'version': 'v3',
             'pro': True,
-            'certified': True,
+            'certified': False,
             'requiresWeb3': True,
             'has': {
                 'CORS': None,
@@ -851,7 +851,7 @@ class idex(Exchange):
                 raise e
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1256,7 +1256,7 @@ class idex(Exchange):
         response = await self.privatePostOrders(request)
         return self.parse_order(response, market)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1342,7 +1342,7 @@ class idex(Exchange):
         response = await self.privateDeleteOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1387,7 +1387,7 @@ class idex(Exchange):
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
 
-    async def fetch_deposit(self, id, code=None, params={}):
+    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1405,7 +1405,7 @@ class idex(Exchange):
         response = await self.privateGetDeposits(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    async def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1431,7 +1431,7 @@ class idex(Exchange):
         #
         return self.safe_number(response, 'serverTime')
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1449,7 +1449,7 @@ class idex(Exchange):
         response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    async def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1463,7 +1463,7 @@ class idex(Exchange):
         }, params)
         return self.fetch_transactions_helper(code, since, limit, params)
 
-    async def fetch_transactions_helper(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         nonce = self.uuidv1()
         request = {

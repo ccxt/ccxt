@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -87,7 +88,7 @@ class deribit(ccxt.async_support.deribit):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # subscription
         #     {
@@ -169,7 +170,7 @@ class deribit(ccxt.async_support.deribit):
         request = self.deep_extend(message, params)
         return await self.watch(url, channel, request, channel, request)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -239,7 +240,7 @@ class deribit(ccxt.async_support.deribit):
         trades = await self.watch(url, channel, request, channel, request)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -311,7 +312,7 @@ class deribit(ccxt.async_support.deribit):
         trades = await self.watch(url, channel, request, channel, request)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -390,7 +391,7 @@ class deribit(ccxt.async_support.deribit):
         orderbook = await self.watch(url, channel, request, channel)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #  snapshot
         #     {
@@ -515,7 +516,7 @@ class deribit(ccxt.async_support.deribit):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         # Does not return a snapshot of current orders
         #
         #     {
@@ -599,7 +600,7 @@ class deribit(ccxt.async_support.deribit):
             limit = ohlcv.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -640,7 +641,7 @@ class deribit(ccxt.async_support.deribit):
         self.ohlcvs[symbol] = stored
         client.resolve(stored, channel)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         # error
         #     {
@@ -730,7 +731,7 @@ class deribit(ccxt.async_support.deribit):
             return self.handle_authentication_message(client, message)
         return message
 
-    def handle_authentication_message(self, client, message):
+    def handle_authentication_message(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',

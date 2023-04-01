@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitmex as Exchange;
 
 class bitmex extends Exchange {
 
@@ -21,6 +22,7 @@ class bitmex extends Exchange {
             // 120 per minute => 2 per second => weight = 5 (authenticated)
             // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
             'rateLimit' => 100,
+            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -655,7 +657,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @param {string|null} $symbol unified $symbol of the market the order was made in
@@ -937,7 +939,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null
@@ -986,7 +988,7 @@ class bitmex extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function fetch_transactions($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
@@ -1807,7 +1809,7 @@ class bitmex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array();
         $origClOrdID = $this->safe_string_2($params, 'origClOrdID', 'clientOrderId');
@@ -1833,7 +1835,7 @@ class bitmex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -2224,7 +2226,7 @@ class bitmex extends Exchange {
         return false;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2654,7 +2656,7 @@ class bitmex extends Exchange {
         return $this->privatePostPositionIsolate (array_merge($request, $params));
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress

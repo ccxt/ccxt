@@ -606,7 +606,7 @@ class hitbtc3(Exchange):
         else:
             return networkId.upper()
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -638,7 +638,7 @@ class hitbtc3(Exchange):
             'info': response,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1112,7 +1112,7 @@ class hitbtc3(Exchange):
             'fee': fee,
         }
 
-    def fetch_transactions(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1123,7 +1123,7 @@ class hitbtc3(Exchange):
         """
         return self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1134,7 +1134,7 @@ class hitbtc3(Exchange):
         """
         return self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1387,7 +1387,7 @@ class hitbtc3(Exchange):
         parsed = self.parse_orders(response, market, since, limit)
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1436,7 +1436,7 @@ class hitbtc3(Exchange):
         order = self.safe_value(response, 0)
         return self.parse_order(order, market)
 
-    def fetch_order_trades(self, id, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1555,7 +1555,7 @@ class hitbtc3(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1613,7 +1613,7 @@ class hitbtc3(Exchange):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1643,7 +1643,7 @@ class hitbtc3(Exchange):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = None
         request = {
@@ -1859,7 +1859,7 @@ class hitbtc3(Exchange):
             'fee': None,
         }, market)
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1915,7 +1915,7 @@ class hitbtc3(Exchange):
             'info': transfer,
         }
 
-    def convert_currency_network(self, code, amount, fromNetwork, toNetwork, params):
+    def convert_currency_network(self, code: str, amount, fromNetwork, toNetwork, params):
         self.load_markets()
         if code != 'USDT':
             raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
@@ -1940,7 +1940,7 @@ class hitbtc3(Exchange):
             'info': response,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

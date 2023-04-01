@@ -6,12 +6,11 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\bitpanda as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
-use ccxt\types\OrderSide;
-use ccxt\types\OrderType;
 
 class bitpanda extends Exchange {
 
@@ -1055,7 +1054,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
@@ -1081,7 +1080,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1108,7 +1107,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made $to an account
@@ -1173,7 +1172,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1239,7 +1238,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1512,7 +1511,7 @@ class bitpanda extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function create_order(string $symbol, OrderType $type, OrderSide $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1579,7 +1578,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1654,7 +1653,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1850,7 +1849,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order

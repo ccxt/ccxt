@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bkex as Exchange;
 
 class bkex extends Exchange {
 
@@ -1054,7 +1055,7 @@ class bkex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1101,7 +1102,7 @@ class bkex extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -1157,7 +1158,7 @@ class bkex extends Exchange {
         return $this->parse_transactions($dataInner, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals($code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -1301,7 +1302,7 @@ class bkex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order($id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @param {string} $id order $id
@@ -1413,7 +1414,7 @@ class bkex extends Exchange {
         return $this->parse_orders($innerData, $market, $since, $limit, $params);
     }
 
-    public function fetch_open_order($id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open order by it's $id
          * @param {string} $id order $id

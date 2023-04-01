@@ -114,7 +114,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message, $subscription) {
+    public function handle_ohlcv(Client $client, $message, $subscription) {
         //
         // initial snapshot
         //   array(
@@ -251,7 +251,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function handle_my_trade($client, $message, $subscription = array ()) {
+    public function handle_my_trade(Client $client, $message, $subscription = array ()) {
         //
         // $trade execution
         // $array(
@@ -292,7 +292,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $client->resolve ($array, $messageHash);
     }
 
-    public function handle_trades($client, $message, $subscription) {
+    public function handle_trades(Client $client, $message, $subscription) {
         //
         // initial snapshot
         //
@@ -459,7 +459,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         ), $market);
     }
 
-    public function handle_ticker($client, $message, $subscription) {
+    public function handle_ticker(Client $client, $message, $subscription) {
         //
         // array(
         //    340432, // $channel ID
@@ -560,7 +560,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function handle_order_book($client, $message, $subscription) {
+    public function handle_order_book(Client $client, $message, $subscription) {
         //
         // first $message (snapshot)
         //
@@ -655,7 +655,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }
     }
 
-    public function handle_checksum($client, $message, $subscription) {
+    public function handle_checksum(Client $client, $message, $subscription) {
         //
         // array( 173904, 'cs', -890884919 )
         //
@@ -703,7 +703,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function handle_balance($client, $message, $subscription) {
+    public function handle_balance(Client $client, $message, $subscription) {
         //
         // snapshot (exchange . margin together)
         //   array(
@@ -816,7 +816,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         return $account;
     }
 
-    public function handle_system_status($client, $message) {
+    public function handle_system_status(Client $client, $message) {
         //
         //     {
         //         event => 'info',
@@ -828,7 +828,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         event => 'subscribed',
@@ -870,7 +870,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         return $future;
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         $messageHash = 'authenticated';
         $status = $this->safe_string($message, 'status');
         if ($status === 'OK') {
@@ -910,7 +910,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function handle_orders($client, $message, $subscription) {
+    public function handle_orders(Client $client, $message, $subscription) {
         //
         // $limit order
         //    array(
@@ -1085,7 +1085,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         ), $market);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $channelId = $this->safe_string($message, 0);
         //
         //     array(

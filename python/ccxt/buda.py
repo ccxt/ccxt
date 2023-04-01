@@ -644,7 +644,7 @@ class buda(Exchange):
         response = self.privateGetBalances(params)
         return self.parse_balance(response)
 
-    def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: not used by buda fetchOrder
@@ -734,7 +734,7 @@ class buda(Exchange):
         order = self.safe_value(response, 'order')
         return self.parse_order(order)
 
-    def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -846,7 +846,7 @@ class buda(Exchange):
         }
         return self.safe_value(fiats, code, False)
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -881,7 +881,7 @@ class buda(Exchange):
             'info': receiveAddresses,
         }
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -952,7 +952,7 @@ class buda(Exchange):
             },
         }
 
-    def fetch_deposits(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -973,7 +973,7 @@ class buda(Exchange):
         deposits = self.safe_value(response, 'deposits')
         return self.parse_transactions(deposits, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -994,7 +994,7 @@ class buda(Exchange):
         withdrawals = self.safe_value(response, 'withdrawals')
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

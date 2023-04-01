@@ -4,6 +4,7 @@ import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ArgumentsRequired } from '../base/errors.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -75,7 +76,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         e: 'BALANCE',
@@ -202,7 +203,7 @@ export default class bitrue extends bitrueRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //    {
         //        e: 'ORDER',
@@ -319,7 +320,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "channel": "market_ethbtc_simple_depth_step0",
@@ -386,7 +387,7 @@ export default class bitrue extends bitrueRest {
         return this.safeString (statuses, status, status);
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         this.spawn (this.pong, client, message);
     }
 
@@ -403,7 +404,7 @@ export default class bitrue extends bitrueRest {
         await client.send (pong);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if ('channel' in message) {
             this.handleOrderBook (client, message);
         } else if ('ping' in message) {

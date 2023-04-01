@@ -458,7 +458,7 @@ export default class independentreserve extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOrder
@@ -709,7 +709,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#cancelOrder

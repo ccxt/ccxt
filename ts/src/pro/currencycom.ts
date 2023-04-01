@@ -6,6 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,12 +64,12 @@ export default class currencycom extends currencycomRest {
         };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    handleBalance (client, message, subscription) {
+    handleBalance (client: Client, message, subscription) {
         //
         //     {
         //         status: 'OK',
@@ -113,7 +114,7 @@ export default class currencycom extends currencycomRest {
         }
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         //     {
         //         status: 'OK',
@@ -199,7 +200,7 @@ export default class currencycom extends currencycomRest {
         };
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         //     {
         //         status: 'OK',
@@ -244,7 +245,7 @@ export default class currencycom extends currencycomRest {
         return undefined;
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         status: 'OK',
@@ -456,7 +457,7 @@ export default class currencycom extends currencycomRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         status: 'OK',
@@ -491,7 +492,7 @@ export default class currencycom extends currencycomRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //     {
         //         status: 'OK',

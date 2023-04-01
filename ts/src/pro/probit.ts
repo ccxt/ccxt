@@ -6,6 +6,7 @@ import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -73,7 +74,7 @@ export default class probit extends probitRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         channel: 'balance',
@@ -138,7 +139,7 @@ export default class probit extends probitRest {
         return await this.subscribeOrderBook (symbol, 'ticker', filter, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         channel: 'marketdata',
@@ -189,7 +190,7 @@ export default class probit extends probitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         channel: 'marketdata',
@@ -264,7 +265,7 @@ export default class probit extends probitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //     {
         //         channel: 'trade_history',
@@ -347,7 +348,7 @@ export default class probit extends probitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         //
         //     {
         //         channel: 'order_history',
@@ -449,7 +450,7 @@ export default class probit extends probitRest {
         return await this.watch (url, messageHash, request, messageHash, filters);
     }
 
-    handleOrderBook (client, message, orderBook) {
+    handleOrderBook (client: Client, message, orderBook) {
         //
         //     {
         //         channel: 'marketdata',
@@ -499,7 +500,7 @@ export default class probit extends probitRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         errorCode: 'INVALID_ARGUMENT',
@@ -516,7 +517,7 @@ export default class probit extends probitRest {
         throw new ExchangeError (this.id + ' ' + code + ' ' + errMessage + ' ' + this.json (details));
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //     { type: 'authorization', result: 'ok' }
         //
@@ -530,7 +531,7 @@ export default class probit extends probitRest {
         }
     }
 
-    handleMarketData (client, message) {
+    handleMarketData (client: Client, message) {
         const ticker = this.safeValue (message, 'ticker');
         if (ticker !== undefined) {
             this.handleTicker (client, message);
@@ -545,7 +546,7 @@ export default class probit extends probitRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //     {
         //         errorCode: 'INVALID_ARGUMENT',

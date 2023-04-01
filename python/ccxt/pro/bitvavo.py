@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
@@ -64,7 +65,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         return await self.watch_public('ticker24h', symbol, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         event: 'ticker24h',
@@ -115,7 +116,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         event: 'trade',
@@ -175,7 +176,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         event: 'candle',
@@ -261,7 +262,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
         #         event: 'book',
@@ -282,7 +283,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             orderbook['nonce'] = nonce
         return orderbook
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         event: 'book',
@@ -332,7 +333,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client, message):
+    def handle_order_book_snapshot(self, client: Client, message):
         #
         #     {
         #         action: 'getBook',
@@ -371,14 +372,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_order_book_subscription(self, client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
 
-    def handle_order_book_subscriptions(self, client, message, marketIds):
+    def handle_order_book_subscriptions(self, client: Client, message, marketIds):
         name = 'book'
         for i in range(0, len(marketIds)):
             marketId = self.safe_string(marketIds, i)
@@ -456,7 +457,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         #     {
         #         event: 'order',
@@ -490,7 +491,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         orders.append(order)
         client.resolve(self.orders, messageHash)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client: Client, message):
         #
         #     {
         #         event: 'fill',
@@ -518,7 +519,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         tradesArray.append(trade)
         client.resolve(tradesArray, messageHash)
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         event: 'subscribed',
@@ -562,7 +563,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             client.subscriptions[messageHash] = future
         return future
 
-    def handle_authentication_message(self, client, message):
+    def handle_authentication_message(self, client: Client, message):
         #
         #     {
         #         event: 'authenticate',
@@ -581,7 +582,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         #     {
         #         event: 'subscribed',

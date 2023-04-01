@@ -975,7 +975,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1153,7 +1153,7 @@ class probit(Exchange):
             order['remaining'] = None
         return order
 
-    async def cancel_order(self, id, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1189,7 +1189,7 @@ class probit(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1257,7 +1257,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
