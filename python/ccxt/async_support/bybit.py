@@ -3082,7 +3082,7 @@ class bybit(Exchange):
         cost = self.safe_string(order, 'cumExecValue')
         filled = self.safe_string(order, 'cumExecQty')
         remaining = self.safe_string(order, 'leavesQty')
-        lastTradeTimestamp = self.safe_integer(order, 'updateTime')
+        lastTradeTimestamp = self.safe_integer(order, 'updatedTime')
         rawStatus = self.safe_string(order, 'orderStatus')
         status = self.parse_order_status(rawStatus)
         side = self.safe_string_lower(order, 'side')

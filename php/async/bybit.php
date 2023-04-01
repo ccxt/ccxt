@@ -3212,7 +3212,7 @@ class bybit extends Exchange {
         $cost = $this->safe_string($order, 'cumExecValue');
         $filled = $this->safe_string($order, 'cumExecQty');
         $remaining = $this->safe_string($order, 'leavesQty');
-        $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
+        $lastTradeTimestamp = $this->safe_integer($order, 'updatedTime');
         $rawStatus = $this->safe_string($order, 'orderStatus');
         $status = $this->parse_order_status($rawStatus);
         $side = $this->safe_string_lower($order, 'side');
