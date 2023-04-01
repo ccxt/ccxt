@@ -721,6 +721,8 @@ class Transpiler {
             // [ /:\s\w+(\s*\|\s*\w+)?(?=\s|,|\))/g, ""], // remove parameters type
             // array types: string[] or (string|number)[]
             // [ /:\s\(?\w+(\s*\|\s*\w+)?\)?\[]/g, ""], // remove parameters type
+            // generic types: Dictionary<Currency>
+            [ /:\s\w+\s*<\s*\w+\s*>/g, ""],
         ]
     }
 

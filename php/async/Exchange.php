@@ -886,11 +886,11 @@ class Exchange extends \ccxt\Exchange {
         $this->markets_by_id = array();
         // handle marketId conflicts
         // we insert spot $markets first
-        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
+        $marketValues = $this->sort_by($markets, 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
             if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
-                ($this->markets_by_id[$value['id']])[] = $value;
+                $this->markets_by_id[$value['id']][] = $value;
             } else {
                 $this->markets_by_id[$value['id']] = array( $value );
             }

@@ -230,7 +230,7 @@ class Exchange(BaseExchange):
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
-                    return self.set_markets(self.markets)
+                    return self.set_markets(list(self.markets.values()))
                 return self.markets
         currencies = None
         if self.has['fetchCurrencies'] is True:

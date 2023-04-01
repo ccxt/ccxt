@@ -1182,7 +1182,7 @@ class Exchange {
         }
 
         if ($this->markets) {
-            $this->set_markets($this->markets);
+            $this->set_markets(array_values($this->markets));
         }
 
         $this->after_construct();
@@ -1536,7 +1536,7 @@ class Exchange {
     public function load_markets($reload = false, $params = array()) {
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
-                return $this->set_markets($this->markets);
+                return $this->set_markets(array_values($this->markets));
             }
             return $this->markets;
         }
@@ -2723,11 +2723,11 @@ class Exchange {
         $this->markets_by_id = array();
         // handle marketId conflicts
         // we insert spot $markets first
-        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
+        $marketValues = $this->sort_by($markets, 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
             if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
-                ($this->markets_by_id[$value['id']])[] = $value;
+                $this->markets_by_id[$value['id']][] = $value;
             } else {
                 $this->markets_by_id[$value['id']] = array( $value );
             }
