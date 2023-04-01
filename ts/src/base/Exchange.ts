@@ -2767,7 +2767,7 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async fetchPermissions (params = {}) {
+    async fetchPermissions (params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
