@@ -1986,9 +1986,7 @@ export default class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
+        this.checkRequiredArgument ('fetchOrder', symbol, 'symbol');
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
