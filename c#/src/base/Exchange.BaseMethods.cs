@@ -289,7 +289,7 @@ public partial class Exchange
                     object currencyPrecision = this.safeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision);
                     object currency = new Dictionary<string, object>() {
                         { "id", this.safeString2(market, "baseId", "base") },
-                        { "numericId", this.safeString(market, "baseNumericId") },
+                        { "numericId", this.safeInteger(market, "baseNumericId") },
                         { "code", this.safeString(market, "base") },
                         { "precision", currencyPrecision },
                     };
@@ -300,7 +300,7 @@ public partial class Exchange
                     object currencyPrecision = this.safeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision);
                     object currency = new Dictionary<string, object>() {
                         { "id", this.safeString2(market, "quoteId", "quote") },
-                        { "numericId", this.safeString(market, "quoteNumericId") },
+                        { "numericId", this.safeInteger(market, "quoteNumericId") },
                         { "code", this.safeString(market, "quote") },
                         { "precision", currencyPrecision },
                     };
@@ -1040,7 +1040,6 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchOHLCV() is not supported yet")) ;
         }
-        await this.loadMarkets();
         object trades = await this.fetchTrades(symbol, since, limit, parameters);
         object ohlcvc = this.buildOHLCVC(trades, timeframe, since, limit);
         object result = new List<object>() {};
@@ -1747,7 +1746,7 @@ public partial class Exchange
         return await this.createOrder(symbol, type, side, amount, price, parameters);
     }
 
-    public async virtual Task fetchPermissions(object parameters = null)
+    public async virtual Task<object> fetchPermissions(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPermissions() is not supported yet")) ;
@@ -1871,15 +1870,15 @@ public partial class Exchange
                     return getValue(markets, 0);
                 } else
                 {
-                    if (isTrue(isTrue(isEqual(marketType, null)) && isTrue(isEqual(market, null))))
+                    if (isTrue(isTrue((isEqual(marketType, null))) && isTrue((isEqual(market, null)))))
                     {
                         throw new ArgumentsRequired ((string)add(add(add(this.id, " safeMarket() requires a fourth argument for "), marketId), " to disambiguate between different markets with the same market id")) ;
                     }
-                    object inferedMarketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : marketType;
+                    object inferredMarketType = ((bool) isTrue((isEqual(marketType, null)))) ? getValue(market, "type") : marketType;
                     for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
                     {
                         object marketInner = getValue(markets, i);
-                        if (isTrue(getValue(marketInner, inferedMarketType)))
+                        if (isTrue(getValue(marketInner, inferredMarketType)))
                         {
                             return marketInner;
                         }
@@ -2112,7 +2111,7 @@ public partial class Exchange
     public virtual object handleOption(object methodName, object optionName, object defaultValue = null)
     {
         // eslint-disable-next-line no-unused-vars
-        var resultemptyVariable = this.handleOptionAndParams(new Dictionary<string, object>() {}, methodName, optionName, defaultValue);
+var resultemptyVariable = this.handleOptionAndParams(new Dictionary<string, object>() {}, methodName, optionName, defaultValue);
         var result = ((List<object>) resultemptyVariable)[0];
         var empty = ((List<object>) resultemptyVariable)[1];
         return result;

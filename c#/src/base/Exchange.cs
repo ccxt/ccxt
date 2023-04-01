@@ -301,9 +301,9 @@ public partial class Exchange
         return this.setMarkets(markets, currencies);
     }
 
-    public virtual Task<object> loadMarkets(dynamic reload2 = null, object parameters2 = null)
+    public virtual Task<object> loadMarkets(bool reload2 = false, object parameters2 = null)
     {
-        reload2 ??= false;
+        // reload2 ??= false;
         var reload = (bool)reload2;
         parameters2 ??= new dict();
         var parameters = (dict)parameters2;

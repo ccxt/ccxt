@@ -14,7 +14,7 @@ public partial class Exchange
         return (string)str; // stub
     }
 
-    public object remove0xPrefix(object str)
+    public virtual object remove0xPrefix(object str)
     {
         return (string)str; // stub
     }

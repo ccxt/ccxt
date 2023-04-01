@@ -139,13 +139,31 @@ class NewTranspiler {
 
     convertJavascriptTypeToCsharpType(type: string): string | undefined {
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
-        const wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
+        let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
+        let isList = false;
 
         function addTaskIfNeeded(type) {
             if (type == 'void') {
                 return isPromise ? `Task` : 'void';
+            } else if (isList) {
+                return isPromise ? `Task<List<${type}>>` : `List<${type}>`;
             }
             return isPromise ? `Task<${type}>` : type;
+        }
+
+        const csharpReplacements = {
+            'OrderType': 'string',
+            'OrderSide': 'string', // tmp
+        }
+
+        if (wrappedType === undefined || wrappedType === 'Undefined') {
+            return addTaskIfNeeded('object'); // default if type is unknown;
+        }
+
+        // check if returns a list
+        if (wrappedType.endsWith('[]')) {
+            isList = true;
+            wrappedType = wrappedType.substring(0, wrappedType.length - 2);
         }
 
         if (this.isObject(wrappedType)) {
@@ -166,7 +184,11 @@ class NewTranspiler {
         if (this.isIntegerType(wrappedType)) {
             return addTaskIfNeeded('Int64');
         }
-        return addTaskIfNeeded('object'); // default if type is unknown
+        if (csharpReplacements[wrappedType] !== undefined) {
+            return addTaskIfNeeded(csharpReplacements[wrappedType]);
+        }
+
+        return addTaskIfNeeded(wrappedType);
     }
 
     safeCsharpName(name: string): string {
@@ -182,10 +204,6 @@ class NewTranspiler {
         const safeName = this.safeCsharpName(name);
         const isOptional =  param.optional || param.initializer !== undefined;
         const op = isOptional ? '?' : '';
-        // let op = '';
-        // if (isOptional) {
-        //     if (t)
-        // }
         let paramType: any = undefined;
         if (param.type == undefined) {
             paramType = 'object';
@@ -204,26 +222,12 @@ class NewTranspiler {
         } else {
             if (isOptional) {
                 if (param.initializer !== undefined) {
-                //    if (param.initializer === 'undefined' || param.initializer === '{}') {
                           return `${paramType}? ${safeName}`
-                //    } else {
-                        //   return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
-                //    }
                 }
             } else {
                 return `${paramType} ${safeName}`
             }
         }
-        // if (param.type && this.isBooleanType(param.type)) {
-        //     paramType = 'bool';
-        //     if (param.initializer !== undefined) {
-        //         return `${paramType}${op} ${safeName} = ${param.initializer}`
-        //     }
-        // } else if (paramType === 'Dictionary<string, object>') {
-        //     if (param.initializer !== undefined) {
-        //         return `${paramType}${op} ${safeName} = null`
-        //     }
-        // }
         return `${paramType}${op} ${safeName}`
     }
 
@@ -254,6 +258,10 @@ class NewTranspiler {
         return type.startsWith('Task<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
     }
 
+    unwrapListIfNeeded(type: string): string {
+        return type.startsWith('List<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
+    }
+
     createWrapper (methodWrapper) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
@@ -262,13 +270,19 @@ class NewTranspiler {
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.convertJavascriptTypeToCsharpType(methodWrapper.returnType);
+        const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param)).join(', ');
         const params = methodWrapper.parameters.map(param => this.safeCsharpName(param.name)).join(', ');
+
+        const returnStatement = unwrappedType.startsWith('List<') ?
+            `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();` :
+            `return ((${unwrappedType})res);`;
+
         const method = [
             `public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized} (${args})`,
             '{',
             `    var res = ${isAsync ? 'await ' : ''}this.${methodName} (${params});`,
-            `    return (${this.unwrapTaskIfNeeded(returnType as string)})res;`,
+            `    ${returnStatement}`,
             '}'
         ].map(line => '    ' + line);
         return method.join('\n')
@@ -276,7 +290,7 @@ class NewTranspiler {
 
     createMethodsWrappers(wrappers) {
         const wrapperFile = "./c#/src/base/Exchange.Wrappers.cs";
-        // wrappers = wrappers.filter(wrapper => wrapper.name == 'fetchTrades'); // debug only
+        wrappers = wrappers.filter(wrapper => wrapper.name == 'createOrder'); // debug only
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(wrapper)).filter(wrapper => wrapper !== '').join('\n');
         const file = [
             'namespace Main;',
@@ -323,68 +337,6 @@ class NewTranspiler {
                 }
             }
             return Array.from (generator (map, parent, generate, classes))
-        }
-
-        // Python -------------------------------------------------------------
-
-        function pythonDeclareErrorClass (name, parent, classes) {
-            classes.push (name)
-            return [
-                'class ' + name + '(' + parent + '):',
-                '    pass',
-                '',
-                '',
-            ].join ('\n');
-        }
-
-        const pythonBaseError = [
-            'class BaseError(Exception):',
-            '    pass',
-            '',
-            '',
-        ].join ('\n');
-
-        const quote = (s) => "'" + s + "'" // helper to add quotes around class names
-        const pythonExports = [ 'error_hierarchy', 'BaseError' ]
-        const pythonErrors = intellisense (root as any, 'BaseError', pythonDeclareErrorClass, pythonExports)
-        const pythonAll = '__all__ = [\n    ' + pythonExports.map (quote).join (',\n    ') + '\n]'
-        const python3BodyIntellisense = python3Body + '\n\n\n' + pythonBaseError + '\n' + pythonErrors.join ('\n') + '\n' + pythonAll + '\n'
-
-        const pythonFilename = './python/ccxt/base/errors.py'
-        if (fs.existsSync (pythonFilename)) {
-            log.bright.cyan (message, (pythonFilename as any).yellow)
-            fs.writeFileSync (pythonFilename, python3BodyIntellisense)
-        }
-
-        // PHP ----------------------------------------------------------------
-
-        function phpMakeErrorClassFile (name, parent) {
-
-            const useClause = "\nuse " + parent + ";\n"
-            const requireClause = "\nrequire_once PATH_TO_CCXT . '" + parent + ".php';\n"
-
-            const phpBody = [
-                '<?php',
-                '',
-                'namespace ccxt;',
-                (parent === 'Exception') ? useClause : requireClause,
-                'class ' + name + ' extends ' + parent + ' {};',
-                '',
-            ].join ("\n")
-            const phpFilename = './php/' + name + '.php'
-            log.bright.cyan (message, (phpFilename as any).yellow)
-            fs.writeFileSync (phpFilename, phpBody)
-            return "require_once PATH_TO_CCXT . '" + name + ".php';"
-        }
-
-        const phpFilename ='./ccxt.php'
-
-        if (fs.existsSync (phpFilename)) {
-            const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile, undefined) as any
-            const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-            log.bright.cyan (message, (phpFilename as any).yellow)
-            const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
-            replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
         }
 
 
