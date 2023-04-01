@@ -57,6 +57,8 @@ export default class xt extends Exchange {
                 'fetchOrders': true,
                 'fetchOrdersByStatus': true,
                 'fetchOrderBook': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -119,8 +121,8 @@ export default class xt extends Exchange {
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
                             'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
+                            'future/market/v1/public/symbol/coins': 3.33333,
+                            'future/market/v1/public/symbol/detail': 3.33333,
                             'future/market/v1/public/symbol/list': 1,
                         },
                     },
@@ -143,8 +145,8 @@ export default class xt extends Exchange {
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
                             'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33,
-                            'future/market/v1/public/symbol/detail': 3.33,
+                            'future/market/v1/public/symbol/coins': 3.33333,
+                            'future/market/v1/public/symbol/detail': 3.33333,
                             'future/market/v1/public/symbol/list': 1,
                         },
                     },
@@ -3868,6 +3870,176 @@ export default class xt extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'id': this.safeString (contract, 'id'),
             'amount': this.safeNumber (contract, 'cast'),
+        };
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://doc.xt.com/#futures_usergetPosition
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPosition', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInverseGetFutureUserV1PositionList (this.extend (request, params));
+        } else {
+            response = await this.privateLinearGetFutureUserV1PositionList (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionType": "ISOLATED",
+        //                 "positionSide": "SHORT",
+        //                 "contractType": "PERPETUAL",
+        //                 "positionSize": "10",
+        //                 "closeOrderSize": "0",
+        //                 "availableCloseSize": "10",
+        //                 "entryPrice": "27060",
+        //                 "openOrderSize": "0",
+        //                 "isolatedMargin": "1.0824",
+        //                 "openOrderMarginFrozen": "0",
+        //                 "realizedProfit": "-0.00130138",
+        //                 "autoMargin": false,
+        //                 "leverage": 25
+        //             },
+        //         ]
+        //     }
+        //
+        const positions = this.safeValue (response, 'result', []);
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
+            const positionSize = this.safeString (entry, 'positionSize');
+            if (positionSize !== '0') {
+                return this.parsePosition (entry, market);
+            }
+        }
+    }
+
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name xt#fetchPositions
+         * @description fetch all open positions
+         * @see https://doc.xt.com/#futures_usergetPosition
+         * @param {[string]|undefined} symbols list of unified market symbols, not supported with xt
+         * @param {object} params extra parameters specific to the xt api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        if (symbols !== undefined) {
+            throw new BadRequest (this.id + ' fetchPositions() only supports the symbols argument as undefined');
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInverseGetFutureUserV1PositionList (params);
+        } else {
+            response = await this.privateLinearGetFutureUserV1PositionList (params);
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionType": "ISOLATED",
+        //                 "positionSide": "SHORT",
+        //                 "contractType": "PERPETUAL",
+        //                 "positionSize": "10",
+        //                 "closeOrderSize": "0",
+        //                 "availableCloseSize": "10",
+        //                 "entryPrice": "27060",
+        //                 "openOrderSize": "0",
+        //                 "isolatedMargin": "1.0824",
+        //                 "openOrderMarginFrozen": "0",
+        //                 "realizedProfit": "-0.00130138",
+        //                 "autoMargin": false,
+        //                 "leverage": 25
+        //             },
+        //         ]
+        //     }
+        //
+        const positions = this.safeValue (response, 'result', []);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const entry = positions[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
+            result.push (this.parsePosition (entry, market));
+        }
+        return this.filterByArray (result, 'symbol', undefined, false);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "positionType": "ISOLATED",
+        //         "positionSide": "SHORT",
+        //         "contractType": "PERPETUAL",
+        //         "positionSize": "10",
+        //         "closeOrderSize": "0",
+        //         "availableCloseSize": "10",
+        //         "entryPrice": "27060",
+        //         "openOrderSize": "0",
+        //         "isolatedMargin": "1.0824",
+        //         "openOrderMarginFrozen": "0",
+        //         "realizedProfit": "-0.00130138",
+        //         "autoMargin": false,
+        //         "leverage": 25
+        //     }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const symbol = this.safeSymbol (marketId, market, undefined, 'contract');
+        const positionType = this.safeString (position, 'positionType');
+        const marginMode = (positionType === 'CROSSED') ? 'cross' : 'isolated';
+        const collateral = this.safeNumber (position, 'isolatedMargin');
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'hedged': undefined,
+            'side': this.safeStringLower (position, 'positionSide'),
+            'contracts': this.safeNumber (position, 'positionSize'),
+            'contractSize': market['contractSize'],
+            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'markPrice': undefined,
+            'notional': undefined,
+            'leverage': this.safeInteger (position, 'leverage'),
+            'collateral': collateral,
+            'initialMargin': collateral,
+            'maintenanceMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': undefined,
+            'liquidationPrice': undefined,
+            'marginMode': marginMode,
+            'percentage': undefined,
+            'marginRatio': undefined,
         };
     }
 
