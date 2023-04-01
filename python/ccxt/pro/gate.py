@@ -489,7 +489,7 @@ class gate(ccxt.async_support.gate):
         await self.load_markets()
         subType = None
         type = None
-        marketId = 'not all'
+        marketId = '!' + 'all'
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -700,7 +700,7 @@ class gate(ccxt.async_support.gate):
         })
         channel = typeId + '.orders'
         messageHash = 'orders'
-        payload = ['not all']
+        payload = ['!' + 'all']
         if symbol is not None:
             messageHash += ':' + market['id']
             payload = [market['id']]

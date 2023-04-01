@@ -523,7 +523,7 @@ export default class gate extends gateRest {
         await this.loadMarkets();
         let subType = undefined;
         let type = undefined;
-        let marketId = '!all';
+        let marketId = '!' + 'all';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -747,7 +747,7 @@ export default class gate extends gateRest {
         });
         const channel = typeId + '.orders';
         let messageHash = 'orders';
-        let payload = ['!all'];
+        let payload = ['!' + 'all'];
         if (symbol !== undefined) {
             messageHash += ':' + market['id'];
             payload = [market['id']];

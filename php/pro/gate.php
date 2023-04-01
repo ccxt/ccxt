@@ -532,7 +532,7 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
             $subType = null;
             $type = null;
-            $marketId = '!all';
+            $marketId = '!' . 'all';
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -760,7 +760,7 @@ class gate extends \ccxt\async\gate {
             ));
             $channel = $typeId . '.orders';
             $messageHash = 'orders';
-            $payload = array( '!all' );
+            $payload = array( '!' . 'all' );
             if ($symbol !== null) {
                 $messageHash .= ':' . $market['id'];
                 $payload = [ $market['id'] ];

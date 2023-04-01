@@ -520,7 +520,7 @@ class gate extends gate$1 {
         await this.loadMarkets();
         let subType = undefined;
         let type = undefined;
-        let marketId = '!all';
+        let marketId = '!' + 'all';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -744,7 +744,7 @@ class gate extends gate$1 {
         });
         const channel = typeId + '.orders';
         let messageHash = 'orders';
-        let payload = ['!all'];
+        let payload = ['!' + 'all'];
         if (symbol !== undefined) {
             messageHash += ':' + market['id'];
             payload = [market['id']];
