@@ -372,6 +372,23 @@ public partial class Exchange
         }
     }
 
+    public struct Balances
+    {
+        public Dictionary<string, Balance> balances;
+        public Dictionary<string, object> info;
+
+        public Balances(object balances2)
+        {
+            var balances = (Dictionary<string, object>)balances2;
+            this.balances = new Dictionary<string, Balance>();
+            foreach (var balance in balances)
+            {
+                this.balances.Add(balance.Key, new Balance(balance.Value));
+            }
+            info = (Dictionary<string, object>)balances["info"];
+        }
+    }
+
     public struct WithdrawlResponse
     {
         public Dictionary<string, object> info;

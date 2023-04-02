@@ -135,11 +135,11 @@ public partial class Exchange
         var res = await this.fetchBidsAsks(symbols, parameters);
         return ((object)res);
     }
-    // public async Task<Balances> FetchBalance(Dictionary<string, object>? parameters)
-    // {
-    //     var res = await this.fetchBalance(parameters);
-    //     return new Balances(res);
-    // }
+    public async Task<Balances> FetchBalance(Dictionary<string, object>? parameters)
+    {
+        var res = await this.fetchBalance(parameters);
+        return new Balances(res);
+    }
     public async Task<Balance> FetchPartialBalance(object part, Dictionary<string, object>? parameters)
     {
         var res = await this.fetchPartialBalance(part, parameters);
