@@ -5,389 +5,418 @@ namespace Main;
 
 public partial class Exchange
 {
-    public async Task<List<Market>> FetchMarkets(Dictionary<string, object>? parameters)
+    public async Task<List<Market>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
         return ((List<object>)res).Select(item => new Market(item)).ToList<Market>();
     }
-    public async Task<object> FetchAccounts(Dictionary<string, object>? parameters)
+    public async Task<object> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
         return ((object)res);
     }
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTrades(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
-    public async Task<object> FetchDepositAddresses(List<string>? codes, Dictionary<string, object>? parameters)
+    public async Task<object> FetchDepositAddresses(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);
         return ((object)res);
     }
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<OrderBook> FetchOrderBook(string symbol, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
-    public async Task<float> FetchTime(Dictionary<string, object>? parameters)
+    public async Task<float> FetchTime(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTime(parameters);
         return ((float)res);
     }
-    public async Task<object> FetchTradingLimits(List<string>? symbols, Dictionary<string, object>? parameters)
+    public async Task<object> FetchTradingLimits(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingLimits(symbols, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchBorrowRates(Dictionary<string, object>? parameters)
+    public async Task<object> FetchBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBorrowRates(parameters);
         return ((object)res);
     }
-    public async Task<object> FetchLeverageTiers(List<string>? symbols, Dictionary<string, object>? parameters)
+    public async Task<object> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchFundingRates(List<string>? symbols, Dictionary<string, object>? parameters)
+    public async Task<object> FetchFundingRates(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
         return ((object)res);
     }
-    public async Task<DepositAddressResponse> CreateDepositAddress(string code, Dictionary<string, object>? parameters)
+    public async Task<DepositAddressResponse> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
         return new DepositAddressResponse(res);
     }
-    public async Task<object> SetLeverage(object leverage, string? symbol, Dictionary<string, object>? parameters)
+    public async Task<object> SetLeverage(object leverage, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((object)res);
     }
-    public Dictionary<string, object> SetMarkets(object markets, object? currencies)
+    public Dictionary<string, object> SetMarkets(object markets, object currencies = null)
     {
         var res = this.setMarkets(markets, currencies);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string? timeframe, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((List<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
-    public async Task<object> FetchL2OrderBook(string symbol, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<object> FetchL2OrderBook(string symbol, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchL2OrderBook(symbol, limit, parameters);
         return ((object)res);
     }
-    public async Task<object> Fetch2(object path, object? api, string? method, Dictionary<string, object>? parameters, object? headers, object? body, Dictionary<string, object>? config, Dictionary<string, object>? context)
+    public async Task<object> Fetch2(object path, object api = null, string method = "GET", Dictionary<string, object> parameters = null, object headers = null, object body = null, Dictionary<string, object> config = null, Dictionary<string, object> context = null)
     {
         var res = await this.fetch2(path, api, method, parameters, headers, body, config, context);
         return ((object)res);
     }
-    public async Task<List<OHLCVC>> FetchOHLCVC(object symbol, string? timeframe, object? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<OHLCVC>> FetchOHLCVC(object symbol, string timeframe = "1m", object since = null, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCVC(symbol, timeframe, since, limit, parameters);
         return ((List<object>)res).Select(item => new OHLCVC(item)).ToList<OHLCVC>();
     }
-    public async Task<Order> EditLimitBuyOrder(object id, object symbol, object amount, object? price, Dictionary<string, object>? parameters)
+    public async Task<Order> EditLimitBuyOrder(object id, object symbol, object amount, object price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editLimitBuyOrder(id, symbol, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditLimitSellOrder(object id, object symbol, object amount, object? price, Dictionary<string, object>? parameters)
+    public async Task<Order> EditLimitSellOrder(object id, object symbol, object amount, object price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editLimitSellOrder(id, symbol, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditLimitOrder(object id, object symbol, object side, object amount, object? price, Dictionary<string, object>? parameters)
+    public async Task<Order> EditLimitOrder(object id, object symbol, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editLimitOrder(id, symbol, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditOrder(string id, object symbol, object type, object side, object amount, object? price, Dictionary<string, object>? parameters)
+    public async Task<Order> EditOrder(string id, object symbol, object type, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<object> FetchPermissions(Dictionary<string, object>? parameters)
+    public async Task<object> FetchPermissions(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPermissions(parameters);
         return ((object)res);
     }
-    public async Task<object> FetchPosition(string symbol, Dictionary<string, object>? parameters)
+    public async Task<object> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchPositions(List<string>? symbols, Dictionary<string, object>? parameters)
+    public async Task<object> FetchPositions(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchPositionsRisk(List<string>? symbols, Dictionary<string, object>? parameters)
+    public async Task<object> FetchPositionsRisk(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionsRisk(symbols, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchBidsAsks(List<string>? symbols, Dictionary<string, object>? parameters)
+    public async Task<object> FetchBidsAsks(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
         return ((object)res);
     }
-    public async Task<Balances> FetchBalance(Dictionary<string, object>? parameters)
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
         return new Balances(res);
     }
-    public async Task<Balance> FetchPartialBalance(object part, Dictionary<string, object>? parameters)
+    public async Task<Balance> FetchPartialBalance(object part, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPartialBalance(part, parameters);
         return new Balance(res);
     }
-    public async Task<Balance> FetchFreeBalance(Dictionary<string, object>? parameters)
+    public async Task<Balance> FetchFreeBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFreeBalance(parameters);
         return new Balance(res);
     }
-    public async Task<Balance> FetchUsedBalance(Dictionary<string, object>? parameters)
+    public async Task<Balance> FetchUsedBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUsedBalance(parameters);
         return new Balance(res);
     }
-    public async Task<Balance> FetchTotalBalance(Dictionary<string, object>? parameters)
+    public async Task<Balance> FetchTotalBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTotalBalance(parameters);
         return new Balance(res);
     }
-    public async Task<object> FetchStatus(Dictionary<string, object>? parameters)
+    public async Task<object> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
         return ((object)res);
     }
-    public async Task<object> FetchFundingFee(string code, Dictionary<string, object>? parameters)
+    public async Task<object> FetchFundingFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingFee(code, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchFundingFees(List<string>? codes, Dictionary<string, object>? parameters)
+    public async Task<object> FetchFundingFees(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingFees(codes, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchTransactionFee(string code, Dictionary<string, object>? parameters)
+    public async Task<object> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFee(code, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchTransactionFees(List<string>? codes, Dictionary<string, object>? parameters)
+    public async Task<object> FetchTransactionFees(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchDepositWithdrawFees(List<string>? codes, Dictionary<string, object>? parameters)
+    public async Task<object> FetchDepositWithdrawFees(List<string> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchDepositWithdrawFee(string code, Dictionary<string, object>? parameters)
+    public async Task<object> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFee(code, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchBorrowRate(string code, Dictionary<string, object>? parameters)
+    public async Task<object> FetchBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBorrowRate(code, parameters);
         return ((object)res);
     }
-    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object>? parameters)
+    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
         return new Ticker(res);
     }
-    public async Task<Dictionary<string, Ticker>> FetchTickers(List<string>? symbols, Dictionary<string, object>? parameters)
+    public async Task<Dictionary<string, Ticker>> FetchTickers(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
         var keys = ((Dictionary<string, object>)res).Keys.ToList();
         var result = new Dictionary<string, Ticker>();
         foreach (var key in keys)
         {
-            result[key] = new Ticker(((Dictionary<string, object>)res)[key]);
+            result[key] = new Ticker(((Dictionary<string,object>)res)[key]);
         }
         return result;
     }
-    public async Task<Order> FetchOrder(string id, string? symbol, Dictionary<string, object>? parameters)
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public async Task<string> FetchOrderStatus(string id, string? symbol, Dictionary<string, object>? parameters)
+    public async Task<string> FetchOrderStatus(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderStatus(id, symbol, parameters);
         return ((string)res);
     }
-    public async Task<Order> FetchUnifiedOrder(object order, Dictionary<string, object>? parameters)
+    public async Task<Order> FetchUnifiedOrder(object order, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUnifiedOrder(order, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateOrder(string symbol, string type, string side, object amount, object? price, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateOrder(string symbol, string type, string side, object amount, object price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<object> CancelOrder(string id, string? symbol, Dictionary<string, object>? parameters)
+    public async Task<object> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
         return ((object)res);
     }
-    public async Task<object> CancelAllOrders(string? symbol, Dictionary<string, object>? parameters)
+    public async Task<object> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
         return ((object)res);
     }
-    public async Task<object> CancelUnifiedOrder(object order, Dictionary<string, object>? parameters)
+    public async Task<object> CancelUnifiedOrder(object order, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelUnifiedOrder(order, parameters);
         return ((object)res);
     }
-    public async Task<List<Order>> FetchOrders(string? symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrders(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Trade>> FetchOrderTrades(string id, string? symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderTrades(id, symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
-    public async Task<List<Order>> FetchOpenOrders(string? symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Order>> FetchClosedOrders(string? symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Trade>> FetchMyTrades(string? symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
-    public async Task<object> FetchTransactions(string? symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<object> FetchTransactions(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransactions(symbol, since, limit, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchDeposits(string? symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<object> FetchDeposits(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDeposits(symbol, since, limit, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchWithdrawals(string? symbol, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<object> FetchWithdrawals(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchWithdrawals(symbol, since, limit, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchDepositAddress(string code, Dictionary<string, object>? parameters)
+    public async Task<object> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
         return ((object)res);
     }
-    public async Task<Order> CreateLimitOrder(string symbol, string side, object amount, object price, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateLimitOrder(string symbol, string side, object amount, object price, Dictionary<string, object> parameters = null)
     {
         var res = await this.createLimitOrder(symbol, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateMarketOrder(string symbol, string side, object amount, object? price, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateMarketOrder(string symbol, string side, object amount, object price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketOrder(symbol, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateLimitBuyOrder(string symbol, object amount, object price, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateLimitBuyOrder(string symbol, object amount, object price, Dictionary<string, object> parameters = null)
     {
         var res = await this.createLimitBuyOrder(symbol, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateLimitSellOrder(string symbol, object amount, object price, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateLimitSellOrder(string symbol, object amount, object price, Dictionary<string, object> parameters = null)
     {
         var res = await this.createLimitSellOrder(symbol, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateMarketBuyOrder(string symbol, object amount, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateMarketBuyOrder(string symbol, object amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrder(symbol, amount, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateMarketSellOrder(string symbol, object amount, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateMarketSellOrder(string symbol, object amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketSellOrder(symbol, amount, parameters);
         return new Order(res);
     }
-    public async Task<object> FetchMarketLeverageTiers(string symbol, Dictionary<string, object>? parameters)
+    public async Task<object> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
         return ((object)res);
     }
-    public async Task<Order> CreatePostOnlyOrder(string symbol, string type, string side, object amount, object price, Dictionary<string, object>? parameters)
+    public async Task<Order> CreatePostOnlyOrder(string symbol, string type, string side, object amount, object price, Dictionary<string, object> parameters = null)
     {
         var res = await this.createPostOnlyOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateReduceOnlyOrder(string symbol, string type, string side, object amount, object price, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateReduceOnlyOrder(string symbol, string type, string side, object amount, object price, Dictionary<string, object> parameters = null)
     {
         var res = await this.createReduceOnlyOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopOrder(string symbol, string type, string side, object amount, object? price, object? stopPrice, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateStopOrder(string symbol, string type, string side, object amount, object price = null, object stopPrice = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createStopOrder(symbol, type, side, amount, price, stopPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopLimitOrder(string symbol, string side, object amount, object price, object stopPrice, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateStopLimitOrder(string symbol, string side, object amount, object price, object stopPrice, Dictionary<string, object> parameters = null)
     {
         var res = await this.createStopLimitOrder(symbol, side, amount, price, stopPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateStopMarketOrder(string symbol, string side, object amount, object stopPrice, Dictionary<string, object>? parameters)
+    public async Task<Order> CreateStopMarketOrder(string symbol, string side, object amount, object stopPrice, Dictionary<string, object> parameters = null)
     {
         var res = await this.createStopMarketOrder(symbol, side, amount, stopPrice, parameters);
         return new Order(res);
     }
-    public async Task<object> FetchLastPrices(List<string>? symbols, Dictionary<string, object>? parameters)
+    public async Task<object> FetchLastPrices(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchTradingFees(Dictionary<string, object>? parameters)
+    public async Task<object> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
         return ((object)res);
     }
-    public async Task<object> FetchTradingFee(string symbol, Dictionary<string, object>? parameters)
+    public async Task<object> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchFundingRate(string symbol, Dictionary<string, object>? parameters)
+    public async Task<object> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
         return ((object)res);
     }
-    public async Task<List<OHLCV>> FetchMarkOHLCV(object symbol, string? timeframe, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<OHLCV>> FetchMarkOHLCV(object symbol, string timeframe = "1m", Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMarkOHLCV(symbol, timeframe, since, limit, parameters);
         return ((List<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
-    public async Task<List<OHLCV>> FetchIndexOHLCV(string symbol, string? timeframe, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<OHLCV>> FetchIndexOHLCV(string symbol, string timeframe = "1m", Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchIndexOHLCV(symbol, timeframe, since, limit, parameters);
         return ((List<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
-    public async Task<List<OHLCV>> FetchPremiumIndexOHLCV(string symbol, string? timeframe, Int64? since, Int64? limit, Dictionary<string, object>? parameters)
+    public async Task<List<OHLCV>> FetchPremiumIndexOHLCV(string symbol, string timeframe = "1m", Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchPremiumIndexOHLCV(symbol, timeframe, since, limit, parameters);
         return ((List<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }

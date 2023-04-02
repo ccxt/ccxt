@@ -221,13 +221,25 @@ class NewTranspiler {
                 if (param.initializer !== undefined && param.initializer !== 'undefined') {
                     return `${paramType} ${safeName} = ${param.initializer}`
                 } else {
+                    if (paramType  === 'bool') {
+                        return `${paramType} ${safeName} = false`
+                    }
+                    if (paramType  === 'float') {
+                        return `${paramType} ${safeName}2 = 0`
+                    }
+                    if (paramType  === 'Int64') {
+                        return `${paramType} ${safeName}2 = 0`
+                    }
                     return `${paramType}? ${safeName}`
                 }
             }
         } else {
             if (isOptional) {
                 if (param.initializer !== undefined) {
-                          return `${paramType}? ${safeName}`
+                        if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
+                            return `${paramType} ${safeName} = null`
+                        }
+                        return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
                 }
             } else {
                 return `${paramType} ${safeName}`
@@ -294,6 +306,23 @@ class NewTranspiler {
         return returnStatement;
     }
 
+    getDefaultParamsWrappers(rawParameters) {
+        const res: string[] = [];
+
+        rawParameters.forEach(param => {
+            if (this.isIntegerType(param.type) || this.isNumberType(param.type)) {
+                const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
+                res.push(decl);
+            }
+        });
+
+        return res.join("\n");
+    }
+
+    inden(level: number) {
+        return '    '.repeat(level);
+    }
+
     createWrapper (methodWrapper) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
@@ -303,17 +332,21 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.convertJavascriptTypeToCsharpType(methodWrapper.returnType);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
-        const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param)).join(', ');
+        const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param));
+        const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         const params = methodWrapper.parameters.map(param => this.safeCsharpName(param.name)).join(', ');
 
+        const one = this.inden(1);
+        const two = this.inden(2);
         const method = [
-            `public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${args})`,
-            '{',
-            `    var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
-            `    ${this.createReturnStatement(unwrappedType)}`,
-            '}'
-        ].map(line => '    ' + line);
-        return method.join('\n')
+            `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
+            `${one}{`,
+            this.getDefaultParamsWrappers(methodWrapper.parameters),
+            `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
+            `${two}${this.createReturnStatement(unwrappedType)}`,
+            `${one}}`
+        ];
+        return method.filter(e => !!e).join('\n')
     }
 
     createMethodsWrappers(wrappers) {
