@@ -12,6 +12,7 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 
+// AUTO-TRANSPILE //
 function example() {
     $myex = new \ccxt\okx(array());
     $from_timestamp = $myex->milliseconds() - 86400 * 1000; // last 24 hrs

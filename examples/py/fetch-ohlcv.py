@@ -14,6 +14,7 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 
+# AUTO-TRANSPILE #
 def example():
     myex = ccxt.okx({})
     from_timestamp = myex.milliseconds() - 86400 * 1000  # last 24 hrs

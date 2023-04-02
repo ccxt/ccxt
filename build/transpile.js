@@ -2146,17 +2146,16 @@ class Transpiler {
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
 
                 // from JS content, remove everything before the transpile flag
-                tsContent = this.regexAll (tsContent, [
-                    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
-                ])
+                //tsContent = this.regexAll (tsContent, [
+                //    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
+                //])
 
                 // detect all function declarations in JS, e.g. `async function Xyz (...)`)
                 const allDetectedFunctionNames = [...tsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
 
                 // exec the main transpile function
                 const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
-                var x = [ transpiled[0].content, transpiled[1].content, transpiled[2].content, transpiled[3].content ];
-                let [ phpAsyncBody, phpSyncBody, pythonSyncBody, pythonAsyncBody ] =null;
+                let [ phpAsyncBody, phpSyncBody, pythonSyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content, transpiled[2].content, transpiled[3].content ];
                 // ###### replace common (synchronity agnostic) syntaxes ######
                 const fixPython = (body, isAsync)=> {
                     return this.regexAll (body, [
@@ -2168,7 +2167,7 @@ class Transpiler {
                     ]);
                 };
                 const fixPhp = (body, isAsync)=> {
-                    let asyncSub = isAsync ? 'async\\\\' : '';
+                    let asyncSub = isAsync ? 'async\\' : '';
                     const regexes = [
                         [ /\$console\->log/g, 'var_dump' ],
                         // cases like: exchange = new ccxt.huobi ()

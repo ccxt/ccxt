@@ -14,6 +14,7 @@ import asyncio
 import ccxt.async_support as ccxt  # noqa: E402
 
 
+# AUTO-TRANSPILE #
 async def example():
     myex = ccxt.okx({})
     from_timestamp = myex.milliseconds() - 86400 * 1000  # last 24 hrs

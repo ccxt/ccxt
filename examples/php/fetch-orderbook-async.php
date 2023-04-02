@@ -18,7 +18,7 @@ use React\Promise;
 
 function example() {
     return Async\async(function () {
-        $exchange = new \ccxt\async\\binance(array());
+        $exchange = new \ccxt\async\binance(array());
         $ob = Async\await($exchange->fetch_order_book('BTC/USDT', 3));
         $asks = $ob['asks'];
         $bids = $ob['bids'];
