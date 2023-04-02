@@ -222,13 +222,13 @@ class NewTranspiler {
                     return `${paramType} ${safeName} = ${param.initializer}`
                 } else {
                     if (paramType  === 'bool') {
-                        return `${paramType} ${safeName} = false`
+                        return `${paramType}? ${safeName} = false`
                     }
                     if (paramType  === 'float') {
-                        return `${paramType} ${safeName}2 = 0`
+                        return `${paramType}? ${safeName}2 = 0`
                     }
                     if (paramType  === 'Int64') {
-                        return `${paramType} ${safeName}2 = 0`
+                        return `${paramType}? ${safeName}2 = 0`
                     }
                     return `${paramType}? ${safeName}`
                 }
