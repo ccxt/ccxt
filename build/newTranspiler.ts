@@ -188,6 +188,11 @@ class NewTranspiler {
             return addTaskIfNeeded(csharpReplacements[wrappedType]);
         }
 
+        if (wrappedType.startsWith('Dictionary<')) {
+            const type = wrappedType.substring(11, wrappedType.length - 1);
+            return addTaskIfNeeded(`Dictionary<string, ${type}>`);
+        }
+
         return addTaskIfNeeded(wrappedType);
     }
 
@@ -262,11 +267,27 @@ class NewTranspiler {
         return type.startsWith('List<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
     }
 
+    unwrapDictionaryIfNeeded(type: string): string {
+        return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
+    }
+
     createReturnStatement( unwrappedType:string ) {
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
         let returnStatement = "";
         if (unwrappedType.startsWith('List<')) {
             returnStatement = `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
+        } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>') {
+            const type = this.unwrapDictionaryIfNeeded(unwrappedType);
+            const returnParts = [
+                `var keys = ((Dictionary<string, object>)res).Keys.ToList();`,
+                `        var result = new Dictionary<string, ${type}>();`,
+                `        foreach (var key in keys)`,
+                `        {`,
+                `            result[key] = new ${type}(((Dictionary<string,object>)res)[key]);`,
+                `        }`,
+                `        return result;`,
+            ].join("\n");
+            return returnParts;
         } else {
             returnStatement =  needsToInstantiate ? `return new ${unwrappedType}(res);` :  `return ((${unwrappedType})res);`;            ;
         }
@@ -415,7 +436,7 @@ class NewTranspiler {
         let baseClass = baseFile.content;
 
         // create wrappers with specific types
-        // this.createMethodsWrappers(baseFile.methodsTypes)
+        this.createMethodsWrappers(baseFile.methodsTypes)
 
 
         // custom transformations needed for c#
@@ -461,7 +482,7 @@ class NewTranspiler {
             createFolderRecursively (csharpFolder)
         }
 
-        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
