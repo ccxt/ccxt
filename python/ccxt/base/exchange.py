@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.49'
+__version__ = '3.0.50'
 
 # -----------------------------------------------------------------------------
 
@@ -3242,6 +3242,8 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
     def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
+        # TODO: TypeScript: change method signature by replacing
+        # Promise<string> with Promise<Order['status']>.
         order = self.fetch_order(id, symbol, params)
         return order['status']
 

@@ -197,7 +197,7 @@ class gate(ccxt.async_support.gate):
             waitAmount = snapshotDelay if isSpot else 0
             if cacheLength == waitAmount:
                 # max limit is 100
-                subscription = client.subscriptions[channel]
+                subscription = client.subscriptions[messageHash]
                 limit = self.safe_integer(subscription, 'limit')
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit)
             storedOrderBook.cache.append(delta)
@@ -822,7 +822,7 @@ class gate(ccxt.async_support.gate):
             'spot.order_book_update': self.handle_order_book_subscription,
             'futures.order_book_update': self.handle_order_book_subscription,
         }
-        id = self.safe_integer(message, 'id')
+        id = self.safe_string(message, 'id')
         if channel in methods:
             subscriptionHash = self.safe_string(client.subscriptions, id)
             subscription = self.safe_value(client.subscriptions, subscriptionHash)

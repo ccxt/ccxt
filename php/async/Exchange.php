@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.49';
+$version = '3.0.50';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.49';
+    const VERSION = '3.0.50';
 
     public $browser;
     public $marketsLoading = null;
@@ -2129,6 +2129,8 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
+            // TODO => TypeScript => change method signature by replacing
+            // Promise<string> with Promise<Order['status']>.
             $order = Async\await($this->fetch_order($id, $symbol, $params));
             return $order['status'];
         }) ();
