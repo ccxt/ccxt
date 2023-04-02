@@ -4173,9 +4173,9 @@ class okx extends okx$1 {
         //         "ccy": "ETH",
         //         "from": "13426335357",
         //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        //         'tag': string,
-        //         'pmtId': string,
-        //         'memo': string,
+        //         'tag',
+        //         'pmtId',
+        //         'memo',
         //         "ts": "1597026383085",
         //         "state": "2"
         //     }
@@ -4568,7 +4568,7 @@ class okx extends okx$1 {
         const percentage = this.parseNumber(Precise["default"].stringMul(percentageString, '100'));
         const timestamp = this.safeInteger(position, 'uTime');
         const marginRatio = this.parseNumber(Precise["default"].stringDiv(maintenanceMarginString, collateralString, 4));
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -4581,10 +4581,12 @@ class okx extends okx$1 {
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': this.parseNumber(markPriceString),
+            'lastPrice': undefined,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': this.parseNumber(collateralString),
@@ -4592,7 +4594,7 @@ class okx extends okx$1 {
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverageString),
             'marginRatio': marginRatio,
-        };
+        });
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**

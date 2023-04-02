@@ -1,38 +1,14 @@
 import sys
-import enum
-from typing import TypedDict, Union
+from typing import Union, Literal
 
-if sys.version_info.minor >= 11:
-    StrEnum = enum.StrEnum
+if sys.version_info.minor > 7:
+    from typing import TypedDict
 else:
-    class StrEnum(str, enum.Enum):
-        """
-        StrEnum is a Python ``enum.Enum`` that inherits from ``str``. The default
-        ``auto()`` behavior uses the member name as its value.
-        """
-
-        def __new__(cls, value, *args, **kwargs):
-            if not isinstance(value, (str, enum.auto)):
-                raise TypeError(
-                    f"Values of StrEnums must be strings: {value!r} is a {type(value)}"
-                )
-            return super().__new__(cls, value, *args, **kwargs)
-
-        def __str__(self):
-            return str(self.value)
-
-        def _generate_next_value_(name, *_):
-            return name.lower()
+    TypedDict = dict
 
 
-class OrderSide(StrEnum):
-    Buy = 'buy'
-    Sell = 'sell'
-
-
-class OrderType(StrEnum):
-    Limit = 'limit'
-    Market = 'market'
+OrderSide = Literal['buy', 'sell']
+OrderType = Literal['limit', 'market']
 
 
 class Balance(TypedDict):
@@ -42,4 +18,3 @@ class Balance(TypedDict):
 
 
 IndexType = Union[str, int]
-IntegerType = int

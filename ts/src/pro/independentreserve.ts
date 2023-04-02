@@ -3,6 +3,8 @@
 import independentreserveRest from '../independentreserve.js';
 import { NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -35,7 +37,7 @@ export default class independentreserve extends independentreserveRest {
         });
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#watchTrades
@@ -55,7 +57,7 @@ export default class independentreserve extends independentreserveRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //    {
         //        Channel: 'ticker-btc-usd',
@@ -122,7 +124,7 @@ export default class independentreserve extends independentreserveRest {
         }, market);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#watchOrderBook
@@ -148,7 +150,7 @@ export default class independentreserve extends independentreserveRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //    {
         //        Channel: "orderbook/1/eth/aud",
@@ -251,7 +253,7 @@ export default class independentreserve extends independentreserveRest {
         }
     }
 
-    handleHeartbeat (client, message) {
+    handleHeartbeat (client: Client, message) {
         //
         //    {
         //        Time: 1676156208182,
@@ -261,7 +263,7 @@ export default class independentreserve extends independentreserveRest {
         return message;
     }
 
-    handleSubscriptions (client, message) {
+    handleSubscriptions (client: Client, message) {
         //
         //    {
         //        Data: [ 'ticker-btc-sgd' ],
@@ -272,7 +274,7 @@ export default class independentreserve extends independentreserveRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const event = this.safeString (message, 'Event');
         const handlers = {
             'Subscriptions': this.handleSubscriptions,

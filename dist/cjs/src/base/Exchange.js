@@ -555,7 +555,7 @@ class Exchange {
         this.throttler = new Throttler(this.tokenBucket);
     }
     throttle(cost = undefined) {
-        this.throttler.throttle(cost);
+        return this.throttler.throttle(cost);
     }
     setSandboxMode(enabled) {
         if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
@@ -969,6 +969,9 @@ class Exchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
+        if ((subscribeHash === undefined) && (messageHash in client.futures)) {
+            return client.futures[messageHash];
+        }
         const future = client.future(messageHash);
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
@@ -980,7 +983,9 @@ class Exchange {
         // (connection established successfully)
         connected.then(() => {
             if (!client.subscriptions[subscribeHash]) {
-                client.subscriptions[subscribeHash] = subscription || true;
+                if (subscribeHash !== undefined) {
+                    client.subscriptions[subscribeHash] = subscription || true;
+                }
                 const options = this.safeValue(this.options, 'ws');
                 const cost = this.safeValue(options, 'cost', 1);
                 if (message) {
@@ -1931,7 +1936,6 @@ class Exchange {
         if (!this.has['fetchTrades']) {
             throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported yet');
         }
-        await this.loadMarkets();
         const trades = await this.fetchTrades(symbol, since, limit, params);
         const ohlcvc = this.buildOHLCVC(trades, timeframe, since, limit);
         const result = [];
@@ -2300,6 +2304,21 @@ class Exchange {
             }
         }
         return this.markets;
+    }
+    safePosition(position) {
+        // simplified version of: /pull/12765/
+        const unrealizedPnlString = this.safeString(position, 'unrealisedPnl');
+        const initialMarginString = this.safeString(position, 'initialMargin');
+        //
+        // PERCENTAGE
+        //
+        const percentage = this.safeValue(position, 'percentage');
+        if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            const percentageString = Precise["default"].stringMul(Precise["default"].stringDiv(unrealizedPnlString, initialMarginString, 4), '100');
+            position['percentage'] = this.parseNumber(percentageString);
+        }
+        return position;
     }
     parsePositions(positions, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols);
@@ -2859,6 +2878,9 @@ class Exchange {
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet');
     }
+    async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderTrades() is not supported yet');
+    }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrders() is not supported yet');
     }
@@ -3024,8 +3046,8 @@ class Exchange {
         const value = this.safeString(obj, key);
         return this.parseNumber(value, defaultNumber);
     }
-    safeNumberN(object, arr, defaultNumber = undefined) {
-        const value = this.safeStringN(object, arr);
+    safeNumberN(obj, arr, defaultNumber = undefined) {
+        const value = this.safeStringN(obj, arr);
         return this.parseNumber(value, defaultNumber);
     }
     parsePrecision(precision) {
@@ -3315,7 +3337,7 @@ class Exchange {
         }
         return [false, params];
     }
-    async fetchLastPrices(params = {}) {
+    async fetchLastPrices(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchLastPrices() is not supported yet');
     }
     async fetchTradingFees(params = {}) {

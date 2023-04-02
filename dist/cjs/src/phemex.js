@@ -1916,7 +1916,8 @@ class phemex extends phemex$1 {
             clientOrderId = undefined;
         }
         const marketId = this.safeString(order, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const price = this.fromEp(this.safeString(order, 'priceEp'), market);
         const amount = this.fromEv(this.safeString(order, 'baseQtyEv'), market);
         const remaining = this.omitZero(this.fromEv(this.safeString(order, 'leavesBaseQtyEv'), market));
@@ -2443,15 +2444,15 @@ class phemex extends phemex$1 {
         }
         params = this.omit(params, ['stopPx', 'stopPrice']);
         let method = 'privatePutSpotOrders';
-        if (market['inverse']) {
-            method = 'privatePutOrdersReplace';
-        }
-        else if (isUSDTSettled) {
+        if (isUSDTSettled) {
             method = 'privatePutGOrdersReplace';
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+        }
+        else if (market['swap']) {
+            method = 'privatePutOrdersReplace';
         }
         const response = await this[method](this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
@@ -2486,15 +2487,15 @@ class phemex extends phemex$1 {
             request['orderID'] = id;
         }
         let method = 'privateDeleteSpotOrders';
-        if (market['inverse']) {
-            method = 'privateDeleteOrdersCancel';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersCancel';
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+        }
+        else if (market['swap']) {
+            method = 'privateDeleteOrdersCancel';
         }
         const response = await this[method](this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
@@ -2521,11 +2522,11 @@ class phemex extends phemex$1 {
         };
         const market = this.market(symbol);
         let method = 'privateDeleteSpotOrdersAll';
-        if (market['inverse']) {
-            method = 'privateDeleteOrdersAll';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersAll';
+        }
+        else if (market['swap']) {
+            method = 'privateDeleteOrdersAll';
         }
         request['symbol'] = market['id'];
         return await this[method](this.extend(request, params));
@@ -2597,12 +2598,12 @@ class phemex extends phemex$1 {
             'symbol': market['id'],
         };
         let method = 'privateGetSpotOrders';
-        if (market['inverse']) {
-            method = 'privateGetExchangeOrderList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             request['currency'] = market['settle'];
             method = 'privateGetExchangeOrderV2OrderList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetExchangeOrderList';
         }
         if (since !== undefined) {
             request['start'] = since;
@@ -2621,6 +2622,7 @@ class phemex extends phemex$1 {
          * @name phemex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -2633,11 +2635,11 @@ class phemex extends phemex$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         let method = 'privateGetSpotOrders';
-        if (market['inverse']) {
-            method = 'privateGetOrdersActiveList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateGetGOrdersActiveList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetOrdersActiveList';
         }
         const request = {
             'symbol': market['id'],
@@ -2682,12 +2684,12 @@ class phemex extends phemex$1 {
             'symbol': market['id'],
         };
         let method = 'privateGetExchangeSpotOrder';
-        if (market['inverse']) {
-            method = 'privateGetExchangeOrderList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             request['currency'] = market['settle'];
             method = 'privateGetExchangeOrderV2OrderList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetExchangeOrderList';
         }
         if (since !== undefined) {
             request['start'] = since;
@@ -3352,9 +3354,8 @@ class phemex extends phemex$1 {
             }
         }
         const unrealizedPnl = Precise["default"].stringMul(Precise["default"].stringMul(priceDiff, contracts), contractSizeString);
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealizedPnl, initialMarginString), '100');
         const marginRatio = Precise["default"].stringDiv(maintenanceMarginString, collateral);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3366,8 +3367,10 @@ class phemex extends phemex$1 {
             'collateral': this.parseNumber(collateral),
             'notional': this.parseNumber(notionalString),
             'markPrice': this.parseNumber(markPriceString),
+            'lastPrice': undefined,
             'entryPrice': this.parseNumber(entryPriceString),
             'timestamp': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentageString),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -3377,8 +3380,8 @@ class phemex extends phemex$1 {
             'marginMode': undefined,
             'side': side,
             'hedged': false,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

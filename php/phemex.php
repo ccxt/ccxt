@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\phemex as Exchange;
 
 class phemex extends Exchange {
 
@@ -945,7 +946,7 @@ class phemex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
@@ -1082,7 +1083,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
@@ -1235,7 +1236,7 @@ class phemex extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
@@ -1306,7 +1307,7 @@ class phemex extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
@@ -1918,7 +1919,8 @@ class phemex extends Exchange {
             $clientOrderId = null;
         }
         $marketId = $this->safe_string($order, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $price = $this->from_ep($this->safe_string($order, 'priceEp'), $market);
         $amount = $this->from_ev($this->safe_string($order, 'baseQtyEv'), $market);
         $remaining = $this->omit_zero($this->from_ev($this->safe_string($order, 'leavesBaseQtyEv'), $market));
@@ -2146,7 +2148,7 @@ class phemex extends Exchange {
         return $this->parse_spot_order($order, $market);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
@@ -2372,7 +2374,7 @@ class phemex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function edit_order($id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type = null, $side = null, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
@@ -2431,21 +2433,21 @@ class phemex extends Exchange {
         }
         $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
         $method = 'privatePutSpotOrders';
-        if ($market['inverse']) {
-            $method = 'privatePutOrdersReplace';
-        } elseif ($isUSDTSettled) {
+        if ($isUSDTSettled) {
             $method = 'privatePutGOrdersReplace';
             $posSide = $this->safe_string($params, 'posSide');
             if ($posSide === null) {
                 $request['posSide'] = 'Merged';
             }
+        } elseif ($market['swap']) {
+            $method = 'privatePutOrdersReplace';
         }
         $response = $this->$method (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
@@ -2471,21 +2473,21 @@ class phemex extends Exchange {
             $request['orderID'] = $id;
         }
         $method = 'privateDeleteSpotOrders';
-        if ($market['inverse']) {
-            $method = 'privateDeleteOrdersCancel';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $method = 'privateDeleteGOrdersCancel';
             $posSide = $this->safe_string($params, 'posSide');
             if ($posSide === null) {
                 $request['posSide'] = 'Merged';
             }
+        } elseif ($market['swap']) {
+            $method = 'privateDeleteOrdersCancel';
         }
         $response = $this->$method (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders in a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
@@ -2504,16 +2506,16 @@ class phemex extends Exchange {
         );
         $market = $this->market($symbol);
         $method = 'privateDeleteSpotOrdersAll';
-        if ($market['inverse']) {
-            $method = 'privateDeleteOrdersAll';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $method = 'privateDeleteGOrdersAll';
+        } elseif ($market['swap']) {
+            $method = 'privateDeleteOrdersAll';
         }
         $request['symbol'] = $market['id'];
         return $this->$method (array_merge($request, $params));
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @param {string} $symbol unified $symbol of the $market the $order was made in
@@ -2556,7 +2558,7 @@ class phemex extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
@@ -2575,11 +2577,11 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
         );
         $method = 'privateGetSpotOrders';
-        if ($market['inverse']) {
-            $method = 'privateGetExchangeOrderList';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $request['currency'] = $market['settle'];
             $method = 'privateGetExchangeOrderV2OrderList';
+        } elseif ($market['swap']) {
+            $method = 'privateGetExchangeOrderList';
         }
         if ($since !== null) {
             $request['start'] = $since;
@@ -2593,10 +2595,11 @@ class phemex extends Exchange {
         return $this->parse_orders($rows, $market, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
          * @param {string} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
@@ -2609,10 +2612,10 @@ class phemex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = 'privateGetSpotOrders';
-        if ($market['inverse']) {
-            $method = 'privateGetOrdersActiveList';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $method = 'privateGetGOrdersActiveList';
+        } elseif ($market['swap']) {
+            $method = 'privateGetOrdersActiveList';
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2635,7 +2638,7 @@ class phemex extends Exchange {
         }
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
@@ -2654,11 +2657,11 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
         );
         $method = 'privateGetExchangeSpotOrder';
-        if ($market['inverse']) {
-            $method = 'privateGetExchangeOrderList';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $request['currency'] = $market['settle'];
             $method = 'privateGetExchangeOrderV2OrderList';
+        } elseif ($market['swap']) {
+            $method = 'privateGetExchangeOrderList';
         }
         if ($since !== null) {
             $request['start'] = $since;
@@ -2712,7 +2715,7 @@ class phemex extends Exchange {
         }
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
@@ -2868,7 +2871,7 @@ class phemex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -2914,7 +2917,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
@@ -2953,7 +2956,7 @@ class phemex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
          * @param {string|null} $code unified $currency $code
@@ -3078,7 +3081,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open $positions
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-$positions
@@ -3312,9 +3315,8 @@ class phemex extends Exchange {
             }
         }
         $unrealizedPnl = Precise::string_mul(Precise::string_mul($priceDiff, $contracts), $contractSizeString);
-        $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMarginString), '100');
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -3326,8 +3328,10 @@ class phemex extends Exchange {
             'collateral' => $this->parse_number($collateral),
             'notional' => $this->parse_number($notionalString),
             'markPrice' => $this->parse_number($markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
+            'lastPrice' => null,
             'entryPrice' => $this->parse_number($entryPriceString),
             'timestamp' => null,
+            'lastUpdateTimestamp' => null,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentageString),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
@@ -3337,11 +3341,11 @@ class phemex extends Exchange {
             'marginMode' => null,
             'side' => $side,
             'hedged' => false,
-            'percentage' => $this->parse_number($percentage),
-        );
+            'percentage' => null,
+        ));
     }
 
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist
@@ -3413,7 +3417,7 @@ class phemex extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
@@ -3523,7 +3527,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin($symbol, $amount, $params = array ()) {
+    public function set_margin(string $symbol, $amount, $params = array ()) {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
@@ -3580,7 +3584,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          * @param {string} $marginMode 'cross' or 'isolated'
@@ -3612,7 +3616,7 @@ class phemex extends Exchange {
         return $this->privatePutPositionsLeverage (array_merge($request, $params));
     }
 
-    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+    public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
@@ -3637,7 +3641,7 @@ class phemex extends Exchange {
         return $this->privatePutGPositionsSwitchPosModeSync (array_merge($request, $params));
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -3800,7 +3804,7 @@ class phemex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-$leverage
@@ -3832,7 +3836,7 @@ class phemex extends Exchange {
         return $this->$method (array_merge($request, $params));
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -3916,7 +3920,7 @@ class phemex extends Exchange {
         return $transfer;
     }
 
-    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal $transfers made on an account
          * @param {string|null} $code unified $currency $code of the $currency transferred

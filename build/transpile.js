@@ -19,6 +19,8 @@ import { fork } from 'child_process'
 import * as url from 'node:url';
 ansi.nice
 
+import { Transpiler as astTranspiler } from 'ast-transpiler';
+
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
@@ -642,7 +644,7 @@ class Transpiler {
             // optional params (string | number)
             // [ /:\s\w+(\s*\|\s*\w+)?(?=\s|,|\))/g, ""], // remove parameters type
             // array types: string[] or (string|number)[]
-            [ /:\s\(?\w+(\s*\|\s*\w+)?\)?\[]/g, ""], // remove parameters type
+            // [ /:\s\(?\w+(\s*\|\s*\w+)?\)?\[]/g, ""], // remove parameters type
         ]
     }
 
@@ -834,6 +836,15 @@ class Transpiler {
         if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
         }
+        if (bodyAsString.match (/: Client/)) {
+            libraries.push ('from ccxt.async_support.base.ws.client import Client')
+        }
+        if (bodyAsString.match (/[\s(]Optional\[/)) {
+            libraries.push ('from typing import Optional')
+        }
+        if (bodyAsString.match (/[\s\[(]List\[/)) {
+            libraries.push ('from typing import List')
+        }
 
         const errorImports = []
 
@@ -930,6 +941,7 @@ class Transpiler {
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             "",
             "use Exception; // a common import",
+            "use " + namespace + "\\abstract\\" + className + " as " + baseClass + ';',
         ]
     }
 
@@ -964,13 +976,6 @@ class Transpiler {
                 libraryImports.push ('use React\\Promise;')
             }
         }
-        if (bodyAsString.match (/OrderSide \$/)) {
-            libraryImports.push ('use ccxt\\types\\OrderSide;')
-        }
-        if (bodyAsString.match (/OrderType \$/)) {
-            libraryImports.push ('use ccxt\\types\\OrderType;')
-        }
-
 
         header = header.concat (errorImports).concat (precisionImports).concat (libraryImports)
 
@@ -1427,7 +1432,7 @@ class Transpiler {
             args = args.length ? args.split (',').map (x => x.trim ()) : []
 
             // get names of all method arguments for later substitutions
-            let variables = args.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ()) [0])
+            let variables = args.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
 
             // add $ to each argument name in PHP method signature
             const phpTypes = {
@@ -1438,20 +1443,31 @@ class Transpiler {
                 'Promise<any>': 'mixed',
                 'Balance': 'array',
                 'IndexType': 'int|string',
-                'IntegerType': 'int',
-                'string[]': 'array',
+                'Int': 'int',
                 'object': 'array',
+                'OrderType': 'string',
+                'OrderSide': 'string',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
                     return '$' + x
                 } else {
+                    let variable = parts[0]
                     const secondPart = parts[1].split ('=')
-                    const endpart = (secondPart.length === 2) ? ' = ' + secondPart[1].trim () : ''
+                    let nullable = false
+                    let endpart = ''
+                    if (secondPart.length === 2) {
+                        const trimmed = secondPart[1].trim ()
+                        nullable = trimmed === 'undefined'
+                        endpart = ' = ' + trimmed
+                    }
+                    nullable = nullable || variable.slice (-1) === '?'
+                    variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
-                    return phpType + ' $' + parts[0] + endpart
+                    const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
+                    return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
@@ -1461,16 +1477,41 @@ class Transpiler {
             const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature
-            let pythonArgs = args.map (x => x.includes (':') ? x : x.replace (' = ', '='))
-                .join (', ')
-                .replace (/undefined/g, 'None')
-                .replace (/false/g, 'False')
-                .replace (/true/g, 'True')
-                .replace (/: string/g, ': str')
-                .replace (/: number/g, ': float')
-                .replace (/: boolean/g, ': bool')
-                .replace (/: any/g, ': Any')
-
+            const pythonTypes = {
+                'string': 'str',
+                'number': 'float',
+                'any': 'Any',
+                'boolean': 'bool',
+                'Int': 'int',
+            }
+            let pythonArgs = args.map (x => {
+                if (x.includes (':')) {
+                    const parts = x.split(':')
+                    let typeParts = parts[1].trim ().split (' ')
+                    const type = typeParts[0]
+                    typeParts[0] = ''
+                    let variable = parts[0]
+                    const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
+                    variable = variable.replace (/\?$/, '')
+                    const isList = type.slice (-2) === '[]'
+                    const searchType = isList ? type.slice (0, -2) : type
+                    let rawType = pythonTypes[searchType] ?? searchType
+                    rawType = isList ? 'List[' + rawType + ']' : rawType
+                    let resolvedType
+                    if (nullable) {
+                        resolvedType = 'Optional[' + rawType + ']'
+                    } else {
+                        resolvedType = rawType
+                    }
+                    return variable + ': ' + resolvedType + typeParts.join (' ')
+                } else {
+                    return x.replace (' = ', '=')
+                }
+            })
+            .join (', ')
+            .replace (/undefined/g, 'None')
+            .replace (/false/g, 'False')
+            .replace (/true/g, 'True')
             // method body without the signature (first line)
             // and without the closing bracket (last line)
             let js = lines.slice (1, -1).join ("\n")
@@ -1479,7 +1520,7 @@ class Transpiler {
             let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             // compile the final Python code for the method signature
-            const pythonReturnType = returnType ? ' -> ' + returnType : ''
+            const pythonReturnType = returnType ? ' -> ' + (pythonTypes[returnType] ?? returnType) : ''
             let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
 
             // compile signature + body for Python sync
@@ -1999,7 +2040,193 @@ class Transpiler {
     }
 
     // ============================================================================
+    transpileExamples () {
+        const parser = {
+            'LINES_BETWEEN_FILE_MEMBERS': 2
+        }
+        const fileConfig = [
+            {
+                language: "php",
+                async: true
+            },
+            {
+                language: "php",
+                async: false
+            },
+            {
+                language: "python",
+                async: false
+            },
+            {
+                language: "python",
+                async: true
+            },
+        ]
+        const parserConfig = {
+            'verbose': false,
+            'python':{
+                'uncamelcaseIdentifiers': true,
+                'parser': parser
+            },
+            'php':{
+                'uncamelcaseIdentifiers': true,
+                'parser': parser
+            }
+        };
+        const transpiler = new astTranspiler(parserConfig);
 
+        const examplesBaseFolder = __dirname + '/../examples/'
+        const examplesFolders = {
+            ts: examplesBaseFolder +'ts/',
+            js: examplesBaseFolder +'js/',
+            py: examplesBaseFolder +'py/',
+            php: examplesBaseFolder +'php/',
+        }
+        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
+
+        const pythonPreamble = this.getPythonPreamble ().replace ('sys.path.append(root)', 'sys.path.append(root + \'/python\')'); // as main preamble is meant for derived exchange classes, the path needs to be changed
+        const phpPreamble = this.getPHPPreamble ();
+
+        const preambles = {
+            phpSync: phpPreamble,
+            phpAsync: phpPreamble,
+            pySync: pythonPreamble,
+            pyAsync: pythonPreamble,
+        };
+
+        const fileHeaders = {
+            pySync: [
+                "",
+                "import ccxt  # noqa: E402",
+                "",
+                "",
+                "",
+                //"print('CCXT Version:', ccxt.__version__)"
+            ],
+            pyAsync: [
+                "import asyncio",
+                "import ccxt.async_support as ccxt  # noqa: E402",
+                "",
+                "",
+                "",
+            ],
+            phpSync: [
+                "",
+                "error_reporting(E_ALL | E_STRICT);",
+                "date_default_timezone_set('UTC');",
+                "",
+                "",
+                "",
+                //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
+            ],
+            phpAsync: [
+                "",
+                "error_reporting(E_ALL | E_STRICT);",
+                "date_default_timezone_set('UTC');",
+                "",
+                "use ccxt\\Precise;",
+                "use React\\Async;",
+                "use React\\Promise;",
+                //"$loop = \\React\\EventLoop\\Factory::create();",
+                //"$kernel = \\Recoil\\React\\ReactKernel::create($loop);",
+                "",
+                "",
+                "",
+            ]
+        }
+        // join header arrays into strings
+        for (const [key, value] of Object.entries (fileHeaders)) {
+            fileHeaders[key] = value.join ('\n')
+        }
+
+        // start iteration through examples folder
+        const allTsExamplesFiles = fs.readdirSync (examplesFolders.ts).filter((f) => f.endsWith('.ts'));
+        for (const filenameWithExtenstion of allTsExamplesFiles) {
+            const tsFile = examplesFolders.ts + filenameWithExtenstion
+            let tsContent = fs.readFileSync (tsFile).toString ()
+            if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+                log.magenta ('Transpiling from', tsFile.yellow)
+                const fileName = filenameWithExtenstion.replace ('.ts', '')
+
+                // from JS content, remove everything before the transpile flag
+                tsContent = this.regexAll (tsContent, [
+                    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
+                ])
+
+                // detect all function declarations in JS, e.g. `async function Xyz (...)`)
+                const allDetectedFunctionNames = [...tsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
+
+                // exec the main transpile function
+                const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
+                let [ phpAsyncBody, phpSyncBody, pythonSyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content, transpiled[2].content, transpiled[3].content ];
+
+                // ###### replace common (synchronity agnostic) syntaxes ######
+                const fixPython = (body, isAsync)=> {
+                    return this.regexAll (body, [
+                        [ /function\s*(\w+\s*\(\))\s*{/g, 'def $1:' ], //need this to catch functions without any arguments
+                        [ /print\s*\((.*)\)/, function(match, contents)
+                        {
+                            return match.replace(/\+/g, ',');
+                        }],
+                        // cases like: exchange = new ccxt.binance ()
+                        //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
+                        // cases like: exchange = new ccxt['name' or name] ()
+                        [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                    ]);
+                };
+                const fixPhp = (body, isAsync)=> {
+                    let asyncSub = isAsync ? 'async\\' : '';
+                    const regexes = [
+                        // cases like: exchange = new ccxt.huobi ()
+                        [ /new \$ccxt->/g, 'new \\ccxt\\' + asyncSub ],
+                        // cases like: exchange = new ccxt['huobi' or varname] ()
+                        [ /new \$ccxt\[(.*?)\]\(/g, 'new ($classname = \'\\\\ccxt\\\\\'.$1' + asyncSub + ')(' ],
+                    ];
+                    return this.regexAll (body, regexes);
+                };
+
+                // define bodies
+                const finalBodies = {};
+                finalBodies.pySync = fixPython (pythonSyncBody, false);
+                finalBodies.pyAsync = fixPython (pythonAsyncBody, true);
+                finalBodies.phpSync = fixPhp (phpSyncBody, false);
+                finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
+
+                // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
+                for (const funcName of allDetectedFunctionNames) {
+                    // match function bodies
+                    const funcBodyRegex = new RegExp ('(?=def ' + funcName + '\\()(.*?)(?=\\n\\w)', 'gs');
+                    // inside functions, find exchange initiations
+                    finalBodies.pyAsync = finalBodies.pyAsync.replace (funcBodyRegex, function (wholeMatch, innerMatch){
+                        // find inited exchanges
+                        // case 1: inited with getattr
+                        let matches = [ ... innerMatch.matchAll(/(\w*?) \= getattr\(ccxt,\s*(.*?)\)/g)];
+                        if (matches.length === 0) {
+                            // case 2: inited with direct call
+                            matches = [ ... innerMatch.matchAll(/(\w*?) \= ccxt\.(.*?)\(/g)];
+                        }
+                        let matchedBody = innerMatch;
+                        // add `await exchange.close()` to instantiated variables
+                        for (const exchLineMatches of matches) {
+                            // we presume all methods to be in main scope, so adding just 4 spaces
+                            matchedBody = matchedBody + '    await ' + exchLineMatches[1] + '.close()\n'
+                        }
+                        return matchedBody;
+                    });
+                    // place main-scope await function calls within asyncio
+                    finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch, innerMatch){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
+                }
+
+                // write files
+                overwriteFile (examplesFolders.py  + fileName + '.py',       preambles.pySync + fileHeaders.pySync + finalBodies.pySync)
+                overwriteFile (examplesFolders.php + fileName + '.php',      preambles.phpSync + fileHeaders.phpSync + finalBodies.phpSync)
+                overwriteFile (examplesFolders.py  + fileName + '-async.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.php + fileName + '-async.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
+            }
+        }
+    }
+
+    // ============================================================================
     transpilePhpBaseClassMethods () {
         const baseMethods = this.getPHPBaseMethods ()
         const indent = 4
@@ -2098,11 +2325,13 @@ class Transpiler {
 
         this.transpileTests ()
 
+        this.transpileExamples ()
+
         this.transpilePythonAsyncToSync ()
 
         this.transpilePhpAsyncToSync ()
 
-        this.transpilePhpBaseClassMethods ()
+        // this.transpilePhpBaseClassMethods ()
 
         this.addGeneratedHeaderToJs ('./js/')
 

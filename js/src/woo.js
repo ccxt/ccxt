@@ -2291,12 +2291,13 @@ export default class woo extends Exchange {
         const unrealisedPnl = Precise.stringMul(priceDifference, size);
         size = Precise.stringAbs(size);
         const notional = Precise.stringMul(size, markPrice);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
@@ -2310,12 +2311,13 @@ export default class woo extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estLiqPrice'),
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
-        };
+        });
     }
     defaultNetworkCodeForCurrency(code) {
         const currencyItem = this.currency(code);

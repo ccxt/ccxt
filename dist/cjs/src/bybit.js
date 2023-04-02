@@ -3199,7 +3199,7 @@ class bybit extends bybit$1 {
         const cost = this.safeString(order, 'cumExecValue');
         const filled = this.safeString(order, 'cumExecQty');
         const remaining = this.safeString(order, 'leavesQty');
-        const lastTradeTimestamp = this.safeInteger(order, 'updateTime');
+        const lastTradeTimestamp = this.safeInteger(order, 'updatedTime');
         const rawStatus = this.safeString(order, 'orderStatus');
         const status = this.parseOrderStatus(rawStatus);
         const side = this.safeStringLower(order, 'side');
@@ -4728,14 +4728,14 @@ class bybit extends bybit$1 {
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: spot, linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, // Return all status orders if not passed
-        // 'orderFilter': string, Conditional order or active order
+        // 'category', Type of derivatives product: spot, linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderStatus', // Return all status orders if not passed
+        // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4837,15 +4837,15 @@ class bybit extends bybit$1 {
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
-        // 'orderFilter': string, Conditional order or active order
-        // 'direction': string, prev: prev, next: next.
+        // 'category', Type of derivatives product: linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderStatus', Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
+        // 'orderFilter', Conditional order or active order
+        // 'direction', prev: prev, next: next.
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4927,14 +4927,14 @@ class bybit extends bybit$1 {
         let market = undefined;
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: spot, linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, // Return all status orders if not passed
-        // 'orderFilter': string, Conditional order or active order
+        // 'category', Type of derivatives product: spot, linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderStatus', // Return all status orders if not passed
+        // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         if (symbol === undefined) {
             let type = undefined;
@@ -5177,14 +5177,14 @@ class bybit extends bybit$1 {
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderFilter': string, Conditional order or active order
+        // 'category', Type of derivatives product: linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'settleCoin', Settle coin. For linear, either symbol or settleCoin is required
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         // 'openOnly': 0,
         };
         let market = undefined;
@@ -5423,14 +5423,14 @@ class bybit extends bybit$1 {
         let settle = undefined;
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderFilter': string, Conditional order or active order
+        // 'category', Type of derivatives product: linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'settleCoin', Settle coin. For linear, either symbol or settleCoin is required
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         // 'openOnly': 0,
         };
         if (symbol !== undefined) {
@@ -7274,7 +7274,7 @@ class bybit extends bybit$1 {
         let maintenanceMarginString = this.safeString(position, 'positionMM');
         let timestamp = this.parse8601(this.safeString(position, 'updated_at'));
         if (timestamp === undefined) {
-            timestamp = this.safeInteger(position, 'updatedAt');
+            timestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt']);
         }
         // default to cross of USDC margined positions
         const tradeMode = this.safeInteger(position, 'tradeMode', 0);
@@ -7319,14 +7319,14 @@ class bybit extends bybit$1 {
             }
         }
         const maintenanceMarginPercentage = Precise["default"].stringDiv(maintenanceMarginString, notional);
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealisedPnl, initialMarginString), '100');
         const marginRatio = Precise["default"].stringDiv(maintenanceMarginString, collateralString, 4);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -7340,11 +7340,12 @@ class bybit extends bybit$1 {
             'marginRatio': this.parseNumber(marginRatio),
             'liquidationPrice': this.parseNumber(liquidationPrice),
             'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': undefined,
             'collateral': this.parseNumber(collateralString),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         await this.loadMarkets();

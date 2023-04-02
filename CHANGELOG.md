@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.48 (2023-04-01)
+
+
+### Bug Fixes
+
+* **gate:** watchOrders and watchMyTrades ([ed81fb6](https://github.com/ccxt/ccxt/commit/ed81fb6169ac28d3877e6a79765963e85954dcc0))
+
+### 3.0.47 (2023-03-31)
+
+### 3.0.46 (2023-03-31)
+
+### 3.0.45 (2023-03-30)
+
+
+### Bug Fixes
+
+* **types:** python3.7 support ([0487925](https://github.com/ccxt/ccxt/commit/0487925f69dd62e1adc63f527d4cf054d474176d))
+
+### 3.0.44 (2023-03-30)
+
 ### 3.0.43 (2023-03-29)
 
 ### 3.0.41 (2023-03-28)

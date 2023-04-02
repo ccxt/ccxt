@@ -5,12 +5,16 @@ import log from 'ololog'
 
 const PATH = './ts/src/abstract/';
 const CSHARP_PATH = './c#/api/';
+const TS_PATH = './ts/src/abstract/';
+const PHP_PATH = './php/abstract/'
+const ASYNC_PHP_PATH = './php/async/abstract/'
 const IDEN = '    ';
 
-const promisedWriteFile = promisify(fs.writeFile);
+const promisedWriteFile = promisify (fs.writeFile);
+const promisedUnlinkFile = promisify (fs.unlink)
 
 function isHttpMethod(method){
-    return ['get', 'post', 'put', 'delete', 'patch'].includes(method);
+    return ['get', 'post', 'put', 'delete', 'patch'].includes (method);
 }
 //-------------------------------------------------------------------------
 
@@ -62,10 +66,17 @@ function generateImplicitMethodNames(id, api, paths = []){
             }
             for (const endpoint of endpoints){
                 const pattern = /[^a-zA-Z0-9]/g;
-                const result = paths.concat (key).concat (endpoint.split(pattern));
-                let completePath = result.filter(r => r.length > 0).map(capitalize).join('');
-                completePath = lowercaseFirstLetter(completePath);
-                storedResult[id].push(completePath)
+                const result = paths.concat (key).concat (endpoint.split (pattern)).filter(r => r.length > 0);
+                let camelCasePath = result.map(capitalize).join('');
+                camelCasePath = lowercaseFirstLetter(camelCasePath);
+                storedTypeScriptResult[id].push (camelCasePath)
+                let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
+                storedPhpResult[id].push (underscorePath)
+                storedPhpContext[id].push ({
+                    endpoint,
+                    path: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
+                    method: key.toUpperCase (),
+                })
             }
         } else {
             generateImplicitMethodNames(id, value, paths.concat([ key ]))
@@ -75,18 +86,28 @@ function generateImplicitMethodNames(id, api, paths = []){
 
 //-------------------------------------------------------------------------
 
-function createImplicitMethodsTs(){
-    const exchanges = Object.keys(storedResult);
+function createImplicitMethods(){
+    const exchanges = Object.keys(storedTypeScriptResult);
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        const methodNames = storedResult[exchange];
+        const camelCaseMethods = storedTypeScriptResult[exchange];
+        const underscoreMethods = storedPhpResult[exchange]
 
-        const methods =  methodNames.map(method=> {
-            return `${IDEN} ${method} (params?: {}): Promise<implicitReturnType>;`
+        const typeScriptMethods = camelCaseMethods.map (method => {
+            return `${IDEN}${method} (params?: {}): Promise<implicitReturnType>;`
         });
-        methods.push ('}')
-        const footer = storedMethods[exchange].pop ()
-        storedMethods['ts'][exchange] = storedMethods['ts'][exchange].concat (methods).concat ([ footer ])
+        const phpMethods = underscoreMethods.concat (camelCaseMethods).map ((method, idx) => {
+            const i = idx % underscoreMethods.length
+            const context = storedPhpContext[exchange][i]
+            return `${IDEN}public function ${method}($params = array()) {
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.path}, '${context.method}', $params);
+${IDEN}}`
+        })
+        typeScriptMethods.push ('}')
+        phpMethods.push ('}')
+        const footer = storedTypeScriptMethods[exchange].pop ()
+        storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
+        storedPhpMethods[exchange] = storedPhpMethods[exchange].concat (phpMethods)
     }
 }
 
@@ -152,6 +173,17 @@ function createCSharpHeader(exchange){
     storedMethods['cs'][exchange.id] = [ getPreamble(), namespace, '', header];
 }
 
+
+async function editFiles (path, methods, extension) {
+    const exchanges = Object.keys (storedTypeScriptResult);
+    const files = exchanges.map (ex => path + ex + extension)
+    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n'))))
+    // unlink all delisted
+    const abstract = fs.readdirSync (PHP_PATH)
+    const ext = new RegExp (extension + '$')
+    await Promise.all (abstract.filter (file => file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map ((path, idx) => promisedUnlinkFile (files[idx])))
+}
+
 //-------------------------------------------------------------------------
 
 async function main() {
@@ -176,7 +208,40 @@ async function main() {
     createImplicitMethodsCSharp();
     await editTypesFilesTs();
     await editAPIFilesCSharp();
+        const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
+        const importType = 'import { implicitReturnType } from \'../base/types.js\';'
+        const importParent = (parent === 'Exchange') ?
+            `import { Exchange as _Exchange } from '../base/Exchange.js';` :
+            `import _${parent} from '../${parent}.js';`
+        const typescriptHeader = `interface ${parent} {`
+        const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
+        const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent
+        const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
+        storedTypeScriptResult[exchange] = []
+        storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
+        storedPhpContext[exchange] = []
+        const phpPreamble = `<?php
+
+namespace ccxt\\abstract;
+
+// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
+// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
+`
+        storedPhpResult[exchange] = []
+        storedPhpMethods[exchange] = [ phpPreamble, '', phpHeader ]
+        generateImplicitMethodNames (exchange, api)
+    createImplicitMethods ()
+    await editFiles (TS_PATH, storedTypeScriptMethods, '.ts');
     log.bright.cyan ('TypeScript implicit api methods completed!')
+    await editFiles (PHP_PATH, storedPhpMethods, '.php');
+    log.bright.cyan ('PHP sync implicit api methods completed!')
+    // one more time for the async php
+    Object.values (storedPhpMethods).forEach (x => {
+        x[0] = x[0].replace (/ccxt\\abstract/, 'ccxt\\async\\abstract');
+        x[2] = x[2].replace (/ccxt\\/, 'ccxt\\async\\')
+    })
+    await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
+    log.bright.cyan ('PHP async implicit api methods completed!')
 }
 
 let storedResult = {};
@@ -184,4 +249,9 @@ let storedMethods = {
     'ts': {},
     'cs': {},
 };
+let storedTypeScriptResult = {};
+let storedTypeScriptMethods = {};
+let storedPhpResult = {};
+let storedPhpContext = {};
+let storedPhpMethods = {};
 main()

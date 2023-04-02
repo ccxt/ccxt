@@ -5,6 +5,8 @@ import coinbaseproRest from '../coinbasepro.js';
 import { BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,7 +74,7 @@ export default class coinbasepro extends coinbaseproRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchTicker
@@ -85,7 +87,7 @@ export default class coinbasepro extends coinbaseproRest {
         return await this.subscribe (name, symbol, name, params);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchTrades
@@ -106,7 +108,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchMyTrades
@@ -132,7 +134,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchOrders
@@ -158,7 +160,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchOrderBook
@@ -194,7 +196,7 @@ export default class coinbasepro extends coinbaseproRest {
         return orderbook.limit ();
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         type: 'match',
@@ -230,7 +232,7 @@ export default class coinbasepro extends coinbaseproRest {
         return message;
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client: Client, message) {
         const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade (message);
@@ -332,7 +334,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.safeString (statuses, status, 'open');
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         // Order is created
         //
@@ -551,7 +553,7 @@ export default class coinbasepro extends coinbaseproRest {
         };
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         type: 'ticker',
@@ -649,7 +651,7 @@ export default class coinbasepro extends coinbaseproRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // first message (snapshot)
         //
@@ -714,7 +716,7 @@ export default class coinbasepro extends coinbaseproRest {
         }
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         type: 'subscriptions',
@@ -729,7 +731,7 @@ export default class coinbasepro extends coinbaseproRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
         const methods = {
             'snapshot': this.handleOrderBook,

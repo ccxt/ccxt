@@ -6,6 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -950,7 +951,7 @@ export default class phemex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOrderBook
@@ -1089,7 +1090,7 @@ export default class phemex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOHLCV
@@ -1244,7 +1245,7 @@ export default class phemex extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name phemex#fetchTicker
@@ -1317,7 +1318,7 @@ export default class phemex extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchTrades
@@ -1933,7 +1934,8 @@ export default class phemex extends Exchange {
             clientOrderId = undefined;
         }
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const price = this.fromEp (this.safeString (order, 'priceEp'), market);
         const amount = this.fromEv (this.safeString (order, 'baseQtyEv'), market);
         const remaining = this.omitZero (this.fromEv (this.safeString (order, 'leavesBaseQtyEv'), market));
@@ -2161,7 +2163,7 @@ export default class phemex extends Exchange {
         return this.parseSpotOrder (order, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name phemex#createOrder
@@ -2389,7 +2391,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name phemex#editOrder
@@ -2450,21 +2452,21 @@ export default class phemex extends Exchange {
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
         let method = 'privatePutSpotOrders';
-        if (market['inverse']) {
-            method = 'privatePutOrdersReplace';
-        } else if (isUSDTSettled) {
+        if (isUSDTSettled) {
             method = 'privatePutGOrdersReplace';
             const posSide = this.safeString (params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+        } else if (market['swap']) {
+            method = 'privatePutOrdersReplace';
         }
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#cancelOrder
@@ -2492,14 +2494,14 @@ export default class phemex extends Exchange {
             request['orderID'] = id;
         }
         let method = 'privateDeleteSpotOrders';
-        if (market['inverse']) {
-            method = 'privateDeleteOrdersCancel';
-        } else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersCancel';
             const posSide = this.safeString (params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+        } else if (market['swap']) {
+            method = 'privateDeleteOrdersCancel';
         }
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
@@ -2527,16 +2529,16 @@ export default class phemex extends Exchange {
         };
         const market = this.market (symbol);
         let method = 'privateDeleteSpotOrdersAll';
-        if (market['inverse']) {
-            method = 'privateDeleteOrdersAll';
-        } else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersAll';
+        } else if (market['swap']) {
+            method = 'privateDeleteOrdersAll';
         }
         request['symbol'] = market['id'];
         return await this[method] (this.extend (request, params));
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOrder
@@ -2581,7 +2583,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOrders
@@ -2602,11 +2604,11 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
         };
         let method = 'privateGetSpotOrders';
-        if (market['inverse']) {
-            method = 'privateGetExchangeOrderList';
-        } else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             request['currency'] = market['settle'];
             method = 'privateGetExchangeOrderV2OrderList';
+        } else if (market['swap']) {
+            method = 'privateGetExchangeOrderList';
         }
         if (since !== undefined) {
             request['start'] = since;
@@ -2620,12 +2622,13 @@ export default class phemex extends Exchange {
         return this.parseOrders (rows, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -2638,10 +2641,10 @@ export default class phemex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = 'privateGetSpotOrders';
-        if (market['inverse']) {
-            method = 'privateGetOrdersActiveList';
-        } else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateGetGOrdersActiveList';
+        } else if (market['swap']) {
+            method = 'privateGetOrdersActiveList';
         }
         const request = {
             'symbol': market['id'],
@@ -2664,7 +2667,7 @@ export default class phemex extends Exchange {
         }
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchClosedOrders
@@ -2685,11 +2688,11 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
         };
         let method = 'privateGetExchangeSpotOrder';
-        if (market['inverse']) {
-            method = 'privateGetExchangeOrderList';
-        } else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             request['currency'] = market['settle'];
             method = 'privateGetExchangeOrderV2OrderList';
+        } else if (market['swap']) {
+            method = 'privateGetExchangeOrderList';
         }
         if (since !== undefined) {
             request['start'] = since;
@@ -2743,7 +2746,7 @@ export default class phemex extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchMyTrades
@@ -2901,7 +2904,7 @@ export default class phemex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name phemex#fetchDepositAddress
@@ -2949,7 +2952,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchDeposits
@@ -2990,7 +2993,7 @@ export default class phemex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchWithdrawals
@@ -3353,9 +3356,8 @@ export default class phemex extends Exchange {
             }
         }
         const unrealizedPnl = Precise.stringMul (Precise.stringMul (priceDiff, contracts), contractSizeString);
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMarginString), '100');
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3367,8 +3369,10 @@ export default class phemex extends Exchange {
             'collateral': this.parseNumber (collateral),
             'notional': this.parseNumber (notionalString),
             'markPrice': this.parseNumber (markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
+            'lastPrice': undefined,
             'entryPrice': this.parseNumber (entryPriceString),
             'timestamp': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
@@ -3378,11 +3382,11 @@ export default class phemex extends Exchange {
             'marginMode': undefined,
             'side': side,
             'hedged': false,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchFundingHistory
@@ -3456,7 +3460,7 @@ export default class phemex extends Exchange {
         return result;
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
          * @name phemex#fetchFundingRate
@@ -3568,7 +3572,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMargin (symbol, amount, params = {}) {
+    async setMargin (symbol: string, amount, params = {}) {
         /**
          * @method
          * @name phemex#setMargin
@@ -3819,7 +3823,7 @@ export default class phemex extends Exchange {
         return tiers;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;
@@ -3887,7 +3891,7 @@ export default class phemex extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name phemex#transfer
@@ -3973,7 +3977,7 @@ export default class phemex extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchTransfers
