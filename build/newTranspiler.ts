@@ -19,10 +19,6 @@ const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 
-// import errorHierarchy from '../js/src/base/errorHierarchy.js'
-
-// helper
-
 let __dirname = new URL('.', import.meta.url).pathname;
 
 // this is necessary because for some reason
@@ -85,17 +81,8 @@ class NewTranspiler {
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")"
                 }
             },
-            "php": {
-                "uncamelcaseIdentifiers": true,
-                "ScopeResolutionProps": ["super", "Precise"]
-            },
-            "python": {
-                "uncamelcaseIdentifiers": true,
-            }
         })
         this.transpiler.setVerboseMode(false);
-        // this.transpiler.csharpTranspiler.printCustomRightSidePropertyAssignment = this.customCSharpPropAssignment;
-
     }
 
     createGeneratedHeader() {
@@ -349,10 +336,20 @@ class NewTranspiler {
         return method.filter(e => !!e).join('\n')
     }
 
-    createMethodsWrappers(wrappers) {
+    createExchangesWrappers(): string[] {
+        // in csharp classes should be Capitalized, so I'm creating a wrapper class for each exchange
+        const res: string[] = ['// class wrappers'];
+        exchanges.ids.forEach(exchange => {
+            const capitalizedExchange = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+            res.push(`public class ${capitalizedExchange} : ${exchange} { }`)
+        });
+        return res;
+    }
+
+    createCSharpWrappers(wrappers) {
         const wrapperFile = "./c#/src/base/Exchange.Wrappers.cs";
-        // wrappers = wrappers.filter(wrapper => wrapper.name == 'createOrder'); // debug only
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(wrapper)).filter(wrapper => wrapper !== '').join('\n');
+        const classesIndented = this.createExchangesWrappers().filter(e=> !!e).map(e => '    ' + e).join('\n');
         const file = [
             'namespace Main;',
             '',
@@ -360,6 +357,7 @@ class NewTranspiler {
             'public partial class Exchange',
             '{',
             wrappersIndented,
+            classesIndented,
             '}',
         ].join('\n')
         log.magenta ('→', (wrapperFile as any).yellow)
@@ -382,9 +380,6 @@ class NewTranspiler {
 
         const message = 'Transpiling error hierachy →'
         const root = errorHierarchy['BaseError']
-        // const root = undefined;
-
-        const { python3Body } =  this.oldTranspiler.transpileJavaScriptToPythonAndPHP ({ js })
 
         // a helper to generate a list of exception class declarations
         // properly derived from corresponding parent classes according
@@ -439,25 +434,6 @@ class NewTranspiler {
 
         log.bright.cyan (message, (csharpFilename as any).yellow)
 
-        // TypeScript ---------------------------------------------------------
-
-        // function declareTsErrorClass (name, parent) {
-        //     return 'export class ' + name + ' extends ' + parent + ' {}'
-        // }
-
-        // const tsBaseError = [
-        //     'export class BaseError extends Error {',
-        //     '    constructor(message: string);',
-        //     '}',
-        // ].join ('\n    ')
-
-        // const tsErrors = intellisense (root, 'BaseError', declareTsErrorClass, undefined)
-
-        // const tsBodyIntellisense = csharpBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
-
-        // log.bright.cyan (message, (tsFilename as any).yellow)
-        // const regex = /export class BaseError[^}]+\}[\n][\n](?:\s+export class [a-zA-Z]+ extends [a-zA-Z]+ \{\}[\n])+[\n]/m
-        // replaceInFile (tsFilename, regex, tsBodyIntellisense)
     }
 
     transpileBaseMethods(baseExchangeFile) {
@@ -469,7 +445,7 @@ class NewTranspiler {
         let baseClass = baseFile.content;
 
         // create wrappers with specific types
-        this.createMethodsWrappers(baseFile.methodsTypes)
+        this.createCSharpWrappers(baseFile.methodsTypes)
 
 
         // custom transformations needed for c#
@@ -496,22 +472,12 @@ class NewTranspiler {
 
     transpileEverything (force = false, child = false) {
 
-        // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , python2Folder  = './new/python/ccxt/'
-            , python3Folder  = './new/python/ccxt/async_support/'
-            , phpFolder      = './new/php/'
-            , phpAsyncFolder = './new/php/async/'
             , csharpFolder = './c#/src/exchanges/'
             , tsFolder = './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
-            , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, csharpFolder ,exchanges }
 
         if (!child) {
-            createFolderRecursively (python2Folder)
-            createFolderRecursively (python3Folder)
-            createFolderRecursively (phpFolder)
-            createFolderRecursively (phpAsyncFolder)
             createFolderRecursively (csharpFolder)
         }
 
@@ -526,19 +492,9 @@ class NewTranspiler {
 
         this.transpileBaseMethods (exchangeBase)
 
-        //*/
-
         this.transpileErrorHierarchy ({ tsFilename })
 
         // this.transpileTests ()
-
-        // this.transpilePythonAsyncToSync ()
-
-        // this.transpilePhpAsyncToSync ()
-
-        // this.transpilePhpBaseClassMethods ()
-
-        // this.addGeneratedHeaderToJs ('./js/')
 
         log.bright.green ('Transpiled successfully.')
     }
@@ -546,8 +502,6 @@ class NewTranspiler {
     transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false) {
 
         // todo normalize jsFolder and other arguments
-
-        const { python2Folder, python3Folder, phpFolder, phpAsyncFolder, csharpFolder } = options
 
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = []
@@ -567,38 +521,6 @@ class NewTranspiler {
         const classNames = exchanges.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
-
-        // if (classNames.length === 0) {
-        //     return null
-        // }
-
-        // classNames.forEach (({ className, baseClass }) => {
-        //     classes[className] = baseClass
-        // })
-
-        // if (!child && classNames.length > 1) {
-        //     function deleteOldTranspiledFiles (folder, pattern) {
-        //         fs.readdirSync (folder)
-        //             .filter (file =>
-        //                 !fs.lstatSync (folder + file).isDirectory () &&
-        //                 !(file.replace (pattern, '') in classes) &&
-        //                 !file.match (/^[A-Z_]/))
-        //             .map (file => folder + file)
-        //             .forEach (file => log.red ('Deleting ' + (file as any).yellow) && fs.unlinkSync (file))
-        //     }
-
-        //     [
-        //         [ python2Folder, /\.pyc?$/ ],
-        //         [ python3Folder, /\.pyc?$/ ],
-        //         [ phpFolder, /\.php$/ ],
-        //         [ phpAsyncFolder, /\.php$/ ],
-        //     ].forEach (([ folder, pattern ]) => {
-        //         if (folder) {
-        //             deleteOldTranspiledFiles (folder, pattern)
-        //         }
-        //     })
-
-        // }
 
         return classes
     }
@@ -651,10 +573,6 @@ class NewTranspiler {
         const { python2, python3, php, phpAsync, csharp } = this.transpileClass (tsPath)
 
         ;[
-            // [ python2Folder, pythonFilename, python2 ],
-            // [ python3Folder, pythonFilename, python3 ],
-            // [ phpFolder, phpFilename, php ],
-            // [ phpAsyncFolder, phpFilename, phpAsync ],
             [ csharpFolder, csharpFilename, csharp ],
         ].forEach (([ folder, filename, code ]) => {
             if (folder) {

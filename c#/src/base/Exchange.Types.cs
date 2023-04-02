@@ -315,22 +315,22 @@ public partial class Exchange
 
     public struct OHLCV
     {
-        public Int64 timestamp;
-        public float open;
-        public float high;
-        public float low;
-        public float close;
-        public float volume;
+        public Int64? timestamp;
+        public float? open;
+        public float? high;
+        public float? low;
+        public float? close;
+        public float? volume;
 
         public OHLCV(object ohlcv2)
         {
             var ohlcv = (List<object>)ohlcv2;
-            timestamp = (Int64)ohlcv[0];
-            open = (float)ohlcv[1];
-            high = (float)ohlcv[2];
-            low = (float)ohlcv[3];
-            close = (float)ohlcv[4];
-            volume = (float)ohlcv[5];
+            timestamp = SafeInteger(ohlcv, 0);
+            open = SafeFloat(ohlcv, 1);
+            high = SafeFloat(ohlcv, 2);
+            low = SafeFloat(ohlcv, 3);
+            close = SafeFloat(ohlcv, 4);
+            volume = SafeFloat(ohlcv, 5);
         }
     }
 
