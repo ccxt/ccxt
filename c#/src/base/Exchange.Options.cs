@@ -307,22 +307,22 @@ public partial class Exchange
 
         // credentials initis
         this.requiredCredentials = this.safeValue(properties, "requiredCredentials") as dict;
-        this.apiKey = this.safeValue(properties, "apiKey", "") as string;
-        this.secret = this.safeValue(properties, "secret", "") as string;
-        this.password = this.safeValue(properties, "password", "") as string;
-        this.login = this.safeValue(properties, "login", "") as string;
-        this.twofa = this.safeValue(properties, "twofa", "") as string;
-        this.privateKey = this.safeValue(properties, "privateKey", "") as string;
-        this.walletAddress = this.safeValue(properties, "walletAddress", "") as string;
-        this.token = this.safeValue(properties, "token", "") as string;
-        this.uid = this.safeValue(properties, "uid", "") as string;
+        this.apiKey = SafeString(properties, "apiKey", "");
+        this.secret = SafeString(properties, "secret", "");
+        this.password = SafeString(properties, "password", "");
+        this.login = SafeString(properties, "login", "");
+        this.twofa = SafeString(properties, "twofa", "");
+        this.privateKey = SafeString(properties, "privateKey", "");
+        this.walletAddress = SafeString(properties, "walletAddress", "");
+        this.token = SafeString(properties, "token", "");
+        this.uid = SafeString(properties, "uid", "");
 
         this.userAgents = this.safeValue(properties, "userAgents") as dict;
-        this.timeout = (Int64)this.safeInteger(properties, "timeout", 10000);
-        this.id = (string)this.safeString(properties, "id");
+        this.timeout = SafeInteger(properties, "timeout", 10000) ?? 10000;
+        this.id = SafeString(properties, "id");
 
         this.api = this.safeValue(properties, "api") as dict;
-        this.hostname = (string)this.safeString(properties, "hostname");
+        this.hostname = SafeString(properties, "hostname");
         this.urls = this.safeValue(properties, "urls") as dict;
         this.options = this.safeValue(properties, "options") as dict ?? new dict();
         this.verbose = (bool)this.safeValue(properties, "verbose", false);
@@ -331,6 +331,6 @@ public partial class Exchange
         this.has = this.safeValue(properties, "has") as dict;
         this.httpExceptions = this.safeValue(properties, "httpExceptions") as dict;
         this.exceptions = this.safeValue(properties, "exceptions") as dict;
-        this.rateLimit = (float)this.safeFloat(properties, "rateLimit", -1);
+        this.rateLimit = SafeFloat(properties, "rateLimit", -1) ?? -1;
     }
 }

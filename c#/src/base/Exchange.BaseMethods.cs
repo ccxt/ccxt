@@ -1502,6 +1502,24 @@ public partial class Exchange
         return this.markets;
     }
 
+    public virtual object safePosition(object position)
+    {
+        // simplified version of: /pull/12765/
+        object unrealizedPnlString = this.safeString(position, "unrealisedPnl");
+        object initialMarginString = this.safeString(position, "initialMargin");
+        //
+        // PERCENTAGE
+        //
+        object percentage = this.safeValue(position, "percentage");
+        if (isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(unrealizedPnlString, null)))) && isTrue((!isEqual(initialMarginString, null)))))
+        {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            object percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
+            ((Dictionary<string, object>)position)["percentage"] = this.parseNumber(percentageString);
+        }
+        return position;
+    }
+
     public virtual object parsePositions(object positions, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1787,13 +1805,6 @@ public partial class Exchange
 
     public virtual object safeCurrency(object currencyId, object currency = null)
     {
-        if (isTrue(isTrue(isEqual(currencyId, null)) && isTrue(isEqual(currencyId, null))))
-        {
-            return new Dictionary<string, object>() {
-                { "id", null },
-                { "code", null },
-            };
-        }
         if (isTrue(isTrue((isEqual(currencyId, null))) && isTrue((!isEqual(currency, null)))))
         {
             return currency;
@@ -2111,7 +2122,7 @@ public partial class Exchange
     public virtual object handleOption(object methodName, object optionName, object defaultValue = null)
     {
         // eslint-disable-next-line no-unused-vars
-var resultemptyVariable = this.handleOptionAndParams(new Dictionary<string, object>() {}, methodName, optionName, defaultValue);
+        var resultemptyVariable = this.handleOptionAndParams(new Dictionary<string, object>() {}, methodName, optionName, defaultValue);
         var result = ((List<object>) resultemptyVariable)[0];
         var empty = ((List<object>) resultemptyVariable)[1];
         return result;
@@ -2187,7 +2198,7 @@ var resultemptyVariable = this.handleOptionAndParams(new Dictionary<string, obje
 
     public virtual void throwExactlyMatchedException(object exact, object str, object message)
     {
-        if (isTrue(((Dictionary<string,object>)exact).ContainsKey(toStringOrNull(str))))
+        if (isTrue(isTrue(!isEqual(str, null)) && isTrue(((Dictionary<string,object>)exact).ContainsKey(toStringOrNull(str)))))
         {
             throwDynamicException(getValue(exact, str), message);
         }
@@ -2322,6 +2333,12 @@ var resultemptyVariable = this.handleOptionAndParams(new Dictionary<string, obje
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrderTrades() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2933,12 +2950,6 @@ var resultemptyVariable = this.handleOptionAndParams(new Dictionary<string, obje
         }
     }
 
-    public async virtual Task<object> fetchLastPrices(object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchLastPrices() is not supported yet")) ;
-    }
-
     public virtual object handlePostOnly(object isMarketOrder, object exchangeSpecificPostOnlyOption, object parameters = null)
     {
         /**
@@ -2975,6 +2986,12 @@ var resultemptyVariable = this.handleOptionAndParams(new Dictionary<string, obje
             }
         }
         return new List<object>() {false, parameters};
+    }
+
+    public async virtual Task<object> fetchLastPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchLastPrices() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTradingFees(object parameters = null)

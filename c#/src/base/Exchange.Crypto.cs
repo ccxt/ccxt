@@ -14,6 +14,8 @@ public partial class Exchange
     public string md5() => "md5";
     public string ed25519() => "ed25519";
     public string keccak() => "keccak";
+
+    public string secp256k1() => "secp256k1";
     public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex")
     {
         var request = request2 as String;
@@ -135,7 +137,7 @@ public partial class Exchange
 
     }
 
-    public string ecdsa(object request, object secret, object alg = null)
+    public string ecdsa(object request, object secret, object alg = null, object stub = null)
     {
         alg ??= "ES256";
         return String.Empty;
