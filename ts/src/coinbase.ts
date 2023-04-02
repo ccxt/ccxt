@@ -279,10 +279,10 @@ export default class coinbase extends Exchange {
                 ],
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
-                'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'fetchMarkets': 'fetchMarketsV2', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
-                'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
+                'fetchAccounts': 'fetchAccountsV2', // 'fetchAccountsV3' or 'fetchAccountsV2'
             },
         });
     }
@@ -316,6 +316,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
+        await this.loadMarkets ();
         const method = this.safeString (this.options, 'fetchAccounts', 'fetchAccountsV3');
         if (method === 'fetchAccountsV3') {
             return await this.fetchAccountsV3 (params);
@@ -324,7 +325,6 @@ export default class coinbase extends Exchange {
     }
 
     async fetchAccountsV2 (params = {}, list = []) {
-        await this.loadMarkets ();
         const request = {
             'limit': 100,
         };
@@ -374,18 +374,18 @@ export default class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        list.push (data);
+        list = list.concat (data);
         const pagination = this.safeValue (response, 'pagination', {});
         const startingAfter = this.safeString (pagination, 'next_starting_after');
         if (startingAfter !== undefined) {
             params['starting_after'] = startingAfter;
-            this.fetchAccountsV2 (params, list);
+            return await this.fetchAccountsV2 (params, list);
+        } else {
+            return this.parseAccounts (list, params);
         }
-        return this.parseAccounts (list, params);
     }
 
-    async fetchAccountsV3 (params = {}) {
-        await this.loadMarkets ();
+    async fetchAccountsV3 (params = {}, list = []) {
         const request = {
             'limit': 100,
         };
@@ -421,7 +421,15 @@ export default class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'accounts', []);
-        return this.parseAccounts (data, params);
+        list = list.concat (data);
+        const hasNext = this.safeValue (response, 'has_next', false);
+        if (hasNext) {
+            const cursor = this.safeString (response, 'cursor');
+            params['cursor'] = cursor;
+            return await this.fetchAccountsV3 (params, list);
+        } else {
+            return this.parseAccounts (list, params);
+        }
     }
 
     parseAccount (account) {
@@ -1548,7 +1556,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
-        await this.loadMarkets ();
+
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1894,7 +1902,6 @@ export default class coinbase extends Exchange {
     }
 
     async findAccountId (code) {
-        await this.loadMarkets ();
         await this.loadAccounts ();
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
@@ -2832,3 +2839,4 @@ export default class coinbase extends Exchange {
         }
     }
 }
+
