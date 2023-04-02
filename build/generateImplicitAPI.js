@@ -3,11 +3,10 @@ import { promisify } from 'util';
 import fs from 'fs';
 import log from 'ololog'
 
-const PATH = './ts/src/abstract/';
-const CSHARP_PATH = './c#/api/';
 const TS_PATH = './ts/src/abstract/';
 const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
+const CSHARP_PATH = './c#/src/api/';
 const IDEN = '    ';
 
 const promisedWriteFile = promisify (fs.writeFile);
@@ -86,7 +85,7 @@ function generateImplicitMethodNames(id, api, paths = []){
 
 //-------------------------------------------------------------------------
 
-function createImplicitMethods(){
+function createImplicitMethodsPyPhp(){
     const exchanges = Object.keys(storedTypeScriptResult);
     for (const index in exchanges) {
         const exchange = exchanges[index];
@@ -111,13 +110,13 @@ ${IDEN}}`
     }
 }
 
-//-------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 
 function createImplicitMethodsCSharp(){
-    const exchanges = Object.keys(storedResult);
+    const exchanges = Object.keys(storedTypeScriptResult);
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        const methodNames = storedResult[exchange];
+        const methodNames = storedTypeScriptResult[exchange];
 
         const methods =  methodNames.map(method=> {
             return [
@@ -129,50 +128,11 @@ function createImplicitMethodsCSharp(){
             ].join('\n')
         });
         methods.push ('}')
-        storedMethods['cs'][exchange] = storedMethods['cs'][exchange].concat (methods)
+       storedCSharpMethods[exchange] = storedCSharpMethods[exchange].concat (methods)
     }
 }
 
-
 //-------------------------------------------------------------------------
-
-async function editTypesFilesTs(){
-    const exchanges = Object.keys(storedResult);
-    const files = exchanges.map(ex => PATH + ex + '.ts');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedMethods['ts'][exchanges[idx]].join ('\n'))))
-}
-
-//-------------------------------------------------------------------------
-
-async function editAPIFilesCSharp(){
-    const exchanges = Object.keys(storedResult);
-    const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedMethods['cs'][exchanges[idx]].join ('\n'))))
-}
-
-//-------------------------------------------------------------------------
-
-function createTypescriptHeader(exchange){
-    const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
-    const importType = 'import { implicitReturnType } from \'../base/types.js\';'
-    const importParent = (parent === 'Exchange') ?
-        `import { Exchange as _Exchange } from '../base/Exchange.js';` :
-        `import _${parent} from '../${parent}.js';`
-    const header = `interface ${parent} {`
-    const footer = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
-    storedResult[exchange] = []
-    storedMethods["ts"][exchange] = [ getPreamble(), importType, importParent, '', header, footer ];
-}
-
-//-------------------------------------------------------------------------
-
-function createCSharpHeader(exchange){
-    const parent = Object.getPrototypeOf (Object.getPrototypeOf(exchange)).constructor.name
-    const namespace = 'namespace Main;'
-    const header = `public partial class ${exchange.id} : ${parent}\n{`;
-    storedMethods['cs'][exchange.id] = [ getPreamble(), namespace, '', header];
-}
-
 
 async function editFiles (path, methods, extension) {
     const exchanges = Object.keys (storedTypeScriptResult);
@@ -182,6 +142,51 @@ async function editFiles (path, methods, extension) {
     const abstract = fs.readdirSync (PHP_PATH)
     const ext = new RegExp (extension + '$')
     await Promise.all (abstract.filter (file => file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map ((path, idx) => promisedUnlinkFile (files[idx])))
+}
+
+// -------------------------------------------------------------------------
+
+async function editAPIFilesCSharp(){
+    const exchanges = Object.keys(storedTypeScriptResult);
+    const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
+    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
+}
+
+//-------------------------------------------------------------------------
+
+function createTypescriptHeader(instance, parent){
+    const exchange = instance.id;
+    const importType = 'import { implicitReturnType } from \'../base/types.js\';'
+    const importParent = (parent === 'Exchange') ?
+        `import { Exchange as _Exchange } from '../base/Exchange.js';` :
+        `import _${parent} from '../${parent}.js';`
+    const typescriptHeader = `interface ${parent} {`
+    const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
+    storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
+}
+
+//-------------------------------------------------------------------------
+
+function createPhpHeader(instance, parent){
+    const exchange = instance.id;
+    const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent;
+    const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
+    storedPhpContext[exchange] = []
+    const phpPreamble = `<?php
+
+namespace ccxt\\abstract;
+
+// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
+// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
+`
+    storedPhpMethods[exchange] = [ phpPreamble, '', phpHeader ]
+}
+// -------------------------------------------------------------------------
+
+function createCSharpHeader(exchange, parent){
+    const namespace = 'namespace Main;'
+    const header = `public partial class ${exchange.id} : ${parent}\n{`;
+    storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }
 
 //-------------------------------------------------------------------------
@@ -198,39 +203,19 @@ async function main() {
             const proInstance = new ccxt.pro[exchange] ()
             api = proInstance.api
         }
-
-        storedResult[exchange] = []
-        createTypescriptHeader(instance)
-        createCSharpHeader(instance)
-        generateImplicitMethodNames(exchange, api)
-    }
-    createImplicitMethodsTs();
-    createImplicitMethodsCSharp();
-    await editTypesFilesTs();
-    await editAPIFilesCSharp();
         const parent = Object.getPrototypeOf (Object.getPrototypeOf(instance)).constructor.name
-        const importType = 'import { implicitReturnType } from \'../base/types.js\';'
-        const importParent = (parent === 'Exchange') ?
-            `import { Exchange as _Exchange } from '../base/Exchange.js';` :
-            `import _${parent} from '../${parent}.js';`
-        const typescriptHeader = `interface ${parent} {`
-        const typescriptFooter = `abstract class ${parent} extends _${parent} {}\n\nexport default ${parent}` // hotswap later
-        const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent
-        const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
+        createTypescriptHeader(instance, parent);
+        createPhpHeader(instance, parent);
+        createCSharpHeader(instance, parent);
+
         storedTypeScriptResult[exchange] = []
-        storedTypeScriptMethods[exchange] = [ getPreamble (), importType, importParent, '', typescriptHeader, typescriptFooter ];
-        storedPhpContext[exchange] = []
-        const phpPreamble = `<?php
-
-namespace ccxt\\abstract;
-
-// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
-// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
-`
         storedPhpResult[exchange] = []
-        storedPhpMethods[exchange] = [ phpPreamble, '', phpHeader ]
+        storedCSharpResult[exchange] = []
+
         generateImplicitMethodNames (exchange, api)
-    createImplicitMethods ()
+    }
+    createImplicitMethodsPyPhp ()
+    createImplicitMethodsCSharp()
     await editFiles (TS_PATH, storedTypeScriptMethods, '.ts');
     log.bright.cyan ('TypeScript implicit api methods completed!')
     await editFiles (PHP_PATH, storedPhpMethods, '.php');
@@ -242,16 +227,16 @@ namespace ccxt\\abstract;
     })
     await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
     log.bright.cyan ('PHP async implicit api methods completed!')
+    await editAPIFilesCSharp();
+    log.bright.cyan ('Csharp implicit api methods completed!')
+
 }
 
-let storedResult = {};
-let storedMethods = {
-    'ts': {},
-    'cs': {},
-};
 let storedTypeScriptResult = {};
 let storedTypeScriptMethods = {};
 let storedPhpResult = {};
 let storedPhpContext = {};
 let storedPhpMethods = {};
+let storedCSharpResult = {};
+let storedCSharpMethods = {};
 main()
