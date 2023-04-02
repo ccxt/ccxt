@@ -15,7 +15,7 @@ public partial class Exchange
         var res = await this.fetchAccounts(parameters);
         return ((object)res);
     }
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -27,7 +27,7 @@ public partial class Exchange
         var res = await this.fetchDepositAddresses(codes, parameters);
         return ((object)res);
     }
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBook(symbol, limit, parameters);
@@ -73,14 +73,14 @@ public partial class Exchange
         var res = this.setMarkets(markets, currencies);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((List<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
-    public async Task<object> FetchL2OrderBook(string symbol, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<object> FetchL2OrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchL2OrderBook(symbol, limit, parameters);
@@ -91,7 +91,7 @@ public partial class Exchange
         var res = await this.fetch2(path, api, method, parameters, headers, body, config, context);
         return ((object)res);
     }
-    public async Task<List<OHLCVC>> FetchOHLCVC(object symbol, string timeframe = "1m", object since = null, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCVC>> FetchOHLCVC(object symbol, string timeframe = "1m", object since = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCVC(symbol, timeframe, since, limit, parameters);
@@ -258,56 +258,56 @@ public partial class Exchange
         var res = await this.cancelUnifiedOrder(order, parameters);
         return ((object)res);
     }
-    public async Task<List<Order>> FetchOrders(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrders(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderTrades(id, symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((List<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
-    public async Task<object> FetchTransactions(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<object> FetchTransactions(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransactions(symbol, since, limit, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchDeposits(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<object> FetchDeposits(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDeposits(symbol, since, limit, parameters);
         return ((object)res);
     }
-    public async Task<object> FetchWithdrawals(string symbol = null, Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<object> FetchWithdrawals(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -399,21 +399,21 @@ public partial class Exchange
         var res = await this.fetchFundingRate(symbol, parameters);
         return ((object)res);
     }
-    public async Task<List<OHLCV>> FetchMarkOHLCV(object symbol, string timeframe = "1m", Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchMarkOHLCV(object symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMarkOHLCV(symbol, timeframe, since, limit, parameters);
         return ((List<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
-    public async Task<List<OHLCV>> FetchIndexOHLCV(string symbol, string timeframe = "1m", Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchIndexOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchIndexOHLCV(symbol, timeframe, since, limit, parameters);
         return ((List<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
-    public async Task<List<OHLCV>> FetchPremiumIndexOHLCV(string symbol, string timeframe = "1m", Int64 since2 = 0, Int64 limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchPremiumIndexOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;

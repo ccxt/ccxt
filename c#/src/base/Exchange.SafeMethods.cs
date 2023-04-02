@@ -38,7 +38,7 @@ public partial class Exchange
         {
             return (Int64)milliseconds() / 1000;
         }
-        return (Int64)safeInteger(value, defaultValue);
+        return safeInteger(value, defaultValue);
     }
 
     public object safeInteger(object obj, object key, object defaultValue = null) => SafeInteger(obj, key, defaultValue);
@@ -261,7 +261,9 @@ public partial class Exchange
             var list = (List<object>)obj;
             foreach (var key in keys)
             {
-                var keyInt = Convert.ToInt32(key);
+                var sucess = Int32.TryParse(key.ToString(), out int keyInt);
+                if (sucess == false)
+                    continue;
                 if (list.ElementAtOrDefault(keyInt) != null)
                 {
                     var returnValue = list[keyInt];
@@ -284,9 +286,12 @@ public partial class Exchange
             var list = (List<string>)obj;
             foreach (var key in keys)
             {
-                if (list.ElementAtOrDefault((int)key) != null)
+                var sucess = Int32.TryParse(key.ToString(), out int keyInt);
+                if (sucess == false)
+                    continue;
+                if (list.ElementAtOrDefault(keyInt) != null)
                 {
-                    var returnValue = list[(int)key];
+                    var returnValue = list[keyInt];
                     if ((returnValue.GetType() == typeof(string)))
                         return returnValue;
                     if ((returnValue.GetType() == typeof(Int64)))

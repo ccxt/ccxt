@@ -158,7 +158,7 @@ public partial class Exchange
             id = SafeString(trade, "id");
             orderId = SafeString(trade, "orderId");
             info = trade.ContainsKey("info") ? (Dictionary<string, object>)trade["info"] : null;
-            timestamp = trade.ContainsKey("timestamp") ? (Int64)trade["timestamp"] : null;
+            timestamp = SafeInteger(trade, "timestamp");
             datetime = SafeString(trade, "datetime");
             symbol = SafeString(trade, "symbol");
             type = SafeString(trade, "type");
@@ -193,7 +193,7 @@ public partial class Exchange
             var order = (Dictionary<string, object>)order2;
             id = SafeString(order, "id");
             clientOrderId = SafeString(order, "clientOrderId");
-            timestamp = order.ContainsKey("timestamp") ? (Int64)order["timestamp"] : null;
+            timestamp = SafeInteger(order, "timestamp");
             datetime = SafeString(order, "datetime");
             lastTradeTimestamp = SafeString(order, "lastTradeTimestamp");
             symbol = SafeString(order, "symbol");
@@ -215,7 +215,7 @@ public partial class Exchange
     public struct Ticker
     {
         public string? symbol;
-        public Int64 timestamp;
+        public Int64? timestamp;
         public string? datetime;
         public float? high;
         public float? low;
@@ -239,7 +239,7 @@ public partial class Exchange
         {
             var ticker = (Dictionary<string, object>)ticker2;
             symbol = SafeString(ticker, "symbol");
-            timestamp = ticker.ContainsKey("timestamp") ? (Int64)ticker["timestamp"] : 0;
+            timestamp = SafeInteger(ticker, "timestamp");
             datetime = SafeString(ticker, "datetime");
             high = SafeFloat(ticker, "high");
             low = SafeFloat(ticker, "low");
@@ -284,8 +284,8 @@ public partial class Exchange
                 currency = SafeString(transaction, "currency");
                 amount = SafeFloat(transaction, "amount");
                 status = SafeString(transaction, "status");
-                updated = transaction.ContainsKey("updated") ? (Int64)transaction["updated"] : null;
-                timestamp = transaction.ContainsKey("timestamp") ? (Int64)transaction["timestamp"] : null;
+                updated = SafeInteger(transaction, "updated");
+                timestamp = SafeInteger(transaction, "timestamp");
                 datetime = SafeString(transaction, "datetime");
             }
         }
@@ -297,7 +297,7 @@ public partial class Exchange
         public List<List<float>>? asks;
 
         public string? symbol;
-        public Int64 timestamp;
+        public Int64? timestamp;
         public string? datetime;
         public Int64? nonce;
 
@@ -307,9 +307,9 @@ public partial class Exchange
             bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).Select(y => (float)y).ToList()).ToList() : null;
             asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => (float)y).ToList()).ToList() : null;
             symbol = SafeString(orderbook, "symbol");
-            timestamp = orderbook.ContainsKey("timestamp") ? (Int64)orderbook["timestamp"] : 0;
+            timestamp = SafeInteger(orderbook, "timestamp");
             datetime = SafeString(orderbook, "datetime");
-            nonce = orderbook.ContainsKey("nonce") ? (Int64)orderbook["nonce"] : null;
+            nonce = SafeInteger(orderbook, "nonce");
         }
     }
 
