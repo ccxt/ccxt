@@ -137,7 +137,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
 export {Market, Trade, Fee, Ticker} from './types'
 
 // ----------------------------------------------------------------------------
@@ -2755,7 +2755,7 @@ export default class Exchange {
         return this.accounts;
     }
 
-    async fetchOHLCVC (symbol, timeframe = '1m', since: any = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCVC (symbol, timeframe = '1m', since: any = undefined, limit: Int = undefined, params = {}): Promise<OHLCVC[]> {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
         }
@@ -3187,12 +3187,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
-    async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrderStatus (id: string, symbol: string = undefined, params = {}): Promise<string> {
+        // TODO: TypeScript: change method signature by replacing
+        // Promise<string> with Promise<Order['status']>.
         const order = await this.fetchOrder (id, symbol, params);
         return order['status'];
     }
 
-    async fetchUnifiedOrder (order, params = {}) {
+    async fetchUnifiedOrder (order, params = {}): Promise<Order> {
         return await this.fetchOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
     }
 
@@ -3764,7 +3766,7 @@ export default class Exchange {
         }
     }
 
-    async fetchMarkOHLCV (symbol, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name exchange#fetchMarkOHLCV
@@ -3786,7 +3788,7 @@ export default class Exchange {
         }
     }
 
-    async fetchIndexOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchIndexOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name exchange#fetchIndexOHLCV
@@ -3808,7 +3810,7 @@ export default class Exchange {
         }
     }
 
-    async fetchPremiumIndexOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchPremiumIndexOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name exchange#fetchPremiumIndexOHLCV
