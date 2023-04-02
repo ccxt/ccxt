@@ -11,7 +11,9 @@ public partial class Exchange
     // falsy and truthy methods wrappers
 
     // tmp safe number
+    public static object SafeNumberN(object obj, List<object> keys, object defaultValue = null) => SafeFloatN(obj, keys, defaultValue);
     public object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
+    // public static object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
     // public float safeNumber(object obj, object key, float defaultValue = -1) => safeFloatN(obj, new List<object> { key }, defaultValue);
     // public float safeNumber2(object obj, object key1, object key2, float defaultValue = -1) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
 
@@ -39,20 +41,36 @@ public partial class Exchange
         return (Int64)safeInteger(value, defaultValue);
     }
 
-    public object safeInteger(object obj, object key, object defaultValue = null) => safeIntegerN(obj, new List<object> { key }, defaultValue);
+    public object safeInteger(object obj, object key, object defaultValue = null) => SafeInteger(obj, key, defaultValue);
+    public static Int64? SafeInteger(object obj, object key, object defaultValue = null)
+    {
+        var res = SafeIntegerN(obj, new List<object> { key, defaultValue });
+        return res == null ? null : (Int64)res;
+    }
 
     public object safeInteger2(object obj, object key1, object key2, object defaultValue = null) => safeIntegerN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public object safeFloat(object obj, object key, object defaultValue = null) => safeFloatN(obj, new List<object> { key }, defaultValue);
+    public static float? SafeFloat(object obj, object key, object defaultValue = null)
+    {
+        var res = SafeFloatN(obj, new List<object> { key, defaultValue });
+        return res == null ? null : (float)res;
+    }
 
     public object safeFloat2(object obj, object key1, object key2, object defaultValue = null) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
 
+    public static string SafeString(object obj, object key, object defaultValue = null)
+    {
+        var res = SafeStringN(obj, new List<object> { key, defaultValue });
+        return res == null ? null : (string)res;
+    }
     public object safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
     public object safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, defaultValue);
 
     public object safeValue2(object obj, object key1, object key2, object defaultValue = null) => safeValueN(obj, new List<object> { key1, key2 }, defaultValue);
 
+    public static object SafeValue(object obj, object key1, object defaultValue = null) => SafeValueN(obj, new List<object> { key1 }, defaultValue);
     public object safeValue(object obj, object key1, object defaultValue = null) => safeValueN(obj, new List<object> { key1 }, defaultValue);
 
 
@@ -124,17 +142,21 @@ public partial class Exchange
         return parsedValue == null ? defaultValue : parsedValue;
     }
 
-    public object safeIntegerN(object obj, List<object> keys, object defaultValue = null)
+    public object safeIntegerN(object obj, List<object> keys, object defaultValue = null) => SafeIntegerN(obj, keys, defaultValue);
+    public static Int64? SafeIntegerN(object obj, List<object> keys, object defaultValue = null)
     {
-        var result = safeValueN(obj, keys, defaultValue);
+        var result = SafeValueN(obj, keys, defaultValue);
         if (result == null)
-            return defaultValue;
-        object parsedValue = null;
+            if (defaultValue != null)
+                return Convert.ToInt64(defaultValue);
+            else
+                return null;
+        Int64? parsedValue = null;
         try
         {
             if (result is string)
             {
-                parsedValue = Math.Round(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
+                parsedValue = Convert.ToInt64(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
 
             }
             else
@@ -155,12 +177,14 @@ public partial class Exchange
             // }
 
         }
-        return parsedValue == null ? defaultValue : parsedValue;
+        return parsedValue == null ? null : parsedValue;
     }
 
-    public object safeStringN(object obj, object keys, object defaultValue = null)
+    public object safeStringN(object obj, object keys, object defaultValue = null) => SafeStringN(obj, new List<object> { keys }, defaultValue);
+
+    public static object SafeStringN(object obj, object keys, object defaultValue = null)
     {
-        var result = safeValueN(obj, keys, defaultValue);
+        var result = SafeValueN(obj, keys, defaultValue);
         var returnResult = result == null ? defaultValue : (result).ToString();
         if (returnResult != null)
         {
@@ -174,10 +198,11 @@ public partial class Exchange
     }
 
 
-    public object safeFloatN(object obj, List<object> keys, object defaultValue = null)
+    public object safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, new List<object> { keys }, defaultValue);
+    public static object SafeFloatN(object obj, List<object> keys, object defaultValue = null)
     {
         defaultValue ??= null;
-        var result = safeValueN(obj, keys, defaultValue);
+        var result = SafeValueN(obj, keys, defaultValue);
         if (result == null)
             return defaultValue;
         object parsedValue = null;
@@ -191,8 +216,8 @@ public partial class Exchange
         }
         return parsedValue == null ? defaultValue : Convert.ToSingle(result);
     }
-
-    public object safeValueN(object obj, object keys2, object defaultValue = null)
+    public object safeValueN(object obj, object keys2, object defaultValue = null) => SafeValueN(obj, new List<object> { keys2 }, defaultValue);
+    public static object SafeValueN(object obj, object keys2, object defaultValue = null)
     {
 
         var keys = (List<object>)keys2;

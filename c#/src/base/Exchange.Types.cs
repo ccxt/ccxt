@@ -9,38 +9,38 @@ public partial class Exchange
 
     public struct Precision
     {
-        public float amount;
-        public float price;
+        public float? amount;
+        public float? price;
         public Precision(object precision2)
         {
             var precision = (Dictionary<string, object>)precision2;
-            amount = precision.ContainsKey("amount") ? (float)precision["amount"] : 0;
-            price = precision.ContainsKey("price") ? (float)precision["price"] : 0;
+            amount = SafeFloat(precision, "amount");
+            price = SafeFloat(precision, "price");
         }
     }
 
     public struct MinMax
     {
-        public float min;
-        public float max;
+        public float? min;
+        public float? max;
         public MinMax(object minMax2)
         {
             var minMax = (Dictionary<string, object>)minMax2;
-            min = minMax.ContainsKey("min") ? (float)minMax["min"] : 0;
-            max = minMax.ContainsKey("max") ? (float)minMax["max"] : 0;
+            min = SafeFloat(minMax, "min");
+            max = SafeFloat(minMax, "max");
         }
     }
 
     public struct Fee
     {
-        public float rate;
-        public float cost;
+        public float? rate;
+        public float? cost;
 
         public Fee(object fee2)
         {
             var fee = (Dictionary<string, object>)fee2;
-            rate = fee.ContainsKey("rate") ? (float)fee["rate"] : 0;
-            cost = fee.ContainsKey("cost") ? (float)fee["cost"] : 0;
+            rate = SafeFloat(fee, "rate");
+            cost = SafeFloat(fee, "cost");
         }
     }
 
@@ -79,15 +79,15 @@ public partial class Exchange
         public bool? contract;
         public string? settle;
         public string? settleId;
-        public float contractSize;
+        public float? contractSize;
         public bool? linear;
         public bool? inverse;
-        public float expiry;
+        public float? expiry;
         public string? expiryDatetime;
-        public float strike;
+        public float? strike;
         public string? optionType;
-        public float taker;
-        public float maker;
+        public float? taker;
+        public float? maker;
         public bool? percentage;
         public bool? tierBased;
         public string? feeSide;
@@ -100,34 +100,34 @@ public partial class Exchange
         public Market(object market2)
         {
             var market = (Dictionary<string, object>)market2;
-            id = market.ContainsKey("id") ? (string)market["id"] : null;
-            symbol = market.ContainsKey("symbol") ? (string)market["symbol"] : null;
-            baseCurrency = market.ContainsKey("base") ? (string)market["base"] : null;
-            quote = market.ContainsKey("quote") ? (string)market["quote"] : null;
-            baseId = market.ContainsKey("baseId") ? (string)market["baseId"] : null;
-            quoteId = market.ContainsKey("quoteId") ? (string)market["quoteId"] : null;
+            id = SafeString(market, "id");
+            symbol = SafeString(market, "symbol");
+            baseCurrency = SafeString(market, "base");
+            quote = SafeString(market, "quote");
+            baseId = SafeString(market, "baseId");
+            quoteId = SafeString(market, "quoteId");
             active = market.ContainsKey("active") ? (bool)market["active"] : null;
-            type = market.ContainsKey("type") ? (string)market["type"] : null;
+            type = SafeString(market, "type");
             spot = market.ContainsKey("spot") ? (bool)market["spot"] : null;
             margin = market.ContainsKey("margin") ? (bool)market["margin"] : null;
             swap = market.ContainsKey("swap") ? (bool)market["swap"] : null;
             future = market.ContainsKey("future") ? (bool)market["future"] : null;
             option = market.ContainsKey("option") ? (bool)market["option"] : null;
             contract = market.ContainsKey("contract") ? (bool)market["contract"] : null;
-            settle = market.ContainsKey("settle") ? (string)market["settle"] : null;
-            settleId = market.ContainsKey("settleId") ? (string)market["settleId"] : null;
-            contractSize = market.ContainsKey("contractSize") ? (float)market["contractSize"] : 0;
+            settle = SafeString(market, "settle");
+            settleId = SafeString(market, "settleId");
+            contractSize = SafeFloat(market, "contractSize");
             linear = market.ContainsKey("linear") ? (bool)market["linear"] : null;
             inverse = market.ContainsKey("inverse") ? (bool)market["inverse"] : null;
-            expiry = market.ContainsKey("expiry") ? (float)market["expiry"] : 0;
-            expiryDatetime = market.ContainsKey("expiryDatetime") ? (string)market["expiryDatetime"] : null;
-            strike = market.ContainsKey("strike") ? (float)market["strike"] : 0;
-            optionType = market.ContainsKey("optionType") ? (string)market["optionType"] : null;
-            taker = market.ContainsKey("taker") ? (float)market["taker"] : 0;
-            maker = market.ContainsKey("maker") ? (float)market["maker"] : 0;
+            expiry = SafeFloat(market, "expiry");
+            expiryDatetime = SafeString(market, "expiryDatetime");
+            strike = SafeFloat(market, "strike");
+            optionType = SafeString(market, "optionType");
+            taker = SafeFloat(market, "taker");
+            maker = SafeFloat(market, "maker");
             percentage = market.ContainsKey("percentage") ? (bool)market["percentage"] : null;
             tierBased = market.ContainsKey("tierBased") ? (bool)market["tierBased"] : null;
-            feeSide = market.ContainsKey("feeSide") ? (string)market["feeSide"] : null;
+            feeSide = SafeString(market, "feeSide");
             precision = market.ContainsKey("precision") ? new Precision(market["precision"]) : null;
             limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
             info = market;
@@ -136,9 +136,9 @@ public partial class Exchange
 
     public struct Trade
     {
-        public float amount;
-        public float price;
-        public float cost;
+        public float? amount;
+        public float? price;
+        public float? cost;
         public string? id;
         public string? orderId;
         public Dictionary<string, object>? info;
@@ -152,18 +152,18 @@ public partial class Exchange
         public Trade(object trade2)
         {
             var trade = (Dictionary<string, object>)trade2;
-            amount = trade.ContainsKey("amount") ? (float)trade["amount"] : 0;
-            price = trade.ContainsKey("price") ? (float)trade["price"] : 0;
-            cost = trade.ContainsKey("cost") ? (float)trade["cost"] : 0;
-            id = trade.ContainsKey("id") ? (string)trade["id"] : null;
-            orderId = trade.ContainsKey("orderId") ? (string)trade["orderId"] : null;
+            amount = SafeFloat(trade, "amount");
+            price = SafeFloat(trade, "price");
+            cost = SafeFloat(trade, "cost");
+            id = SafeString(trade, "id");
+            orderId = SafeString(trade, "orderId");
             info = trade.ContainsKey("info") ? (Dictionary<string, object>)trade["info"] : null;
             timestamp = trade.ContainsKey("timestamp") ? (Int64)trade["timestamp"] : null;
-            datetime = trade.ContainsKey("datetime") ? (string)trade["datetime"] : null;
-            symbol = trade.ContainsKey("symbol") ? (string)trade["symbol"] : null;
-            type = trade.ContainsKey("type") ? (string)trade["type"] : null;
-            side = trade.ContainsKey("side") ? (string)trade["side"] : null;
-            takerOrMaker = trade.ContainsKey("takerOrMaker") ? (string)trade["takerOrMaker"] : null;
+            datetime = SafeString(trade, "datetime");
+            symbol = SafeString(trade, "symbol");
+            type = SafeString(trade, "type");
+            side = SafeString(trade, "side");
+            takerOrMaker = SafeString(trade, "takerOrMaker");
             fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
         }
     }
@@ -191,21 +191,21 @@ public partial class Exchange
         public Order(object order2)
         {
             var order = (Dictionary<string, object>)order2;
-            id = order.ContainsKey("id") ? (string)order["id"] : null;
-            clientOrderId = order.ContainsKey("clientOrderId") ? (string)order["clientOrderId"] : null;
+            id = SafeString(order, "id");
+            clientOrderId = SafeString(order, "clientOrderId");
             timestamp = order.ContainsKey("timestamp") ? (Int64)order["timestamp"] : null;
-            datetime = order.ContainsKey("datetime") ? (string)order["datetime"] : null;
-            lastTradeTimestamp = order.ContainsKey("lastTradeTimestamp") ? (string)order["lastTradeTimestamp"] : null;
-            symbol = order.ContainsKey("symbol") ? (string)order["symbol"] : null;
-            type = order.ContainsKey("type") ? (string)order["type"] : null;
-            side = order.ContainsKey("side") ? (string)order["side"] : null;
-            price = order.ContainsKey("price") ? (string)order["price"] : null;
-            cost = order.ContainsKey("cost") ? (float)order["cost"] : null;
-            average = order.ContainsKey("average") ? (float)order["average"] : null;
-            amount = order.ContainsKey("amount") ? (float)order["amount"] : null;
-            filled = order.ContainsKey("filled") ? (float)order["filled"] : null;
-            remaining = order.ContainsKey("remaining") ? (float)order["remaining"] : null;
-            status = order.ContainsKey("status") ? (string)order["status"] : null;
+            datetime = SafeString(order, "datetime");
+            lastTradeTimestamp = SafeString(order, "lastTradeTimestamp");
+            symbol = SafeString(order, "symbol");
+            type = SafeString(order, "type");
+            side = SafeString(order, "side");
+            price = SafeString(order, "price");
+            cost = SafeFloat(order, "cost");
+            average = SafeFloat(order, "average");
+            amount = SafeFloat(order, "amount");
+            filled = SafeFloat(order, "filled");
+            remaining = SafeFloat(order, "remaining");
+            status = SafeString(order, "status");
             fee = order.ContainsKey("fee") ? new Fee(order["fee"]) : null;
             trades = order.ContainsKey("trades") ? ((IEnumerable<object>)order["trades"]).Select(x => new Trade(x)) : null;
             info = order.ContainsKey("info") ? (Dictionary<string, object>)order["info"] : null;
@@ -217,46 +217,46 @@ public partial class Exchange
         public string? symbol;
         public Int64 timestamp;
         public string? datetime;
-        public float high;
-        public float low;
-        public float bid;
-        public float bidVolume;
-        public float ask;
-        public float askVolume;
-        public float vwap;
-        public float open;
+        public float? high;
+        public float? low;
+        public float? bid;
+        public float? bidVolume;
+        public float? ask;
+        public float? askVolume;
+        public float? vwap;
+        public float? open;
 
-        public float close;
-        public float last;
-        public float previousClose;
-        public float change;
-        public float percentage;
-        public float average;
-        public float baseVolume;
-        public float quoteVolume;
+        public float? close;
+        public float? last;
+        public float? previousClose;
+        public float? change;
+        public float? percentage;
+        public float? average;
+        public float? baseVolume;
+        public float? quoteVolume;
 
         public Ticker(object ticker2)
         {
             var ticker = (Dictionary<string, object>)ticker2;
-            symbol = ticker.ContainsKey("symbol") ? (string)ticker["symbol"] : null;
+            symbol = SafeString(ticker, "symbol");
             timestamp = ticker.ContainsKey("timestamp") ? (Int64)ticker["timestamp"] : 0;
-            datetime = ticker.ContainsKey("datetime") ? (string)ticker["datetime"] : null;
-            high = ticker.ContainsKey("high") ? (float)ticker["high"] : 0;
-            low = ticker.ContainsKey("low") ? (float)ticker["low"] : 0;
-            bid = ticker.ContainsKey("bid") ? (float)ticker["bid"] : 0;
-            bidVolume = ticker.ContainsKey("bidVolume") ? (float)ticker["bidVolume"] : 0;
-            ask = ticker.ContainsKey("ask") ? (float)ticker["ask"] : 0;
-            askVolume = ticker.ContainsKey("askVolume") ? (float)ticker["askVolume"] : 0;
-            vwap = ticker.ContainsKey("vwap") ? (float)ticker["vwap"] : 0;
-            open = ticker.ContainsKey("open") ? (float)ticker["open"] : 0;
-            close = ticker.ContainsKey("close") ? (float)ticker["close"] : 0;
-            last = ticker.ContainsKey("last") ? (float)ticker["last"] : 0;
-            previousClose = ticker.ContainsKey("previousClose") ? (float)ticker["previousClose"] : 0;
-            change = ticker.ContainsKey("change") ? (float)ticker["change"] : 0;
-            percentage = ticker.ContainsKey("percentage") ? (float)ticker["percentage"] : 0;
-            average = ticker.ContainsKey("average") ? (float)ticker["average"] : 0;
-            baseVolume = ticker.ContainsKey("baseVolume") ? (float)ticker["baseVolume"] : 0;
-            quoteVolume = ticker.ContainsKey("quoteVolume") ? (float)ticker["quoteVolume"] : 0;
+            datetime = SafeString(ticker, "datetime");
+            high = SafeFloat(ticker, "high");
+            low = SafeFloat(ticker, "low");
+            bid = SafeFloat(ticker, "bid");
+            bidVolume = SafeFloat(ticker, "bidVolume");
+            ask = SafeFloat(ticker, "ask");
+            askVolume = SafeFloat(ticker, "askVolume");
+            vwap = SafeFloat(ticker, "vwap");
+            open = SafeFloat(ticker, "open");
+            close = SafeFloat(ticker, "close");
+            last = SafeFloat(ticker, "last");
+            previousClose = SafeFloat(ticker, "previousClose");
+            change = SafeFloat(ticker, "change");
+            percentage = SafeFloat(ticker, "percentage");
+            average = SafeFloat(ticker, "average");
+            baseVolume = SafeFloat(ticker, "baseVolume");
+            quoteVolume = SafeFloat(ticker, "quoteVolume");
         }
 
         struct Transaction
@@ -267,7 +267,7 @@ public partial class Exchange
             public string? tag;
             public string? type;
             public string? currency;
-            public float amount;
+            public float? amount;
             public string? status;
             public Int64? updated;
             public Int64? timestamp;
@@ -276,17 +276,17 @@ public partial class Exchange
             public Transaction(object transaction2)
             {
                 var transaction = (Dictionary<string, object>)transaction2;
-                id = transaction.ContainsKey("id") ? (string)transaction["id"] : null;
-                txid = transaction.ContainsKey("txid") ? (string)transaction["txid"] : null;
-                address = transaction.ContainsKey("address") ? (string)transaction["address"] : null;
-                tag = transaction.ContainsKey("tag") ? (string)transaction["tag"] : null;
-                type = transaction.ContainsKey("type") ? (string)transaction["type"] : null;
-                currency = transaction.ContainsKey("currency") ? (string)transaction["currency"] : null;
-                amount = transaction.ContainsKey("amount") ? (float)transaction["amount"] : 0;
-                status = transaction.ContainsKey("status") ? (string)transaction["status"] : null;
+                id = SafeString(transaction, "id");
+                txid = SafeString(transaction, "txid");
+                address = SafeString(transaction, "address");
+                tag = SafeString(transaction, "tag");
+                type = SafeString(transaction, "type");
+                currency = SafeString(transaction, "currency");
+                amount = SafeFloat(transaction, "amount");
+                status = SafeString(transaction, "status");
                 updated = transaction.ContainsKey("updated") ? (Int64)transaction["updated"] : null;
                 timestamp = transaction.ContainsKey("timestamp") ? (Int64)transaction["timestamp"] : null;
-                datetime = transaction.ContainsKey("datetime") ? (string)transaction["datetime"] : null;
+                datetime = SafeString(transaction, "datetime");
             }
         }
     }
@@ -306,9 +306,9 @@ public partial class Exchange
             var orderbook = (Dictionary<string, object>)orderbook2;
             bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).Select(y => (float)y).ToList()).ToList() : null;
             asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => (float)y).ToList()).ToList() : null;
-            symbol = orderbook.ContainsKey("symbol") ? (string)orderbook["symbol"] : null;
+            symbol = SafeString(orderbook, "symbol");
             timestamp = orderbook.ContainsKey("timestamp") ? (Int64)orderbook["timestamp"] : 0;
-            datetime = orderbook.ContainsKey("datetime") ? (string)orderbook["datetime"] : null;
+            datetime = SafeString(orderbook, "datetime");
             nonce = orderbook.ContainsKey("nonce") ? (Int64)orderbook["nonce"] : null;
         }
     }
@@ -336,24 +336,69 @@ public partial class Exchange
 
     public struct OHLCVC
     {
-        public Int64 timestamp;
-        public float open;
-        public float high;
-        public float low;
-        public float close;
-        public float volume;
-        public float cost;
+        public Int64? timestamp;
+        public float? open;
+        public float? high;
+        public float? low;
+        public float? close;
+        public float? volume;
+        public float? cost;
 
         public OHLCVC(object ohlcv2)
         {
             var ohlcv = (List<object>)ohlcv2;
-            timestamp = (Int64)ohlcv[0];
-            open = (float)ohlcv[1];
-            high = (float)ohlcv[2];
-            low = (float)ohlcv[3];
-            close = (float)ohlcv[4];
-            volume = (float)ohlcv[5];
-            cost = (float)ohlcv[6];
+            timestamp = SafeInteger(ohlcv, 0);
+            open = SafeFloat(ohlcv, 1);
+            high = SafeFloat(ohlcv, 2);
+            low = SafeFloat(ohlcv, 3);
+            close = SafeFloat(ohlcv, 4);
+            volume = SafeFloat(ohlcv, 5);
+            cost = SafeFloat(ohlcv, 6);
+        }
+    }
+
+    public struct Balance
+    {
+        public float? free;
+        public float? used;
+        public float? total;
+
+        public Balance(object balance2)
+        {
+            var balance = (Dictionary<string, object>)balance2;
+            free = SafeFloat(balance, "free");
+            used = SafeFloat(balance, "used");
+            total = SafeFloat(balance, "total");
+        }
+    }
+
+    public struct WithdrawlResponse
+    {
+        public Dictionary<string, object> info;
+        public string? id;
+
+        public WithdrawlResponse(object withdrawlResponse2)
+        {
+            var withdrawlResponse = (Dictionary<string, object>)withdrawlResponse2;
+            info = (Dictionary<string, object>)withdrawlResponse["info"];
+            id = SafeString(withdrawlResponse, "id");
+        }
+    }
+
+    public struct DepositAddressResponse
+    {
+        public string? address;
+        public string? tag;
+        public string? status;
+        public Dictionary<string, object>? info;
+
+        public DepositAddressResponse(object depositAddressResponse2)
+        {
+            var depositAddressResponse = (Dictionary<string, object>)depositAddressResponse2;
+            address = SafeString(depositAddressResponse, "address");
+            tag = SafeString(depositAddressResponse, "tag");
+            status = SafeString(depositAddressResponse, "status");
+            info = depositAddressResponse.ContainsKey("info") ? (Dictionary<string, object>)depositAddressResponse["info"] : null;
         }
     }
 }
