@@ -262,6 +262,17 @@ class NewTranspiler {
         return type.startsWith('List<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
     }
 
+    createReturnStatement( unwrappedType:string ) {
+        const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
+        let returnStatement = "";
+        if (unwrappedType.startsWith('List<')) {
+            returnStatement = `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
+        } else {
+            returnStatement =  needsToInstantiate ? `return new ${unwrappedType}(res);` :  `return ((${unwrappedType})res);`;            ;
+        }
+        return returnStatement;
+    }
+
     createWrapper (methodWrapper) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
@@ -274,15 +285,11 @@ class NewTranspiler {
         const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param)).join(', ');
         const params = methodWrapper.parameters.map(param => this.safeCsharpName(param.name)).join(', ');
 
-        const returnStatement = unwrappedType.startsWith('List<') ?
-            `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();` :
-            `return ((${unwrappedType})res);`;
-
         const method = [
-            `public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized} (${args})`,
+            `public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${args})`,
             '{',
-            `    var res = ${isAsync ? 'await ' : ''}this.${methodName} (${params});`,
-            `    ${returnStatement}`,
+            `    var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
+            `    ${this.createReturnStatement(unwrappedType)}`,
             '}'
         ].map(line => '    ' + line);
         return method.join('\n')
@@ -290,7 +297,7 @@ class NewTranspiler {
 
     createMethodsWrappers(wrappers) {
         const wrapperFile = "./c#/src/base/Exchange.Wrappers.cs";
-        wrappers = wrappers.filter(wrapper => wrapper.name == 'createOrder'); // debug only
+        // wrappers = wrappers.filter(wrapper => wrapper.name == 'createOrder'); // debug only
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(wrapper)).filter(wrapper => wrapper !== '').join('\n');
         const file = [
             'namespace Main;',
@@ -408,7 +415,7 @@ class NewTranspiler {
         let baseClass = baseFile.content;
 
         // create wrappers with specific types
-        this.createMethodsWrappers(baseFile.methodsTypes)
+        // this.createMethodsWrappers(baseFile.methodsTypes)
 
 
         // custom transformations needed for c#
@@ -454,7 +461,7 @@ class NewTranspiler {
             createFolderRecursively (csharpFolder)
         }
 
-        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
