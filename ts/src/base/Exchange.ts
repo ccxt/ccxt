@@ -3007,7 +3007,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
 
-    async fetchDepositWithdrawFee (code: string, params = {}) {
+    async fetchDepositWithdrawFee (code: string, params = {}): Promise<any> {
         if (!this.has['fetchDepositWithdrawFees']) {
             throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
@@ -3716,7 +3716,7 @@ export default class Exchange {
         return [ false, params ];
     }
 
-    async fetchLastPrices (symbols: string[] = undefined, params = {}) {
+    async fetchLastPrices (symbols: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 
@@ -3724,7 +3724,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet');
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<any> {
         if (!this.has['fetchTradingFees']) {
             throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
         }
