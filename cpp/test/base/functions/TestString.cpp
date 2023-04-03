@@ -4,7 +4,7 @@
 using namespace ccxt;
 
 TEST_CASE("test string") {
-    CHECK(L"Abc" == capitalize(L"abc"));
-    CHECK(L"A" == capitalize(L"a"));
-    CHECK(L"" == capitalize(L""));
+    CHECK("Abc" == capitalize("abc"));
+    CHECK("A" == capitalize("a"));
+    CHECK("" == capitalize(""));
 }

@@ -4,6 +4,6 @@
 
 namespace ccxt {
 
-std::wstring capitalize(const std::wstring& s);
+std::string capitalize(const std::string& s);
 
 }

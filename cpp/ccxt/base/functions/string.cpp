@@ -2,9 +2,9 @@
 
 namespace ccxt {
 
-std::wstring capitalize(const std::wstring& s)
+std::string capitalize(const std::string& s)
 {
-    std::wstring res{s};
+    std::string res{s};
     if (res.size() > 0) res[0] = std::toupper(res[0]);
     return res;
 }

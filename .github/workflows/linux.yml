@@ -32,7 +32,7 @@ jobs:
       run: |
         sudo apt update
         ${{matrix.install}}
-        sudo apt install -y cmake libfmt-dev
+        sudo apt install -y cmake libfmt-dev libhowardhinnant-date-dev nlohmann-json3-dev libboost-all-dev libssl-dev
         cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure
@@ -51,8 +51,8 @@ jobs:
         threads=`nproc`
         cmake --build . --config ${{matrix.build_type}} --parallel $threads
 
-    # - name: Test
-    #   working-directory: ${{runner.workspace}}/build
-    #   run: |
-    #     cpp/test/base/test-base
-    #     cpp/test/tests
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        cpp/test/base/test-base
+        cpp/test/tests

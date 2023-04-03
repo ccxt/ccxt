@@ -4,212 +4,187 @@
 #include <locale>
 #include <codecvt>
 
-namespace {
-    
-std::wstring s2ws(const std::string& str)
-{
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-
-    return converterX.from_bytes(str);
-}
-
-std::string ws2s(const std::wstring& wstr)
-{
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-
-    return converterX.to_bytes(wstr);
-}
-
-}
-
 namespace ccxt
 {
 
-struct runtime_error : public std::runtime_error
-{
-    runtime_error(const std::wstring& what = L"") : std::runtime_error(ws2s(what)) {}
-};
-
-struct BaseError : public runtime_error
+struct BaseError : public std::runtime_error
 {
 public:
-    BaseError(const std::wstring& what = L"") : runtime_error(what) {}
+    BaseError(const std::string& what = "") : runtime_error(what) {}
 };
 
 struct ExchangeError : public BaseError
 { 
 public:
-    ExchangeError(const std::wstring& what = L"") : BaseError(what) {}
+    ExchangeError(const std::string& what = "") : BaseError(what) {}
 };
 
 struct AuthenticationError : public ExchangeError
 {
 public:
-    AuthenticationError(const std::wstring& what = L"") : ExchangeError(what) {}
+    AuthenticationError(const std::string& what = "") : ExchangeError(what) {}
 };
 
 struct PermissionDenied : public AuthenticationError
 {
  public:
-    PermissionDenied(const std::wstring& what = L"") : AuthenticationError(what) {}
+    PermissionDenied(const std::string& what = "") : AuthenticationError(what) {}
 };
 
 struct AccountNotEnabled : public PermissionDenied
 {
  public:
-    AccountNotEnabled(const std::wstring& what = L"") : PermissionDenied(what) {}
+    AccountNotEnabled(const std::string& what = "") : PermissionDenied(what) {}
 };
 
 struct AccountSuspended : public AuthenticationError
 {
  public:
-    AccountSuspended(const std::wstring& what = L"") : AuthenticationError(what) {}
+    AccountSuspended(const std::string& what = "") : AuthenticationError(what) {}
 };
 
 struct ArgumentsRequired : public ExchangeError
 {
  public:
-    ArgumentsRequired(const std::wstring& what = L"") : ExchangeError(what) {}
+    ArgumentsRequired(const std::string& what = "") : ExchangeError(what) {}
 };
 
 struct BadRequest : public ExchangeError
 {
  public:
-    BadRequest(const std::wstring& what = L"") : ExchangeError(what) {}
+    BadRequest(const std::string& what = "") : ExchangeError(what) {}
 };
 
 struct BadSymbol : public BadRequest
 {
  public:
-    BadSymbol(const std::wstring& what = L"") : BadRequest(what) {}
+    BadSymbol(const std::string& what = "") : BadRequest(what) {}
 };
 
 struct MarginModeAlreadySet : public BadRequest
 {
  public:
-    MarginModeAlreadySet(const std::wstring& what = L"") : BadRequest(what) {}
+    MarginModeAlreadySet(const std::string& what = "") : BadRequest(what) {}
 };
 
 struct BadResponse : public ExchangeError
 {
  public:
-    BadResponse(const std::wstring& what = L"") : ExchangeError(what) {}
+    BadResponse(const std::string& what = "") : ExchangeError(what) {}
 };
 
 struct NullResponse : public BadResponse
 {
  public:
-    NullResponse(const std::wstring& what = L"") : BadResponse(what) {}
+    NullResponse(const std::string& what = "") : BadResponse(what) {}
 };
 
 struct InsufficientFunds : public ExchangeError
 {
  public:
-    InsufficientFunds(const std::wstring& what = L"") : ExchangeError(what) {}
+    InsufficientFunds(const std::string& what = "") : ExchangeError(what) {}
 };
 
 struct InvalidAddress : public ExchangeError
 {
  public:
-    InvalidAddress(const std::wstring& what = L"") : ExchangeError(what) {}
+    InvalidAddress(const std::string& what = "") : ExchangeError(what) {}
 };
 
 struct AddressPending : public InvalidAddress
 {
  public:
-    AddressPending(const std::wstring& what = L"") : InvalidAddress(what) {}
+    AddressPending(const std::string& what = "") : InvalidAddress(what) {}
 };
 
 struct InvalidOrder : public ExchangeError
 {
  public:
-    InvalidOrder(const std::wstring& what = L"") : ExchangeError(what) {}
+    InvalidOrder(const std::string& what = "") : ExchangeError(what) {}
 };
 
 struct OrderNotFound : public InvalidOrder
 {
  public:
-    OrderNotFound(const std::wstring& what = L"") : InvalidOrder(what) {}
+    OrderNotFound(const std::string& what = "") : InvalidOrder(what) {}
 };
 
 struct OrderNotCached : public InvalidOrder
 {
  public:
-    OrderNotCached(const std::wstring& what = L"") : InvalidOrder(what) {}
+    OrderNotCached(const std::string& what = "") : InvalidOrder(what) {}
 };
 
 struct CancelPending : public InvalidOrder
 {
  public:
-    CancelPending(const std::wstring& what = L"") : InvalidOrder(what) {}
+    CancelPending(const std::string& what = "") : InvalidOrder(what) {}
 };
 
 struct OrderImmediatelyFillable : public InvalidOrder
 {
  public:
-    OrderImmediatelyFillable(const std::wstring& what = L"") : InvalidOrder(what) {}
+    OrderImmediatelyFillable(const std::string& what = "") : InvalidOrder(what) {}
 };
 
 struct OrderNotFillable : public InvalidOrder
 {
  public:
-    OrderNotFillable(const std::wstring& what = L"") : InvalidOrder(what) {}
+    OrderNotFillable(const std::string& what = "") : InvalidOrder(what) {}
 };
 
 struct DuplicateOrderId : public InvalidOrder
 {
  public:
-    DuplicateOrderId(const std::wstring& what = L"") : InvalidOrder(what) {}
+    DuplicateOrderId(const std::string& what = "") : InvalidOrder(what) {}
 };
 
 struct NotSupported : public ExchangeError
 {
  public:
-    NotSupported(const std::wstring& what = L"") : ExchangeError(what) {}
+    NotSupported(const std::string& what = "") : ExchangeError(what) {}
 };
 
 struct NetworkError : public BaseError
 {
  public:
-    NetworkError(const std::wstring& what = L"") : BaseError(what) {}
+    NetworkError(const std::string& what = "") : BaseError(what) {}
 };
 
 struct DDoSProtection : public NetworkError
 {
  public:
-    DDoSProtection(const std::wstring& what = L"") : NetworkError(what) {}
+    DDoSProtection(const std::string& what = "") : NetworkError(what) {}
 };
 
 struct RateLimitExceeded : public DDoSProtection
 {
  public:
-    RateLimitExceeded(const std::wstring& what = L"") : DDoSProtection(what) {}
+    RateLimitExceeded(const std::string& what = "") : DDoSProtection(what) {}
 };
 
 struct ExchangeNotAvailable : public NetworkError
 {
  public:
-    ExchangeNotAvailable(const std::wstring& what = L"") : NetworkError(what) {}
+    ExchangeNotAvailable(const std::string& what = "") : NetworkError(what) {}
 };
 
 struct OnMaintenance : public ExchangeNotAvailable
 {
  public:
-    OnMaintenance(const std::wstring& what = L"") : ExchangeNotAvailable(what) {}
+    OnMaintenance(const std::string& what = "") : ExchangeNotAvailable(what) {}
 };
 
 struct InvalidNonce : public NetworkError
 {
  public:
-    InvalidNonce(const std::wstring& what = L"") : NetworkError(what) {}
+    InvalidNonce(const std::string& what = "") : NetworkError(what) {}
 };
 
 struct RequestTimeout : public NetworkError
 {
  public:
-    RequestTimeout(const std::wstring& what = L"") : NetworkError(what) {}
+    RequestTimeout(const std::string& what = "") : NetworkError(what) {}
 };
 
 }

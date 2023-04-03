@@ -4,12 +4,12 @@
 using namespace ccxt;
 
 TEST_CASE("test errors") {
-    CHECK_THROWS_AS(throw BaseError(L"test"), std::exception);
-    CHECK_THROWS_AS(throw ExchangeError(L"test"), BaseError);    
+    CHECK_THROWS_AS(throw BaseError("test"), std::exception);
+    CHECK_THROWS_AS(throw ExchangeError("test"), BaseError);    
 
     try
     {
-        throw ExchangeError(L"test error");
+        throw ExchangeError("test error");
     }
     catch(std::runtime_error e)
     {

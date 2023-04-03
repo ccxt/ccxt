@@ -19,7 +19,7 @@ namespace plog
 
         virtual void write(const Record& record) PLOG_OVERRIDE
         {
-            std::wstring str = Formatter::format(record);
+            std::string str = Formatter::format(record);
             const wchar_t* logMessagePtr[] = { str.c_str() };
 
             ReportEventW(m_eventSource, logSeverityToType(record.getSeverity()), static_cast<WORD>(record.getSeverity()), 0, NULL, 1, 0, logMessagePtr, NULL);
@@ -54,8 +54,8 @@ namespace plog
     public:
         static bool add(const wchar_t* sourceName, const wchar_t* logName = L"Application")
         {
-            std::wstring logKeyName;
-            std::wstring sourceKeyName;
+            std::string logKeyName;
+            std::string sourceKeyName;
             getKeyNames(sourceName, logName, sourceKeyName, logKeyName);
 
             HKEY sourceKey;
@@ -76,8 +76,8 @@ namespace plog
 
         static bool exists(const wchar_t* sourceName, const wchar_t* logName = L"Application")
         {
-            std::wstring logKeyName;
-            std::wstring sourceKeyName;
+            std::string logKeyName;
+            std::string sourceKeyName;
             getKeyNames(sourceName, logName, sourceKeyName, logKeyName);
 
             HKEY sourceKey;
@@ -92,8 +92,8 @@ namespace plog
 
         static void remove(const wchar_t* sourceName, const wchar_t* logName = L"Application")
         {
-            std::wstring logKeyName;
-            std::wstring sourceKeyName;
+            std::string logKeyName;
+            std::string sourceKeyName;
             getKeyNames(sourceName, logName, sourceKeyName, logKeyName);
 
             RegDeleteKeyW(hkey::kLocalMachine, sourceKeyName.c_str());
@@ -101,9 +101,9 @@ namespace plog
         }
 
     private:
-        static void getKeyNames(const wchar_t* sourceName, const wchar_t* logName, std::wstring& sourceKeyName, std::wstring& logKeyName)
+        static void getKeyNames(const wchar_t* sourceName, const wchar_t* logName, std::string& sourceKeyName, std::string& logKeyName)
         {
-            const std::wstring kPrefix = L"SYSTEM\\CurrentControlSet\\Services\\EventLog\\";
+            const std::string kPrefix = L"SYSTEM\\CurrentControlSet\\Services\\EventLog\\";
             logKeyName = kPrefix + logName;
             sourceKeyName = logKeyName + L"\\" + sourceName;
         }
