@@ -1394,6 +1394,14 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    isUsingForcedProxy (params) {
+        if (params?.forceProxy) {
+            delete params['forceProxy'];
+            return true;
+        }
+        return false
+    };
+
     isInverse (type, subType = undefined) {
         if (subType === undefined) {
             return type === 'delivery';
@@ -5160,6 +5168,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
+            'forceProxy': true,
             'coin': currency['id'],
             'address': address,
             'amount': amount,
