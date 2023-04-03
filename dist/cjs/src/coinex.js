@@ -5,10 +5,10 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class coinex extends coinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1970,6 +1970,72 @@ class coinex extends coinex$1 {
         const data = this.safeValue(response, 'data');
         return this.parseOrder(data, market);
     }
+    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#editOrder
+         * @description edit a trade order
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredArgument('editOrder', symbol, 'symbol');
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'market': market['id'],
+            'id': id,
+        };
+        if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision(symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        const response = await this.privatePostOrderModify(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "id": 35436205,
+        //             "create_time": 1636080705,
+        //             "finished_time": null,
+        //             "amount": "0.30000000",
+        //             "price": " 56000",
+        //             "deal_amount": "0.24721428",
+        //             "deal_money": "13843.9996800000000000",
+        //             "deal_fee": "0",
+        //             "stock_fee": "0",
+        //             "money_fee": "0",
+        //             " asset_fee": "8.721719798400000000000000",
+        //             "fee_asset": "CET",
+        //             "fee_discount": "0.70",
+        //             "avg_price": "56000",
+        //             "market": "BTCUSDT",
+        //             "left": "0.05278572 ",
+        //             "maker_fee_rate": "0.0018",
+        //             "taker_fee_rate": "0.0018",
+        //             "order_type": "limit",
+        //             "type": "buy",
+        //             "status": "cancel",
+        //             "client_id ": "abcd222",
+        //             "source_id": "1234"
+        //     },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseOrder(data, market);
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -3041,7 +3107,7 @@ class coinex extends coinex$1 {
         const maintenanceMarginPercentage = this.safeString(position, 'mainten_margin');
         const collateral = this.safeString(position, 'margin_amount');
         const leverage = this.safeNumber(position, 'leverage');
-        return {
+        return this.safePosition({
             'info': position,
             'id': positionId,
             'symbol': symbol,
@@ -3054,10 +3120,12 @@ class coinex extends coinex$1 {
             'contracts': undefined,
             'contractSize': contractSize,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'side': side,
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': collateral,
@@ -3065,7 +3133,7 @@ class coinex extends coinex$1 {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
-        };
+        });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         /**
@@ -4038,14 +4106,13 @@ class coinex extends coinex$1 {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (code === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires a currency code argument');
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            await this.loadMarkets();
+            currency = this.currency(code);
+            request['coin_type'] = currency['id'];
         }
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'coin_type': currency['id'],
-        };
         if (limit !== undefined) {
             request['Limit'] = limit;
         }
@@ -4105,14 +4172,13 @@ class coinex extends coinex$1 {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        if (code === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires a currency code argument');
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            await this.loadMarkets();
+            currency = this.currency(code);
+            request['coin_type'] = currency['id'];
         }
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'coin_type': currency['id'],
-        };
         if (limit !== undefined) {
             request['Limit'] = limit;
         }
@@ -4618,7 +4684,7 @@ class coinex extends coinex$1 {
             }, query);
             query = this.keysort(query);
             const urlencoded = this.rawencode(query);
-            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), sha256.sha256);
+            const signature = this.hash(this.encode(urlencoded + '&secret_key=' + this.secret), md5.md5);
             headers = {
                 'Authorization': signature.toUpperCase(),
                 'Content-Type': 'application/json',

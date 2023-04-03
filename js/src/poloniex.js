@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class poloniex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -804,7 +803,7 @@ export default class poloniex extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const response = await this.privateGetTrades(this.extend(request, params));
         //

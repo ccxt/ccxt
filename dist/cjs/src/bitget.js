@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitget extends bitget$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -174,6 +173,7 @@ class bitget extends bitget$1 {
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
                             'trade/cancel-batch-orders': 4,
+                            'trade/cancel-batch-orders-v2': 4,
                             'trade/orderInfo': 1,
                             'trade/open-orders': 1,
                             'trade/history': 1,
@@ -2181,6 +2181,7 @@ class bitget extends bitget$1 {
             'new': 'open',
             'init': 'open',
             'not_trigger': 'open',
+            'partial_fill': 'open',
             'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
@@ -2604,19 +2605,14 @@ class bitget extends bitget$1 {
         this.checkRequiredSymbol('cancelOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        const type = this.safeString(params, 'type', market['type']);
-        if (type === undefined) {
-            throw new errors.ArgumentsRequired(this.id + " cancelOrders() requires a type parameter (one of 'spot', 'swap').");
-        }
-        params = this.omit(params, 'type');
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('cancelOrders', market, params);
         const request = {};
         let method = undefined;
         if (type === 'spot') {
-            method = 'apiPostOrderOrdersBatchcancel';
-            request['method'] = 'batchcancel';
-            const jsonIds = this.json(ids);
-            const parts = jsonIds.split('"');
-            request['order_ids'] = parts.join('');
+            method = 'privateSpotPostTradeCancelBatchOrdersV2';
+            request['symbol'] = market['id'];
+            request['orderIds'] = ids;
         }
         else if (type === 'swap') {
             method = 'privateMixPostOrderCancelBatchOrders';
@@ -2629,18 +2625,17 @@ class bitget extends bitget$1 {
         //     spot
         //
         //     {
-        //         "status": "ok",
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": "1680008815965",
         //         "data": {
-        //             "success": [
-        //                 "673451224205135872",
-        //             ],
-        //             "failed": [
+        //             "resultList": [
         //                 {
-        //                 "err-msg": "invalid record",
-        //                 "order-id": "673451224205135873",
-        //                 "err-code": "base record invalid"
-        //                 }
-        //             ]
+        //                     "orderId": "1024598257429823488",
+        //                     "clientOrderId": "876493ce-c287-4bfc-9f4a-8b1905881313"
+        //                 },
+        //             ],
+        //             "failed": []
         //         }
         //     }
         //
@@ -2849,7 +2844,7 @@ class bitget extends bitget$1 {
             }
             query = this.omit(query, 'stop');
         }
-        const response = await this[method](this.extend(request, query));
+        let response = await this[method](this.extend(request, query));
         //
         //  spot
         //     {
@@ -2953,6 +2948,9 @@ class bitget extends bitget$1 {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            response = JSON.parse(response);
+        }
         let data = this.safeValue(response, 'data', []);
         if (!Array.isArray(data)) {
             data = this.safeValue(data, 'orderList', []);
@@ -3550,7 +3548,7 @@ class bitget extends bitget$1 {
         const maintenanceMargin = Precise["default"].stringAdd(Precise["default"].stringMul(maintenanceMarginPercentage, notional), feeToClose);
         const marginRatio = Precise["default"].stringDiv(maintenanceMargin, collateral);
         const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealizedPnl, initialMargin, 4), '100');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3563,10 +3561,12 @@ class bitget extends bitget$1 {
             'contracts': contracts,
             'contractSize': contractSizeNumber,
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': this.parseNumber(maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
             'collateral': this.parseNumber(collateral),
@@ -3574,7 +3574,7 @@ class bitget extends bitget$1 {
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverage),
             'marginRatio': this.parseNumber(marginRatio),
-        };
+        });
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

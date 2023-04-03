@@ -9,7 +9,6 @@ var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class binance extends binance$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -201,6 +200,7 @@ class binance extends binance$1 {
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4,
+                        'asset/convert-transfer/queryByPage': 0.033335,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -282,12 +282,14 @@ class binance extends binance$1 {
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
+                        'sub-account/transaction-tatistics': 0.4,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         'managed-subaccount/queryTransLogForInvestor': 0.1,
                         'managed-subaccount/queryTransLogForTradeParent': 0.1,
                         'managed-subaccount/fetch-future-asset': 0.1,
                         'managed-subaccount/marginAsset': 0.1,
+                        'managed-subaccount/info': 0.4,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -384,7 +386,6 @@ class binance extends binance$1 {
                         'asset/transfer': 0.1,
                         'asset/get-funding-asset': 0.1,
                         'asset/convert-transfer': 0.033335,
-                        'asset/convert-transfer/queryByPage': 0.033335,
                         'account/disableFastWithdrawSwitch': 0.1,
                         'account/enableFastWithdrawSwitch': 0.1,
                         // 'account/apiRestrictions/ipRestriction': 1, discontinued
@@ -4572,7 +4573,7 @@ class binance extends binance$1 {
         }
         let endTime = this.safeInteger2(params, 'until', 'endTime');
         if (since !== undefined) {
-            const startTime = parseInt(since);
+            const startTime = since;
             request['startTime'] = startTime;
             // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
             // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
@@ -7068,6 +7069,9 @@ class binance extends binance$1 {
                 else {
                     response = { 'code': -4046, 'msg': 'No need to change margin type.' };
                 }
+            }
+            else {
+                throw e;
             }
         }
         return response;

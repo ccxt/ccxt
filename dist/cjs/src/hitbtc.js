@@ -7,7 +7,6 @@ var number = require('./base/functions/number.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class hitbtc extends hitbtc$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1467,7 +1466,7 @@ class hitbtc extends hitbtc$1 {
             else if (Object.keys(query).length) {
                 body = this.json(query);
             }
-            const payload = this.encode(this.apiKey + ':' + this.secret);
+            const payload = this.apiKey + ':' + this.secret;
             const auth = this.stringToBase64(payload);
             headers = {
                 'Authorization': 'Basic ' + auth,

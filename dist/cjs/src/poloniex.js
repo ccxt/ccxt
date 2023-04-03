@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class poloniex extends poloniex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -801,7 +800,7 @@ class poloniex extends poloniex$1 {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const response = await this.privateGetTrades(this.extend(request, params));
         //

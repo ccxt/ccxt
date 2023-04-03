@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class kucoin extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -445,7 +444,7 @@ export default class kucoin extends Exchange {
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
-                            'accounts': 'v2',
+                            'accounts': 'v1',
                         },
                     },
                     'futuresPrivate': {

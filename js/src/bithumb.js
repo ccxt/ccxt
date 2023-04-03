@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bithumb extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -164,6 +163,7 @@ export default class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },

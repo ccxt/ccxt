@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class woo extends woo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -2289,12 +2288,13 @@ class woo extends woo$1 {
         const unrealisedPnl = Precise["default"].stringMul(priceDifference, size);
         size = Precise["default"].stringAbs(size);
         const notional = Precise["default"].stringMul(size, markPrice);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
@@ -2308,12 +2308,13 @@ class woo extends woo$1 {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estLiqPrice'),
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
-        };
+        });
     }
     defaultNetworkCodeForCurrency(code) {
         const currencyItem = this.currency(code);

@@ -58,7 +58,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -70,7 +70,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $event => 'ticker24h',
@@ -107,7 +107,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $message;
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -127,7 +127,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         event => 'trade',
@@ -155,7 +155,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -193,7 +193,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         event => 'candle',
@@ -235,7 +235,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -288,7 +288,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
         //         event => 'book',
@@ -311,7 +311,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $orderbook;
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         $event => 'book',
@@ -368,7 +368,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_order_book_snapshot($client, $message) {
+    public function handle_order_book_snapshot(Client $client, $message) {
         //
         //     {
         //         action => 'getBook',
@@ -410,7 +410,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_order_book_subscription($client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -419,7 +419,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
     }
 
-    public function handle_order_book_subscriptions($client, $message, $marketIds) {
+    public function handle_order_book_subscriptions(Client $client, $message, $marketIds) {
         $name = 'book';
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $this->safe_string($marketIds, $i);
@@ -435,7 +435,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -473,7 +473,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -511,7 +511,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         //     {
         //         event => 'order',
@@ -547,7 +547,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function handle_my_trade($client, $message) {
+    public function handle_my_trade(Client $client, $message) {
         //
         //     {
         //         event => 'fill',
@@ -577,7 +577,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         event => 'subscribed',
@@ -626,7 +626,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $future;
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         //
         //     {
         //         event => 'authenticate',
@@ -648,7 +648,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         $event => 'subscribed',

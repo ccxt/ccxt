@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _kucoin from '../kucoin.js';
-export default class kucoin extends _kucoin {
+class kucoin extends _kucoin {
 }
+export default kucoin;

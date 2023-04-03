@@ -9,7 +9,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class krakenfutures extends krakenfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -296,7 +295,7 @@ class krakenfutures extends krakenfutures$1 {
             let symbol = id;
             const split = id.split('_');
             const splitMarket = this.safeString(split, 1);
-            const baseId = splitMarket.replace('usd', '');
+            const baseId = splitMarket.slice(0, splitMarket.length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
@@ -1980,7 +1979,7 @@ class krakenfutures extends krakenfutures$1 {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
-            const auth = postData + '/api/' + endpoint; // 1
+            const auth = postData + '/api/' + (api === 'private' ? endpoint : api + '/' + endpoint); // 1
             const hash = this.hash(this.encode(auth), sha256.sha256, 'binary'); // 2
             const secret = this.base64ToBinary(this.secret); // 3
             const signature = this.hmac(hash, secret, sha512.sha512, 'base64'); // 4-5
