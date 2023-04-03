@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -247,7 +247,7 @@ export default class poloniex extends Exchange {
                 'exact': {
                     // General
                     '500': ExchangeNotAvailable, // Internal System Error
-                    '603': ExchangeNotAvailable, // Internal Request Timeout
+                    '603': RequestTimeout, // Internal Request Timeout
                     '601': BadRequest, // Invalid Parameter
                     '415': ExchangeError, // System Error
                     '602': ArgumentsRequired, // Missing Required Parameters
@@ -270,9 +270,9 @@ export default class poloniex extends Exchange {
                     '250002': BadRequest, // Invalid fromAccount for transfer
                     '250003': BadRequest, // Invalid transfer amount
                     '250004': BadRequest, // Transfer is not supported
-                    '250005': InsufficientFunds, //	Insufficient transfer balance
+                    '250005': InsufficientFunds, // Insufficient transfer balance
                     '250008': BadRequest, // Invalid transfer currency
-                    '250012': ExchangeError, //	Futures account is not valid
+                    '250012': ExchangeError, // Futures account is not valid
                     // Trading
                     '21110': BadRequest, // Invalid quote currency
                     '10040': BadSymbol, // Invalid symbol
