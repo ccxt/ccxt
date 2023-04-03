@@ -662,47 +662,28 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const orderId = this.safeString (data, 'orderId');
-        const timestamp = this.safeString (data, 'ts') / 1000;
+        const timestamp = this.safeInteger (data, 'ts') / 1000;
         const messageHash = this.safeString (data, 'topic');
         const side = this.safeString (data, 'side');
         const size = this.safeString (data, 'size');
         const price = this.safeString (data, 'price');
-        // TODO ↓
-        const symbol = market['symbol'];
-        const name = 'book_lv2';
-        const messageHash = name + ':' + marketId;
+        const symbol = this.safeString (market, 'symbol');
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
-        const timestamp = this.safeInteger (item, 'ts');
-        const asks = this.safeValue (item, 'asks');
-        const bids = this.safeValue (item, 'bids');
-        const snapshot = type === 'snapshot';
-        const update = type === 'update';
-        if (snapshot || update) {
-            if (snapshot) {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-            const orderbook = this.orderbooks[symbol];
-            if (bids !== undefined) {
-                for (let i = 0; i < bids.length; i++) {
-                    const bid = this.safeValue (bids, i);
-                    const price = this.safeNumber (bid, 0);
-                    const amount = this.safeNumber (bid, 1);
-                    orderbook['bids'].store (price, amount);
-                }
-            }
-            if (asks !== undefined) {
-                for (let i = 0; i < asks.length; i++) {
-                    const ask = this.safeValue (asks, i);
-                    const price = this.safeNumber (ask, 0);
-                    const amount = this.safeNumber (ask, 1);
-                    orderbook['asks'].store (price, amount);
-                }
-            }
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            client.resolve (orderbook, messageHash);
+        const update = type === 'done';
+        const orderBook = this.safeValue (this.orderbooks, symbol);
+        if (orderBook === undefined) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
+        if (side === 'buy') {  // Only happens if subject is open
+            orderBook['bids'].store (price, size);
+        } else if (side === 'sell') {
+            orderBook['asks'].store (price, size);
+        }
+        // TODO: How to remove is subject is done? Is only possible with orderId
+        orderBook['timestamp'] = timestamp;
+        orderBook['datetime'] = this.iso8601 (timestamp);
+        client.resolve (orderBook, messageHash);
     }
 
     handleBalance (client, message) {
@@ -763,7 +744,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             return this.handlePong (client, message);
         }
         const methods = {
-            'book': this.handleOrderBook,
+            'received': this.handleOrderBook,
             'open': this.handleOrderBook,
             'done': this.handleOrderBook,
             'ticker': this.handleTicker,
