@@ -106,4 +106,103 @@ abstract class tokocrypto extends \ccxt\Exchange {
     public function private_post_open_v1_user_data_stream($params = array()) {
         return $this->request('open/v1/user-data-stream', 'private', 'POST', $params);
     }
+    public function binanceGetPing($params = array()) {
+        return $this->request('ping', 'binance', 'GET', $params);
+    }
+    public function binanceGetTime($params = array()) {
+        return $this->request('time', 'binance', 'GET', $params);
+    }
+    public function binanceGetDepth($params = array()) {
+        return $this->request('depth', 'binance', 'GET', $params);
+    }
+    public function binanceGetTrades($params = array()) {
+        return $this->request('trades', 'binance', 'GET', $params);
+    }
+    public function binanceGetAggTrades($params = array()) {
+        return $this->request('aggTrades', 'binance', 'GET', $params);
+    }
+    public function binanceGetHistoricalTrades($params = array()) {
+        return $this->request('historicalTrades', 'binance', 'GET', $params);
+    }
+    public function binanceGetKlines($params = array()) {
+        return $this->request('klines', 'binance', 'GET', $params);
+    }
+    public function binanceGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', 'binance', 'GET', $params);
+    }
+    public function binanceGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', 'binance', 'GET', $params);
+    }
+    public function binanceGetTickerBookTicker($params = array()) {
+        return $this->request('ticker/bookTicker', 'binance', 'GET', $params);
+    }
+    public function binanceGetExchangeInfo($params = array()) {
+        return $this->request('exchangeInfo', 'binance', 'GET', $params);
+    }
+    public function binancePutUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'binance', 'PUT', $params);
+    }
+    public function binancePostUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'binance', 'POST', $params);
+    }
+    public function binanceDeleteUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'binance', 'DELETE', $params);
+    }
+    public function publicGetOpenV1CommonTime($params = array()) {
+        return $this->request('open/v1/common/time', 'public', 'GET', $params);
+    }
+    public function publicGetOpenV1CommonSymbols($params = array()) {
+        return $this->request('open/v1/common/symbols', 'public', 'GET', $params);
+    }
+    public function publicGetOpenV1MarketDepth($params = array()) {
+        return $this->request('open/v1/market/depth', 'public', 'GET', $params);
+    }
+    public function publicGetOpenV1MarketTrades($params = array()) {
+        return $this->request('open/v1/market/trades', 'public', 'GET', $params);
+    }
+    public function publicGetOpenV1MarketAggTrades($params = array()) {
+        return $this->request('open/v1/market/agg-trades', 'public', 'GET', $params);
+    }
+    public function publicGetOpenV1MarketKlines($params = array()) {
+        return $this->request('open/v1/market/klines', 'public', 'GET', $params);
+    }
+    public function privateGetOpenV1OrdersDetail($params = array()) {
+        return $this->request('open/v1/orders/detail', 'private', 'GET', $params);
+    }
+    public function privateGetOpenV1Orders($params = array()) {
+        return $this->request('open/v1/orders', 'private', 'GET', $params);
+    }
+    public function privateGetOpenV1AccountSpot($params = array()) {
+        return $this->request('open/v1/account/spot', 'private', 'GET', $params);
+    }
+    public function privateGetOpenV1AccountSpotAsset($params = array()) {
+        return $this->request('open/v1/account/spot/asset', 'private', 'GET', $params);
+    }
+    public function privateGetOpenV1OrdersTrades($params = array()) {
+        return $this->request('open/v1/orders/trades', 'private', 'GET', $params);
+    }
+    public function privateGetOpenV1Withdraws($params = array()) {
+        return $this->request('open/v1/withdraws', 'private', 'GET', $params);
+    }
+    public function privateGetOpenV1Deposits($params = array()) {
+        return $this->request('open/v1/deposits', 'private', 'GET', $params);
+    }
+    public function privateGetOpenV1DepositsAddress($params = array()) {
+        return $this->request('open/v1/deposits/address', 'private', 'GET', $params);
+    }
+    public function privatePostOpenV1Orders($params = array()) {
+        return $this->request('open/v1/orders', 'private', 'POST', $params);
+    }
+    public function privatePostOpenV1OrdersCancel($params = array()) {
+        return $this->request('open/v1/orders/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostOpenV1OrdersOco($params = array()) {
+        return $this->request('open/v1/orders/oco', 'private', 'POST', $params);
+    }
+    public function privatePostOpenV1Withdraws($params = array()) {
+        return $this->request('open/v1/withdraws', 'private', 'POST', $params);
+    }
+    public function privatePostOpenV1UserDataStream($params = array()) {
+        return $this->request('open/v1/user-data-stream', 'private', 'POST', $params);
+    }
 }

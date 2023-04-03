@@ -58,4 +58,55 @@ abstract class itbit extends \ccxt\async\Exchange {
     public function private_delete_wallets_walletid_orders_id($params = array()) {
         return $this->request('wallets/{walletId}/orders/{id}', 'private', 'DELETE', $params);
     }
+    public function publicGetMarketsSymbolTicker($params = array()) {
+        return $this->request('markets/{symbol}/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsSymbolOrderBook($params = array()) {
+        return $this->request('markets/{symbol}/order_book', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsSymbolTrades($params = array()) {
+        return $this->request('markets/{symbol}/trades', 'public', 'GET', $params);
+    }
+    public function privateGetWallets($params = array()) {
+        return $this->request('wallets', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsWalletId($params = array()) {
+        return $this->request('wallets/{walletId}', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsWalletIdBalancesCurrencyCode($params = array()) {
+        return $this->request('wallets/{walletId}/balances/{currencyCode}', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsWalletIdFundingHistory($params = array()) {
+        return $this->request('wallets/{walletId}/funding_history', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsWalletIdTrades($params = array()) {
+        return $this->request('wallets/{walletId}/trades', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsWalletIdOrders($params = array()) {
+        return $this->request('wallets/{walletId}/orders', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsWalletIdOrdersId($params = array()) {
+        return $this->request('wallets/{walletId}/orders/{id}', 'private', 'GET', $params);
+    }
+    public function privatePostWalletTransfers($params = array()) {
+        return $this->request('wallet_transfers', 'private', 'POST', $params);
+    }
+    public function privatePostWallets($params = array()) {
+        return $this->request('wallets', 'private', 'POST', $params);
+    }
+    public function privatePostWalletsWalletIdCryptocurrencyDeposits($params = array()) {
+        return $this->request('wallets/{walletId}/cryptocurrency_deposits', 'private', 'POST', $params);
+    }
+    public function privatePostWalletsWalletIdCryptocurrencyWithdrawals($params = array()) {
+        return $this->request('wallets/{walletId}/cryptocurrency_withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostWalletsWalletIdOrders($params = array()) {
+        return $this->request('wallets/{walletId}/orders', 'private', 'POST', $params);
+    }
+    public function privatePostWireWithdrawal($params = array()) {
+        return $this->request('wire_withdrawal', 'private', 'POST', $params);
+    }
+    public function privateDeleteWalletsWalletIdOrdersId($params = array()) {
+        return $this->request('wallets/{walletId}/orders/{id}', 'private', 'DELETE', $params);
+    }
 }

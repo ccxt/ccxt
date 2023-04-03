@@ -7070,6 +7070,9 @@ class binance extends binance$1 {
                     response = { 'code': -4046, 'msg': 'No need to change margin type.' };
                 }
             }
+            else {
+                throw e;
+            }
         }
         return response;
     }

@@ -3199,7 +3199,7 @@ class bybit extends bybit$1 {
         const cost = this.safeString(order, 'cumExecValue');
         const filled = this.safeString(order, 'cumExecQty');
         const remaining = this.safeString(order, 'leavesQty');
-        const lastTradeTimestamp = this.safeInteger(order, 'updateTime');
+        const lastTradeTimestamp = this.safeInteger(order, 'updatedTime');
         const rawStatus = this.safeString(order, 'orderStatus');
         const status = this.parseOrderStatus(rawStatus);
         const side = this.safeStringLower(order, 'side');
@@ -7274,7 +7274,7 @@ class bybit extends bybit$1 {
         let maintenanceMarginString = this.safeString(position, 'positionMM');
         let timestamp = this.parse8601(this.safeString(position, 'updated_at'));
         if (timestamp === undefined) {
-            timestamp = this.safeInteger(position, 'updatedAt');
+            timestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt']);
         }
         // default to cross of USDC margined positions
         const tradeMode = this.safeInteger(position, 'tradeMode', 0);

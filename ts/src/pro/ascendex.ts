@@ -6,6 +6,7 @@ import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -105,7 +106,7 @@ export default class ascendex extends ascendexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         // {
         //     "m": "bar",
@@ -167,7 +168,7 @@ export default class ascendex extends ascendexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         // {
         //     m: 'trades',
@@ -241,7 +242,7 @@ export default class ascendex extends ascendexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message) {
+    handleOrderBookSnapshot (client: Client, message) {
         //
         // {
         //     m: 'depth',
@@ -279,7 +280,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //   {
         //       m: 'depth',
@@ -323,7 +324,7 @@ export default class ascendex extends ascendexRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         // {
         //     "m":"depth",
@@ -383,7 +384,7 @@ export default class ascendex extends ascendexRest {
         return await this.watchPrivate (channel, messageHash, query);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         // cash account
         //
@@ -521,7 +522,7 @@ export default class ascendex extends ascendexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         // spot order
         // {
@@ -686,7 +687,7 @@ export default class ascendex extends ascendexRest {
         }, market);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         // {
         //     m: 'disconnected',
@@ -720,7 +721,7 @@ export default class ascendex extends ascendexRest {
         }
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //     { m: 'auth', id: '1647605234', code: 0 }
         //
@@ -728,7 +729,7 @@ export default class ascendex extends ascendexRest {
         client.resolve (message, messageHash);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -904,7 +905,7 @@ export default class ascendex extends ascendexRest {
         return message;
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     { m: 'sub', ch: 'bar:BTC/USDT', code: 0 }
         //
@@ -917,7 +918,7 @@ export default class ascendex extends ascendexRest {
         return message;
     }
 
-    handleOrderBookSubscription (client, message) {
+    handleOrderBookSubscription (client: Client, message) {
         const channel = this.safeString (message, 'ch');
         const parts = channel.split (':');
         const marketId = parts[1];
@@ -941,7 +942,7 @@ export default class ascendex extends ascendexRest {
         }
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         this.spawn (this.pong, client, message);
     }
 

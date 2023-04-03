@@ -76,4 +76,73 @@ abstract class bithumb extends \ccxt\async\Exchange {
     public function private_post_trade_market_sell($params = array()) {
         return $this->request('trade/market_sell', 'private', 'POST', $params);
     }
+    public function publicGetTickerCurrency($params = array()) {
+        return $this->request('ticker/{currency}', 'public', 'GET', $params);
+    }
+    public function publicGetTickerAll($params = array()) {
+        return $this->request('ticker/all', 'public', 'GET', $params);
+    }
+    public function publicGetTickerALLBTC($params = array()) {
+        return $this->request('ticker/ALL_BTC', 'public', 'GET', $params);
+    }
+    public function publicGetTickerALLKRW($params = array()) {
+        return $this->request('ticker/ALL_KRW', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbookCurrency($params = array()) {
+        return $this->request('orderbook/{currency}', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbookAll($params = array()) {
+        return $this->request('orderbook/all', 'public', 'GET', $params);
+    }
+    public function publicGetTransactionHistoryCurrency($params = array()) {
+        return $this->request('transaction_history/{currency}', 'public', 'GET', $params);
+    }
+    public function publicGetTransactionHistoryAll($params = array()) {
+        return $this->request('transaction_history/all', 'public', 'GET', $params);
+    }
+    public function publicGetCandlestickCurrencyInterval($params = array()) {
+        return $this->request('candlestick/{currency}/{interval}', 'public', 'GET', $params);
+    }
+    public function privatePostInfoAccount($params = array()) {
+        return $this->request('info/account', 'private', 'POST', $params);
+    }
+    public function privatePostInfoBalance($params = array()) {
+        return $this->request('info/balance', 'private', 'POST', $params);
+    }
+    public function privatePostInfoWalletAddress($params = array()) {
+        return $this->request('info/wallet_address', 'private', 'POST', $params);
+    }
+    public function privatePostInfoTicker($params = array()) {
+        return $this->request('info/ticker', 'private', 'POST', $params);
+    }
+    public function privatePostInfoOrders($params = array()) {
+        return $this->request('info/orders', 'private', 'POST', $params);
+    }
+    public function privatePostInfoUserTransactions($params = array()) {
+        return $this->request('info/user_transactions', 'private', 'POST', $params);
+    }
+    public function privatePostInfoOrderDetail($params = array()) {
+        return $this->request('info/order_detail', 'private', 'POST', $params);
+    }
+    public function privatePostTradePlace($params = array()) {
+        return $this->request('trade/place', 'private', 'POST', $params);
+    }
+    public function privatePostTradeCancel($params = array()) {
+        return $this->request('trade/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostTradeBtcWithdrawal($params = array()) {
+        return $this->request('trade/btc_withdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostTradeKrwDeposit($params = array()) {
+        return $this->request('trade/krw_deposit', 'private', 'POST', $params);
+    }
+    public function privatePostTradeKrwWithdrawal($params = array()) {
+        return $this->request('trade/krw_withdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostTradeMarketBuy($params = array()) {
+        return $this->request('trade/market_buy', 'private', 'POST', $params);
+    }
+    public function privatePostTradeMarketSell($params = array()) {
+        return $this->request('trade/market_sell', 'private', 'POST', $params);
+    }
 }

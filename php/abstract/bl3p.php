@@ -52,4 +52,49 @@ abstract class bl3p extends \ccxt\Exchange {
     public function private_post_genmkt_money_withdraw($params = array()) {
         return $this->request('GENMKT/money/withdraw', 'private', 'POST', $params);
     }
+    public function publicGetMarketTicker($params = array()) {
+        return $this->request('{market}/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetMarketOrderbook($params = array()) {
+        return $this->request('{market}/orderbook', 'public', 'GET', $params);
+    }
+    public function publicGetMarketTrades($params = array()) {
+        return $this->request('{market}/trades', 'public', 'GET', $params);
+    }
+    public function privatePostMarketMoneyDepthFull($params = array()) {
+        return $this->request('{market}/money/depth/full', 'private', 'POST', $params);
+    }
+    public function privatePostMarketMoneyOrderAdd($params = array()) {
+        return $this->request('{market}/money/order/add', 'private', 'POST', $params);
+    }
+    public function privatePostMarketMoneyOrderCancel($params = array()) {
+        return $this->request('{market}/money/order/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostMarketMoneyOrderResult($params = array()) {
+        return $this->request('{market}/money/order/result', 'private', 'POST', $params);
+    }
+    public function privatePostMarketMoneyOrders($params = array()) {
+        return $this->request('{market}/money/orders', 'private', 'POST', $params);
+    }
+    public function privatePostMarketMoneyOrdersHistory($params = array()) {
+        return $this->request('{market}/money/orders/history', 'private', 'POST', $params);
+    }
+    public function privatePostMarketMoneyTradesFetch($params = array()) {
+        return $this->request('{market}/money/trades/fetch', 'private', 'POST', $params);
+    }
+    public function privatePostGENMKTMoneyInfo($params = array()) {
+        return $this->request('GENMKT/money/info', 'private', 'POST', $params);
+    }
+    public function privatePostGENMKTMoneyDepositAddress($params = array()) {
+        return $this->request('GENMKT/money/deposit_address', 'private', 'POST', $params);
+    }
+    public function privatePostGENMKTMoneyNewDepositAddress($params = array()) {
+        return $this->request('GENMKT/money/new_deposit_address', 'private', 'POST', $params);
+    }
+    public function privatePostGENMKTMoneyWalletHistory($params = array()) {
+        return $this->request('GENMKT/money/wallet/history', 'private', 'POST', $params);
+    }
+    public function privatePostGENMKTMoneyWithdraw($params = array()) {
+        return $this->request('GENMKT/money/withdraw', 'private', 'POST', $params);
+    }
 }

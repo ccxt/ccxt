@@ -430,4 +430,427 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function futuresprivate_delete_stoporders($params = array()) {
         return $this->request('stopOrders', 'futuresPrivate', 'DELETE', $params);
     }
+    public function publicGetTimestamp($params = array()) {
+        return $this->request('timestamp', 'public', 'GET', $params);
+    }
+    public function publicGetStatus($params = array()) {
+        return $this->request('status', 'public', 'GET', $params);
+    }
+    public function publicGetSymbols($params = array()) {
+        return $this->request('symbols', 'public', 'GET', $params);
+    }
+    public function publicGetMarkets($params = array()) {
+        return $this->request('markets', 'public', 'GET', $params);
+    }
+    public function publicGetMarketAllTickers($params = array()) {
+        return $this->request('market/allTickers', 'public', 'GET', $params);
+    }
+    public function publicGetMarketOrderbookLevelLevelLimit($params = array()) {
+        return $this->request('market/orderbook/level{level}_{limit}', 'public', 'GET', $params);
+    }
+    public function publicGetMarketOrderbookLevel220($params = array()) {
+        return $this->request('market/orderbook/level2_20', 'public', 'GET', $params);
+    }
+    public function publicGetMarketOrderbookLevel2100($params = array()) {
+        return $this->request('market/orderbook/level2_100', 'public', 'GET', $params);
+    }
+    public function publicGetMarketHistories($params = array()) {
+        return $this->request('market/histories', 'public', 'GET', $params);
+    }
+    public function publicGetMarketCandles($params = array()) {
+        return $this->request('market/candles', 'public', 'GET', $params);
+    }
+    public function publicGetMarketStats($params = array()) {
+        return $this->request('market/stats', 'public', 'GET', $params);
+    }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies', 'public', 'GET', $params);
+    }
+    public function publicGetCurrenciesCurrency($params = array()) {
+        return $this->request('currencies/{currency}', 'public', 'GET', $params);
+    }
+    public function publicGetPrices($params = array()) {
+        return $this->request('prices', 'public', 'GET', $params);
+    }
+    public function publicGetMarkPriceSymbolCurrent($params = array()) {
+        return $this->request('mark-price/{symbol}/current', 'public', 'GET', $params);
+    }
+    public function publicGetMarginConfig($params = array()) {
+        return $this->request('margin/config', 'public', 'GET', $params);
+    }
+    public function publicGetMarginTradeLast($params = array()) {
+        return $this->request('margin/trade/last', 'public', 'GET', $params);
+    }
+    public function publicPostBulletPublic($params = array()) {
+        return $this->request('bullet-public', 'public', 'POST', $params);
+    }
+    public function privateGetMarketOrderbookLevelLevel($params = array()) {
+        return $this->request('market/orderbook/level{level}', 'private', 'GET', $params);
+    }
+    public function privateGetMarketOrderbookLevel2($params = array()) {
+        return $this->request('market/orderbook/level2', 'private', 'GET', $params);
+    }
+    public function privateGetMarketOrderbookLevel3($params = array()) {
+        return $this->request('market/orderbook/level3', 'private', 'GET', $params);
+    }
+    public function privateGetAccounts($params = array()) {
+        return $this->request('accounts', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsAccountId($params = array()) {
+        return $this->request('accounts/{accountId}', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsLedgers($params = array()) {
+        return $this->request('accounts/ledgers', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsAccountIdHolds($params = array()) {
+        return $this->request('accounts/{accountId}/holds', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsTransferable($params = array()) {
+        return $this->request('accounts/transferable', 'private', 'GET', $params);
+    }
+    public function privateGetBaseFee($params = array()) {
+        return $this->request('base-fee', 'private', 'GET', $params);
+    }
+    public function privateGetSubUser($params = array()) {
+        return $this->request('sub/user', 'private', 'GET', $params);
+    }
+    public function privateGetUserInfo($params = array()) {
+        return $this->request('user-info', 'private', 'GET', $params);
+    }
+    public function privateGetSubApiKey($params = array()) {
+        return $this->request('sub/api-key', 'private', 'GET', $params);
+    }
+    public function privateGetSubAccounts($params = array()) {
+        return $this->request('sub-accounts', 'private', 'GET', $params);
+    }
+    public function privateGetSubAccountsSubUserId($params = array()) {
+        return $this->request('sub-accounts/{subUserId}', 'private', 'GET', $params);
+    }
+    public function privateGetDepositAddresses($params = array()) {
+        return $this->request('deposit-addresses', 'private', 'GET', $params);
+    }
+    public function privateGetDeposits($params = array()) {
+        return $this->request('deposits', 'private', 'GET', $params);
+    }
+    public function privateGetHistDeposits($params = array()) {
+        return $this->request('hist-deposits', 'private', 'GET', $params);
+    }
+    public function privateGetHistWithdrawals($params = array()) {
+        return $this->request('hist-withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetWithdrawalsQuotas($params = array()) {
+        return $this->request('withdrawals/quotas', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrderClientOrderClientOid($params = array()) {
+        return $this->request('order/client-order/{clientOid}', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersOrderId($params = array()) {
+        return $this->request('orders/{orderId}', 'private', 'GET', $params);
+    }
+    public function privateGetLimitOrders($params = array()) {
+        return $this->request('limit/orders', 'private', 'GET', $params);
+    }
+    public function privateGetFills($params = array()) {
+        return $this->request('fills', 'private', 'GET', $params);
+    }
+    public function privateGetLimitFills($params = array()) {
+        return $this->request('limit/fills', 'private', 'GET', $params);
+    }
+    public function privateGetIsolatedAccounts($params = array()) {
+        return $this->request('isolated/accounts', 'private', 'GET', $params);
+    }
+    public function privateGetIsolatedAccountSymbol($params = array()) {
+        return $this->request('isolated/account/{symbol}', 'private', 'GET', $params);
+    }
+    public function privateGetIsolatedBorrowOutstanding($params = array()) {
+        return $this->request('isolated/borrow/outstanding', 'private', 'GET', $params);
+    }
+    public function privateGetIsolatedBorrowRepaid($params = array()) {
+        return $this->request('isolated/borrow/repaid', 'private', 'GET', $params);
+    }
+    public function privateGetIsolatedSymbols($params = array()) {
+        return $this->request('isolated/symbols', 'private', 'GET', $params);
+    }
+    public function privateGetMarginAccount($params = array()) {
+        return $this->request('margin/account', 'private', 'GET', $params);
+    }
+    public function privateGetMarginBorrow($params = array()) {
+        return $this->request('margin/borrow', 'private', 'GET', $params);
+    }
+    public function privateGetMarginBorrowOutstanding($params = array()) {
+        return $this->request('margin/borrow/outstanding', 'private', 'GET', $params);
+    }
+    public function privateGetMarginBorrowRepaid($params = array()) {
+        return $this->request('margin/borrow/repaid', 'private', 'GET', $params);
+    }
+    public function privateGetMarginLendActive($params = array()) {
+        return $this->request('margin/lend/active', 'private', 'GET', $params);
+    }
+    public function privateGetMarginLendDone($params = array()) {
+        return $this->request('margin/lend/done', 'private', 'GET', $params);
+    }
+    public function privateGetMarginLendTradeUnsettled($params = array()) {
+        return $this->request('margin/lend/trade/unsettled', 'private', 'GET', $params);
+    }
+    public function privateGetMarginLendTradeSettled($params = array()) {
+        return $this->request('margin/lend/trade/settled', 'private', 'GET', $params);
+    }
+    public function privateGetMarginLendAssets($params = array()) {
+        return $this->request('margin/lend/assets', 'private', 'GET', $params);
+    }
+    public function privateGetMarginMarket($params = array()) {
+        return $this->request('margin/market', 'private', 'GET', $params);
+    }
+    public function privateGetStopOrderOrderId($params = array()) {
+        return $this->request('stop-order/{orderId}', 'private', 'GET', $params);
+    }
+    public function privateGetStopOrder($params = array()) {
+        return $this->request('stop-order', 'private', 'GET', $params);
+    }
+    public function privateGetStopOrderQueryOrderByClientOid($params = array()) {
+        return $this->request('stop-order/queryOrderByClientOid', 'private', 'GET', $params);
+    }
+    public function privateGetTradeFees($params = array()) {
+        return $this->request('trade-fees', 'private', 'GET', $params);
+    }
+    public function privatePostAccounts($params = array()) {
+        return $this->request('accounts', 'private', 'POST', $params);
+    }
+    public function privatePostAccountsInnerTransfer($params = array()) {
+        return $this->request('accounts/inner-transfer', 'private', 'POST', $params);
+    }
+    public function privatePostAccountsSubTransfer($params = array()) {
+        return $this->request('accounts/sub-transfer', 'private', 'POST', $params);
+    }
+    public function privatePostDepositAddresses($params = array()) {
+        return $this->request('deposit-addresses', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersMulti($params = array()) {
+        return $this->request('orders/multi', 'private', 'POST', $params);
+    }
+    public function privatePostIsolatedBorrow($params = array()) {
+        return $this->request('isolated/borrow', 'private', 'POST', $params);
+    }
+    public function privatePostIsolatedRepayAll($params = array()) {
+        return $this->request('isolated/repay/all', 'private', 'POST', $params);
+    }
+    public function privatePostIsolatedRepaySingle($params = array()) {
+        return $this->request('isolated/repay/single', 'private', 'POST', $params);
+    }
+    public function privatePostMarginBorrow($params = array()) {
+        return $this->request('margin/borrow', 'private', 'POST', $params);
+    }
+    public function privatePostMarginOrder($params = array()) {
+        return $this->request('margin/order', 'private', 'POST', $params);
+    }
+    public function privatePostMarginRepayAll($params = array()) {
+        return $this->request('margin/repay/all', 'private', 'POST', $params);
+    }
+    public function privatePostMarginRepaySingle($params = array()) {
+        return $this->request('margin/repay/single', 'private', 'POST', $params);
+    }
+    public function privatePostMarginLend($params = array()) {
+        return $this->request('margin/lend', 'private', 'POST', $params);
+    }
+    public function privatePostMarginToggleAutoLend($params = array()) {
+        return $this->request('margin/toggle-auto-lend', 'private', 'POST', $params);
+    }
+    public function privatePostBulletPrivate($params = array()) {
+        return $this->request('bullet-private', 'private', 'POST', $params);
+    }
+    public function privatePostStopOrder($params = array()) {
+        return $this->request('stop-order', 'private', 'POST', $params);
+    }
+    public function privatePostSubUser($params = array()) {
+        return $this->request('sub/user', 'private', 'POST', $params);
+    }
+    public function privatePostSubApiKey($params = array()) {
+        return $this->request('sub/api-key', 'private', 'POST', $params);
+    }
+    public function privatePostSubApiKeyUpdate($params = array()) {
+        return $this->request('sub/api-key/update', 'private', 'POST', $params);
+    }
+    public function privateDeleteWithdrawalsWithdrawalId($params = array()) {
+        return $this->request('withdrawals/{withdrawalId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrderClientOrderClientOid($params = array()) {
+        return $this->request('order/client-order/{clientOid}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersOrderId($params = array()) {
+        return $this->request('orders/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteMarginLendOrderId($params = array()) {
+        return $this->request('margin/lend/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteStopOrderCancelOrderByClientOid($params = array()) {
+        return $this->request('stop-order/cancelOrderByClientOid', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteStopOrderOrderId($params = array()) {
+        return $this->request('stop-order/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteStopOrderCancel($params = array()) {
+        return $this->request('stop-order/cancel', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteSubApiKey($params = array()) {
+        return $this->request('sub/api-key', 'private', 'DELETE', $params);
+    }
+    public function futuresPublicGetContractsActive($params = array()) {
+        return $this->request('contracts/active', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetContractsSymbol($params = array()) {
+        return $this->request('contracts/{symbol}', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetTicker($params = array()) {
+        return $this->request('ticker', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetLevel2Snapshot($params = array()) {
+        return $this->request('level2/snapshot', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetLevel2Depth20($params = array()) {
+        return $this->request('level2/depth20', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetLevel2Depth100($params = array()) {
+        return $this->request('level2/depth100', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetLevel2MessageQuery($params = array()) {
+        return $this->request('level2/message/query', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetLevel3MessageQuery($params = array()) {
+        return $this->request('level3/message/query', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetLevel3Snapshot($params = array()) {
+        return $this->request('level3/snapshot', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetTradeHistory($params = array()) {
+        return $this->request('trade/history', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetInterestQuery($params = array()) {
+        return $this->request('interest/query', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetIndexQuery($params = array()) {
+        return $this->request('index/query', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetMarkPriceSymbolCurrent($params = array()) {
+        return $this->request('mark-price/{symbol}/current', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetPremiumQuery($params = array()) {
+        return $this->request('premium/query', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetFundingRateSymbolCurrent($params = array()) {
+        return $this->request('funding-rate/{symbol}/current', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetTimestamp($params = array()) {
+        return $this->request('timestamp', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetStatus($params = array()) {
+        return $this->request('status', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicGetKlineQuery($params = array()) {
+        return $this->request('kline/query', 'futuresPublic', 'GET', $params);
+    }
+    public function futuresPublicPostBulletPublic($params = array()) {
+        return $this->request('bullet-public', 'futuresPublic', 'POST', $params);
+    }
+    public function futuresPrivateGetAccountOverview($params = array()) {
+        return $this->request('account-overview', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetTransactionHistory($params = array()) {
+        return $this->request('transaction-history', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetDepositAddress($params = array()) {
+        return $this->request('deposit-address', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetDepositList($params = array()) {
+        return $this->request('deposit-list', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetWithdrawalsQuotas($params = array()) {
+        return $this->request('withdrawals/quotas', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetWithdrawalList($params = array()) {
+        return $this->request('withdrawal-list', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetTransferList($params = array()) {
+        return $this->request('transfer-list', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetOrders($params = array()) {
+        return $this->request('orders', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetStopOrders($params = array()) {
+        return $this->request('stopOrders', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetRecentDoneOrders($params = array()) {
+        return $this->request('recentDoneOrders', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetOrdersOrderId($params = array()) {
+        return $this->request('orders/{orderId}', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetOrdersByClientOid($params = array()) {
+        return $this->request('orders/byClientOid', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetFills($params = array()) {
+        return $this->request('fills', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetRecentFills($params = array()) {
+        return $this->request('recentFills', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetOpenOrderStatistics($params = array()) {
+        return $this->request('openOrderStatistics', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetPosition($params = array()) {
+        return $this->request('position', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetPositions($params = array()) {
+        return $this->request('positions', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivateGetFundingHistory($params = array()) {
+        return $this->request('funding-history', 'futuresPrivate', 'GET', $params);
+    }
+    public function futuresPrivatePostWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'futuresPrivate', 'POST', $params);
+    }
+    public function futuresPrivatePostTransferOut($params = array()) {
+        return $this->request('transfer-out', 'futuresPrivate', 'POST', $params);
+    }
+    public function futuresPrivatePostOrders($params = array()) {
+        return $this->request('orders', 'futuresPrivate', 'POST', $params);
+    }
+    public function futuresPrivatePostPositionMarginAutoDepositStatus($params = array()) {
+        return $this->request('position/margin/auto-deposit-status', 'futuresPrivate', 'POST', $params);
+    }
+    public function futuresPrivatePostPositionMarginDepositMargin($params = array()) {
+        return $this->request('position/margin/deposit-margin', 'futuresPrivate', 'POST', $params);
+    }
+    public function futuresPrivatePostBulletPrivate($params = array()) {
+        return $this->request('bullet-private', 'futuresPrivate', 'POST', $params);
+    }
+    public function futuresPrivateDeleteWithdrawalsWithdrawalId($params = array()) {
+        return $this->request('withdrawals/{withdrawalId}', 'futuresPrivate', 'DELETE', $params);
+    }
+    public function futuresPrivateDeleteCancelTransferOut($params = array()) {
+        return $this->request('cancel/transfer-out', 'futuresPrivate', 'DELETE', $params);
+    }
+    public function futuresPrivateDeleteOrdersOrderId($params = array()) {
+        return $this->request('orders/{orderId}', 'futuresPrivate', 'DELETE', $params);
+    }
+    public function futuresPrivateDeleteOrders($params = array()) {
+        return $this->request('orders', 'futuresPrivate', 'DELETE', $params);
+    }
+    public function futuresPrivateDeleteStopOrders($params = array()) {
+        return $this->request('stopOrders', 'futuresPrivate', 'DELETE', $params);
+    }
 }

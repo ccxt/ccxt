@@ -274,4 +274,271 @@ abstract class phemex extends \ccxt\Exchange {
     public function private_delete_g_orders_all($params = array()) {
         return $this->request('g-orders/all', 'private', 'DELETE', $params);
     }
+    public function publicGetCfgV2Products($params = array()) {
+        return $this->request('cfg/v2/products', 'public', 'GET', $params);
+    }
+    public function publicGetCfgFundingRates($params = array()) {
+        return $this->request('cfg/fundingRates', 'public', 'GET', $params);
+    }
+    public function publicGetProducts($params = array()) {
+        return $this->request('products', 'public', 'GET', $params);
+    }
+    public function publicGetNomicsTrades($params = array()) {
+        return $this->request('nomics/trades', 'public', 'GET', $params);
+    }
+    public function publicGetMdKline($params = array()) {
+        return $this->request('md/kline', 'public', 'GET', $params);
+    }
+    public function publicGetMdV2KlineList($params = array()) {
+        return $this->request('md/v2/kline/list', 'public', 'GET', $params);
+    }
+    public function publicGetMdV2Kline($params = array()) {
+        return $this->request('md/v2/kline', 'public', 'GET', $params);
+    }
+    public function publicGetMdV2KlineLast($params = array()) {
+        return $this->request('md/v2/kline/last', 'public', 'GET', $params);
+    }
+    public function v1GetMdOrderbook($params = array()) {
+        return $this->request('md/orderbook', 'v1', 'GET', $params);
+    }
+    public function v1GetMdTrade($params = array()) {
+        return $this->request('md/trade', 'v1', 'GET', $params);
+    }
+    public function v1GetMdTicker24hr($params = array()) {
+        return $this->request('md/ticker/24hr', 'v1', 'GET', $params);
+    }
+    public function v1GetMdTicker24hrAll($params = array()) {
+        return $this->request('md/ticker/24hr/all', 'v1', 'GET', $params);
+    }
+    public function v1GetMdSpotTicker24hr($params = array()) {
+        return $this->request('md/spot/ticker/24hr', 'v1', 'GET', $params);
+    }
+    public function v1GetMdSpotTicker24hrAll($params = array()) {
+        return $this->request('md/spot/ticker/24hr/all', 'v1', 'GET', $params);
+    }
+    public function v1GetExchangePublicProducts($params = array()) {
+        return $this->request('exchange/public/products', 'v1', 'GET', $params);
+    }
+    public function v2GetMdV2Orderbook($params = array()) {
+        return $this->request('md/v2/orderbook', 'v2', 'GET', $params);
+    }
+    public function v2GetMdV2Trade($params = array()) {
+        return $this->request('md/v2/trade', 'v2', 'GET', $params);
+    }
+    public function v2GetMdV2Ticker24hr($params = array()) {
+        return $this->request('md/v2/ticker/24hr', 'v2', 'GET', $params);
+    }
+    public function v2GetMdV2Ticker24hrAll($params = array()) {
+        return $this->request('md/v2/ticker/24hr/all', 'v2', 'GET', $params);
+    }
+    public function privateGetSpotOrdersActive($params = array()) {
+        return $this->request('spot/orders/active', 'private', 'GET', $params);
+    }
+    public function privateGetSpotOrders($params = array()) {
+        return $this->request('spot/orders', 'private', 'GET', $params);
+    }
+    public function privateGetSpotWallets($params = array()) {
+        return $this->request('spot/wallets', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeSpotOrder($params = array()) {
+        return $this->request('exchange/spot/order', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeSpotOrderTrades($params = array()) {
+        return $this->request('exchange/spot/order/trades', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeOrderV2OrderList($params = array()) {
+        return $this->request('exchange/order/v2/orderList', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeOrderV2TradingList($params = array()) {
+        return $this->request('exchange/order/v2/tradingList', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsAccountPositions($params = array()) {
+        return $this->request('accounts/accountPositions', 'private', 'GET', $params);
+    }
+    public function privateGetGAccountsAccountPositions($params = array()) {
+        return $this->request('g-accounts/accountPositions', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsPositions($params = array()) {
+        return $this->request('accounts/positions', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataFuturesFundingFees($params = array()) {
+        return $this->request('api-data/futures/funding-fees', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataGFuturesFundingFees($params = array()) {
+        return $this->request('api-data/g-futures/funding-fees', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataFuturesOrders($params = array()) {
+        return $this->request('api-data/futures/orders', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataGFuturesOrders($params = array()) {
+        return $this->request('api-data/g-futures/orders', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataFuturesOrdersByOrderId($params = array()) {
+        return $this->request('api-data/futures/orders/by-order-id', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataGFuturesOrdersByOrderId($params = array()) {
+        return $this->request('api-data/g-futures/orders/by-order-id', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataFuturesTrades($params = array()) {
+        return $this->request('api-data/futures/trades', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataGFuturesTrades($params = array()) {
+        return $this->request('api-data/g-futures/trades', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataFuturesTradingFees($params = array()) {
+        return $this->request('api-data/futures/trading-fees', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataGFuturesTradingFees($params = array()) {
+        return $this->request('api-data/g-futures/trading-fees', 'private', 'GET', $params);
+    }
+    public function privateGetGOrdersActiveList($params = array()) {
+        return $this->request('g-orders/activeList', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersActiveList($params = array()) {
+        return $this->request('orders/activeList', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeOrderList($params = array()) {
+        return $this->request('exchange/order/list', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeOrder($params = array()) {
+        return $this->request('exchange/order', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeOrderTrade($params = array()) {
+        return $this->request('exchange/order/trade', 'private', 'GET', $params);
+    }
+    public function privateGetPhemexUserUsersChildren($params = array()) {
+        return $this->request('phemex-user/users/children', 'private', 'GET', $params);
+    }
+    public function privateGetPhemexUserWalletsV2DepositAddress($params = array()) {
+        return $this->request('phemex-user/wallets/v2/depositAddress', 'private', 'GET', $params);
+    }
+    public function privateGetPhemexUserWalletsTradeAccountDetail($params = array()) {
+        return $this->request('phemex-user/wallets/tradeAccountDetail', 'private', 'GET', $params);
+    }
+    public function privateGetPhemexUserOrderClosedPositionList($params = array()) {
+        return $this->request('phemex-user/order/closedPositionList', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeMarginsTransfer($params = array()) {
+        return $this->request('exchange/margins/transfer', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeWalletsConfirmWithdraw($params = array()) {
+        return $this->request('exchange/wallets/confirm/withdraw', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeWalletsWithdrawList($params = array()) {
+        return $this->request('exchange/wallets/withdrawList', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeWalletsDepositList($params = array()) {
+        return $this->request('exchange/wallets/depositList', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeWalletsV2DepositAddress($params = array()) {
+        return $this->request('exchange/wallets/v2/depositAddress', 'private', 'GET', $params);
+    }
+    public function privateGetApiDataSpotsFunds($params = array()) {
+        return $this->request('api-data/spots/funds', 'private', 'GET', $params);
+    }
+    public function privateGetAssetsConvert($params = array()) {
+        return $this->request('assets/convert', 'private', 'GET', $params);
+    }
+    public function privateGetAssetsTransfer($params = array()) {
+        return $this->request('assets/transfer', 'private', 'GET', $params);
+    }
+    public function privateGetAssetsSpotsSubAccountsTransfer($params = array()) {
+        return $this->request('assets/spots/sub-accounts/transfer', 'private', 'GET', $params);
+    }
+    public function privateGetAssetsFuturesSubAccountsTransfer($params = array()) {
+        return $this->request('assets/futures/sub-accounts/transfer', 'private', 'GET', $params);
+    }
+    public function privateGetAssetsQuote($params = array()) {
+        return $this->request('assets/quote', 'private', 'GET', $params);
+    }
+    public function privatePostSpotOrders($params = array()) {
+        return $this->request('spot/orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostGOrders($params = array()) {
+        return $this->request('g-orders', 'private', 'POST', $params);
+    }
+    public function privatePostPositionsAssign($params = array()) {
+        return $this->request('positions/assign', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeWalletsTransferOut($params = array()) {
+        return $this->request('exchange/wallets/transferOut', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeWalletsTransferIn($params = array()) {
+        return $this->request('exchange/wallets/transferIn', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeMargins($params = array()) {
+        return $this->request('exchange/margins', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeWalletsCreateWithdraw($params = array()) {
+        return $this->request('exchange/wallets/createWithdraw', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeWalletsCancelWithdraw($params = array()) {
+        return $this->request('exchange/wallets/cancelWithdraw', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeWalletsCreateWithdrawAddress($params = array()) {
+        return $this->request('exchange/wallets/createWithdrawAddress', 'private', 'POST', $params);
+    }
+    public function privatePostAssetsTransfer($params = array()) {
+        return $this->request('assets/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostAssetsSpotsSubAccountsTransfer($params = array()) {
+        return $this->request('assets/spots/sub-accounts/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostAssetsFuturesSubAccountsTransfer($params = array()) {
+        return $this->request('assets/futures/sub-accounts/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostAssetsUniversalTransfer($params = array()) {
+        return $this->request('assets/universal-transfer', 'private', 'POST', $params);
+    }
+    public function privatePostAssetsConvert($params = array()) {
+        return $this->request('assets/convert', 'private', 'POST', $params);
+    }
+    public function privatePutSpotOrders($params = array()) {
+        return $this->request('spot/orders', 'private', 'PUT', $params);
+    }
+    public function privatePutOrdersReplace($params = array()) {
+        return $this->request('orders/replace', 'private', 'PUT', $params);
+    }
+    public function privatePutGOrdersReplace($params = array()) {
+        return $this->request('g-orders/replace', 'private', 'PUT', $params);
+    }
+    public function privatePutPositionsLeverage($params = array()) {
+        return $this->request('positions/leverage', 'private', 'PUT', $params);
+    }
+    public function privatePutGPositionsLeverage($params = array()) {
+        return $this->request('g-positions/leverage', 'private', 'PUT', $params);
+    }
+    public function privatePutGPositionsSwitchPosModeSync($params = array()) {
+        return $this->request('g-positions/switch-pos-mode-sync', 'private', 'PUT', $params);
+    }
+    public function privatePutPositionsRiskLimit($params = array()) {
+        return $this->request('positions/riskLimit', 'private', 'PUT', $params);
+    }
+    public function privateDeleteSpotOrders($params = array()) {
+        return $this->request('spot/orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteSpotOrdersAll($params = array()) {
+        return $this->request('spot/orders/all', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersCancel($params = array()) {
+        return $this->request('orders/cancel', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersAll($params = array()) {
+        return $this->request('orders/all', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteGOrdersCancel($params = array()) {
+        return $this->request('g-orders/cancel', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteGOrders($params = array()) {
+        return $this->request('g-orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteGOrdersAll($params = array()) {
+        return $this->request('g-orders/all', 'private', 'DELETE', $params);
+    }
 }

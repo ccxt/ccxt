@@ -76,4 +76,73 @@ abstract class paymium extends \ccxt\Exchange {
     public function private_delete_user_price_alerts_id($params = array()) {
         return $this->request('user/price_alerts/{id}', 'private', 'DELETE', $params);
     }
+    public function publicGetCountries($params = array()) {
+        return $this->request('countries', 'public', 'GET', $params);
+    }
+    public function publicGetDataCurrencyTicker($params = array()) {
+        return $this->request('data/{currency}/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetDataCurrencyTrades($params = array()) {
+        return $this->request('data/{currency}/trades', 'public', 'GET', $params);
+    }
+    public function publicGetDataCurrencyDepth($params = array()) {
+        return $this->request('data/{currency}/depth', 'public', 'GET', $params);
+    }
+    public function publicGetBitcoinChartsIdTrades($params = array()) {
+        return $this->request('bitcoin_charts/{id}/trades', 'public', 'GET', $params);
+    }
+    public function publicGetBitcoinChartsIdDepth($params = array()) {
+        return $this->request('bitcoin_charts/{id}/depth', 'public', 'GET', $params);
+    }
+    public function privateGetUser($params = array()) {
+        return $this->request('user', 'private', 'GET', $params);
+    }
+    public function privateGetUserAddresses($params = array()) {
+        return $this->request('user/addresses', 'private', 'GET', $params);
+    }
+    public function privateGetUserAddressesAddress($params = array()) {
+        return $this->request('user/addresses/{address}', 'private', 'GET', $params);
+    }
+    public function privateGetUserOrders($params = array()) {
+        return $this->request('user/orders', 'private', 'GET', $params);
+    }
+    public function privateGetUserOrdersUuid($params = array()) {
+        return $this->request('user/orders/{uuid}', 'private', 'GET', $params);
+    }
+    public function privateGetUserPriceAlerts($params = array()) {
+        return $this->request('user/price_alerts', 'private', 'GET', $params);
+    }
+    public function privateGetMerchantGetPaymentUuid($params = array()) {
+        return $this->request('merchant/get_payment/{uuid}', 'private', 'GET', $params);
+    }
+    public function privatePostUserAddresses($params = array()) {
+        return $this->request('user/addresses', 'private', 'POST', $params);
+    }
+    public function privatePostUserOrders($params = array()) {
+        return $this->request('user/orders', 'private', 'POST', $params);
+    }
+    public function privatePostUserWithdrawals($params = array()) {
+        return $this->request('user/withdrawals', 'private', 'POST', $params);
+    }
+    public function privatePostUserEmailTransfers($params = array()) {
+        return $this->request('user/email_transfers', 'private', 'POST', $params);
+    }
+    public function privatePostUserPaymentRequests($params = array()) {
+        return $this->request('user/payment_requests', 'private', 'POST', $params);
+    }
+    public function privatePostUserPriceAlerts($params = array()) {
+        return $this->request('user/price_alerts', 'private', 'POST', $params);
+    }
+    public function privatePostMerchantCreatePayment($params = array()) {
+        return $this->request('merchant/create_payment', 'private', 'POST', $params);
+    }
+    public function privateDeleteUserOrdersUuid($params = array()) {
+        return $this->request('user/orders/{uuid}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteUserOrdersUuidCancel($params = array()) {
+        return $this->request('user/orders/{uuid}/cancel', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteUserPriceAlertsId($params = array()) {
+        return $this->request('user/price_alerts/{id}', 'private', 'DELETE', $params);
+    }
 }

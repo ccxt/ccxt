@@ -72,8 +72,8 @@ function generateImplicitMethodNames(id, api, paths = []){
                 storedPhpResult[id].push (underscorePath)
                 storedPhpContext[id].push ({
                     endpoint,
-                    path: paths.length === 1 ? paths[0] : 'array(' + paths.join (',') + ')',
-                    'method': key.toUpperCase (),
+                    path: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
+                    method: key.toUpperCase (),
                 })
             }
         } else {
@@ -94,10 +94,11 @@ function createImplicitMethods(){
         const typeScriptMethods = camelCaseMethods.map (method => {
             return `${IDEN}${method} (params?: {}): Promise<implicitReturnType>;`
         });
-        const phpMethods = underscoreMethods.map ((method, idx) => {
-            const context = storedPhpContext[exchange][idx]
+        const phpMethods = underscoreMethods.concat (camelCaseMethods).map ((method, idx) => {
+            const i = idx % underscoreMethods.length
+            const context = storedPhpContext[exchange][i]
             return `${IDEN}public function ${method}($params = array()) {
-${IDEN}${IDEN}return $this->request('${context.endpoint}', '${context.path}', '${context.method}', $params);
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.path}, '${context.method}', $params);
 ${IDEN}}`
         })
         typeScriptMethods.push ('}')

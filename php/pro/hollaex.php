@@ -71,7 +71,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         "topic":"orderbook",
@@ -135,7 +135,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         topic => 'trade',
@@ -197,7 +197,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_my_trades($client, $message, $subscription = null) {
+    public function handle_my_trades(Client $client, $message, $subscription = null) {
         //
         // {
         //     "topic":"usertrade",
@@ -279,7 +279,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_order($client, $message, $subscription = null) {
+    public function handle_order(Client $client, $message, $subscription = null) {
         //
         //     {
         //         topic => 'order',
@@ -387,7 +387,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         topic => 'wallet',
@@ -468,7 +468,7 @@ class hollaex extends \ccxt\async\hollaex {
         }) ();
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     array( $error => 'Bearer or HMAC authentication required' )
         //     array( $error => 'Error => wrong input' )
@@ -487,7 +487,7 @@ class hollaex extends \ccxt\async\hollaex {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // pong
         //
@@ -600,17 +600,17 @@ class hollaex extends \ccxt\async\hollaex {
         return array( 'op' => 'ping' );
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function on_error($client, $error) {
+    public function on_error(Client $client, $error) {
         $this->options['ws-expires'] = null;
         $this->on_error($client, $error);
     }
 
-    public function on_close($client, $error) {
+    public function on_close(Client $client, $error) {
         $this->options['ws-expires'] = null;
         $this->on_close($client, $error);
     }

@@ -58,4 +58,55 @@ abstract class bitforex extends \ccxt\Exchange {
     public function private_post_api_v1_trade_orderinfos($params = array()) {
         return $this->request('api/v1/trade/orderInfos', 'private', 'POST', $params);
     }
+    public function publicGetApiV1MarketSymbols($params = array()) {
+        return $this->request('api/v1/market/symbols', 'public', 'GET', $params);
+    }
+    public function publicGetApiV1MarketTicker($params = array()) {
+        return $this->request('api/v1/market/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetApiV1MarketTickerAll($params = array()) {
+        return $this->request('api/v1/market/ticker-all', 'public', 'GET', $params);
+    }
+    public function publicGetApiV1MarketDepth($params = array()) {
+        return $this->request('api/v1/market/depth', 'public', 'GET', $params);
+    }
+    public function publicGetApiV1MarketDepthAll($params = array()) {
+        return $this->request('api/v1/market/depth-all', 'public', 'GET', $params);
+    }
+    public function publicGetApiV1MarketTrades($params = array()) {
+        return $this->request('api/v1/market/trades', 'public', 'GET', $params);
+    }
+    public function publicGetApiV1MarketKline($params = array()) {
+        return $this->request('api/v1/market/kline', 'public', 'GET', $params);
+    }
+    public function privatePostApiV1FundMainAccount($params = array()) {
+        return $this->request('api/v1/fund/mainAccount', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1FundAllAccount($params = array()) {
+        return $this->request('api/v1/fund/allAccount', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1TradePlaceOrder($params = array()) {
+        return $this->request('api/v1/trade/placeOrder', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1TradePlaceMultiOrder($params = array()) {
+        return $this->request('api/v1/trade/placeMultiOrder', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1TradeCancelOrder($params = array()) {
+        return $this->request('api/v1/trade/cancelOrder', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1TradeCancelMultiOrder($params = array()) {
+        return $this->request('api/v1/trade/cancelMultiOrder', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1TradeCancelAllOrder($params = array()) {
+        return $this->request('api/v1/trade/cancelAllOrder', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1TradeOrderInfo($params = array()) {
+        return $this->request('api/v1/trade/orderInfo', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1TradeMultiOrderInfo($params = array()) {
+        return $this->request('api/v1/trade/multiOrderInfo', 'private', 'POST', $params);
+    }
+    public function privatePostApiV1TradeOrderInfos($params = array()) {
+        return $this->request('api/v1/trade/orderInfos', 'private', 'POST', $params);
+    }
 }

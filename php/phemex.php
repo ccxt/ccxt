@@ -84,6 +84,7 @@ class phemex extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test' => array(
                     'v1' => 'https://testnet-api.phemex.com/v1',
+                    'v2' => 'https://testnet-api.phemex.com/',
                     'public' => 'https://testnet-api.phemex.com/exchange/public',
                     'private' => 'https://testnet-api.phemex.com',
                 ),
@@ -2433,14 +2434,14 @@ class phemex extends Exchange {
         }
         $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
         $method = 'privatePutSpotOrders';
-        if ($market['inverse']) {
-            $method = 'privatePutOrdersReplace';
-        } elseif ($isUSDTSettled) {
+        if ($isUSDTSettled) {
             $method = 'privatePutGOrdersReplace';
             $posSide = $this->safe_string($params, 'posSide');
             if ($posSide === null) {
                 $request['posSide'] = 'Merged';
             }
+        } elseif ($market['swap']) {
+            $method = 'privatePutOrdersReplace';
         }
         $response = $this->$method (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
@@ -2473,14 +2474,14 @@ class phemex extends Exchange {
             $request['orderID'] = $id;
         }
         $method = 'privateDeleteSpotOrders';
-        if ($market['inverse']) {
-            $method = 'privateDeleteOrdersCancel';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $method = 'privateDeleteGOrdersCancel';
             $posSide = $this->safe_string($params, 'posSide');
             if ($posSide === null) {
                 $request['posSide'] = 'Merged';
             }
+        } elseif ($market['swap']) {
+            $method = 'privateDeleteOrdersCancel';
         }
         $response = $this->$method (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
@@ -2506,10 +2507,10 @@ class phemex extends Exchange {
         );
         $market = $this->market($symbol);
         $method = 'privateDeleteSpotOrdersAll';
-        if ($market['inverse']) {
-            $method = 'privateDeleteOrdersAll';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $method = 'privateDeleteGOrdersAll';
+        } elseif ($market['swap']) {
+            $method = 'privateDeleteOrdersAll';
         }
         $request['symbol'] = $market['id'];
         return $this->$method (array_merge($request, $params));
@@ -2577,11 +2578,11 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
         );
         $method = 'privateGetSpotOrders';
-        if ($market['inverse']) {
-            $method = 'privateGetExchangeOrderList';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $request['currency'] = $market['settle'];
             $method = 'privateGetExchangeOrderV2OrderList';
+        } elseif ($market['swap']) {
+            $method = 'privateGetExchangeOrderList';
         }
         if ($since !== null) {
             $request['start'] = $since;
@@ -2599,6 +2600,7 @@ class phemex extends Exchange {
         /**
          * fetch all unfilled currently open orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
          * @param {string} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
@@ -2611,10 +2613,10 @@ class phemex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $method = 'privateGetSpotOrders';
-        if ($market['inverse']) {
-            $method = 'privateGetOrdersActiveList';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $method = 'privateGetGOrdersActiveList';
+        } elseif ($market['swap']) {
+            $method = 'privateGetOrdersActiveList';
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2656,11 +2658,11 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
         );
         $method = 'privateGetExchangeSpotOrder';
-        if ($market['inverse']) {
-            $method = 'privateGetExchangeOrderList';
-        } elseif ($market['settle'] === 'USDT') {
+        if ($market['settle'] === 'USDT') {
             $request['currency'] = $market['settle'];
             $method = 'privateGetExchangeOrderV2OrderList';
+        } elseif ($market['swap']) {
+            $method = 'privateGetExchangeOrderList';
         }
         if ($since !== null) {
             $request['start'] = $since;

@@ -75,7 +75,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         channel => 'balance',
@@ -140,7 +140,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         channel => 'marketdata',
@@ -191,7 +191,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         channel => 'marketdata',
@@ -266,7 +266,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         channel => 'trade_history',
@@ -349,7 +349,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         //     {
         //         channel => 'order_history',
@@ -453,7 +453,7 @@ class probit extends \ccxt\async\probit {
         }) ();
     }
 
-    public function handle_order_book($client, $message, $orderBook) {
+    public function handle_order_book(Client $client, $message, $orderBook) {
         //
         //     {
         //         channel => 'marketdata',
@@ -503,7 +503,7 @@ class probit extends \ccxt\async\probit {
         $this->handle_bid_asks($storedAsks, $asks);
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         errorCode => 'INVALID_ARGUMENT',
@@ -520,7 +520,7 @@ class probit extends \ccxt\async\probit {
         throw new ExchangeError($this->id . ' ' . $code . ' ' . $errMessage . ' ' . $this->json($details));
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //     array( type => 'authorization', $result => 'ok' )
         //
@@ -534,7 +534,7 @@ class probit extends \ccxt\async\probit {
         }
     }
 
-    public function handle_market_data($client, $message) {
+    public function handle_market_data(Client $client, $message) {
         $ticker = $this->safe_value($message, 'ticker');
         if ($ticker !== null) {
             $this->handle_ticker($client, $message);
@@ -549,7 +549,7 @@ class probit extends \ccxt\async\probit {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         $errorCode => 'INVALID_ARGUMENT',

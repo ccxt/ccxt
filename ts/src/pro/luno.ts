@@ -3,6 +3,7 @@
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -66,7 +67,7 @@ export default class luno extends lunoRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         //     {
         //         sequence: '110980825',
@@ -163,7 +164,7 @@ export default class luno extends lunoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         //
         //     {
         //         "sequence": "24352",
@@ -316,7 +317,7 @@ export default class luno extends lunoRest {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (message === '') {
             return;
         }

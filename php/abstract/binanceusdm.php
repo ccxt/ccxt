@@ -1456,4 +1456,1453 @@ abstract class binanceusdm extends \ccxt\binance {
     public function private_delete_order($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params);
     }
+    public function sapiGetSystemStatus($params = array()) {
+        return $this->request('system/status', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAccountSnapshot($params = array()) {
+        return $this->request('accountSnapshot', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginAsset($params = array()) {
+        return $this->request('margin/asset', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginPair($params = array()) {
+        return $this->request('margin/pair', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginAllAssets($params = array()) {
+        return $this->request('margin/allAssets', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginAllPairs($params = array()) {
+        return $this->request('margin/allPairs', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginPriceIndex($params = array()) {
+        return $this->request('margin/priceIndex', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAssetAssetDividend($params = array()) {
+        return $this->request('asset/assetDividend', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAssetDribblet($params = array()) {
+        return $this->request('asset/dribblet', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAssetTransfer($params = array()) {
+        return $this->request('asset/transfer', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAssetAssetDetail($params = array()) {
+        return $this->request('asset/assetDetail', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAssetTradeFee($params = array()) {
+        return $this->request('asset/tradeFee', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAssetLedgerTransferCloudMiningQueryByPage($params = array()) {
+        return $this->request('asset/ledger-transfer/cloud-mining/queryByPage', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAssetConvertTransferQueryByPage($params = array()) {
+        return $this->request('asset/convert-transfer/queryByPage', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginLoan($params = array()) {
+        return $this->request('margin/loan', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginRepay($params = array()) {
+        return $this->request('margin/repay', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginAccount($params = array()) {
+        return $this->request('margin/account', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginTransfer($params = array()) {
+        return $this->request('margin/transfer', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginInterestHistory($params = array()) {
+        return $this->request('margin/interestHistory', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginForceLiquidationRec($params = array()) {
+        return $this->request('margin/forceLiquidationRec', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginOrder($params = array()) {
+        return $this->request('margin/order', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginOpenOrders($params = array()) {
+        return $this->request('margin/openOrders', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginAllOrders($params = array()) {
+        return $this->request('margin/allOrders', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginMyTrades($params = array()) {
+        return $this->request('margin/myTrades', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginMaxBorrowable($params = array()) {
+        return $this->request('margin/maxBorrowable', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginMaxTransferable($params = array()) {
+        return $this->request('margin/maxTransferable', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginTradeCoeff($params = array()) {
+        return $this->request('margin/tradeCoeff', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginIsolatedTransfer($params = array()) {
+        return $this->request('margin/isolated/transfer', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginIsolatedAccount($params = array()) {
+        return $this->request('margin/isolated/account', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginIsolatedPair($params = array()) {
+        return $this->request('margin/isolated/pair', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginIsolatedAllPairs($params = array()) {
+        return $this->request('margin/isolated/allPairs', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginIsolatedAccountLimit($params = array()) {
+        return $this->request('margin/isolated/accountLimit', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginInterestRateHistory($params = array()) {
+        return $this->request('margin/interestRateHistory', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginOrderList($params = array()) {
+        return $this->request('margin/orderList', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginAllOrderList($params = array()) {
+        return $this->request('margin/allOrderList', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginOpenOrderList($params = array()) {
+        return $this->request('margin/openOrderList', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginCrossMarginData($params = array()) {
+        return $this->request('margin/crossMarginData', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginIsolatedMarginData($params = array()) {
+        return $this->request('margin/isolatedMarginData', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginIsolatedMarginTier($params = array()) {
+        return $this->request('margin/isolatedMarginTier', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginRateLimitOrder($params = array()) {
+        return $this->request('margin/rateLimit/order', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginDribblet($params = array()) {
+        return $this->request('margin/dribblet', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginCrossMarginCollateralRatio($params = array()) {
+        return $this->request('margin/crossMarginCollateralRatio', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginExchangeSmallLiability($params = array()) {
+        return $this->request('margin/exchange-small-liability', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginExchangeSmallLiabilityHistory($params = array()) {
+        return $this->request('margin/exchange-small-liability-history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMarginNextHourlyInterestRate($params = array()) {
+        return $this->request('margin/next-hourly-interest-rate', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanIncome($params = array()) {
+        return $this->request('loan/income', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanOngoingOrders($params = array()) {
+        return $this->request('loan/ongoing/orders', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanLtvAdjustmentHistory($params = array()) {
+        return $this->request('loan/ltv/adjustment/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanBorrowHistory($params = array()) {
+        return $this->request('loan/borrow/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanRepayHistory($params = array()) {
+        return $this->request('loan/repay/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanLoanableData($params = array()) {
+        return $this->request('loan/loanable/data', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanCollateralData($params = array()) {
+        return $this->request('loan/collateral/data', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanRepayCollateralRate($params = array()) {
+        return $this->request('loan/repay/collateral/rate', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanVipOngoingOrders($params = array()) {
+        return $this->request('loan/vip/ongoing/orders', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanVipRepayHistory($params = array()) {
+        return $this->request('loan/vip/repay/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLoanVipCollateralAccount($params = array()) {
+        return $this->request('loan/vip/collateral/account', 'sapi', 'GET', $params);
+    }
+    public function sapiGetFiatOrders($params = array()) {
+        return $this->request('fiat/orders', 'sapi', 'GET', $params);
+    }
+    public function sapiGetFiatPayments($params = array()) {
+        return $this->request('fiat/payments', 'sapi', 'GET', $params);
+    }
+    public function sapiGetFuturesTransfer($params = array()) {
+        return $this->request('futures/transfer', 'sapi', 'GET', $params);
+    }
+    public function sapiGetFuturesLoanBorrowHistory($params = array()) {
+        return $this->request('futures/loan/borrow/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetFuturesLoanRepayHistory($params = array()) {
+        return $this->request('futures/loan/repay/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetFuturesLoanWallet($params = array()) {
+        return $this->request('futures/loan/wallet', 'sapi', 'GET', $params);
+    }
+    public function sapiGetFuturesLoanAdjustCollateralHistory($params = array()) {
+        return $this->request('futures/loan/adjustCollateral/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetFuturesLoanLiquidationHistory($params = array()) {
+        return $this->request('futures/loan/liquidationHistory', 'sapi', 'GET', $params);
+    }
+    public function sapiGetRebateTaxQuery($params = array()) {
+        return $this->request('rebate/taxQuery', 'sapi', 'GET', $params);
+    }
+    public function sapiGetCapitalConfigGetall($params = array()) {
+        return $this->request('capital/config/getall', 'sapi', 'GET', $params);
+    }
+    public function sapiGetCapitalDepositAddress($params = array()) {
+        return $this->request('capital/deposit/address', 'sapi', 'GET', $params);
+    }
+    public function sapiGetCapitalDepositHisrec($params = array()) {
+        return $this->request('capital/deposit/hisrec', 'sapi', 'GET', $params);
+    }
+    public function sapiGetCapitalDepositSubAddress($params = array()) {
+        return $this->request('capital/deposit/subAddress', 'sapi', 'GET', $params);
+    }
+    public function sapiGetCapitalDepositSubHisrec($params = array()) {
+        return $this->request('capital/deposit/subHisrec', 'sapi', 'GET', $params);
+    }
+    public function sapiGetCapitalWithdrawHistory($params = array()) {
+        return $this->request('capital/withdraw/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetCapitalContractConvertibleCoins($params = array()) {
+        return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params);
+    }
+    public function sapiGetConvertTradeFlow($params = array()) {
+        return $this->request('convert/tradeFlow', 'sapi', 'GET', $params);
+    }
+    public function sapiGetConvertExchangeInfo($params = array()) {
+        return $this->request('convert/exchangeInfo', 'sapi', 'GET', $params);
+    }
+    public function sapiGetConvertAssetInfo($params = array()) {
+        return $this->request('convert/assetInfo', 'sapi', 'GET', $params);
+    }
+    public function sapiGetConvertOrderStatus($params = array()) {
+        return $this->request('convert/orderStatus', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAccountStatus($params = array()) {
+        return $this->request('account/status', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAccountApiTradingStatus($params = array()) {
+        return $this->request('account/apiTradingStatus', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAccountApiRestrictionsIpRestriction($params = array()) {
+        return $this->request('account/apiRestrictions/ipRestriction', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBnbBurn($params = array()) {
+        return $this->request('bnbBurn', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountFuturesAccount($params = array()) {
+        return $this->request('sub-account/futures/account', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountFuturesAccountSummary($params = array()) {
+        return $this->request('sub-account/futures/accountSummary', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountFuturesPositionRisk($params = array()) {
+        return $this->request('sub-account/futures/positionRisk', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountFuturesInternalTransfer($params = array()) {
+        return $this->request('sub-account/futures/internalTransfer', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountList($params = array()) {
+        return $this->request('sub-account/list', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountMarginAccount($params = array()) {
+        return $this->request('sub-account/margin/account', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountMarginAccountSummary($params = array()) {
+        return $this->request('sub-account/margin/accountSummary', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountSpotSummary($params = array()) {
+        return $this->request('sub-account/spotSummary', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountStatus($params = array()) {
+        return $this->request('sub-account/status', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountSubTransferHistory($params = array()) {
+        return $this->request('sub-account/sub/transfer/history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountTransferSubUserHistory($params = array()) {
+        return $this->request('sub-account/transfer/subUserHistory', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountUniversalTransfer($params = array()) {
+        return $this->request('sub-account/universalTransfer', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList($params = array()) {
+        return $this->request('sub-account/apiRestrictions/ipRestriction/thirdPartyList', 'sapi', 'GET', $params);
+    }
+    public function sapiGetSubAccountTransactionTatistics($params = array()) {
+        return $this->request('sub-account/transaction-tatistics', 'sapi', 'GET', $params);
+    }
+    public function sapiGetManagedSubaccountAsset($params = array()) {
+        return $this->request('managed-subaccount/asset', 'sapi', 'GET', $params);
+    }
+    public function sapiGetManagedSubaccountAccountSnapshot($params = array()) {
+        return $this->request('managed-subaccount/accountSnapshot', 'sapi', 'GET', $params);
+    }
+    public function sapiGetManagedSubaccountQueryTransLogForInvestor($params = array()) {
+        return $this->request('managed-subaccount/queryTransLogForInvestor', 'sapi', 'GET', $params);
+    }
+    public function sapiGetManagedSubaccountQueryTransLogForTradeParent($params = array()) {
+        return $this->request('managed-subaccount/queryTransLogForTradeParent', 'sapi', 'GET', $params);
+    }
+    public function sapiGetManagedSubaccountFetchFutureAsset($params = array()) {
+        return $this->request('managed-subaccount/fetch-future-asset', 'sapi', 'GET', $params);
+    }
+    public function sapiGetManagedSubaccountMarginAsset($params = array()) {
+        return $this->request('managed-subaccount/marginAsset', 'sapi', 'GET', $params);
+    }
+    public function sapiGetManagedSubaccountInfo($params = array()) {
+        return $this->request('managed-subaccount/info', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingDailyProductList($params = array()) {
+        return $this->request('lending/daily/product/list', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingDailyUserLeftQuota($params = array()) {
+        return $this->request('lending/daily/userLeftQuota', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingDailyUserRedemptionQuota($params = array()) {
+        return $this->request('lending/daily/userRedemptionQuota', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingDailyTokenPosition($params = array()) {
+        return $this->request('lending/daily/token/position', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingUnionAccount($params = array()) {
+        return $this->request('lending/union/account', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingUnionPurchaseRecord($params = array()) {
+        return $this->request('lending/union/purchaseRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingUnionRedemptionRecord($params = array()) {
+        return $this->request('lending/union/redemptionRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingUnionInterestHistory($params = array()) {
+        return $this->request('lending/union/interestHistory', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingProjectList($params = array()) {
+        return $this->request('lending/project/list', 'sapi', 'GET', $params);
+    }
+    public function sapiGetLendingProjectPositionList($params = array()) {
+        return $this->request('lending/project/position/list', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMiningPubAlgoList($params = array()) {
+        return $this->request('mining/pub/algoList', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMiningPubCoinList($params = array()) {
+        return $this->request('mining/pub/coinList', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMiningWorkerDetail($params = array()) {
+        return $this->request('mining/worker/detail', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMiningWorkerList($params = array()) {
+        return $this->request('mining/worker/list', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMiningPaymentList($params = array()) {
+        return $this->request('mining/payment/list', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMiningStatisticsUserStatus($params = array()) {
+        return $this->request('mining/statistics/user/status', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMiningStatisticsUserList($params = array()) {
+        return $this->request('mining/statistics/user/list', 'sapi', 'GET', $params);
+    }
+    public function sapiGetMiningPaymentUid($params = array()) {
+        return $this->request('mining/payment/uid', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapPools($params = array()) {
+        return $this->request('bswap/pools', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapLiquidity($params = array()) {
+        return $this->request('bswap/liquidity', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapLiquidityOps($params = array()) {
+        return $this->request('bswap/liquidityOps', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapQuote($params = array()) {
+        return $this->request('bswap/quote', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapSwap($params = array()) {
+        return $this->request('bswap/swap', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapPoolConfigure($params = array()) {
+        return $this->request('bswap/poolConfigure', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapAddLiquidityPreview($params = array()) {
+        return $this->request('bswap/addLiquidityPreview', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapRemoveLiquidityPreview($params = array()) {
+        return $this->request('bswap/removeLiquidityPreview', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapUnclaimedRewards($params = array()) {
+        return $this->request('bswap/unclaimedRewards', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBswapClaimedHistory($params = array()) {
+        return $this->request('bswap/claimedHistory', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBlvtTokenInfo($params = array()) {
+        return $this->request('blvt/tokenInfo', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBlvtSubscribeRecord($params = array()) {
+        return $this->request('blvt/subscribe/record', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBlvtRedeemRecord($params = array()) {
+        return $this->request('blvt/redeem/record', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBlvtUserLimit($params = array()) {
+        return $this->request('blvt/userLimit', 'sapi', 'GET', $params);
+    }
+    public function sapiGetApiReferralIfNewUser($params = array()) {
+        return $this->request('apiReferral/ifNewUser', 'sapi', 'GET', $params);
+    }
+    public function sapiGetApiReferralCustomization($params = array()) {
+        return $this->request('apiReferral/customization', 'sapi', 'GET', $params);
+    }
+    public function sapiGetApiReferralUserCustomization($params = array()) {
+        return $this->request('apiReferral/userCustomization', 'sapi', 'GET', $params);
+    }
+    public function sapiGetApiReferralRebateRecentRecord($params = array()) {
+        return $this->request('apiReferral/rebate/recentRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetApiReferralRebateHistoricalRecord($params = array()) {
+        return $this->request('apiReferral/rebate/historicalRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetApiReferralKickbackRecentRecord($params = array()) {
+        return $this->request('apiReferral/kickback/recentRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetApiReferralKickbackHistoricalRecord($params = array()) {
+        return $this->request('apiReferral/kickback/historicalRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountApi($params = array()) {
+        return $this->request('broker/subAccountApi', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccount($params = array()) {
+        return $this->request('broker/subAccount', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountApiCommissionFutures($params = array()) {
+        return $this->request('broker/subAccountApi/commission/futures', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountApiCommissionCoinFutures($params = array()) {
+        return $this->request('broker/subAccountApi/commission/coinFutures', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerInfo($params = array()) {
+        return $this->request('broker/info', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerTransfer($params = array()) {
+        return $this->request('broker/transfer', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerTransferFutures($params = array()) {
+        return $this->request('broker/transfer/futures', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerRebateRecentRecord($params = array()) {
+        return $this->request('broker/rebate/recentRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerRebateHistoricalRecord($params = array()) {
+        return $this->request('broker/rebate/historicalRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountBnbBurnStatus($params = array()) {
+        return $this->request('broker/subAccount/bnbBurn/status', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountDepositHist($params = array()) {
+        return $this->request('broker/subAccount/depositHist', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountSpotSummary($params = array()) {
+        return $this->request('broker/subAccount/spotSummary', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountMarginSummary($params = array()) {
+        return $this->request('broker/subAccount/marginSummary', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountFuturesSummary($params = array()) {
+        return $this->request('broker/subAccount/futuresSummary', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerRebateFuturesRecentRecord($params = array()) {
+        return $this->request('broker/rebate/futures/recentRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerSubAccountApiIpRestriction($params = array()) {
+        return $this->request('broker/subAccountApi/ipRestriction', 'sapi', 'GET', $params);
+    }
+    public function sapiGetBrokerUniversalTransfer($params = array()) {
+        return $this->request('broker/universalTransfer', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAccountApiRestrictions($params = array()) {
+        return $this->request('account/apiRestrictions', 'sapi', 'GET', $params);
+    }
+    public function sapiGetC2cOrderMatchListUserOrderHistory($params = array()) {
+        return $this->request('c2c/orderMatch/listUserOrderHistory', 'sapi', 'GET', $params);
+    }
+    public function sapiGetNftHistoryTransactions($params = array()) {
+        return $this->request('nft/history/transactions', 'sapi', 'GET', $params);
+    }
+    public function sapiGetNftHistoryDeposit($params = array()) {
+        return $this->request('nft/history/deposit', 'sapi', 'GET', $params);
+    }
+    public function sapiGetNftHistoryWithdraw($params = array()) {
+        return $this->request('nft/history/withdraw', 'sapi', 'GET', $params);
+    }
+    public function sapiGetNftUserGetAsset($params = array()) {
+        return $this->request('nft/user/getAsset', 'sapi', 'GET', $params);
+    }
+    public function sapiGetPayTransactions($params = array()) {
+        return $this->request('pay/transactions', 'sapi', 'GET', $params);
+    }
+    public function sapiGetGiftcardVerify($params = array()) {
+        return $this->request('giftcard/verify', 'sapi', 'GET', $params);
+    }
+    public function sapiGetGiftcardCryptographyRsaPublicKey($params = array()) {
+        return $this->request('giftcard/cryptography/rsa-public-key', 'sapi', 'GET', $params);
+    }
+    public function sapiGetGiftcardBuyCodeTokenLimit($params = array()) {
+        return $this->request('giftcard/buyCode/token-limit', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAlgoFuturesOpenOrders($params = array()) {
+        return $this->request('algo/futures/openOrders', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAlgoFuturesHistoricalOrders($params = array()) {
+        return $this->request('algo/futures/historicalOrders', 'sapi', 'GET', $params);
+    }
+    public function sapiGetAlgoFuturesSubOrders($params = array()) {
+        return $this->request('algo/futures/subOrders', 'sapi', 'GET', $params);
+    }
+    public function sapiGetPortfolioAccount($params = array()) {
+        return $this->request('portfolio/account', 'sapi', 'GET', $params);
+    }
+    public function sapiGetPortfolioCollateralRate($params = array()) {
+        return $this->request('portfolio/collateralRate', 'sapi', 'GET', $params);
+    }
+    public function sapiGetPortfolioPmLoan($params = array()) {
+        return $this->request('portfolio/pmLoan', 'sapi', 'GET', $params);
+    }
+    public function sapiGetPortfolioInterestHistory($params = array()) {
+        return $this->request('portfolio/interest-history', 'sapi', 'GET', $params);
+    }
+    public function sapiGetPortfolioInterestRate($params = array()) {
+        return $this->request('portfolio/interest-rate', 'sapi', 'GET', $params);
+    }
+    public function sapiGetStakingProductList($params = array()) {
+        return $this->request('staking/productList', 'sapi', 'GET', $params);
+    }
+    public function sapiGetStakingPosition($params = array()) {
+        return $this->request('staking/position', 'sapi', 'GET', $params);
+    }
+    public function sapiGetStakingStakingRecord($params = array()) {
+        return $this->request('staking/stakingRecord', 'sapi', 'GET', $params);
+    }
+    public function sapiGetStakingPersonalLeftQuota($params = array()) {
+        return $this->request('staking/personalLeftQuota', 'sapi', 'GET', $params);
+    }
+    public function sapiPostAssetDust($params = array()) {
+        return $this->request('asset/dust', 'sapi', 'POST', $params);
+    }
+    public function sapiPostAssetDustBtc($params = array()) {
+        return $this->request('asset/dust-btc', 'sapi', 'POST', $params);
+    }
+    public function sapiPostAssetTransfer($params = array()) {
+        return $this->request('asset/transfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostAssetGetFundingAsset($params = array()) {
+        return $this->request('asset/get-funding-asset', 'sapi', 'POST', $params);
+    }
+    public function sapiPostAssetConvertTransfer($params = array()) {
+        return $this->request('asset/convert-transfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostAccountDisableFastWithdrawSwitch($params = array()) {
+        return $this->request('account/disableFastWithdrawSwitch', 'sapi', 'POST', $params);
+    }
+    public function sapiPostAccountEnableFastWithdrawSwitch($params = array()) {
+        return $this->request('account/enableFastWithdrawSwitch', 'sapi', 'POST', $params);
+    }
+    public function sapiPostCapitalWithdrawApply($params = array()) {
+        return $this->request('capital/withdraw/apply', 'sapi', 'POST', $params);
+    }
+    public function sapiPostCapitalContractConvertibleCoins($params = array()) {
+        return $this->request('capital/contract/convertible-coins', 'sapi', 'POST', $params);
+    }
+    public function sapiPostMarginTransfer($params = array()) {
+        return $this->request('margin/transfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostMarginLoan($params = array()) {
+        return $this->request('margin/loan', 'sapi', 'POST', $params);
+    }
+    public function sapiPostMarginRepay($params = array()) {
+        return $this->request('margin/repay', 'sapi', 'POST', $params);
+    }
+    public function sapiPostMarginOrder($params = array()) {
+        return $this->request('margin/order', 'sapi', 'POST', $params);
+    }
+    public function sapiPostMarginOrderOco($params = array()) {
+        return $this->request('margin/order/oco', 'sapi', 'POST', $params);
+    }
+    public function sapiPostMarginExchangeSmallLiability($params = array()) {
+        return $this->request('margin/exchange-small-liability', 'sapi', 'POST', $params);
+    }
+    public function sapiPostMarginIsolatedTransfer($params = array()) {
+        return $this->request('margin/isolated/transfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostMarginIsolatedAccount($params = array()) {
+        return $this->request('margin/isolated/account', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBnbBurn($params = array()) {
+        return $this->request('bnbBurn', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountVirtualSubAccount($params = array()) {
+        return $this->request('sub-account/virtualSubAccount', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountMarginTransfer($params = array()) {
+        return $this->request('sub-account/margin/transfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountMarginEnable($params = array()) {
+        return $this->request('sub-account/margin/enable', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountFuturesEnable($params = array()) {
+        return $this->request('sub-account/futures/enable', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountFuturesTransfer($params = array()) {
+        return $this->request('sub-account/futures/transfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountFuturesInternalTransfer($params = array()) {
+        return $this->request('sub-account/futures/internalTransfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountTransferSubToSub($params = array()) {
+        return $this->request('sub-account/transfer/subToSub', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountTransferSubToMaster($params = array()) {
+        return $this->request('sub-account/transfer/subToMaster', 'sapi', 'POST', $params);
+    }
+    public function sapiPostSubAccountUniversalTransfer($params = array()) {
+        return $this->request('sub-account/universalTransfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostManagedSubaccountDeposit($params = array()) {
+        return $this->request('managed-subaccount/deposit', 'sapi', 'POST', $params);
+    }
+    public function sapiPostManagedSubaccountWithdraw($params = array()) {
+        return $this->request('managed-subaccount/withdraw', 'sapi', 'POST', $params);
+    }
+    public function sapiPostUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'sapi', 'POST', $params);
+    }
+    public function sapiPostUserDataStreamIsolated($params = array()) {
+        return $this->request('userDataStream/isolated', 'sapi', 'POST', $params);
+    }
+    public function sapiPostFuturesTransfer($params = array()) {
+        return $this->request('futures/transfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostLendingCustomizedFixedPurchase($params = array()) {
+        return $this->request('lending/customizedFixed/purchase', 'sapi', 'POST', $params);
+    }
+    public function sapiPostLendingDailyPurchase($params = array()) {
+        return $this->request('lending/daily/purchase', 'sapi', 'POST', $params);
+    }
+    public function sapiPostLendingDailyRedeem($params = array()) {
+        return $this->request('lending/daily/redeem', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBswapLiquidityAdd($params = array()) {
+        return $this->request('bswap/liquidityAdd', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBswapLiquidityRemove($params = array()) {
+        return $this->request('bswap/liquidityRemove', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBswapSwap($params = array()) {
+        return $this->request('bswap/swap', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBswapClaimRewards($params = array()) {
+        return $this->request('bswap/claimRewards', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBlvtSubscribe($params = array()) {
+        return $this->request('blvt/subscribe', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBlvtRedeem($params = array()) {
+        return $this->request('blvt/redeem', 'sapi', 'POST', $params);
+    }
+    public function sapiPostApiReferralCustomization($params = array()) {
+        return $this->request('apiReferral/customization', 'sapi', 'POST', $params);
+    }
+    public function sapiPostApiReferralUserCustomization($params = array()) {
+        return $this->request('apiReferral/userCustomization', 'sapi', 'POST', $params);
+    }
+    public function sapiPostApiReferralRebateHistoricalRecord($params = array()) {
+        return $this->request('apiReferral/rebate/historicalRecord', 'sapi', 'POST', $params);
+    }
+    public function sapiPostApiReferralKickbackHistoricalRecord($params = array()) {
+        return $this->request('apiReferral/kickback/historicalRecord', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccount($params = array()) {
+        return $this->request('broker/subAccount', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountMargin($params = array()) {
+        return $this->request('broker/subAccount/margin', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountFutures($params = array()) {
+        return $this->request('broker/subAccount/futures', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApi($params = array()) {
+        return $this->request('broker/subAccountApi', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApiPermission($params = array()) {
+        return $this->request('broker/subAccountApi/permission', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApiCommission($params = array()) {
+        return $this->request('broker/subAccountApi/commission', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApiCommissionFutures($params = array()) {
+        return $this->request('broker/subAccountApi/commission/futures', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApiCommissionCoinFutures($params = array()) {
+        return $this->request('broker/subAccountApi/commission/coinFutures', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerTransfer($params = array()) {
+        return $this->request('broker/transfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerTransferFutures($params = array()) {
+        return $this->request('broker/transfer/futures', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerRebateHistoricalRecord($params = array()) {
+        return $this->request('broker/rebate/historicalRecord', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountBnbBurnSpot($params = array()) {
+        return $this->request('broker/subAccount/bnbBurn/spot', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountBnbBurnMarginInterest($params = array()) {
+        return $this->request('broker/subAccount/bnbBurn/marginInterest', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountBlvt($params = array()) {
+        return $this->request('broker/subAccount/blvt', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApiIpRestriction($params = array()) {
+        return $this->request('broker/subAccountApi/ipRestriction', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApiIpRestrictionIpList($params = array()) {
+        return $this->request('broker/subAccountApi/ipRestriction/ipList', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerUniversalTransfer($params = array()) {
+        return $this->request('broker/universalTransfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApiPermissionUniversalTransfer($params = array()) {
+        return $this->request('broker/subAccountApi/permission/universalTransfer', 'sapi', 'POST', $params);
+    }
+    public function sapiPostBrokerSubAccountApiPermissionVanillaOptions($params = array()) {
+        return $this->request('broker/subAccountApi/permission/vanillaOptions', 'sapi', 'POST', $params);
+    }
+    public function sapiPostGiftcardCreateCode($params = array()) {
+        return $this->request('giftcard/createCode', 'sapi', 'POST', $params);
+    }
+    public function sapiPostGiftcardRedeemCode($params = array()) {
+        return $this->request('giftcard/redeemCode', 'sapi', 'POST', $params);
+    }
+    public function sapiPostGiftcardBuyCode($params = array()) {
+        return $this->request('giftcard/buyCode', 'sapi', 'POST', $params);
+    }
+    public function sapiPostAlgoFuturesNewOrderVp($params = array()) {
+        return $this->request('algo/futures/newOrderVp', 'sapi', 'POST', $params);
+    }
+    public function sapiPostAlgoFuturesNewOrderTwap($params = array()) {
+        return $this->request('algo/futures/newOrderTwap', 'sapi', 'POST', $params);
+    }
+    public function sapiPostStakingPurchase($params = array()) {
+        return $this->request('staking/purchase', 'sapi', 'POST', $params);
+    }
+    public function sapiPostStakingRedeem($params = array()) {
+        return $this->request('staking/redeem', 'sapi', 'POST', $params);
+    }
+    public function sapiPostStakingSetAutoStaking($params = array()) {
+        return $this->request('staking/setAutoStaking', 'sapi', 'POST', $params);
+    }
+    public function sapiPostPortfolioRepay($params = array()) {
+        return $this->request('portfolio/repay', 'sapi', 'POST', $params);
+    }
+    public function sapiPostLoanBorrow($params = array()) {
+        return $this->request('loan/borrow', 'sapi', 'POST', $params);
+    }
+    public function sapiPostLoanRepay($params = array()) {
+        return $this->request('loan/repay', 'sapi', 'POST', $params);
+    }
+    public function sapiPostLoanAdjustLtv($params = array()) {
+        return $this->request('loan/adjust/ltv', 'sapi', 'POST', $params);
+    }
+    public function sapiPostLoanCustomizeMarginCall($params = array()) {
+        return $this->request('loan/customize/margin_call', 'sapi', 'POST', $params);
+    }
+    public function sapiPostLoanVipRepay($params = array()) {
+        return $this->request('loan/vip/repay', 'sapi', 'POST', $params);
+    }
+    public function sapiPostConvertGetQuote($params = array()) {
+        return $this->request('convert/getQuote', 'sapi', 'POST', $params);
+    }
+    public function sapiPostConvertAcceptQuote($params = array()) {
+        return $this->request('convert/acceptQuote', 'sapi', 'POST', $params);
+    }
+    public function sapiPutUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'sapi', 'PUT', $params);
+    }
+    public function sapiPutUserDataStreamIsolated($params = array()) {
+        return $this->request('userDataStream/isolated', 'sapi', 'PUT', $params);
+    }
+    public function sapiDeleteMarginOpenOrders($params = array()) {
+        return $this->request('margin/openOrders', 'sapi', 'DELETE', $params);
+    }
+    public function sapiDeleteMarginOrder($params = array()) {
+        return $this->request('margin/order', 'sapi', 'DELETE', $params);
+    }
+    public function sapiDeleteMarginOrderList($params = array()) {
+        return $this->request('margin/orderList', 'sapi', 'DELETE', $params);
+    }
+    public function sapiDeleteMarginIsolatedAccount($params = array()) {
+        return $this->request('margin/isolated/account', 'sapi', 'DELETE', $params);
+    }
+    public function sapiDeleteUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'sapi', 'DELETE', $params);
+    }
+    public function sapiDeleteUserDataStreamIsolated($params = array()) {
+        return $this->request('userDataStream/isolated', 'sapi', 'DELETE', $params);
+    }
+    public function sapiDeleteBrokerSubAccountApi($params = array()) {
+        return $this->request('broker/subAccountApi', 'sapi', 'DELETE', $params);
+    }
+    public function sapiDeleteBrokerSubAccountApiIpRestrictionIpList($params = array()) {
+        return $this->request('broker/subAccountApi/ipRestriction/ipList', 'sapi', 'DELETE', $params);
+    }
+    public function sapiDeleteAlgoFuturesOrder($params = array()) {
+        return $this->request('algo/futures/order', 'sapi', 'DELETE', $params);
+    }
+    public function sapiV2GetSubAccountFuturesAccount($params = array()) {
+        return $this->request('sub-account/futures/account', 'sapiV2', 'GET', $params);
+    }
+    public function sapiV2GetSubAccountFuturesPositionRisk($params = array()) {
+        return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params);
+    }
+    public function sapiV3GetSubAccountAssets($params = array()) {
+        return $this->request('sub-account/assets', 'sapiV3', 'GET', $params);
+    }
+    public function sapiV3PostAssetGetUserAsset($params = array()) {
+        return $this->request('asset/getUserAsset', 'sapiV3', 'POST', $params);
+    }
+    public function sapiV4GetSubAccountAssets($params = array()) {
+        return $this->request('sub-account/assets', 'sapiV4', 'GET', $params);
+    }
+    public function wapiPostWithdraw($params = array()) {
+        return $this->request('withdraw', 'wapi', 'POST', $params);
+    }
+    public function wapiPostSubAccountTransfer($params = array()) {
+        return $this->request('sub-account/transfer', 'wapi', 'POST', $params);
+    }
+    public function wapiGetDepositHistory($params = array()) {
+        return $this->request('depositHistory', 'wapi', 'GET', $params);
+    }
+    public function wapiGetWithdrawHistory($params = array()) {
+        return $this->request('withdrawHistory', 'wapi', 'GET', $params);
+    }
+    public function wapiGetDepositAddress($params = array()) {
+        return $this->request('depositAddress', 'wapi', 'GET', $params);
+    }
+    public function wapiGetAccountStatus($params = array()) {
+        return $this->request('accountStatus', 'wapi', 'GET', $params);
+    }
+    public function wapiGetSystemStatus($params = array()) {
+        return $this->request('systemStatus', 'wapi', 'GET', $params);
+    }
+    public function wapiGetApiTradingStatus($params = array()) {
+        return $this->request('apiTradingStatus', 'wapi', 'GET', $params);
+    }
+    public function wapiGetUserAssetDribbletLog($params = array()) {
+        return $this->request('userAssetDribbletLog', 'wapi', 'GET', $params);
+    }
+    public function wapiGetTradeFee($params = array()) {
+        return $this->request('tradeFee', 'wapi', 'GET', $params);
+    }
+    public function wapiGetAssetDetail($params = array()) {
+        return $this->request('assetDetail', 'wapi', 'GET', $params);
+    }
+    public function wapiGetSubAccountList($params = array()) {
+        return $this->request('sub-account/list', 'wapi', 'GET', $params);
+    }
+    public function wapiGetSubAccountTransferHistory($params = array()) {
+        return $this->request('sub-account/transfer/history', 'wapi', 'GET', $params);
+    }
+    public function wapiGetSubAccountAssets($params = array()) {
+        return $this->request('sub-account/assets', 'wapi', 'GET', $params);
+    }
+    public function dapiPublicGetPing($params = array()) {
+        return $this->request('ping', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetTime($params = array()) {
+        return $this->request('time', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetExchangeInfo($params = array()) {
+        return $this->request('exchangeInfo', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetDepth($params = array()) {
+        return $this->request('depth', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetTrades($params = array()) {
+        return $this->request('trades', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetHistoricalTrades($params = array()) {
+        return $this->request('historicalTrades', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetAggTrades($params = array()) {
+        return $this->request('aggTrades', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetPremiumIndex($params = array()) {
+        return $this->request('premiumIndex', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetFundingRate($params = array()) {
+        return $this->request('fundingRate', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetKlines($params = array()) {
+        return $this->request('klines', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetContinuousKlines($params = array()) {
+        return $this->request('continuousKlines', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetIndexPriceKlines($params = array()) {
+        return $this->request('indexPriceKlines', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetMarkPriceKlines($params = array()) {
+        return $this->request('markPriceKlines', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetTickerBookTicker($params = array()) {
+        return $this->request('ticker/bookTicker', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetOpenInterest($params = array()) {
+        return $this->request('openInterest', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiPublicGetPmExchangeInfo($params = array()) {
+        return $this->request('pmExchangeInfo', 'dapiPublic', 'GET', $params);
+    }
+    public function dapiDataGetOpenInterestHist($params = array()) {
+        return $this->request('openInterestHist', 'dapiData', 'GET', $params);
+    }
+    public function dapiDataGetTopLongShortAccountRatio($params = array()) {
+        return $this->request('topLongShortAccountRatio', 'dapiData', 'GET', $params);
+    }
+    public function dapiDataGetTopLongShortPositionRatio($params = array()) {
+        return $this->request('topLongShortPositionRatio', 'dapiData', 'GET', $params);
+    }
+    public function dapiDataGetGlobalLongShortAccountRatio($params = array()) {
+        return $this->request('globalLongShortAccountRatio', 'dapiData', 'GET', $params);
+    }
+    public function dapiDataGetTakerBuySellVol($params = array()) {
+        return $this->request('takerBuySellVol', 'dapiData', 'GET', $params);
+    }
+    public function dapiDataGetBasis($params = array()) {
+        return $this->request('basis', 'dapiData', 'GET', $params);
+    }
+    public function dapiPrivateGetPositionSideDual($params = array()) {
+        return $this->request('positionSide/dual', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetOrder($params = array()) {
+        return $this->request('order', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetOpenOrder($params = array()) {
+        return $this->request('openOrder', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetOpenOrders($params = array()) {
+        return $this->request('openOrders', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetAllOrders($params = array()) {
+        return $this->request('allOrders', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetBalance($params = array()) {
+        return $this->request('balance', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetAccount($params = array()) {
+        return $this->request('account', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetPositionMarginHistory($params = array()) {
+        return $this->request('positionMargin/history', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetPositionRisk($params = array()) {
+        return $this->request('positionRisk', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetUserTrades($params = array()) {
+        return $this->request('userTrades', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetIncome($params = array()) {
+        return $this->request('income', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetLeverageBracket($params = array()) {
+        return $this->request('leverageBracket', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetForceOrders($params = array()) {
+        return $this->request('forceOrders', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetAdlQuantile($params = array()) {
+        return $this->request('adlQuantile', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetOrderAmendment($params = array()) {
+        return $this->request('orderAmendment', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivateGetPmAccountInfo($params = array()) {
+        return $this->request('pmAccountInfo', 'dapiPrivate', 'GET', $params);
+    }
+    public function dapiPrivatePostPositionSideDual($params = array()) {
+        return $this->request('positionSide/dual', 'dapiPrivate', 'POST', $params);
+    }
+    public function dapiPrivatePostOrder($params = array()) {
+        return $this->request('order', 'dapiPrivate', 'POST', $params);
+    }
+    public function dapiPrivatePostBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'dapiPrivate', 'POST', $params);
+    }
+    public function dapiPrivatePostCountdownCancelAll($params = array()) {
+        return $this->request('countdownCancelAll', 'dapiPrivate', 'POST', $params);
+    }
+    public function dapiPrivatePostLeverage($params = array()) {
+        return $this->request('leverage', 'dapiPrivate', 'POST', $params);
+    }
+    public function dapiPrivatePostMarginType($params = array()) {
+        return $this->request('marginType', 'dapiPrivate', 'POST', $params);
+    }
+    public function dapiPrivatePostPositionMargin($params = array()) {
+        return $this->request('positionMargin', 'dapiPrivate', 'POST', $params);
+    }
+    public function dapiPrivatePostListenKey($params = array()) {
+        return $this->request('listenKey', 'dapiPrivate', 'POST', $params);
+    }
+    public function dapiPrivatePutListenKey($params = array()) {
+        return $this->request('listenKey', 'dapiPrivate', 'PUT', $params);
+    }
+    public function dapiPrivatePutOrder($params = array()) {
+        return $this->request('order', 'dapiPrivate', 'PUT', $params);
+    }
+    public function dapiPrivatePutBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'dapiPrivate', 'PUT', $params);
+    }
+    public function dapiPrivateDeleteOrder($params = array()) {
+        return $this->request('order', 'dapiPrivate', 'DELETE', $params);
+    }
+    public function dapiPrivateDeleteAllOpenOrders($params = array()) {
+        return $this->request('allOpenOrders', 'dapiPrivate', 'DELETE', $params);
+    }
+    public function dapiPrivateDeleteBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'dapiPrivate', 'DELETE', $params);
+    }
+    public function dapiPrivateDeleteListenKey($params = array()) {
+        return $this->request('listenKey', 'dapiPrivate', 'DELETE', $params);
+    }
+    public function dapiPrivateV2GetLeverageBracket($params = array()) {
+        return $this->request('leverageBracket', 'dapiPrivateV2', 'GET', $params);
+    }
+    public function fapiPublicGetPing($params = array()) {
+        return $this->request('ping', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetTime($params = array()) {
+        return $this->request('time', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetExchangeInfo($params = array()) {
+        return $this->request('exchangeInfo', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetDepth($params = array()) {
+        return $this->request('depth', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetTrades($params = array()) {
+        return $this->request('trades', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetHistoricalTrades($params = array()) {
+        return $this->request('historicalTrades', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetAggTrades($params = array()) {
+        return $this->request('aggTrades', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetKlines($params = array()) {
+        return $this->request('klines', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetContinuousKlines($params = array()) {
+        return $this->request('continuousKlines', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetMarkPriceKlines($params = array()) {
+        return $this->request('markPriceKlines', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetIndexPriceKlines($params = array()) {
+        return $this->request('indexPriceKlines', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetFundingRate($params = array()) {
+        return $this->request('fundingRate', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetPremiumIndex($params = array()) {
+        return $this->request('premiumIndex', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetTickerBookTicker($params = array()) {
+        return $this->request('ticker/bookTicker', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetOpenInterest($params = array()) {
+        return $this->request('openInterest', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetIndexInfo($params = array()) {
+        return $this->request('indexInfo', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetApiTradingStatus($params = array()) {
+        return $this->request('apiTradingStatus', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetLvtKlines($params = array()) {
+        return $this->request('lvtKlines', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiPublicGetPmExchangeInfo($params = array()) {
+        return $this->request('pmExchangeInfo', 'fapiPublic', 'GET', $params);
+    }
+    public function fapiDataGetOpenInterestHist($params = array()) {
+        return $this->request('openInterestHist', 'fapiData', 'GET', $params);
+    }
+    public function fapiDataGetTopLongShortAccountRatio($params = array()) {
+        return $this->request('topLongShortAccountRatio', 'fapiData', 'GET', $params);
+    }
+    public function fapiDataGetTopLongShortPositionRatio($params = array()) {
+        return $this->request('topLongShortPositionRatio', 'fapiData', 'GET', $params);
+    }
+    public function fapiDataGetGlobalLongShortAccountRatio($params = array()) {
+        return $this->request('globalLongShortAccountRatio', 'fapiData', 'GET', $params);
+    }
+    public function fapiDataGetTakerlongshortRatio($params = array()) {
+        return $this->request('takerlongshortRatio', 'fapiData', 'GET', $params);
+    }
+    public function fapiPrivateGetForceOrders($params = array()) {
+        return $this->request('forceOrders', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetAllOrders($params = array()) {
+        return $this->request('allOrders', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetOpenOrder($params = array()) {
+        return $this->request('openOrder', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetOpenOrders($params = array()) {
+        return $this->request('openOrders', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetOrder($params = array()) {
+        return $this->request('order', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetAccount($params = array()) {
+        return $this->request('account', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetBalance($params = array()) {
+        return $this->request('balance', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetLeverageBracket($params = array()) {
+        return $this->request('leverageBracket', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetPositionMarginHistory($params = array()) {
+        return $this->request('positionMargin/history', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetPositionRisk($params = array()) {
+        return $this->request('positionRisk', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetPositionSideDual($params = array()) {
+        return $this->request('positionSide/dual', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetUserTrades($params = array()) {
+        return $this->request('userTrades', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetIncome($params = array()) {
+        return $this->request('income', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetCommissionRate($params = array()) {
+        return $this->request('commissionRate', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiTradingStatus($params = array()) {
+        return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetMultiAssetsMargin($params = array()) {
+        return $this->request('multiAssetsMargin', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiReferralIfNewUser($params = array()) {
+        return $this->request('apiReferral/ifNewUser', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiReferralCustomization($params = array()) {
+        return $this->request('apiReferral/customization', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiReferralUserCustomization($params = array()) {
+        return $this->request('apiReferral/userCustomization', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiReferralTraderNum($params = array()) {
+        return $this->request('apiReferral/traderNum', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiReferralOverview($params = array()) {
+        return $this->request('apiReferral/overview', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiReferralTradeVol($params = array()) {
+        return $this->request('apiReferral/tradeVol', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiReferralRebateVol($params = array()) {
+        return $this->request('apiReferral/rebateVol', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetApiReferralTraderSummary($params = array()) {
+        return $this->request('apiReferral/traderSummary', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetAdlQuantile($params = array()) {
+        return $this->request('adlQuantile', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivateGetPmAccountInfo($params = array()) {
+        return $this->request('pmAccountInfo', 'fapiPrivate', 'GET', $params);
+    }
+    public function fapiPrivatePostBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostPositionSideDual($params = array()) {
+        return $this->request('positionSide/dual', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostPositionMargin($params = array()) {
+        return $this->request('positionMargin', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostMarginType($params = array()) {
+        return $this->request('marginType', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostOrder($params = array()) {
+        return $this->request('order', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostLeverage($params = array()) {
+        return $this->request('leverage', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostListenKey($params = array()) {
+        return $this->request('listenKey', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostCountdownCancelAll($params = array()) {
+        return $this->request('countdownCancelAll', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostMultiAssetsMargin($params = array()) {
+        return $this->request('multiAssetsMargin', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostApiReferralCustomization($params = array()) {
+        return $this->request('apiReferral/customization', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePostApiReferralUserCustomization($params = array()) {
+        return $this->request('apiReferral/userCustomization', 'fapiPrivate', 'POST', $params);
+    }
+    public function fapiPrivatePutListenKey($params = array()) {
+        return $this->request('listenKey', 'fapiPrivate', 'PUT', $params);
+    }
+    public function fapiPrivateDeleteBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'fapiPrivate', 'DELETE', $params);
+    }
+    public function fapiPrivateDeleteOrder($params = array()) {
+        return $this->request('order', 'fapiPrivate', 'DELETE', $params);
+    }
+    public function fapiPrivateDeleteAllOpenOrders($params = array()) {
+        return $this->request('allOpenOrders', 'fapiPrivate', 'DELETE', $params);
+    }
+    public function fapiPrivateDeleteListenKey($params = array()) {
+        return $this->request('listenKey', 'fapiPrivate', 'DELETE', $params);
+    }
+    public function fapiPrivateV2GetAccount($params = array()) {
+        return $this->request('account', 'fapiPrivateV2', 'GET', $params);
+    }
+    public function fapiPrivateV2GetBalance($params = array()) {
+        return $this->request('balance', 'fapiPrivateV2', 'GET', $params);
+    }
+    public function fapiPrivateV2GetPositionRisk($params = array()) {
+        return $this->request('positionRisk', 'fapiPrivateV2', 'GET', $params);
+    }
+    public function eapiPublicGetPing($params = array()) {
+        return $this->request('ping', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetTime($params = array()) {
+        return $this->request('time', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetExchangeInfo($params = array()) {
+        return $this->request('exchangeInfo', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetIndex($params = array()) {
+        return $this->request('index', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetTicker($params = array()) {
+        return $this->request('ticker', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetMark($params = array()) {
+        return $this->request('mark', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetDepth($params = array()) {
+        return $this->request('depth', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetKlines($params = array()) {
+        return $this->request('klines', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetTrades($params = array()) {
+        return $this->request('trades', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetHistoricalTrades($params = array()) {
+        return $this->request('historicalTrades', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetExerciseHistory($params = array()) {
+        return $this->request('exerciseHistory', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPublicGetOpenInterest($params = array()) {
+        return $this->request('openInterest', 'eapiPublic', 'GET', $params);
+    }
+    public function eapiPrivateGetAccount($params = array()) {
+        return $this->request('account', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetPosition($params = array()) {
+        return $this->request('position', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetOpenOrders($params = array()) {
+        return $this->request('openOrders', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetHistoryOrders($params = array()) {
+        return $this->request('historyOrders', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetUserTrades($params = array()) {
+        return $this->request('userTrades', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetExerciseRecord($params = array()) {
+        return $this->request('exerciseRecord', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetBill($params = array()) {
+        return $this->request('bill', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetMarginAccount($params = array()) {
+        return $this->request('marginAccount', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetMmp($params = array()) {
+        return $this->request('mmp', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetCountdownCancelAll($params = array()) {
+        return $this->request('countdownCancelAll', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivateGetOrder($params = array()) {
+        return $this->request('order', 'eapiPrivate', 'GET', $params);
+    }
+    public function eapiPrivatePostOrder($params = array()) {
+        return $this->request('order', 'eapiPrivate', 'POST', $params);
+    }
+    public function eapiPrivatePostBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'eapiPrivate', 'POST', $params);
+    }
+    public function eapiPrivatePostListenKey($params = array()) {
+        return $this->request('listenKey', 'eapiPrivate', 'POST', $params);
+    }
+    public function eapiPrivatePostMmpSet($params = array()) {
+        return $this->request('mmpSet', 'eapiPrivate', 'POST', $params);
+    }
+    public function eapiPrivatePostMmpReset($params = array()) {
+        return $this->request('mmpReset', 'eapiPrivate', 'POST', $params);
+    }
+    public function eapiPrivatePostCountdownCancelAll($params = array()) {
+        return $this->request('countdownCancelAll', 'eapiPrivate', 'POST', $params);
+    }
+    public function eapiPrivatePostCountdownCancelAllHeartBeat($params = array()) {
+        return $this->request('countdownCancelAllHeartBeat', 'eapiPrivate', 'POST', $params);
+    }
+    public function eapiPrivatePutListenKey($params = array()) {
+        return $this->request('listenKey', 'eapiPrivate', 'PUT', $params);
+    }
+    public function eapiPrivateDeleteOrder($params = array()) {
+        return $this->request('order', 'eapiPrivate', 'DELETE', $params);
+    }
+    public function eapiPrivateDeleteBatchOrders($params = array()) {
+        return $this->request('batchOrders', 'eapiPrivate', 'DELETE', $params);
+    }
+    public function eapiPrivateDeleteAllOpenOrders($params = array()) {
+        return $this->request('allOpenOrders', 'eapiPrivate', 'DELETE', $params);
+    }
+    public function eapiPrivateDeleteAllOpenOrdersByUnderlying($params = array()) {
+        return $this->request('allOpenOrdersByUnderlying', 'eapiPrivate', 'DELETE', $params);
+    }
+    public function eapiPrivateDeleteListenKey($params = array()) {
+        return $this->request('listenKey', 'eapiPrivate', 'DELETE', $params);
+    }
+    public function publicGetPing($params = array()) {
+        return $this->request('ping', 'public', 'GET', $params);
+    }
+    public function publicGetTime($params = array()) {
+        return $this->request('time', 'public', 'GET', $params);
+    }
+    public function publicGetDepth($params = array()) {
+        return $this->request('depth', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetAggTrades($params = array()) {
+        return $this->request('aggTrades', 'public', 'GET', $params);
+    }
+    public function publicGetHistoricalTrades($params = array()) {
+        return $this->request('historicalTrades', 'public', 'GET', $params);
+    }
+    public function publicGetKlines($params = array()) {
+        return $this->request('klines', 'public', 'GET', $params);
+    }
+    public function publicGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', 'public', 'GET', $params);
+    }
+    public function publicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', 'public', 'GET', $params);
+    }
+    public function publicGetTickerBookTicker($params = array()) {
+        return $this->request('ticker/bookTicker', 'public', 'GET', $params);
+    }
+    public function publicGetExchangeInfo($params = array()) {
+        return $this->request('exchangeInfo', 'public', 'GET', $params);
+    }
+    public function publicPutUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'public', 'PUT', $params);
+    }
+    public function publicPostUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'public', 'POST', $params);
+    }
+    public function publicDeleteUserDataStream($params = array()) {
+        return $this->request('userDataStream', 'public', 'DELETE', $params);
+    }
+    public function privateGetAllOrderList($params = array()) {
+        return $this->request('allOrderList', 'private', 'GET', $params);
+    }
+    public function privateGetOpenOrderList($params = array()) {
+        return $this->request('openOrderList', 'private', 'GET', $params);
+    }
+    public function privateGetOrderList($params = array()) {
+        return $this->request('orderList', 'private', 'GET', $params);
+    }
+    public function privateGetOrder($params = array()) {
+        return $this->request('order', 'private', 'GET', $params);
+    }
+    public function privateGetOpenOrders($params = array()) {
+        return $this->request('openOrders', 'private', 'GET', $params);
+    }
+    public function privateGetAllOrders($params = array()) {
+        return $this->request('allOrders', 'private', 'GET', $params);
+    }
+    public function privateGetAccount($params = array()) {
+        return $this->request('account', 'private', 'GET', $params);
+    }
+    public function privateGetMyTrades($params = array()) {
+        return $this->request('myTrades', 'private', 'GET', $params);
+    }
+    public function privateGetRateLimitOrder($params = array()) {
+        return $this->request('rateLimit/order', 'private', 'GET', $params);
+    }
+    public function privateGetMyPreventedMatches($params = array()) {
+        return $this->request('myPreventedMatches', 'private', 'GET', $params);
+    }
+    public function privatePostOrderOco($params = array()) {
+        return $this->request('order/oco', 'private', 'POST', $params);
+    }
+    public function privatePostOrder($params = array()) {
+        return $this->request('order', 'private', 'POST', $params);
+    }
+    public function privatePostOrderCancelReplace($params = array()) {
+        return $this->request('order/cancelReplace', 'private', 'POST', $params);
+    }
+    public function privatePostOrderTest($params = array()) {
+        return $this->request('order/test', 'private', 'POST', $params);
+    }
+    public function privateDeleteOpenOrders($params = array()) {
+        return $this->request('openOrders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrderList($params = array()) {
+        return $this->request('orderList', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrder($params = array()) {
+        return $this->request('order', 'private', 'DELETE', $params);
+    }
 }

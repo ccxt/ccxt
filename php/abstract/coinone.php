@@ -70,4 +70,67 @@ abstract class coinone extends \ccxt\Exchange {
     public function private_post_transaction_coin($params = array()) {
         return $this->request('transaction/coin/', 'private', 'POST', $params);
     }
+    public function publicGetOrderbook($params = array()) {
+        return $this->request('orderbook/', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades/', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker/', 'public', 'GET', $params);
+    }
+    public function privatePostAccountDepositAddress($params = array()) {
+        return $this->request('account/deposit_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAccountBtcDepositAddress($params = array()) {
+        return $this->request('account/btc_deposit_address/', 'private', 'POST', $params);
+    }
+    public function privatePostAccountBalance($params = array()) {
+        return $this->request('account/balance/', 'private', 'POST', $params);
+    }
+    public function privatePostAccountDailyBalance($params = array()) {
+        return $this->request('account/daily_balance/', 'private', 'POST', $params);
+    }
+    public function privatePostAccountUserInfo($params = array()) {
+        return $this->request('account/user_info/', 'private', 'POST', $params);
+    }
+    public function privatePostAccountVirtualAccount($params = array()) {
+        return $this->request('account/virtual_account/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderCancelAll($params = array()) {
+        return $this->request('order/cancel_all/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderCancel($params = array()) {
+        return $this->request('order/cancel/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderLimitBuy($params = array()) {
+        return $this->request('order/limit_buy/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderLimitSell($params = array()) {
+        return $this->request('order/limit_sell/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderCompleteOrders($params = array()) {
+        return $this->request('order/complete_orders/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderLimitOrders($params = array()) {
+        return $this->request('order/limit_orders/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderOrderInfo($params = array()) {
+        return $this->request('order/order_info/', 'private', 'POST', $params);
+    }
+    public function privatePostTransactionAuthNumber($params = array()) {
+        return $this->request('transaction/auth_number/', 'private', 'POST', $params);
+    }
+    public function privatePostTransactionHistory($params = array()) {
+        return $this->request('transaction/history/', 'private', 'POST', $params);
+    }
+    public function privatePostTransactionKrwHistory($params = array()) {
+        return $this->request('transaction/krw/history/', 'private', 'POST', $params);
+    }
+    public function privatePostTransactionBtc($params = array()) {
+        return $this->request('transaction/btc/', 'private', 'POST', $params);
+    }
+    public function privatePostTransactionCoin($params = array()) {
+        return $this->request('transaction/coin/', 'private', 'POST', $params);
+    }
 }

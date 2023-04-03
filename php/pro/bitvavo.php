@@ -70,7 +70,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $event => 'ticker24h',
@@ -127,7 +127,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         event => 'trade',
@@ -193,7 +193,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         event => 'candle',
@@ -288,7 +288,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
         //         event => 'book',
@@ -311,7 +311,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $orderbook;
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         $event => 'book',
@@ -368,7 +368,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_order_book_snapshot($client, $message) {
+    public function handle_order_book_snapshot(Client $client, $message) {
         //
         //     {
         //         action => 'getBook',
@@ -410,7 +410,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_order_book_subscription($client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -419,7 +419,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
     }
 
-    public function handle_order_book_subscriptions($client, $message, $marketIds) {
+    public function handle_order_book_subscriptions(Client $client, $message, $marketIds) {
         $name = 'book';
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $this->safe_string($marketIds, $i);
@@ -511,7 +511,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         //     {
         //         event => 'order',
@@ -547,7 +547,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($this->orders, $messageHash);
     }
 
-    public function handle_my_trade($client, $message) {
+    public function handle_my_trade(Client $client, $message) {
         //
         //     {
         //         event => 'fill',
@@ -577,7 +577,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     {
         //         event => 'subscribed',
@@ -626,7 +626,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $future;
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         //
         //     {
         //         event => 'authenticate',
@@ -648,7 +648,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         $event => 'subscribed',

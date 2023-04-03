@@ -70,4 +70,67 @@ abstract class indodax extends \ccxt\Exchange {
     public function private_post_createvoucher($params = array()) {
         return $this->request('createVoucher', 'private', 'POST', $params);
     }
+    public function publicGetServerTime($params = array()) {
+        return $this->request('server_time', 'public', 'GET', $params);
+    }
+    public function publicGetPairs($params = array()) {
+        return $this->request('pairs', 'public', 'GET', $params);
+    }
+    public function publicGetPriceIncrements($params = array()) {
+        return $this->request('price_increments', 'public', 'GET', $params);
+    }
+    public function publicGetSummaries($params = array()) {
+        return $this->request('summaries', 'public', 'GET', $params);
+    }
+    public function publicGetTickerAll($params = array()) {
+        return $this->request('ticker_all', 'public', 'GET', $params);
+    }
+    public function publicGetPairTicker($params = array()) {
+        return $this->request('{pair}/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetPairTrades($params = array()) {
+        return $this->request('{pair}/trades', 'public', 'GET', $params);
+    }
+    public function publicGetPairDepth($params = array()) {
+        return $this->request('{pair}/depth', 'public', 'GET', $params);
+    }
+    public function privatePostGetInfo($params = array()) {
+        return $this->request('getInfo', 'private', 'POST', $params);
+    }
+    public function privatePostTransHistory($params = array()) {
+        return $this->request('transHistory', 'private', 'POST', $params);
+    }
+    public function privatePostTrade($params = array()) {
+        return $this->request('trade', 'private', 'POST', $params);
+    }
+    public function privatePostTradeHistory($params = array()) {
+        return $this->request('tradeHistory', 'private', 'POST', $params);
+    }
+    public function privatePostOpenOrders($params = array()) {
+        return $this->request('openOrders', 'private', 'POST', $params);
+    }
+    public function privatePostOrderHistory($params = array()) {
+        return $this->request('orderHistory', 'private', 'POST', $params);
+    }
+    public function privatePostGetOrder($params = array()) {
+        return $this->request('getOrder', 'private', 'POST', $params);
+    }
+    public function privatePostCancelOrder($params = array()) {
+        return $this->request('cancelOrder', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawFee($params = array()) {
+        return $this->request('withdrawFee', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawCoin($params = array()) {
+        return $this->request('withdrawCoin', 'private', 'POST', $params);
+    }
+    public function privatePostListDownline($params = array()) {
+        return $this->request('listDownline', 'private', 'POST', $params);
+    }
+    public function privatePostCheckDownline($params = array()) {
+        return $this->request('checkDownline', 'private', 'POST', $params);
+    }
+    public function privatePostCreateVoucher($params = array()) {
+        return $this->request('createVoucher', 'private', 'POST', $params);
+    }
 }

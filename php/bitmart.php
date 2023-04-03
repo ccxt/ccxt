@@ -570,43 +570,53 @@ class bitmart extends Exchange {
     }
 
     public function fetch_contract_markets($params = array ()) {
-        $response = $this->publicGetContractV1Tickers ($params);
+        $response = $this->publicGetContractPublicDetails ($params);
         //
-        //    {
-        //        "message" => "OK",
-        //        "code" => 1000,
-        //        "trace" => "045d13a8-4bc7-4974-9748-97d0ea183ef0",
-        //        "data" => {
-        //            "tickers" => array(
-        //                array(
-        //                    "contract_symbol" => "RAYUSDT",
-        //                    "last_price" => "3.893",
-        //                    "index_price" => "3.90248043",
-        //                    "last_funding_rate" => "-0.00054285",
-        //                    "price_change_percent_24h" => "-6.955",
-        //                    "volume_24h" => "10450969.34602996",
-        //                    "url" => "https://futures.bitmart.com/en?$symbol=RAYUSDT",
-        //                    "high_price" => "4.299",
-        //                    "low_price" => "3.887",
-        //                    "legal_coin_price" => "3.893056"
-        //                ),
-        //                ...
-        //            )
-        //        }
-        //    }
+        //     {
+        //       "code" => 1000,
+        //       "message" => "Ok",
+        //       "trace" => "9b92a999-9463-4c96-91a4-93ad1cad0d72",
+        //       "data" => {
+        //       "symbols" => [array(
+        //             "symbol" => "BTCUSDT",
+        //             "product_type" => 1,
+        //             "open_timestamp" => 1594080000,
+        //             "expire_timestamp" => 0,
+        //             "settle_timestamp" => 0,
+        //             "base_currency" => "BTC",
+        //             "quote_currency" => "USDT",
+        //             "last_price" => "23920",
+        //             "volume_24h" => "18969368",
+        //             "turnover_24h" => "458933659.7858",
+        //             "index_price" => "23945.25191635",
+        //             "index_name" => "BTCUSDT",
+        //             "contract_size" => "0.001",
+        //             "min_leverage" => "1",
+        //             "max_leverage" => "100",
+        //             "price_precision" => "0.1",
+        //             "vol_precision" => "1",
+        //             "max_volume" => "500000",
+        //             "min_volume" => "1"
+        //           ),
+        //           ...
+        //         ]
+        //       }
+        //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $tickers = $this->safe_value($data, 'tickers', array());
+        $symbols = $this->safe_value($data, 'symbols', array());
         $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $market = $tickers[$i];
-            $id = $this->safe_string($market, 'contract_symbol');
-            $baseId = mb_substr($id, 0, -4 - 0);
-            $quoteId = mb_substr($id, -4);
+        for ($i = 0; $i < count($symbols); $i++) {
+            $market = $symbols[$i];
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $settle = 'USDT';
             $symbol = $base . '/' . $quote . ':' . $settle;
+            $productType = $this->safe_number($market, 'product_type');
+            $expiry = $this->safe_integer($market, 'expire_timestamp');
             $result[] = array(
                 'id' => $id,
                 'numericId' => null,
@@ -620,30 +630,30 @@ class bitmart extends Exchange {
                 'type' => 'swap',
                 'spot' => false,
                 'margin' => false,
-                'swap' => true,
-                'future' => false,
+                'swap' => ($productType === 1),
+                'future' => ($productType === 2),
                 'option' => false,
                 'active' => true,
                 'contract' => true,
                 'linear' => true,
                 'inverse' => false,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
+                'contractSize' => $this->safe_number($market, 'contract_size'),
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => null,
-                    'price' => null,
+                    'amount' => $this->safe_number($market, 'vol_precision'),
+                    'price' => $this->safe_number($market, 'price_precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($market, 'min_leverage'),
+                        'max' => $this->safe_number($market, 'max_leverage'),
                     ),
                     'amount' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($market, 'min_volume'),
+                        'max' => $this->safe_number($market, 'max_volume'),
                     ),
                     'price' => array(
                         'min' => null,

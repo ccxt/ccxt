@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
@@ -56,7 +57,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         trades = await self.watch(url, messageHash, None, messageHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #    {
         #        Channel: 'ticker-btc-usd',
@@ -142,7 +143,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #    {
         #        Channel: "orderbook/1/eth/aud",
@@ -231,7 +232,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_heartbeat(self, client, message):
+    def handle_heartbeat(self, client: Client, message):
         #
         #    {
         #        Time: 1676156208182,
@@ -240,7 +241,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         return message
 
-    def handle_subscriptions(self, client, message):
+    def handle_subscriptions(self, client: Client, message):
         #
         #    {
         #        Data: ['ticker-btc-sgd'],
@@ -250,7 +251,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         event = self.safe_string(message, 'Event')
         handlers = {
             'Subscriptions': self.handle_subscriptions,

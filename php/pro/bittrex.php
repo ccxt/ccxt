@@ -142,7 +142,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_authenticate($client, $message, $subscription) {
+    public function handle_authenticate(Client $client, $message, $subscription) {
         $requestId = $this->safe_string($subscription, 'id');
         if (is_array($client->subscriptions) && array_key_exists($requestId, $client->subscriptions)) {
             unset($client->subscriptions[$requestId]);
@@ -157,7 +157,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_authentication_expiring($client, $message) {
+    public function handle_authentication_expiring(Client $client, $message) {
         //
         //     {
         //         C => 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
@@ -258,7 +258,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -312,7 +312,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -363,7 +363,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_heartbeat($client, $message) {
+    public function handle_heartbeat(Client $client, $message) {
         //
         // every 20 seconds (approx) if no other updates are sent
         //
@@ -402,7 +402,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         // summary subscription update
         //
@@ -465,7 +465,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         sequence => 28286,
@@ -537,7 +537,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         $deltas => array(
@@ -600,7 +600,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
@@ -737,7 +737,7 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_subscribe_to_order_book($client, $message, $subscription) {
+    public function handle_subscribe_to_order_book(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -771,7 +771,7 @@ class bittrex extends \ccxt\async\bittrex {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         marketSymbol => 'BTC-USDT',
@@ -798,7 +798,7 @@ class bittrex extends \ccxt\async\bittrex {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
         //         marketSymbol => 'BTC-USDT',
@@ -832,13 +832,13 @@ class bittrex extends \ccxt\async\bittrex {
         }) ();
     }
 
-    public function handle_system_status($client, $message) {
+    public function handle_system_status(Client $client, $message) {
         // send signalR protocol start() call
         $this->spawn(array($this, 'handle_system_status_helper'));
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         // success
         //
@@ -870,7 +870,7 @@ class bittrex extends \ccxt\async\bittrex {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // subscription confirmation
         //

@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -1985,6 +1986,73 @@ class coinex extends Exchange {
             //     array("code":0,"data":array("status":"success"),"message":"OK")
             //
             $data = $this->safe_value($response, 'data');
+            return $this->parse_order($data, $market);
+        }) ();
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            $this->check_required_argument('editOrder', $symbol, 'symbol');
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            }
+            $request = array(
+                'market' => $market['id'],
+                'id' => $id,
+            );
+            if ($amount !== null) {
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            }
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = Async\await($this->privatePostOrderModify (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             "id" => 35436205,
+            //             "create_time" => 1636080705,
+            //             "finished_time" => null,
+            //             "amount" => "0.30000000",
+            //             "price" => " 56000",
+            //             "deal_amount" => "0.24721428",
+            //             "deal_money" => "13843.9996800000000000",
+            //             "deal_fee" => "0",
+            //             "stock_fee" => "0",
+            //             "money_fee" => "0",
+            //             " asset_fee" => "8.721719798400000000000000",
+            //             "fee_asset" => "CET",
+            //             "fee_discount" => "0.70",
+            //             "avg_price" => "56000",
+            //             "market" => "BTCUSDT",
+            //             "left" => "0.05278572 ",
+            //             "maker_fee_rate" => "0.0018",
+            //             "taker_fee_rate" => "0.0018",
+            //             "order_type" => "limit",
+            //             "type" => "buy",
+            //             "status" => "cancel",
+            //             "client_id " => "abcd222",
+            //             "source_id" => "1234"
+            //     ),
+            //         "message" => "Success"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -4083,14 +4151,13 @@ class coinex extends Exchange {
              * @param {array} $params extra parameters specific to the coinex api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
+            $request = array();
+            $currency = null;
+            if ($code !== null) {
+                Async\await($this->load_markets());
+                $currency = $this->currency($code);
+                $request['coin_type'] = $currency['id'];
             }
-            Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $request = array(
-                'coin_type' => $currency['id'],
-            );
             if ($limit !== null) {
                 $request['Limit'] = $limit;
             }
@@ -4151,14 +4218,13 @@ class coinex extends Exchange {
              * @param {array} $params extra parameters specific to the coinex api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
+            $request = array();
+            $currency = null;
+            if ($code !== null) {
+                Async\await($this->load_markets());
+                $currency = $this->currency($code);
+                $request['coin_type'] = $currency['id'];
             }
-            Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $request = array(
-                'coin_type' => $currency['id'],
-            );
             if ($limit !== null) {
                 $request['Limit'] = $limit;
             }

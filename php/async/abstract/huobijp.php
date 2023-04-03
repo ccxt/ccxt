@@ -337,4 +337,334 @@ abstract class huobijp extends \ccxt\async\Exchange {
     public function private_post_subuser_transfer($params = array()) {
         return $this->request('subuser/transfer', 'private', 'POST', $params);
     }
+    public function v2PublicGetReferenceCurrencies($params = array()) {
+        return $this->request('reference/currencies', 'v2Public', 'GET', $params);
+    }
+    public function v2PublicGetMarketStatus($params = array()) {
+        return $this->request('market-status', 'v2Public', 'GET', $params);
+    }
+    public function v2PrivateGetAccountLedger($params = array()) {
+        return $this->request('account/ledger', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetAccountWithdrawQuota($params = array()) {
+        return $this->request('account/withdraw/quota', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetAccountWithdrawAddress($params = array()) {
+        return $this->request('account/withdraw/address', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetAccountDepositAddress($params = array()) {
+        return $this->request('account/deposit/address', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetAccountRepayment($params = array()) {
+        return $this->request('account/repayment', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetReferenceTransactFeeRate($params = array()) {
+        return $this->request('reference/transact-fee-rate', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetAccountAssetValuation($params = array()) {
+        return $this->request('account/asset-valuation', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetPointAccount($params = array()) {
+        return $this->request('point/account', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetSubUserUserList($params = array()) {
+        return $this->request('sub-user/user-list', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetSubUserUserState($params = array()) {
+        return $this->request('sub-user/user-state', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetSubUserAccountList($params = array()) {
+        return $this->request('sub-user/account-list', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetSubUserDepositAddress($params = array()) {
+        return $this->request('sub-user/deposit-address', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetSubUserQueryDeposit($params = array()) {
+        return $this->request('sub-user/query-deposit', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetUserApiKey($params = array()) {
+        return $this->request('user/api-key', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetUserUid($params = array()) {
+        return $this->request('user/uid', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetAlgoOrdersOpening($params = array()) {
+        return $this->request('algo-orders/opening', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetAlgoOrdersHistory($params = array()) {
+        return $this->request('algo-orders/history', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetAlgoOrdersSpecific($params = array()) {
+        return $this->request('algo-orders/specific', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetC2cOffers($params = array()) {
+        return $this->request('c2c/offers', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetC2cOffer($params = array()) {
+        return $this->request('c2c/offer', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetC2cTransactions($params = array()) {
+        return $this->request('c2c/transactions', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetC2cRepayment($params = array()) {
+        return $this->request('c2c/repayment', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetC2cAccount($params = array()) {
+        return $this->request('c2c/account', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetEtpReference($params = array()) {
+        return $this->request('etp/reference', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetEtpTransactions($params = array()) {
+        return $this->request('etp/transactions', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetEtpTransaction($params = array()) {
+        return $this->request('etp/transaction', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetEtpRebalance($params = array()) {
+        return $this->request('etp/rebalance', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivateGetEtpLimit($params = array()) {
+        return $this->request('etp/limit', 'v2Private', 'GET', $params);
+    }
+    public function v2PrivatePostAccountTransfer($params = array()) {
+        return $this->request('account/transfer', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostAccountRepayment($params = array()) {
+        return $this->request('account/repayment', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostPointTransfer($params = array()) {
+        return $this->request('point/transfer', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostSubUserManagement($params = array()) {
+        return $this->request('sub-user/management', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostSubUserCreation($params = array()) {
+        return $this->request('sub-user/creation', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostSubUserTradableMarket($params = array()) {
+        return $this->request('sub-user/tradable-market', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostSubUserTransferability($params = array()) {
+        return $this->request('sub-user/transferability', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostSubUserApiKeyGeneration($params = array()) {
+        return $this->request('sub-user/api-key-generation', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostSubUserApiKeyModification($params = array()) {
+        return $this->request('sub-user/api-key-modification', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostSubUserApiKeyDeletion($params = array()) {
+        return $this->request('sub-user/api-key-deletion', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostSubUserDeductMode($params = array()) {
+        return $this->request('sub-user/deduct-mode', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostAlgoOrders($params = array()) {
+        return $this->request('algo-orders', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostAlgoOrdersCancelAllAfter($params = array()) {
+        return $this->request('algo-orders/cancel-all-after', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostAlgoOrdersCancellation($params = array()) {
+        return $this->request('algo-orders/cancellation', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostC2cOffer($params = array()) {
+        return $this->request('c2c/offer', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostC2cCancellation($params = array()) {
+        return $this->request('c2c/cancellation', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostC2cCancelAll($params = array()) {
+        return $this->request('c2c/cancel-all', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostC2cRepayment($params = array()) {
+        return $this->request('c2c/repayment', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostC2cTransfer($params = array()) {
+        return $this->request('c2c/transfer', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostEtpCreation($params = array()) {
+        return $this->request('etp/creation', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostEtpRedemption($params = array()) {
+        return $this->request('etp/redemption', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostEtpTransactIdCancel($params = array()) {
+        return $this->request('etp/{transactId}/cancel', 'v2Private', 'POST', $params);
+    }
+    public function v2PrivatePostEtpBatchCancel($params = array()) {
+        return $this->request('etp/batch-cancel', 'v2Private', 'POST', $params);
+    }
+    public function marketGetHistoryKline($params = array()) {
+        return $this->request('history/kline', 'market', 'GET', $params);
+    }
+    public function marketGetDetailMerged($params = array()) {
+        return $this->request('detail/merged', 'market', 'GET', $params);
+    }
+    public function marketGetDepth($params = array()) {
+        return $this->request('depth', 'market', 'GET', $params);
+    }
+    public function marketGetTrade($params = array()) {
+        return $this->request('trade', 'market', 'GET', $params);
+    }
+    public function marketGetHistoryTrade($params = array()) {
+        return $this->request('history/trade', 'market', 'GET', $params);
+    }
+    public function marketGetDetail($params = array()) {
+        return $this->request('detail', 'market', 'GET', $params);
+    }
+    public function marketGetTickers($params = array()) {
+        return $this->request('tickers', 'market', 'GET', $params);
+    }
+    public function marketGetEtp($params = array()) {
+        return $this->request('etp', 'market', 'GET', $params);
+    }
+    public function publicGetCommonSymbols($params = array()) {
+        return $this->request('common/symbols', 'public', 'GET', $params);
+    }
+    public function publicGetCommonCurrencys($params = array()) {
+        return $this->request('common/currencys', 'public', 'GET', $params);
+    }
+    public function publicGetCommonTimestamp($params = array()) {
+        return $this->request('common/timestamp', 'public', 'GET', $params);
+    }
+    public function publicGetCommonExchange($params = array()) {
+        return $this->request('common/exchange', 'public', 'GET', $params);
+    }
+    public function publicGetSettingsCurrencys($params = array()) {
+        return $this->request('settings/currencys', 'public', 'GET', $params);
+    }
+    public function privateGetAccountAccounts($params = array()) {
+        return $this->request('account/accounts', 'private', 'GET', $params);
+    }
+    public function privateGetAccountAccountsIdBalance($params = array()) {
+        return $this->request('account/accounts/{id}/balance', 'private', 'GET', $params);
+    }
+    public function privateGetAccountAccountsSubUid($params = array()) {
+        return $this->request('account/accounts/{sub-uid}', 'private', 'GET', $params);
+    }
+    public function privateGetAccountHistory($params = array()) {
+        return $this->request('account/history', 'private', 'GET', $params);
+    }
+    public function privateGetCrossMarginLoanInfo($params = array()) {
+        return $this->request('cross-margin/loan-info', 'private', 'GET', $params);
+    }
+    public function privateGetMarginLoanInfo($params = array()) {
+        return $this->request('margin/loan-info', 'private', 'GET', $params);
+    }
+    public function privateGetFeeFeeRateGet($params = array()) {
+        return $this->request('fee/fee-rate/get', 'private', 'GET', $params);
+    }
+    public function privateGetOrderOpenOrders($params = array()) {
+        return $this->request('order/openOrders', 'private', 'GET', $params);
+    }
+    public function privateGetOrderOrders($params = array()) {
+        return $this->request('order/orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrderOrdersId($params = array()) {
+        return $this->request('order/orders/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetOrderOrdersIdMatchresults($params = array()) {
+        return $this->request('order/orders/{id}/matchresults', 'private', 'GET', $params);
+    }
+    public function privateGetOrderOrdersGetClientOrder($params = array()) {
+        return $this->request('order/orders/getClientOrder', 'private', 'GET', $params);
+    }
+    public function privateGetOrderHistory($params = array()) {
+        return $this->request('order/history', 'private', 'GET', $params);
+    }
+    public function privateGetOrderMatchresults($params = array()) {
+        return $this->request('order/matchresults', 'private', 'GET', $params);
+    }
+    public function privateGetQueryDepositWithdraw($params = array()) {
+        return $this->request('query/deposit-withdraw', 'private', 'GET', $params);
+    }
+    public function privateGetMarginLoanOrders($params = array()) {
+        return $this->request('margin/loan-orders', 'private', 'GET', $params);
+    }
+    public function privateGetMarginAccountsBalance($params = array()) {
+        return $this->request('margin/accounts/balance', 'private', 'GET', $params);
+    }
+    public function privateGetCrossMarginLoanOrders($params = array()) {
+        return $this->request('cross-margin/loan-orders', 'private', 'GET', $params);
+    }
+    public function privateGetCrossMarginAccountsBalance($params = array()) {
+        return $this->request('cross-margin/accounts/balance', 'private', 'GET', $params);
+    }
+    public function privateGetPointsActions($params = array()) {
+        return $this->request('points/actions', 'private', 'GET', $params);
+    }
+    public function privateGetPointsOrders($params = array()) {
+        return $this->request('points/orders', 'private', 'GET', $params);
+    }
+    public function privateGetSubuserAggregateBalance($params = array()) {
+        return $this->request('subuser/aggregate-balance', 'private', 'GET', $params);
+    }
+    public function privateGetStableCoinExchangeRate($params = array()) {
+        return $this->request('stable-coin/exchange_rate', 'private', 'GET', $params);
+    }
+    public function privateGetStableCoinQuote($params = array()) {
+        return $this->request('stable-coin/quote', 'private', 'GET', $params);
+    }
+    public function privatePostAccountTransfer($params = array()) {
+        return $this->request('account/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostFuturesTransfer($params = array()) {
+        return $this->request('futures/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostOrderBatchOrders($params = array()) {
+        return $this->request('order/batch-orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrderOrdersPlace($params = array()) {
+        return $this->request('order/orders/place', 'private', 'POST', $params);
+    }
+    public function privatePostOrderOrdersSubmitCancelClientOrder($params = array()) {
+        return $this->request('order/orders/submitCancelClientOrder', 'private', 'POST', $params);
+    }
+    public function privatePostOrderOrdersBatchCancelOpenOrders($params = array()) {
+        return $this->request('order/orders/batchCancelOpenOrders', 'private', 'POST', $params);
+    }
+    public function privatePostOrderOrdersIdSubmitcancel($params = array()) {
+        return $this->request('order/orders/{id}/submitcancel', 'private', 'POST', $params);
+    }
+    public function privatePostOrderOrdersBatchcancel($params = array()) {
+        return $this->request('order/orders/batchcancel', 'private', 'POST', $params);
+    }
+    public function privatePostDwWithdrawApiCreate($params = array()) {
+        return $this->request('dw/withdraw/api/create', 'private', 'POST', $params);
+    }
+    public function privatePostDwWithdrawVirtualIdCancel($params = array()) {
+        return $this->request('dw/withdraw-virtual/{id}/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostDwTransferInMargin($params = array()) {
+        return $this->request('dw/transfer-in/margin', 'private', 'POST', $params);
+    }
+    public function privatePostDwTransferOutMargin($params = array()) {
+        return $this->request('dw/transfer-out/margin', 'private', 'POST', $params);
+    }
+    public function privatePostMarginOrders($params = array()) {
+        return $this->request('margin/orders', 'private', 'POST', $params);
+    }
+    public function privatePostMarginOrdersIdRepay($params = array()) {
+        return $this->request('margin/orders/{id}/repay', 'private', 'POST', $params);
+    }
+    public function privatePostCrossMarginTransferIn($params = array()) {
+        return $this->request('cross-margin/transfer-in', 'private', 'POST', $params);
+    }
+    public function privatePostCrossMarginTransferOut($params = array()) {
+        return $this->request('cross-margin/transfer-out', 'private', 'POST', $params);
+    }
+    public function privatePostCrossMarginOrders($params = array()) {
+        return $this->request('cross-margin/orders', 'private', 'POST', $params);
+    }
+    public function privatePostCrossMarginOrdersIdRepay($params = array()) {
+        return $this->request('cross-margin/orders/{id}/repay', 'private', 'POST', $params);
+    }
+    public function privatePostStableCoinExchange($params = array()) {
+        return $this->request('stable-coin/exchange', 'private', 'POST', $params);
+    }
+    public function privatePostSubuserTransfer($params = array()) {
+        return $this->request('subuser/transfer', 'private', 'POST', $params);
+    }
 }

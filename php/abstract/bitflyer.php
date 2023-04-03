@@ -109,4 +109,106 @@ abstract class bitflyer extends \ccxt\Exchange {
     public function private_post_cancelallchildorders($params = array()) {
         return $this->request('cancelallchildorders', 'private', 'POST', $params);
     }
+    public function publicGetGetmarketsUsa($params = array()) {
+        return $this->request('getmarkets/usa', 'public', 'GET', $params);
+    }
+    public function publicGetGetmarketsEu($params = array()) {
+        return $this->request('getmarkets/eu', 'public', 'GET', $params);
+    }
+    public function publicGetGetmarkets($params = array()) {
+        return $this->request('getmarkets', 'public', 'GET', $params);
+    }
+    public function publicGetGetboard($params = array()) {
+        return $this->request('getboard', 'public', 'GET', $params);
+    }
+    public function publicGetGetticker($params = array()) {
+        return $this->request('getticker', 'public', 'GET', $params);
+    }
+    public function publicGetGetexecutions($params = array()) {
+        return $this->request('getexecutions', 'public', 'GET', $params);
+    }
+    public function publicGetGethealth($params = array()) {
+        return $this->request('gethealth', 'public', 'GET', $params);
+    }
+    public function publicGetGetboardstate($params = array()) {
+        return $this->request('getboardstate', 'public', 'GET', $params);
+    }
+    public function publicGetGetchats($params = array()) {
+        return $this->request('getchats', 'public', 'GET', $params);
+    }
+    public function privateGetGetpermissions($params = array()) {
+        return $this->request('getpermissions', 'private', 'GET', $params);
+    }
+    public function privateGetGetbalance($params = array()) {
+        return $this->request('getbalance', 'private', 'GET', $params);
+    }
+    public function privateGetGetbalancehistory($params = array()) {
+        return $this->request('getbalancehistory', 'private', 'GET', $params);
+    }
+    public function privateGetGetcollateral($params = array()) {
+        return $this->request('getcollateral', 'private', 'GET', $params);
+    }
+    public function privateGetGetcollateralhistory($params = array()) {
+        return $this->request('getcollateralhistory', 'private', 'GET', $params);
+    }
+    public function privateGetGetcollateralaccounts($params = array()) {
+        return $this->request('getcollateralaccounts', 'private', 'GET', $params);
+    }
+    public function privateGetGetaddresses($params = array()) {
+        return $this->request('getaddresses', 'private', 'GET', $params);
+    }
+    public function privateGetGetcoinins($params = array()) {
+        return $this->request('getcoinins', 'private', 'GET', $params);
+    }
+    public function privateGetGetcoinouts($params = array()) {
+        return $this->request('getcoinouts', 'private', 'GET', $params);
+    }
+    public function privateGetGetbankaccounts($params = array()) {
+        return $this->request('getbankaccounts', 'private', 'GET', $params);
+    }
+    public function privateGetGetdeposits($params = array()) {
+        return $this->request('getdeposits', 'private', 'GET', $params);
+    }
+    public function privateGetGetwithdrawals($params = array()) {
+        return $this->request('getwithdrawals', 'private', 'GET', $params);
+    }
+    public function privateGetGetchildorders($params = array()) {
+        return $this->request('getchildorders', 'private', 'GET', $params);
+    }
+    public function privateGetGetparentorders($params = array()) {
+        return $this->request('getparentorders', 'private', 'GET', $params);
+    }
+    public function privateGetGetparentorder($params = array()) {
+        return $this->request('getparentorder', 'private', 'GET', $params);
+    }
+    public function privateGetGetexecutions($params = array()) {
+        return $this->request('getexecutions', 'private', 'GET', $params);
+    }
+    public function privateGetGetpositions($params = array()) {
+        return $this->request('getpositions', 'private', 'GET', $params);
+    }
+    public function privateGetGettradingcommission($params = array()) {
+        return $this->request('gettradingcommission', 'private', 'GET', $params);
+    }
+    public function privatePostSendcoin($params = array()) {
+        return $this->request('sendcoin', 'private', 'POST', $params);
+    }
+    public function privatePostWithdraw($params = array()) {
+        return $this->request('withdraw', 'private', 'POST', $params);
+    }
+    public function privatePostSendchildorder($params = array()) {
+        return $this->request('sendchildorder', 'private', 'POST', $params);
+    }
+    public function privatePostCancelchildorder($params = array()) {
+        return $this->request('cancelchildorder', 'private', 'POST', $params);
+    }
+    public function privatePostSendparentorder($params = array()) {
+        return $this->request('sendparentorder', 'private', 'POST', $params);
+    }
+    public function privatePostCancelparentorder($params = array()) {
+        return $this->request('cancelparentorder', 'private', 'POST', $params);
+    }
+    public function privatePostCancelallchildorders($params = array()) {
+        return $this->request('cancelallchildorders', 'private', 'POST', $params);
+    }
 }

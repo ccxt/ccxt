@@ -259,4 +259,256 @@ abstract class stex extends \ccxt\async\Exchange {
     public function settings_put_notifications_set($params = array()) {
         return $this->request('notifications/set', 'settings', 'PUT', $params);
     }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies', 'public', 'GET', $params);
+    }
+    public function publicGetCurrenciesCurrencyId($params = array()) {
+        return $this->request('currencies/{currencyId}', 'public', 'GET', $params);
+    }
+    public function publicGetMarkets($params = array()) {
+        return $this->request('markets', 'public', 'GET', $params);
+    }
+    public function publicGetPairsGroups($params = array()) {
+        return $this->request('pairs-groups', 'public', 'GET', $params);
+    }
+    public function publicGetCurrencyPairsListCode($params = array()) {
+        return $this->request('currency_pairs/list/{code}', 'public', 'GET', $params);
+    }
+    public function publicGetCurrencyPairsGroupCurrencyPairGroupId($params = array()) {
+        return $this->request('currency_pairs/group/{currencyPairGroupId}', 'public', 'GET', $params);
+    }
+    public function publicGetCurrencyPairsCurrencyPairId($params = array()) {
+        return $this->request('currency_pairs/{currencyPairId}', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetTickerCurrencyPairId($params = array()) {
+        return $this->request('ticker/{currencyPairId}', 'public', 'GET', $params);
+    }
+    public function publicGetTradesCurrencyPairId($params = array()) {
+        return $this->request('trades/{currencyPairId}', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbookCurrencyPairId($params = array()) {
+        return $this->request('orderbook/{currencyPairId}', 'public', 'GET', $params);
+    }
+    public function publicGetChartCurrencyPairIdCandlesType($params = array()) {
+        return $this->request('chart/{currencyPairId}/{candlesType}', 'public', 'GET', $params);
+    }
+    public function publicGetDepositStatuses($params = array()) {
+        return $this->request('deposit-statuses', 'public', 'GET', $params);
+    }
+    public function publicGetDepositStatusesStatusId($params = array()) {
+        return $this->request('deposit-statuses/{statusId}', 'public', 'GET', $params);
+    }
+    public function publicGetWithdrawalStatuses($params = array()) {
+        return $this->request('withdrawal-statuses', 'public', 'GET', $params);
+    }
+    public function publicGetWithdrawalStatusesStatusId($params = array()) {
+        return $this->request('withdrawal-statuses/{statusId}', 'public', 'GET', $params);
+    }
+    public function publicGetPing($params = array()) {
+        return $this->request('ping', 'public', 'GET', $params);
+    }
+    public function publicGetMobileVersions($params = array()) {
+        return $this->request('mobile-versions', 'public', 'GET', $params);
+    }
+    public function publicGetTwitter($params = array()) {
+        return $this->request('twitter', 'public', 'GET', $params);
+    }
+    public function tradingGetFeesCurrencyPairId($params = array()) {
+        return $this->request('fees/{currencyPairId}', 'trading', 'GET', $params);
+    }
+    public function tradingGetOrders($params = array()) {
+        return $this->request('orders', 'trading', 'GET', $params);
+    }
+    public function tradingGetOrdersCurrencyPairId($params = array()) {
+        return $this->request('orders/{currencyPairId}', 'trading', 'GET', $params);
+    }
+    public function tradingGetOrderOrderId($params = array()) {
+        return $this->request('order/{orderId}', 'trading', 'GET', $params);
+    }
+    public function tradingPostOrdersCurrencyPairId($params = array()) {
+        return $this->request('orders/{currencyPairId}', 'trading', 'POST', $params);
+    }
+    public function tradingPostOrdersBulkCurrencyPairId($params = array()) {
+        return $this->request('orders/bulk/{currencyPairId}', 'trading', 'POST', $params);
+    }
+    public function tradingDeleteOrders($params = array()) {
+        return $this->request('orders', 'trading', 'DELETE', $params);
+    }
+    public function tradingDeleteOrdersCurrencyPairId($params = array()) {
+        return $this->request('orders/{currencyPairId}', 'trading', 'DELETE', $params);
+    }
+    public function tradingDeleteOrderOrderId($params = array()) {
+        return $this->request('order/{orderId}', 'trading', 'DELETE', $params);
+    }
+    public function reportsGetCurrencies($params = array()) {
+        return $this->request('currencies', 'reports', 'GET', $params);
+    }
+    public function reportsGetCurrencyPairs($params = array()) {
+        return $this->request('currency_pairs', 'reports', 'GET', $params);
+    }
+    public function reportsGetOrders($params = array()) {
+        return $this->request('orders', 'reports', 'GET', $params);
+    }
+    public function reportsGetOrdersOrderId($params = array()) {
+        return $this->request('orders/{orderId}', 'reports', 'GET', $params);
+    }
+    public function reportsGetTradesCurrencyPairId($params = array()) {
+        return $this->request('trades/{currencyPairId}', 'reports', 'GET', $params);
+    }
+    public function reportsGetBackgroundListMode($params = array()) {
+        return $this->request('background/{listMode}', 'reports', 'GET', $params);
+    }
+    public function reportsGetBackgroundId($params = array()) {
+        return $this->request('background/{id}', 'reports', 'GET', $params);
+    }
+    public function reportsGetBackgroundDownloadId($params = array()) {
+        return $this->request('background/download/{id}', 'reports', 'GET', $params);
+    }
+    public function reportsPostBackgroundCreate($params = array()) {
+        return $this->request('background/create', 'reports', 'POST', $params);
+    }
+    public function reportsDeleteBackgroundId($params = array()) {
+        return $this->request('background/{id}', 'reports', 'DELETE', $params);
+    }
+    public function profileGetInfo($params = array()) {
+        return $this->request('info', 'profile', 'GET', $params);
+    }
+    public function profileGetWallets($params = array()) {
+        return $this->request('wallets', 'profile', 'GET', $params);
+    }
+    public function profileGetWalletsWalletId($params = array()) {
+        return $this->request('wallets/{walletId}', 'profile', 'GET', $params);
+    }
+    public function profileGetWalletsAddressWalletId($params = array()) {
+        return $this->request('wallets/address/{walletId}', 'profile', 'GET', $params);
+    }
+    public function profileGetDeposits($params = array()) {
+        return $this->request('deposits', 'profile', 'GET', $params);
+    }
+    public function profileGetDepositsId($params = array()) {
+        return $this->request('deposits/{id}', 'profile', 'GET', $params);
+    }
+    public function profileGetRewards($params = array()) {
+        return $this->request('rewards', 'profile', 'GET', $params);
+    }
+    public function profileGetRewardsId($params = array()) {
+        return $this->request('rewards/{id}', 'profile', 'GET', $params);
+    }
+    public function profileGetAddressbook($params = array()) {
+        return $this->request('addressbook', 'profile', 'GET', $params);
+    }
+    public function profileGetAddressbookItemId($params = array()) {
+        return $this->request('addressbook/{itemId}', 'profile', 'GET', $params);
+    }
+    public function profileGetWithdrawals($params = array()) {
+        return $this->request('withdrawals', 'profile', 'GET', $params);
+    }
+    public function profileGetWithdrawalsId($params = array()) {
+        return $this->request('withdrawals/{id}', 'profile', 'GET', $params);
+    }
+    public function profileGetNotifications($params = array()) {
+        return $this->request('notifications', 'profile', 'GET', $params);
+    }
+    public function profileGetNotificationsPrice($params = array()) {
+        return $this->request('notifications/price', 'profile', 'GET', $params);
+    }
+    public function profileGetFavoriteCurrencyPairs($params = array()) {
+        return $this->request('favorite/currency_pairs', 'profile', 'GET', $params);
+    }
+    public function profileGetTokenScopes($params = array()) {
+        return $this->request('token-scopes', 'profile', 'GET', $params);
+    }
+    public function profilePostWalletsBurnWalletId($params = array()) {
+        return $this->request('wallets/burn/{walletId}', 'profile', 'POST', $params);
+    }
+    public function profilePostWalletsWalletIdHoldAmount($params = array()) {
+        return $this->request('wallets/{walletId}/hold_amount', 'profile', 'POST', $params);
+    }
+    public function profilePostWalletsCurrencyId($params = array()) {
+        return $this->request('wallets/{currencyId}', 'profile', 'POST', $params);
+    }
+    public function profilePostWalletsAddressWalletId($params = array()) {
+        return $this->request('wallets/address/{walletId}', 'profile', 'POST', $params);
+    }
+    public function profilePostAddressbookDisableItemItemId($params = array()) {
+        return $this->request('addressbook/disable_item/{itemId}', 'profile', 'POST', $params);
+    }
+    public function profilePostAddressbookEnableItemItemId($params = array()) {
+        return $this->request('addressbook/enable_item/{itemId}', 'profile', 'POST', $params);
+    }
+    public function profilePostAddressbookEnableStrictWd($params = array()) {
+        return $this->request('addressbook/enable_strict_wd', 'profile', 'POST', $params);
+    }
+    public function profilePostAddressbookDisableStrictWd($params = array()) {
+        return $this->request('addressbook/disable_strict_wd', 'profile', 'POST', $params);
+    }
+    public function profilePostWithdraw($params = array()) {
+        return $this->request('withdraw', 'profile', 'POST', $params);
+    }
+    public function profilePostNotificationsPrice($params = array()) {
+        return $this->request('notifications/price', 'profile', 'POST', $params);
+    }
+    public function profilePostReferralProgram($params = array()) {
+        return $this->request('referral/program', 'profile', 'POST', $params);
+    }
+    public function profilePostReferralInsertCode($params = array()) {
+        return $this->request('referral/insert/{code}', 'profile', 'POST', $params);
+    }
+    public function profilePostReferralBonusTransferCurrencyId($params = array()) {
+        return $this->request('referral/bonus_transfer/{currencyId}', 'profile', 'POST', $params);
+    }
+    public function profilePutFavoriteCurrencyPairsSet($params = array()) {
+        return $this->request('favorite/currency_pairs/set', 'profile', 'PUT', $params);
+    }
+    public function profileDeleteAddressbookItemId($params = array()) {
+        return $this->request('addressbook/{itemId}', 'profile', 'DELETE', $params);
+    }
+    public function profileDeleteWithdrawWithdrawalId($params = array()) {
+        return $this->request('withdraw/{withdrawalId}', 'profile', 'DELETE', $params);
+    }
+    public function profileDeleteNotificationsPricePriceAlertId($params = array()) {
+        return $this->request('notifications/price/{priceAlertId}', 'profile', 'DELETE', $params);
+    }
+    public function verificationGetCountries($params = array()) {
+        return $this->request('countries', 'verification', 'GET', $params);
+    }
+    public function verificationGetStatus($params = array()) {
+        return $this->request('status', 'verification', 'GET', $params);
+    }
+    public function verificationGetFractalUrl($params = array()) {
+        return $this->request('fractal/url', 'verification', 'GET', $params);
+    }
+    public function verificationGetSmartId($params = array()) {
+        return $this->request('smart-id', 'verification', 'GET', $params);
+    }
+    public function verificationGetStex($params = array()) {
+        return $this->request('stex', 'verification', 'GET', $params);
+    }
+    public function verificationGetCryptonomicaCode($params = array()) {
+        return $this->request('cryptonomica/code', 'verification', 'GET', $params);
+    }
+    public function verificationPostSmartId($params = array()) {
+        return $this->request('smart-id', 'verification', 'POST', $params);
+    }
+    public function verificationPostStex($params = array()) {
+        return $this->request('stex', 'verification', 'POST', $params);
+    }
+    public function verificationPostCryptonomica($params = array()) {
+        return $this->request('cryptonomica', 'verification', 'POST', $params);
+    }
+    public function settingsGetNotificationsEvent($params = array()) {
+        return $this->request('notifications/{event}', 'settings', 'GET', $params);
+    }
+    public function settingsGetNotifications($params = array()) {
+        return $this->request('notifications', 'settings', 'GET', $params);
+    }
+    public function settingsPutNotifications($params = array()) {
+        return $this->request('notifications', 'settings', 'PUT', $params);
+    }
+    public function settingsPutNotificationsSet($params = array()) {
+        return $this->request('notifications/set', 'settings', 'PUT', $params);
+    }
 }

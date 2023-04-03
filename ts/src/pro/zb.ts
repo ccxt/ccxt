@@ -5,6 +5,7 @@ import zbRest from '../zb.js';
 import { ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -125,7 +126,7 @@ export default class zb extends zbRest {
         }, market);
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         // spot ticker
         //
@@ -198,7 +199,7 @@ export default class zb extends zbRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client: Client, message, subscription) {
         //
         // snapshot update
         //    {
@@ -263,7 +264,7 @@ export default class zb extends zbRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         // contract trades
         // {
         //     "channel":"BTC_USDT.Trade",
@@ -385,7 +386,7 @@ export default class zb extends zbRest {
         }, market);
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         // spot snapshot
         //
         //     {
@@ -475,7 +476,7 @@ export default class zb extends zbRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         // {
         //     channel: 'BTC_USDT.Depth',
@@ -509,7 +510,7 @@ export default class zb extends zbRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //
         //     {
@@ -580,7 +581,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         // { errorCode: 10020, errorMsg: "action param can't be empty" }
         // { errorCode: 10015, errorMsg: '无效的签名(1002)' }

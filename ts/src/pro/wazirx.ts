@@ -4,6 +4,7 @@ import wazirxRest from '../wazirx.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ export default class wazirx extends wazirxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         "data":
@@ -213,7 +214,7 @@ export default class wazirx extends wazirxRest {
         return this.filterByArray (tickers, 'symbol', symbols, false);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         "data":
@@ -319,7 +320,7 @@ export default class wazirx extends wazirxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         "data": {
@@ -421,7 +422,7 @@ export default class wazirx extends wazirxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         "data": {
@@ -519,7 +520,7 @@ export default class wazirx extends wazirxRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "data": {
@@ -581,7 +582,7 @@ export default class wazirx extends wazirxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //     {
         //         "data": {
@@ -661,7 +662,7 @@ export default class wazirx extends wazirxRest {
         }, market);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         //     {
         //         "data": {
@@ -699,7 +700,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (myTrades, messageHash);
     }
 
-    handleConnected (client, message) {
+    handleConnected (client: Client, message) {
         //
         //     {
         //         data: {
@@ -711,7 +712,7 @@ export default class wazirx extends wazirxRest {
         return message;
     }
 
-    handleSubscribed (client, message) {
+    handleSubscribed (client: Client, message) {
         //
         //     {
         //         data: {
@@ -724,7 +725,7 @@ export default class wazirx extends wazirxRest {
         return message;
     }
 
-    handleError (client, message) {
+    handleError (client: Client, message) {
         //
         //     {
         //         "data": {
@@ -743,7 +744,7 @@ export default class wazirx extends wazirxRest {
         throw new ExchangeError (this.id + ' ' + this.json (message));
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             return this.handleError (client, message);

@@ -79,4 +79,76 @@ abstract class bitopro extends \ccxt\Exchange {
     public function private_delete_orders_pair($params = array()) {
         return $this->request('orders/{pair}', 'private', 'DELETE', $params);
     }
+    public function publicGetOrderBookPair($params = array()) {
+        return $this->request('order-book/{pair}', 'public', 'GET', $params);
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params);
+    }
+    public function publicGetTickersPair($params = array()) {
+        return $this->request('tickers/{pair}', 'public', 'GET', $params);
+    }
+    public function publicGetTradesPair($params = array()) {
+        return $this->request('trades/{pair}', 'public', 'GET', $params);
+    }
+    public function publicGetProvisioningCurrencies($params = array()) {
+        return $this->request('provisioning/currencies', 'public', 'GET', $params);
+    }
+    public function publicGetProvisioningTradingPairs($params = array()) {
+        return $this->request('provisioning/trading-pairs', 'public', 'GET', $params);
+    }
+    public function publicGetProvisioningLimitationsAndFees($params = array()) {
+        return $this->request('provisioning/limitations-and-fees', 'public', 'GET', $params);
+    }
+    public function publicGetTradingHistoryPair($params = array()) {
+        return $this->request('trading-history/{pair}', 'public', 'GET', $params);
+    }
+    public function privateGetAccountsBalance($params = array()) {
+        return $this->request('accounts/balance', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersHistory($params = array()) {
+        return $this->request('orders/history', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersAllPair($params = array()) {
+        return $this->request('orders/all/{pair}', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersTradesPair($params = array()) {
+        return $this->request('orders/trades/{pair}', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersPairOrderId($params = array()) {
+        return $this->request('orders/{pair}/{orderId}', 'private', 'GET', $params);
+    }
+    public function privateGetWalletWithdrawCurrencySerial($params = array()) {
+        return $this->request('wallet/withdraw/{currency}/{serial}', 'private', 'GET', $params);
+    }
+    public function privateGetWalletWithdrawCurrencyIdId($params = array()) {
+        return $this->request('wallet/withdraw/{currency}/id/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetWalletDepositHistoryCurrency($params = array()) {
+        return $this->request('wallet/depositHistory/{currency}', 'private', 'GET', $params);
+    }
+    public function privateGetWalletWithdrawHistoryCurrency($params = array()) {
+        return $this->request('wallet/withdrawHistory/{currency}', 'private', 'GET', $params);
+    }
+    public function privatePostOrdersPair($params = array()) {
+        return $this->request('orders/{pair}', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersBatch($params = array()) {
+        return $this->request('orders/batch', 'private', 'POST', $params);
+    }
+    public function privatePostWalletWithdrawCurrency($params = array()) {
+        return $this->request('wallet/withdraw/{currency}', 'private', 'POST', $params);
+    }
+    public function privatePutOrders($params = array()) {
+        return $this->request('orders', 'private', 'PUT', $params);
+    }
+    public function privateDeleteOrdersPairId($params = array()) {
+        return $this->request('orders/{pair}/{id}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersAll($params = array()) {
+        return $this->request('orders/all', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersPair($params = array()) {
+        return $this->request('orders/{pair}', 'private', 'DELETE', $params);
+    }
 }

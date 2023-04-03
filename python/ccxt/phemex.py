@@ -103,6 +103,7 @@ class phemex(Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test': {
                     'v1': 'https://testnet-api.phemex.com/v1',
+                    'v2': 'https://testnet-api.phemex.com/',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
@@ -2339,13 +2340,13 @@ class phemex(Exchange):
                 request['stopPxEp'] = self.to_ep(stopPrice, market)
         params = self.omit(params, ['stopPx', 'stopPrice'])
         method = 'privatePutSpotOrders'
-        if market['inverse']:
-            method = 'privatePutOrdersReplace'
-        elif isUSDTSettled:
+        if isUSDTSettled:
             method = 'privatePutGOrdersReplace'
             posSide = self.safe_string(params, 'posSide')
             if posSide is None:
                 request['posSide'] = 'Merged'
+        elif market['swap']:
+            method = 'privatePutOrdersReplace'
         response = getattr(self, method)(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
@@ -2374,13 +2375,13 @@ class phemex(Exchange):
         else:
             request['orderID'] = id
         method = 'privateDeleteSpotOrders'
-        if market['inverse']:
-            method = 'privateDeleteOrdersCancel'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privateDeleteGOrdersCancel'
             posSide = self.safe_string(params, 'posSide')
             if posSide is None:
                 request['posSide'] = 'Merged'
+        elif market['swap']:
+            method = 'privateDeleteOrdersCancel'
         response = getattr(self, method)(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
@@ -2403,10 +2404,10 @@ class phemex(Exchange):
         }
         market = self.market(symbol)
         method = 'privateDeleteSpotOrdersAll'
-        if market['inverse']:
-            method = 'privateDeleteOrdersAll'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privateDeleteGOrdersAll'
+        elif market['swap']:
+            method = 'privateDeleteOrdersAll'
         request['symbol'] = market['id']
         return getattr(self, method)(self.extend(request, params))
 
@@ -2464,11 +2465,11 @@ class phemex(Exchange):
             'symbol': market['id'],
         }
         method = 'privateGetSpotOrders'
-        if market['inverse']:
-            method = 'privateGetExchangeOrderList'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             request['currency'] = market['settle']
             method = 'privateGetExchangeOrderV2OrderList'
+        elif market['swap']:
+            method = 'privateGetExchangeOrderList'
         if since is not None:
             request['start'] = since
         if limit is not None:
@@ -2482,6 +2483,7 @@ class phemex(Exchange):
         """
         fetch all unfilled currently open orders
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
@@ -2493,10 +2495,10 @@ class phemex(Exchange):
         self.load_markets()
         market = self.market(symbol)
         method = 'privateGetSpotOrders'
-        if market['inverse']:
-            method = 'privateGetOrdersActiveList'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privateGetGOrdersActiveList'
+        elif market['swap']:
+            method = 'privateGetOrdersActiveList'
         request = {
             'symbol': market['id'],
         }
@@ -2532,11 +2534,11 @@ class phemex(Exchange):
             'symbol': market['id'],
         }
         method = 'privateGetExchangeSpotOrder'
-        if market['inverse']:
-            method = 'privateGetExchangeOrderList'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             request['currency'] = market['settle']
             method = 'privateGetExchangeOrderV2OrderList'
+        elif market['swap']:
+            method = 'privateGetExchangeOrderList'
         if since is not None:
             request['start'] = since
         if limit is not None:

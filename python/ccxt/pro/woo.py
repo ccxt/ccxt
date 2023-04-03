@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -88,7 +89,7 @@ class woo(ccxt.async_support.woo):
         orderbook = await self.watch_public(topic, message)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         topic: 'PERP_BTC_USDT@orderbook',
@@ -172,7 +173,7 @@ class woo(ccxt.async_support.woo):
             'info': ticker,
         }, market)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         topic: 'PERP_BTC_USDT@ticker',
@@ -213,7 +214,7 @@ class woo(ccxt.async_support.woo):
         tickers = await self.watch_public(topic, message)
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def handle_tickers(self, client, message):
+    def handle_tickers(self, client: Client, message):
         #
         #     {
         #         "topic":"tickers",
@@ -273,7 +274,7 @@ class woo(ccxt.async_support.woo):
             limit = ohlcv.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         "topic":"SPOT_BTC_USDT@kline_1m",
@@ -330,7 +331,7 @@ class woo(ccxt.async_support.woo):
             limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         # {
         #     "topic":"SPOT_ADA_USDT@trade",
@@ -528,7 +529,7 @@ class woo(ccxt.async_support.woo):
             'trades': trades,
         }
 
-    def handle_order_update(self, client, message):
+    def handle_order_update(self, client: Client, message):
         #
         #     {
         #         topic: 'executionreport',
@@ -561,7 +562,7 @@ class woo(ccxt.async_support.woo):
         order = self.safe_value(message, 'data')
         self.handle_order(client, order)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         topic = 'executionreport'
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
@@ -588,7 +589,7 @@ class woo(ccxt.async_support.woo):
             messageHashSymbol = topic + ':' + symbol
             client.resolve(self.orders, messageHashSymbol)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         methods = {
             'ping': self.handle_ping,
             'pong': self.handle_pong,
@@ -628,17 +629,17 @@ class woo(ccxt.async_support.woo):
     def ping(self, client):
         return {'event': 'ping'}
 
-    def handle_ping(self, client, message):
+    def handle_ping(self, client: Client, message):
         return {'event': 'pong'}
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         #
         # {event: 'pong', ts: 1657117026090}
         #
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscribe(self, client, message):
+    def handle_subscribe(self, client: Client, message):
         #
         #     {
         #         id: '666888',
@@ -649,7 +650,7 @@ class woo(ccxt.async_support.woo):
         #
         return message
 
-    def handle_auth(self, client, message):
+    def handle_auth(self, client: Client, message):
         #
         #     {
         #         event: 'auth',

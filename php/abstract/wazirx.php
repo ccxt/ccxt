@@ -70,4 +70,67 @@ abstract class wazirx extends \ccxt\Exchange {
     public function private_delete_openorders($params = array()) {
         return $this->request('openOrders', 'private', 'DELETE', $params);
     }
+    public function publicGetExchangeInfo($params = array()) {
+        return $this->request('exchangeInfo', 'public', 'GET', $params);
+    }
+    public function publicGetDepth($params = array()) {
+        return $this->request('depth', 'public', 'GET', $params);
+    }
+    public function publicGetPing($params = array()) {
+        return $this->request('ping', 'public', 'GET', $params);
+    }
+    public function publicGetSystemStatus($params = array()) {
+        return $this->request('systemStatus', 'public', 'GET', $params);
+    }
+    public function publicGetTickers24hr($params = array()) {
+        return $this->request('tickers/24hr', 'public', 'GET', $params);
+    }
+    public function publicGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', 'public', 'GET', $params);
+    }
+    public function publicGetTime($params = array()) {
+        return $this->request('time', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetKlines($params = array()) {
+        return $this->request('klines', 'public', 'GET', $params);
+    }
+    public function privateGetAccount($params = array()) {
+        return $this->request('account', 'private', 'GET', $params);
+    }
+    public function privateGetAllOrders($params = array()) {
+        return $this->request('allOrders', 'private', 'GET', $params);
+    }
+    public function privateGetFunds($params = array()) {
+        return $this->request('funds', 'private', 'GET', $params);
+    }
+    public function privateGetHistoricalTrades($params = array()) {
+        return $this->request('historicalTrades', 'private', 'GET', $params);
+    }
+    public function privateGetOpenOrders($params = array()) {
+        return $this->request('openOrders', 'private', 'GET', $params);
+    }
+    public function privateGetOrder($params = array()) {
+        return $this->request('order', 'private', 'GET', $params);
+    }
+    public function privateGetMyTrades($params = array()) {
+        return $this->request('myTrades', 'private', 'GET', $params);
+    }
+    public function privatePostOrder($params = array()) {
+        return $this->request('order', 'private', 'POST', $params);
+    }
+    public function privatePostOrderTest($params = array()) {
+        return $this->request('order/test', 'private', 'POST', $params);
+    }
+    public function privatePostCreateAuthToken($params = array()) {
+        return $this->request('create_auth_token', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrder($params = array()) {
+        return $this->request('order', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOpenOrders($params = array()) {
+        return $this->request('openOrders', 'private', 'DELETE', $params);
+    }
 }

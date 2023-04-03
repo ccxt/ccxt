@@ -94,4 +94,91 @@ abstract class coincheck extends \ccxt\async\Exchange {
     public function private_delete_withdraws_id($params = array()) {
         return $this->request('withdraws/{id}', 'private', 'DELETE', $params);
     }
+    public function publicGetExchangeOrdersRate($params = array()) {
+        return $this->request('exchange/orders/rate', 'public', 'GET', $params);
+    }
+    public function publicGetOrderBooks($params = array()) {
+        return $this->request('order_books', 'public', 'GET', $params);
+    }
+    public function publicGetRatePair($params = array()) {
+        return $this->request('rate/{pair}', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function privateGetAccounts($params = array()) {
+        return $this->request('accounts', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsBalance($params = array()) {
+        return $this->request('accounts/balance', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsLeverageBalance($params = array()) {
+        return $this->request('accounts/leverage_balance', 'private', 'GET', $params);
+    }
+    public function privateGetBankAccounts($params = array()) {
+        return $this->request('bank_accounts', 'private', 'GET', $params);
+    }
+    public function privateGetDepositMoney($params = array()) {
+        return $this->request('deposit_money', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeOrdersOpens($params = array()) {
+        return $this->request('exchange/orders/opens', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeOrdersTransactions($params = array()) {
+        return $this->request('exchange/orders/transactions', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeOrdersTransactionsPagination($params = array()) {
+        return $this->request('exchange/orders/transactions_pagination', 'private', 'GET', $params);
+    }
+    public function privateGetExchangeLeveragePositions($params = array()) {
+        return $this->request('exchange/leverage/positions', 'private', 'GET', $params);
+    }
+    public function privateGetLendingBorrowsMatches($params = array()) {
+        return $this->request('lending/borrows/matches', 'private', 'GET', $params);
+    }
+    public function privateGetSendMoney($params = array()) {
+        return $this->request('send_money', 'private', 'GET', $params);
+    }
+    public function privateGetWithdraws($params = array()) {
+        return $this->request('withdraws', 'private', 'GET', $params);
+    }
+    public function privatePostBankAccounts($params = array()) {
+        return $this->request('bank_accounts', 'private', 'POST', $params);
+    }
+    public function privatePostDepositMoneyIdFast($params = array()) {
+        return $this->request('deposit_money/{id}/fast', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeOrders($params = array()) {
+        return $this->request('exchange/orders', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeTransfersToLeverage($params = array()) {
+        return $this->request('exchange/transfers/to_leverage', 'private', 'POST', $params);
+    }
+    public function privatePostExchangeTransfersFromLeverage($params = array()) {
+        return $this->request('exchange/transfers/from_leverage', 'private', 'POST', $params);
+    }
+    public function privatePostLendingBorrows($params = array()) {
+        return $this->request('lending/borrows', 'private', 'POST', $params);
+    }
+    public function privatePostLendingBorrowsIdRepay($params = array()) {
+        return $this->request('lending/borrows/{id}/repay', 'private', 'POST', $params);
+    }
+    public function privatePostSendMoney($params = array()) {
+        return $this->request('send_money', 'private', 'POST', $params);
+    }
+    public function privatePostWithdraws($params = array()) {
+        return $this->request('withdraws', 'private', 'POST', $params);
+    }
+    public function privateDeleteBankAccountsId($params = array()) {
+        return $this->request('bank_accounts/{id}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteExchangeOrdersId($params = array()) {
+        return $this->request('exchange/orders/{id}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteWithdrawsId($params = array()) {
+        return $this->request('withdraws/{id}', 'private', 'DELETE', $params);
+    }
 }

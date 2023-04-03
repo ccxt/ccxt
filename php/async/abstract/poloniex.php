@@ -163,4 +163,160 @@ abstract class poloniex extends \ccxt\async\Exchange {
     public function private_put_smartorders_id($params = array()) {
         return $this->request('smartorders/{id}', 'private', 'PUT', $params);
     }
+    public function publicGetMarkets($params = array()) {
+        return $this->request('markets', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsSymbol($params = array()) {
+        return $this->request('markets/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetCurrencies($params = array()) {
+        return $this->request('currencies', 'public', 'GET', $params);
+    }
+    public function publicGetCurrenciesCurrency($params = array()) {
+        return $this->request('currencies/{currency}', 'public', 'GET', $params);
+    }
+    public function publicGetTimestamp($params = array()) {
+        return $this->request('timestamp', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsPrice($params = array()) {
+        return $this->request('markets/price', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsSymbolPrice($params = array()) {
+        return $this->request('markets/{symbol}/price', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsSymbolOrderBook($params = array()) {
+        return $this->request('markets/{symbol}/orderBook', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsSymbolCandles($params = array()) {
+        return $this->request('markets/{symbol}/candles', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsSymbolTrades($params = array()) {
+        return $this->request('markets/{symbol}/trades', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsTicker24h($params = array()) {
+        return $this->request('markets/ticker24h', 'public', 'GET', $params);
+    }
+    public function publicGetMarketsSymbolTicker24h($params = array()) {
+        return $this->request('markets/{symbol}/ticker24h', 'public', 'GET', $params);
+    }
+    public function privateGetAccounts($params = array()) {
+        return $this->request('accounts', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsActivity($params = array()) {
+        return $this->request('accounts/activity', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsBalances($params = array()) {
+        return $this->request('accounts/balances', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsIdBalances($params = array()) {
+        return $this->request('accounts/{id}/balances', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsTransfer($params = array()) {
+        return $this->request('accounts/transfer', 'private', 'GET', $params);
+    }
+    public function privateGetAccountsTransferId($params = array()) {
+        return $this->request('accounts/transfer/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetSubaccounts($params = array()) {
+        return $this->request('subaccounts', 'private', 'GET', $params);
+    }
+    public function privateGetSubaccountsBalances($params = array()) {
+        return $this->request('subaccounts/balances', 'private', 'GET', $params);
+    }
+    public function privateGetSubaccountsIdBalances($params = array()) {
+        return $this->request('subaccounts/{id}/balances', 'private', 'GET', $params);
+    }
+    public function privateGetSubaccountsTransfer($params = array()) {
+        return $this->request('subaccounts/transfer', 'private', 'GET', $params);
+    }
+    public function privateGetSubaccountsTransferId($params = array()) {
+        return $this->request('subaccounts/transfer/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetFeeinfo($params = array()) {
+        return $this->request('feeinfo', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsAddresses($params = array()) {
+        return $this->request('wallets/addresses', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsActivity($params = array()) {
+        return $this->request('wallets/activity', 'private', 'GET', $params);
+    }
+    public function privateGetWalletsAddressesCurrency($params = array()) {
+        return $this->request('wallets/addresses/{currency}', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersHistory($params = array()) {
+        return $this->request('orders/history', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersKillSwitchStatus($params = array()) {
+        return $this->request('orders/killSwitchStatus', 'private', 'GET', $params);
+    }
+    public function privateGetSmartorders($params = array()) {
+        return $this->request('smartorders', 'private', 'GET', $params);
+    }
+    public function privateGetSmartordersId($params = array()) {
+        return $this->request('smartorders/{id}', 'private', 'GET', $params);
+    }
+    public function privateGetSmartordersHistory($params = array()) {
+        return $this->request('smartorders/history', 'private', 'GET', $params);
+    }
+    public function privateGetTrades($params = array()) {
+        return $this->request('trades', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersIdTrades($params = array()) {
+        return $this->request('orders/{id}/trades', 'private', 'GET', $params);
+    }
+    public function privatePostAccountsTransfer($params = array()) {
+        return $this->request('accounts/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostSubaccountsTransfer($params = array()) {
+        return $this->request('subaccounts/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostWalletsAddress($params = array()) {
+        return $this->request('wallets/address', 'private', 'POST', $params);
+    }
+    public function privatePostWalletsWithdraw($params = array()) {
+        return $this->request('wallets/withdraw', 'private', 'POST', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersKillSwitch($params = array()) {
+        return $this->request('orders/killSwitch', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersBatch($params = array()) {
+        return $this->request('orders/batch', 'private', 'POST', $params);
+    }
+    public function privatePostSmartorders($params = array()) {
+        return $this->request('smartorders', 'private', 'POST', $params);
+    }
+    public function privateDeleteOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrdersCancelByIds($params = array()) {
+        return $this->request('orders/cancelByIds', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteOrders($params = array()) {
+        return $this->request('orders', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteSmartordersId($params = array()) {
+        return $this->request('smartorders/{id}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteSmartordersCancelByIds($params = array()) {
+        return $this->request('smartorders/cancelByIds', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteSmartorders($params = array()) {
+        return $this->request('smartorders', 'private', 'DELETE', $params);
+    }
+    public function privatePutOrdersId($params = array()) {
+        return $this->request('orders/{id}', 'private', 'PUT', $params);
+    }
+    public function privatePutSmartordersId($params = array()) {
+        return $this->request('smartorders/{id}', 'private', 'PUT', $params);
+    }
 }

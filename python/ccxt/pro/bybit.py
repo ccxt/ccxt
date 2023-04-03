@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -180,7 +181,7 @@ class bybit(ccxt.async_support.bybit):
         topics = [topic]
         return await self.watch_topics(url, messageHash, topics, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         # linear
         #     {
@@ -334,7 +335,7 @@ class bybit(ccxt.async_support.bybit):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         "topic": "kline.5.BTCUSDT",
@@ -435,7 +436,7 @@ class bybit(ccxt.async_support.bybit):
         orderbook = await self.watch_topics(url, messageHash, topics, params)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "topic": "orderbook.50.BTCUSDT",
@@ -525,7 +526,7 @@ class bybit(ccxt.async_support.bybit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "topic": "publicTrade.BTCUSDT",
@@ -671,7 +672,7 @@ class bybit(ccxt.async_support.bybit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         # spot
         #    {
@@ -788,7 +789,7 @@ class bybit(ccxt.async_support.bybit):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message, subscription=None):
+    def handle_order(self, client: Client, message, subscription=None):
         #
         #     spot
         #     {
@@ -1032,7 +1033,7 @@ class bybit(ccxt.async_support.bybit):
         topics = [self.safe_value(topicByMarket, self.get_private_type(url))]
         return await self.watch_topics(url, messageHash, topics, params)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # spot
         #    {
@@ -1287,7 +1288,7 @@ class bybit(ccxt.async_support.bybit):
             client.subscriptions[messageHash] = future
         return future
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #   {
         #       success: False,
@@ -1338,7 +1339,7 @@ class bybit(ccxt.async_support.bybit):
                 client.reject(error)
             return True
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
         # contract pong
@@ -1398,7 +1399,7 @@ class bybit(ccxt.async_support.bybit):
             'op': 'ping',
         }
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         #
         #   {
         #       success: True,
@@ -1412,7 +1413,7 @@ class bybit(ccxt.async_support.bybit):
         client.lastPong = self.safe_integer(message, 'pong')
         return message
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #    {
         #        success: True,
@@ -1432,7 +1433,7 @@ class bybit(ccxt.async_support.bybit):
                 del client.subscriptions[messageHash]
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #    {
         #        topic: 'kline',

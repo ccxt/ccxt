@@ -2008,7 +2008,7 @@ class krakenfutures extends Exchange {
         }
         $url = $this->urls['api'][$api] . $query;
         if ($api === 'private' || $access === 'private') {
-            $auth = $postData . '/api/' . $endpoint; // 1
+            $auth = $postData . '/api/' . ($api === 'private' ? $endpoint : $api . '/' . $endpoint); // 1
             $hash = $this->hash($this->encode($auth), 'sha256', 'binary'); // 2
             $secret = base64_decode($this->secret); // 3
             $signature = $this->hmac($hash, $secret, 'sha512', 'base64'); // 4-5

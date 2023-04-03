@@ -61,4 +61,58 @@ abstract class oceanex extends \ccxt\Exchange {
     public function private_post_orders_clear($params = array()) {
         return $this->request('orders/clear', 'private', 'POST', $params);
     }
+    public function publicGetMarkets($params = array()) {
+        return $this->request('markets', 'public', 'GET', $params);
+    }
+    public function publicGetTickersPair($params = array()) {
+        return $this->request('tickers/{pair}', 'public', 'GET', $params);
+    }
+    public function publicGetTickersMulti($params = array()) {
+        return $this->request('tickers_multi', 'public', 'GET', $params);
+    }
+    public function publicGetOrderBook($params = array()) {
+        return $this->request('order_book', 'public', 'GET', $params);
+    }
+    public function publicGetOrderBookMulti($params = array()) {
+        return $this->request('order_book/multi', 'public', 'GET', $params);
+    }
+    public function publicGetFeesTrading($params = array()) {
+        return $this->request('fees/trading', 'public', 'GET', $params);
+    }
+    public function publicGetTrades($params = array()) {
+        return $this->request('trades', 'public', 'GET', $params);
+    }
+    public function publicGetTimestamp($params = array()) {
+        return $this->request('timestamp', 'public', 'GET', $params);
+    }
+    public function publicPostK($params = array()) {
+        return $this->request('k', 'public', 'POST', $params);
+    }
+    public function privateGetKey($params = array()) {
+        return $this->request('key', 'private', 'GET', $params);
+    }
+    public function privateGetMembersMe($params = array()) {
+        return $this->request('members/me', 'private', 'GET', $params);
+    }
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersFilter($params = array()) {
+        return $this->request('orders/filter', 'private', 'GET', $params);
+    }
+    public function privatePostOrders($params = array()) {
+        return $this->request('orders', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersMulti($params = array()) {
+        return $this->request('orders/multi', 'private', 'POST', $params);
+    }
+    public function privatePostOrderDelete($params = array()) {
+        return $this->request('order/delete', 'private', 'POST', $params);
+    }
+    public function privatePostOrderDeleteMulti($params = array()) {
+        return $this->request('order/delete/multi', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersClear($params = array()) {
+        return $this->request('orders/clear', 'private', 'POST', $params);
+    }
 }

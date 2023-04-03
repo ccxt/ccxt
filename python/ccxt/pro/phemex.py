@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -128,7 +129,7 @@ class phemex(ccxt.async_support.phemex):
         }
         return result
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         spot_market24h: {
@@ -247,7 +248,7 @@ class phemex(ccxt.async_support.phemex):
         messageHash = type + ':balance'
         client.resolve(self.balance, messageHash)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         sequence: 1795484727,
@@ -276,7 +277,7 @@ class phemex(ccxt.async_support.phemex):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         kline: [
@@ -431,7 +432,7 @@ class phemex(ccxt.async_support.phemex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i], market)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         book: {
@@ -508,7 +509,7 @@ class phemex(ccxt.async_support.phemex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         # [
         #    {
@@ -591,7 +592,7 @@ class phemex(ccxt.async_support.phemex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         # spot update
         # {
         #        "closed":[
@@ -835,7 +836,7 @@ class phemex(ccxt.async_support.phemex):
             'trades': None,
         }, market)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         # private spot update
         # {
         #     orders: {closed: [], fills: [], open: []},
@@ -952,7 +953,7 @@ class phemex(ccxt.async_support.phemex):
             accounts = self.safe_value_2(message, 'accounts', 'wallets', [])
             self.handle_balance(type, client, accounts)
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         # {
         #     "error": null,

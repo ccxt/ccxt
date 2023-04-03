@@ -193,4 +193,190 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_post_contract_private_trades($params = array()) {
         return $this->request('contract/private/trades', 'private', 'POST', $params);
     }
+    public function publicGetSystemTime($params = array()) {
+        return $this->request('system/time', 'public', 'GET', $params);
+    }
+    public function publicGetSystemService($params = array()) {
+        return $this->request('system/service', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV1Currencies($params = array()) {
+        return $this->request('spot/v1/currencies', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV1Symbols($params = array()) {
+        return $this->request('spot/v1/symbols', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV1SymbolsDetails($params = array()) {
+        return $this->request('spot/v1/symbols/details', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV1Ticker($params = array()) {
+        return $this->request('spot/v1/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV2Ticker($params = array()) {
+        return $this->request('spot/v2/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV1Steps($params = array()) {
+        return $this->request('spot/v1/steps', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV1SymbolsKline($params = array()) {
+        return $this->request('spot/v1/symbols/kline', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV1SymbolsBook($params = array()) {
+        return $this->request('spot/v1/symbols/book', 'public', 'GET', $params);
+    }
+    public function publicGetSpotV1SymbolsTrades($params = array()) {
+        return $this->request('spot/v1/symbols/trades', 'public', 'GET', $params);
+    }
+    public function publicGetContractV1Tickers($params = array()) {
+        return $this->request('contract/v1/tickers', 'public', 'GET', $params);
+    }
+    public function publicGetContractPublicDetails($params = array()) {
+        return $this->request('contract/public/details', 'public', 'GET', $params);
+    }
+    public function publicGetContractPublicDepth($params = array()) {
+        return $this->request('contract/public/depth', 'public', 'GET', $params);
+    }
+    public function publicGetContractPublicOpenInterest($params = array()) {
+        return $this->request('contract/public/open-interest', 'public', 'GET', $params);
+    }
+    public function publicGetContractPublicFundingRate($params = array()) {
+        return $this->request('contract/public/funding-rate', 'public', 'GET', $params);
+    }
+    public function publicGetContractPublicKline($params = array()) {
+        return $this->request('contract/public/kline', 'public', 'GET', $params);
+    }
+    public function privateGetAccountSubAccountV1TransferList($params = array()) {
+        return $this->request('account/sub-account/v1/transfer-list', 'private', 'GET', $params);
+    }
+    public function privateGetAccountSubAccountV1TransferHistory($params = array()) {
+        return $this->request('account/sub-account/v1/transfer-history', 'private', 'GET', $params);
+    }
+    public function privateGetAccountSubAccountMainV1Wallet($params = array()) {
+        return $this->request('account/sub-account/main/v1/wallet', 'private', 'GET', $params);
+    }
+    public function privateGetAccountSubAccountMainV1SubaccountList($params = array()) {
+        return $this->request('account/sub-account/main/v1/subaccount-list', 'private', 'GET', $params);
+    }
+    public function privateGetAccountV1Wallet($params = array()) {
+        return $this->request('account/v1/wallet', 'private', 'GET', $params);
+    }
+    public function privateGetAccountV1Currencies($params = array()) {
+        return $this->request('account/v1/currencies', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1Wallet($params = array()) {
+        return $this->request('spot/v1/wallet', 'private', 'GET', $params);
+    }
+    public function privateGetAccountV1DepositAddress($params = array()) {
+        return $this->request('account/v1/deposit/address', 'private', 'GET', $params);
+    }
+    public function privateGetAccountV1WithdrawCharge($params = array()) {
+        return $this->request('account/v1/withdraw/charge', 'private', 'GET', $params);
+    }
+    public function privateGetAccountV2DepositWithdrawHistory($params = array()) {
+        return $this->request('account/v2/deposit-withdraw/history', 'private', 'GET', $params);
+    }
+    public function privateGetAccountV1DepositWithdrawDetail($params = array()) {
+        return $this->request('account/v1/deposit-withdraw/detail', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1OrderDetail($params = array()) {
+        return $this->request('spot/v1/order_detail', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV2Orders($params = array()) {
+        return $this->request('spot/v2/orders', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1Trades($params = array()) {
+        return $this->request('spot/v1/trades', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV2Trades($params = array()) {
+        return $this->request('spot/v2/trades', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV3Orders($params = array()) {
+        return $this->request('spot/v3/orders', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV2OrderDetail($params = array()) {
+        return $this->request('spot/v2/order_detail', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1MarginIsolatedBorrowRecord($params = array()) {
+        return $this->request('spot/v1/margin/isolated/borrow_record', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1MarginIsolatedRepayRecord($params = array()) {
+        return $this->request('spot/v1/margin/isolated/repay_record', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1MarginIsolatedPairs($params = array()) {
+        return $this->request('spot/v1/margin/isolated/pairs', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1MarginIsolatedAccount($params = array()) {
+        return $this->request('spot/v1/margin/isolated/account', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1TradeFee($params = array()) {
+        return $this->request('spot/v1/trade_fee', 'private', 'GET', $params);
+    }
+    public function privateGetSpotV1UserFee($params = array()) {
+        return $this->request('spot/v1/user_fee', 'private', 'GET', $params);
+    }
+    public function privateGetContractPrivateAssetsDetail($params = array()) {
+        return $this->request('contract/private/assets-detail', 'private', 'GET', $params);
+    }
+    public function privateGetContractPrivateOrder($params = array()) {
+        return $this->request('contract/private/order', 'private', 'GET', $params);
+    }
+    public function privateGetContractPrivateOrderHistory($params = array()) {
+        return $this->request('contract/private/order-history', 'private', 'GET', $params);
+    }
+    public function privateGetContractPrivatePosition($params = array()) {
+        return $this->request('contract/private/position', 'private', 'GET', $params);
+    }
+    public function privatePostAccountSubAccountMainV1SubToMain($params = array()) {
+        return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params);
+    }
+    public function privatePostAccountSubAccountSubV1SubToMain($params = array()) {
+        return $this->request('account/sub-account/sub/v1/sub-to-main', 'private', 'POST', $params);
+    }
+    public function privatePostAccountSubAccountMainV1MainToSub($params = array()) {
+        return $this->request('account/sub-account/main/v1/main-to-sub', 'private', 'POST', $params);
+    }
+    public function privatePostAccountSubAccountSubV1SubToSub($params = array()) {
+        return $this->request('account/sub-account/sub/v1/sub-to-sub', 'private', 'POST', $params);
+    }
+    public function privatePostAccountSubAccountMainV1SubToSub($params = array()) {
+        return $this->request('account/sub-account/main/v1/sub-to-sub', 'private', 'POST', $params);
+    }
+    public function privatePostAccountV1WithdrawApply($params = array()) {
+        return $this->request('account/v1/withdraw/apply', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV1SubmitOrder($params = array()) {
+        return $this->request('spot/v1/submit_order', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV1BatchOrders($params = array()) {
+        return $this->request('spot/v1/batch_orders', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV2CancelOrder($params = array()) {
+        return $this->request('spot/v2/cancel_order', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV1CancelOrders($params = array()) {
+        return $this->request('spot/v1/cancel_orders', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV3CancelOrder($params = array()) {
+        return $this->request('spot/v3/cancel_order', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV2BatchOrders($params = array()) {
+        return $this->request('spot/v2/batch_orders', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV2SubmitOrder($params = array()) {
+        return $this->request('spot/v2/submit_order', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV1MarginSubmitOrder($params = array()) {
+        return $this->request('spot/v1/margin/submit_order', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV1MarginIsolatedBorrow($params = array()) {
+        return $this->request('spot/v1/margin/isolated/borrow', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV1MarginIsolatedRepay($params = array()) {
+        return $this->request('spot/v1/margin/isolated/repay', 'private', 'POST', $params);
+    }
+    public function privatePostSpotV1MarginIsolatedTransfer($params = array()) {
+        return $this->request('spot/v1/margin/isolated/transfer', 'private', 'POST', $params);
+    }
+    public function privatePostContractPrivateTrades($params = array()) {
+        return $this->request('contract/private/trades', 'private', 'POST', $params);
+    }
 }

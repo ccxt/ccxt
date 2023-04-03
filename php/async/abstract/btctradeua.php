@@ -46,4 +46,43 @@ abstract class btctradeua extends \ccxt\async\Exchange {
     public function private_post_sell_symbol($params = array()) {
         return $this->request('sell/{symbol}', 'private', 'POST', $params);
     }
+    public function publicGetDealsSymbol($params = array()) {
+        return $this->request('deals/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetTradesSellSymbol($params = array()) {
+        return $this->request('trades/sell/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetTradesBuySymbol($params = array()) {
+        return $this->request('trades/buy/{symbol}', 'public', 'GET', $params);
+    }
+    public function publicGetJapanStatHighSymbol($params = array()) {
+        return $this->request('japan_stat/high/{symbol}', 'public', 'GET', $params);
+    }
+    public function privatePostAuth($params = array()) {
+        return $this->request('auth', 'private', 'POST', $params);
+    }
+    public function privatePostAskSymbol($params = array()) {
+        return $this->request('ask/{symbol}', 'private', 'POST', $params);
+    }
+    public function privatePostBalance($params = array()) {
+        return $this->request('balance', 'private', 'POST', $params);
+    }
+    public function privatePostBidSymbol($params = array()) {
+        return $this->request('bid/{symbol}', 'private', 'POST', $params);
+    }
+    public function privatePostBuySymbol($params = array()) {
+        return $this->request('buy/{symbol}', 'private', 'POST', $params);
+    }
+    public function privatePostMyOrdersSymbol($params = array()) {
+        return $this->request('my_orders/{symbol}', 'private', 'POST', $params);
+    }
+    public function privatePostOrderStatusId($params = array()) {
+        return $this->request('order/status/{id}', 'private', 'POST', $params);
+    }
+    public function privatePostRemoveOrderId($params = array()) {
+        return $this->request('remove/order/{id}', 'private', 'POST', $params);
+    }
+    public function privatePostSellSymbol($params = array()) {
+        return $this->request('sell/{symbol}', 'private', 'POST', $params);
+    }
 }

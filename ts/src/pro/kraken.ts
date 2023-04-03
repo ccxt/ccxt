@@ -6,6 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -57,7 +58,7 @@ export default class kraken extends krakenRest {
         });
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         //     [
         //         0, // channelID
@@ -119,7 +120,7 @@ export default class kraken extends krakenRest {
         client.resolve (result, messageHash);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         //
         //     [
         //         0, // channelID
@@ -150,7 +151,7 @@ export default class kraken extends krakenRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client: Client, message, subscription) {
         //
         //     [
         //         216, // channelID
@@ -359,7 +360,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, event);
     }
 
-    handleHeartbeat (client, message) {
+    handleHeartbeat (client: Client, message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -369,7 +370,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, event);
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         //
         // first message (snapshot)
         //
@@ -535,7 +536,7 @@ export default class kraken extends krakenRest {
         return timestamp;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -614,7 +615,7 @@ export default class kraken extends krakenRest {
         return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
     }
 
-    handleMyTrades (client, message, subscription = undefined) {
+    handleMyTrades (client: Client, message, subscription = undefined) {
         //
         //     [
         //         [
@@ -779,7 +780,7 @@ export default class kraken extends krakenRest {
         return await this.watchPrivate ('openOrders', symbol, since, limit, params);
     }
 
-    handleOrders (client, message, subscription = undefined) {
+    handleOrders (client: Client, message, subscription = undefined) {
         //
         //     [
         //         [
@@ -1032,7 +1033,7 @@ export default class kraken extends krakenRest {
         });
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         // public
         //
@@ -1066,7 +1067,7 @@ export default class kraken extends krakenRest {
         // }
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         errorMessage: 'Currency pair not in ISO 4217-A3 format foobar',
@@ -1096,7 +1097,7 @@ export default class kraken extends krakenRest {
         return true;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});

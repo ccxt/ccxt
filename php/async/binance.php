@@ -6939,7 +6939,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -6995,6 +6995,8 @@ class binance extends Exchange {
                     } else {
                         $response = array( 'code' => -4046, 'msg' => 'No need to change margin type.' );
                     }
+                } else {
+                    throw $e;
                 }
             }
             return $response;

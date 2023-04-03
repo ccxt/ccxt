@@ -76,7 +76,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function handle_order_book_snapshot($client, $message) {
+    public function handle_order_book_snapshot(Client $client, $message) {
         // full $snapshot
         //
         // {
@@ -142,7 +142,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         // {
         //     code => 0,
@@ -230,7 +230,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         // {
         //     "info":{
@@ -293,7 +293,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //  {
         //       instrument_name => 'BTC_USDT',
@@ -353,7 +353,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function handle_orders($client, $message, $subscription = null) {
+    public function handle_orders(Client $client, $message, $subscription = null) {
         //
         // {
         //     "method" => "subscribe",
@@ -416,7 +416,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // {
         //     "method" => "subscribe",
@@ -485,7 +485,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         // {
         //     id => 0,
         //     code => 10004,
@@ -517,7 +517,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         // ping
         // {
         //     "id" => 1587523073344,
@@ -604,11 +604,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         return $future;
     }
 
-    public function handle_ping($client, $message) {
+    public function handle_ping(Client $client, $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //  array( id => 1648132625434, method => 'public/auth', code => 0 )
         //

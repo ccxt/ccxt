@@ -106,4 +106,103 @@ abstract class independentreserve extends \ccxt\async\Exchange {
     public function private_post_withdrawdigitalcurrency($params = array()) {
         return $this->request('WithdrawDigitalCurrency', 'private', 'POST', $params);
     }
+    public function publicGetGetValidPrimaryCurrencyCodes($params = array()) {
+        return $this->request('GetValidPrimaryCurrencyCodes', 'public', 'GET', $params);
+    }
+    public function publicGetGetValidSecondaryCurrencyCodes($params = array()) {
+        return $this->request('GetValidSecondaryCurrencyCodes', 'public', 'GET', $params);
+    }
+    public function publicGetGetValidLimitOrderTypes($params = array()) {
+        return $this->request('GetValidLimitOrderTypes', 'public', 'GET', $params);
+    }
+    public function publicGetGetValidMarketOrderTypes($params = array()) {
+        return $this->request('GetValidMarketOrderTypes', 'public', 'GET', $params);
+    }
+    public function publicGetGetValidOrderTypes($params = array()) {
+        return $this->request('GetValidOrderTypes', 'public', 'GET', $params);
+    }
+    public function publicGetGetValidTransactionTypes($params = array()) {
+        return $this->request('GetValidTransactionTypes', 'public', 'GET', $params);
+    }
+    public function publicGetGetMarketSummary($params = array()) {
+        return $this->request('GetMarketSummary', 'public', 'GET', $params);
+    }
+    public function publicGetGetOrderBook($params = array()) {
+        return $this->request('GetOrderBook', 'public', 'GET', $params);
+    }
+    public function publicGetGetAllOrders($params = array()) {
+        return $this->request('GetAllOrders', 'public', 'GET', $params);
+    }
+    public function publicGetGetTradeHistorySummary($params = array()) {
+        return $this->request('GetTradeHistorySummary', 'public', 'GET', $params);
+    }
+    public function publicGetGetRecentTrades($params = array()) {
+        return $this->request('GetRecentTrades', 'public', 'GET', $params);
+    }
+    public function publicGetGetFxRates($params = array()) {
+        return $this->request('GetFxRates', 'public', 'GET', $params);
+    }
+    public function publicGetGetOrderMinimumVolumes($params = array()) {
+        return $this->request('GetOrderMinimumVolumes', 'public', 'GET', $params);
+    }
+    public function publicGetGetCryptoWithdrawalFees($params = array()) {
+        return $this->request('GetCryptoWithdrawalFees', 'public', 'GET', $params);
+    }
+    public function privatePostGetOpenOrders($params = array()) {
+        return $this->request('GetOpenOrders', 'private', 'POST', $params);
+    }
+    public function privatePostGetClosedOrders($params = array()) {
+        return $this->request('GetClosedOrders', 'private', 'POST', $params);
+    }
+    public function privatePostGetClosedFilledOrders($params = array()) {
+        return $this->request('GetClosedFilledOrders', 'private', 'POST', $params);
+    }
+    public function privatePostGetOrderDetails($params = array()) {
+        return $this->request('GetOrderDetails', 'private', 'POST', $params);
+    }
+    public function privatePostGetAccounts($params = array()) {
+        return $this->request('GetAccounts', 'private', 'POST', $params);
+    }
+    public function privatePostGetTransactions($params = array()) {
+        return $this->request('GetTransactions', 'private', 'POST', $params);
+    }
+    public function privatePostGetFiatBankAccounts($params = array()) {
+        return $this->request('GetFiatBankAccounts', 'private', 'POST', $params);
+    }
+    public function privatePostGetDigitalCurrencyDepositAddress($params = array()) {
+        return $this->request('GetDigitalCurrencyDepositAddress', 'private', 'POST', $params);
+    }
+    public function privatePostGetDigitalCurrencyDepositAddresses($params = array()) {
+        return $this->request('GetDigitalCurrencyDepositAddresses', 'private', 'POST', $params);
+    }
+    public function privatePostGetTrades($params = array()) {
+        return $this->request('GetTrades', 'private', 'POST', $params);
+    }
+    public function privatePostGetBrokerageFees($params = array()) {
+        return $this->request('GetBrokerageFees', 'private', 'POST', $params);
+    }
+    public function privatePostGetDigitalCurrencyWithdrawal($params = array()) {
+        return $this->request('GetDigitalCurrencyWithdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostPlaceLimitOrder($params = array()) {
+        return $this->request('PlaceLimitOrder', 'private', 'POST', $params);
+    }
+    public function privatePostPlaceMarketOrder($params = array()) {
+        return $this->request('PlaceMarketOrder', 'private', 'POST', $params);
+    }
+    public function privatePostCancelOrder($params = array()) {
+        return $this->request('CancelOrder', 'private', 'POST', $params);
+    }
+    public function privatePostSynchDigitalCurrencyDepositAddressWithBlockchain($params = array()) {
+        return $this->request('SynchDigitalCurrencyDepositAddressWithBlockchain', 'private', 'POST', $params);
+    }
+    public function privatePostRequestFiatWithdrawal($params = array()) {
+        return $this->request('RequestFiatWithdrawal', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawFiatCurrency($params = array()) {
+        return $this->request('WithdrawFiatCurrency', 'private', 'POST', $params);
+    }
+    public function privatePostWithdrawDigitalCurrency($params = array()) {
+        return $this->request('WithdrawDigitalCurrency', 'private', 'POST', $params);
+    }
 }

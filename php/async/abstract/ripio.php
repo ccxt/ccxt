@@ -46,4 +46,43 @@ abstract class ripio extends \ccxt\async\Exchange {
     public function private_post_order_pair_order_id_cancel($params = array()) {
         return $this->request('order/{pair}/{order_id}/cancel/', 'private', 'POST', $params);
     }
+    public function publicGetRateAll($params = array()) {
+        return $this->request('rate/all/', 'public', 'GET', $params);
+    }
+    public function publicGetRatePair($params = array()) {
+        return $this->request('rate/{pair}/', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbookPair($params = array()) {
+        return $this->request('orderbook/{pair}/', 'public', 'GET', $params);
+    }
+    public function publicGetTradehistoryPair($params = array()) {
+        return $this->request('tradehistory/{pair}/', 'public', 'GET', $params);
+    }
+    public function publicGetPair($params = array()) {
+        return $this->request('pair/', 'public', 'GET', $params);
+    }
+    public function publicGetCurrency($params = array()) {
+        return $this->request('currency/', 'public', 'GET', $params);
+    }
+    public function publicGetOrderbookPairDepth($params = array()) {
+        return $this->request('orderbook/{pair}/depth/', 'public', 'GET', $params);
+    }
+    public function privateGetBalancesExchangeBalances($params = array()) {
+        return $this->request('balances/exchange_balances/', 'private', 'GET', $params);
+    }
+    public function privateGetOrderPairOrderId($params = array()) {
+        return $this->request('order/{pair}/{order_id}/', 'private', 'GET', $params);
+    }
+    public function privateGetOrderPair($params = array()) {
+        return $this->request('order/{pair}/', 'private', 'GET', $params);
+    }
+    public function privateGetTradePair($params = array()) {
+        return $this->request('trade/{pair}/', 'private', 'GET', $params);
+    }
+    public function privatePostOrderPair($params = array()) {
+        return $this->request('order/{pair}/', 'private', 'POST', $params);
+    }
+    public function privatePostOrderPairOrderIdCancel($params = array()) {
+        return $this->request('order/{pair}/{order_id}/cancel/', 'private', 'POST', $params);
+    }
 }

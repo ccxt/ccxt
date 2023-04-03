@@ -1,5 +1,6 @@
 import phemexRest from '../phemex.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
     describe(): any;
     fromEn(en: any, scale: any): string;
@@ -29,25 +30,25 @@ export default class phemex extends phemexRest {
         quoteVolume: number;
         info: any;
     };
-    handleTicker(client: any, message: any): void;
+    handleTicker(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(type: any, client: any, message: any): void;
-    handleTrades(client: any, message: any): void;
-    handleOHLCV(client: any, message: any): void;
+    handleTrades(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any, market?: any): void;
     handleDeltas(bookside: any, deltas: any, market?: any): void;
-    handleOrderBook(client: any, message: any): void;
+    handleOrderBook(client: Client, message: any): void;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    handleMyTrades(client: any, message: any): void;
+    handleMyTrades(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    handleOrders(client: any, message: any): void;
+    handleOrders(client: Client, message: any): void;
     parseWSSwapOrder(order: any, market?: any): any;
-    handleMessage(client: any, message: any): any;
-    handleAuthenticate(client: any, message: any): void;
+    handleMessage(client: Client, message: any): any;
+    handleAuthenticate(client: Client, message: any): void;
     subscribePrivate(type: any, messageHash: any, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
 }

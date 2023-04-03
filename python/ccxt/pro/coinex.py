@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -83,7 +84,7 @@ class coinex(ccxt.async_support.coinex):
         self.options['requestId'] = requestId
         return requestId
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #  spot
         #
@@ -235,7 +236,7 @@ class coinex(ccxt.async_support.coinex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         "method": "asset.update",
@@ -269,7 +270,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "method": "deals.update",
@@ -333,7 +334,7 @@ class coinex(ccxt.async_support.coinex):
             'fee': None,
         }, market)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         method: 'kline.update',
@@ -528,7 +529,7 @@ class coinex(ccxt.async_support.coinex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "method": "depth.update",
@@ -607,7 +608,7 @@ class coinex(ccxt.async_support.coinex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         #
         #  spot
         #
@@ -869,7 +870,7 @@ class coinex(ccxt.async_support.coinex):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         error = self.safe_value(message, 'error')
         if error is not None:
             raise ExchangeError(self.id + ' ' + self.json(error))
@@ -888,7 +889,7 @@ class coinex(ccxt.async_support.coinex):
             return handler(client, message)
         return self.handle_subscription_status(client, message)
 
-    def handle_authentication_message(self, client, message):
+    def handle_authentication_message(self, client: Client, message):
         #
         #     {
         #         error: null,
@@ -903,7 +904,7 @@ class coinex(ccxt.async_support.coinex):
             future.resolve(True)
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         id = self.safe_string(message, 'id')
         subscription = self.safe_value(client.subscriptions, id)
         if subscription is not None:

@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 
 
@@ -68,7 +69,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         orderbook = await self.watch_public(symbol, 'orderbook', None, params)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client, message):
+    def handle_order_book_snapshot(self, client: Client, message):
         #
         #     {
         #         jsonrpc: "2.0",
@@ -105,7 +106,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = 'orderbook:' + marketId
         client.resolve(orderbook, messageHash)
 
-    def handle_order_book_update(self, client, message):
+    def handle_order_book_update(self, client: Client, message):
         #
         #     {
         #         jsonrpc: "2.0",
@@ -164,7 +165,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         return await self.watch_public(symbol, 'ticker', None, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -207,7 +208,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -280,7 +281,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -332,13 +333,13 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def handle_notification(self, client, message):
+    def handle_notification(self, client: Client, message):
         #
         #     {jsonrpc: '2.0', result: True, id: null}
         #
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         methods = {
             'snapshotOrderbook': self.handle_order_book_snapshot,
             'updateOrderbook': self.handle_order_book_update,

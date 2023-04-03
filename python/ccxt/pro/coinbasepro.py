@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import BadSymbol
 
@@ -173,7 +174,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         orderbook = await self.watch(url, messageHash, request, messageHash, subscription)
         return orderbook.limit()
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         type: 'match',
@@ -206,7 +207,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client: Client, message):
         marketId = self.safe_string(message, 'product_id')
         if marketId is not None:
             trade = self.parse_ws_trade(message)
@@ -301,7 +302,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         }
         return self.safe_string(statuses, status, 'open')
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         # Order is created
         #
@@ -500,7 +501,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             'trades': None,
         }
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         type: 'ticker',
@@ -591,7 +592,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # first message(snapshot)
         #
@@ -653,7 +654,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             orderbook['datetime'] = self.iso8601(timestamp)
             client.resolve(orderbook, messageHash)
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         type: 'subscriptions',
@@ -667,7 +668,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         #
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
         methods = {
             'snapshot': self.handle_order_book,

@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 
 
@@ -64,7 +65,7 @@ class luno(ccxt.async_support.luno):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message, subscription):
+    def handle_trades(self, client: Client, message, subscription):
         #
         #     {
         #         sequence: '110980825',
@@ -153,7 +154,7 @@ class luno(ccxt.async_support.luno):
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message, subscription):
+    def handle_order_book(self, client: Client, message, subscription):
         #
         #     {
         #         "sequence": "24352",
@@ -293,7 +294,7 @@ class luno(ccxt.async_support.luno):
             bidsOrderSide.storeArray(0, 0, orderId)
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if message == '':
             return
         subscriptions = list(client.subscriptions.values())

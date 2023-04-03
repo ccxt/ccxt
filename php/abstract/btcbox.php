@@ -34,4 +34,31 @@ abstract class btcbox extends \ccxt\Exchange {
     public function private_post_wallet($params = array()) {
         return $this->request('wallet', 'private', 'POST', $params);
     }
+    public function publicGetDepth($params = array()) {
+        return $this->request('depth', 'public', 'GET', $params);
+    }
+    public function publicGetOrders($params = array()) {
+        return $this->request('orders', 'public', 'GET', $params);
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params);
+    }
+    public function privatePostBalance($params = array()) {
+        return $this->request('balance', 'private', 'POST', $params);
+    }
+    public function privatePostTradeAdd($params = array()) {
+        return $this->request('trade_add', 'private', 'POST', $params);
+    }
+    public function privatePostTradeCancel($params = array()) {
+        return $this->request('trade_cancel', 'private', 'POST', $params);
+    }
+    public function privatePostTradeList($params = array()) {
+        return $this->request('trade_list', 'private', 'POST', $params);
+    }
+    public function privatePostTradeView($params = array()) {
+        return $this->request('trade_view', 'private', 'POST', $params);
+    }
+    public function privatePostWallet($params = array()) {
+        return $this->request('wallet', 'private', 'POST', $params);
+    }
 }

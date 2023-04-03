@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import RateLimitExceeded
@@ -74,7 +75,7 @@ class bitmex(ccxt.async_support.bitmex):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         table: 'instrument',
@@ -334,7 +335,7 @@ class bitmex(ccxt.async_support.bitmex):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         table: 'margin',
@@ -439,7 +440,7 @@ class bitmex(ccxt.async_support.bitmex):
         messageHash = self.safe_string(message, 'table')
         client.resolve(self.balance, messageHash)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         # initial snapshot
         #
@@ -567,7 +568,7 @@ class bitmex(ccxt.async_support.bitmex):
             client.subscriptions[messageHash] = future
         return future
 
-    def handle_authentication_message(self, client, message):
+    def handle_authentication_message(self, client: Client, message):
         authenticated = self.safe_value(message, 'success', False)
         messageHash = 'authenticated'
         if authenticated:
@@ -608,7 +609,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         #
         #     {
         #         table: 'order',
@@ -814,7 +815,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         "table":"execution",
@@ -951,7 +952,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         table: 'tradeBin1m',
@@ -1056,7 +1057,7 @@ class bitmex(ccxt.async_support.bitmex):
         url = self.urls['api']['ws']
         return await self.watch(url, event)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # first snapshot
         #
@@ -1165,7 +1166,7 @@ class bitmex(ccxt.async_support.bitmex):
                 orderbook = self.orderbooks[symbol]
                 client.resolve(orderbook, messageHash)
 
-    def handle_system_status(self, client, message):
+    def handle_system_status(self, client: Client, message):
         #
         # todo answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -1181,7 +1182,7 @@ class bitmex(ccxt.async_support.bitmex):
         #
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         success: True,
@@ -1191,7 +1192,7 @@ class bitmex(ccxt.async_support.bitmex):
         #
         return message
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         # generic error format
         #
@@ -1226,7 +1227,7 @@ class bitmex(ccxt.async_support.bitmex):
                 return False
         return True
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         #     {
         #         info: 'Welcome to the BitMEX Realtime API.',

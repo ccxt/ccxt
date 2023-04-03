@@ -70,4 +70,67 @@ abstract class novadax extends \ccxt\Exchange {
     public function private_post_account_subs_transfer($params = array()) {
         return $this->request('account/subs/transfer', 'private', 'POST', $params);
     }
+    public function publicGetCommonSymbol($params = array()) {
+        return $this->request('common/symbol', 'public', 'GET', $params);
+    }
+    public function publicGetCommonSymbols($params = array()) {
+        return $this->request('common/symbols', 'public', 'GET', $params);
+    }
+    public function publicGetCommonTimestamp($params = array()) {
+        return $this->request('common/timestamp', 'public', 'GET', $params);
+    }
+    public function publicGetMarketTickers($params = array()) {
+        return $this->request('market/tickers', 'public', 'GET', $params);
+    }
+    public function publicGetMarketTicker($params = array()) {
+        return $this->request('market/ticker', 'public', 'GET', $params);
+    }
+    public function publicGetMarketDepth($params = array()) {
+        return $this->request('market/depth', 'public', 'GET', $params);
+    }
+    public function publicGetMarketTrades($params = array()) {
+        return $this->request('market/trades', 'public', 'GET', $params);
+    }
+    public function publicGetMarketKlineHistory($params = array()) {
+        return $this->request('market/kline/history', 'public', 'GET', $params);
+    }
+    public function privateGetOrdersGet($params = array()) {
+        return $this->request('orders/get', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersList($params = array()) {
+        return $this->request('orders/list', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersFill($params = array()) {
+        return $this->request('orders/fill', 'private', 'GET', $params);
+    }
+    public function privateGetOrdersFills($params = array()) {
+        return $this->request('orders/fills', 'private', 'GET', $params);
+    }
+    public function privateGetAccountGetBalance($params = array()) {
+        return $this->request('account/getBalance', 'private', 'GET', $params);
+    }
+    public function privateGetAccountSubs($params = array()) {
+        return $this->request('account/subs', 'private', 'GET', $params);
+    }
+    public function privateGetAccountSubsBalance($params = array()) {
+        return $this->request('account/subs/balance', 'private', 'GET', $params);
+    }
+    public function privateGetAccountSubsTransferRecord($params = array()) {
+        return $this->request('account/subs/transfer/record', 'private', 'GET', $params);
+    }
+    public function privateGetWalletQueryDepositWithdraw($params = array()) {
+        return $this->request('wallet/query/deposit-withdraw', 'private', 'GET', $params);
+    }
+    public function privatePostOrdersCreate($params = array()) {
+        return $this->request('orders/create', 'private', 'POST', $params);
+    }
+    public function privatePostOrdersCancel($params = array()) {
+        return $this->request('orders/cancel', 'private', 'POST', $params);
+    }
+    public function privatePostAccountWithdrawCoin($params = array()) {
+        return $this->request('account/withdraw/coin', 'private', 'POST', $params);
+    }
+    public function privatePostAccountSubsTransfer($params = array()) {
+        return $this->request('account/subs/transfer', 'private', 'POST', $params);
+    }
 }

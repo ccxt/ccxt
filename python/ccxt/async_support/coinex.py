@@ -15,6 +15,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
@@ -1883,6 +1884,67 @@ class coinex(Exchange):
         #     {"code":0,"data":{"status":"success"},"message":"OK"}
         #
         data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
+
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_argument('editOrder', symbol, 'symbol')
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        request = {
+            'market': market['id'],
+            'id': id,
+        }
+        if amount is not None:
+            request['amount'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostOrderModify(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "id": 35436205,
+        #             "create_time": 1636080705,
+        #             "finished_time": null,
+        #             "amount": "0.30000000",
+        #             "price": " 56000",
+        #             "deal_amount": "0.24721428",
+        #             "deal_money": "13843.9996800000000000",
+        #             "deal_fee": "0",
+        #             "stock_fee": "0",
+        #             "money_fee": "0",
+        #             " asset_fee": "8.721719798400000000000000",
+        #             "fee_asset": "CET",
+        #             "fee_discount": "0.70",
+        #             "avg_price": "56000",
+        #             "market": "BTCUSDT",
+        #             "left": "0.05278572 ",
+        #             "maker_fee_rate": "0.0018",
+        #             "taker_fee_rate": "0.0018",
+        #             "order_type": "limit",
+        #             "type": "buy",
+        #             "status": "cancel",
+        #             "client_id ": "abcd222",
+        #             "source_id": "1234"
+        #     },
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
@@ -3818,13 +3880,12 @@ class coinex(Exchange):
         :param dict params: extra parameters specific to the coinex api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'coin_type': currency['id'],
-        }
+        request = {}
+        currency = None
+        if code is not None:
+            await self.load_markets()
+            currency = self.currency(code)
+            request['coin_type'] = currency['id']
         if limit is not None:
             request['Limit'] = limit
         response = await self.privateGetBalanceCoinWithdraw(self.extend(request, params))
@@ -3880,13 +3941,12 @@ class coinex(Exchange):
         :param dict params: extra parameters specific to the coinex api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'coin_type': currency['id'],
-        }
+        request = {}
+        currency = None
+        if code is not None:
+            await self.load_markets()
+            currency = self.currency(code)
+            request['coin_type'] = currency['id']
         if limit is not None:
             request['Limit'] = limit
         response = await self.privateGetBalanceCoinDeposit(self.extend(request, params))

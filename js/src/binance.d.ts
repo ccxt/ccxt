@@ -366,7 +366,7 @@ export default class binance extends Exchange {
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<any>;
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: string, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
     fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {

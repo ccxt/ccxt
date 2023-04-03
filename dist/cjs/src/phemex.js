@@ -83,6 +83,7 @@ class phemex extends phemex$1 {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test': {
                     'v1': 'https://testnet-api.phemex.com/v1',
+                    'v2': 'https://testnet-api.phemex.com/',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
@@ -2444,15 +2445,15 @@ class phemex extends phemex$1 {
         }
         params = this.omit(params, ['stopPx', 'stopPrice']);
         let method = 'privatePutSpotOrders';
-        if (market['inverse']) {
-            method = 'privatePutOrdersReplace';
-        }
-        else if (isUSDTSettled) {
+        if (isUSDTSettled) {
             method = 'privatePutGOrdersReplace';
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+        }
+        else if (market['swap']) {
+            method = 'privatePutOrdersReplace';
         }
         const response = await this[method](this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
@@ -2487,15 +2488,15 @@ class phemex extends phemex$1 {
             request['orderID'] = id;
         }
         let method = 'privateDeleteSpotOrders';
-        if (market['inverse']) {
-            method = 'privateDeleteOrdersCancel';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersCancel';
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+        }
+        else if (market['swap']) {
+            method = 'privateDeleteOrdersCancel';
         }
         const response = await this[method](this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
@@ -2522,11 +2523,11 @@ class phemex extends phemex$1 {
         };
         const market = this.market(symbol);
         let method = 'privateDeleteSpotOrdersAll';
-        if (market['inverse']) {
-            method = 'privateDeleteOrdersAll';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersAll';
+        }
+        else if (market['swap']) {
+            method = 'privateDeleteOrdersAll';
         }
         request['symbol'] = market['id'];
         return await this[method](this.extend(request, params));
@@ -2598,12 +2599,12 @@ class phemex extends phemex$1 {
             'symbol': market['id'],
         };
         let method = 'privateGetSpotOrders';
-        if (market['inverse']) {
-            method = 'privateGetExchangeOrderList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             request['currency'] = market['settle'];
             method = 'privateGetExchangeOrderV2OrderList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetExchangeOrderList';
         }
         if (since !== undefined) {
             request['start'] = since;
@@ -2622,6 +2623,7 @@ class phemex extends phemex$1 {
          * @name phemex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -2634,11 +2636,11 @@ class phemex extends phemex$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         let method = 'privateGetSpotOrders';
-        if (market['inverse']) {
-            method = 'privateGetOrdersActiveList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateGetGOrdersActiveList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetOrdersActiveList';
         }
         const request = {
             'symbol': market['id'],
@@ -2683,12 +2685,12 @@ class phemex extends phemex$1 {
             'symbol': market['id'],
         };
         let method = 'privateGetExchangeSpotOrder';
-        if (market['inverse']) {
-            method = 'privateGetExchangeOrderList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             request['currency'] = market['settle'];
             method = 'privateGetExchangeOrderV2OrderList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetExchangeOrderList';
         }
         if (since !== undefined) {
             request['start'] = since;
