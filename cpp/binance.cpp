@@ -783,7 +783,7 @@ namespace ccxt {
         }
         catch (const std::exception& e) {
             PLOGE << e.what();
-            std::numeric_limits<long>::min();
+            return std::numeric_limits<long>::min();
         }
     }
 
