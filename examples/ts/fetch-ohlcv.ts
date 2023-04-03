@@ -9,7 +9,7 @@ async function example () {
     const length = ohlcv.length;
     if (length > 0) {
         const lastPrice = ohlcv[length - 1][4];
-        console.log ('Fetched ' + length + ' candles for ' + myex.id + ':  last close ' + lastPrice);
+        console.log ('Fetched ', length, ' candles for ', myex.id, ':  last close ', lastPrice);
     } else {
         console.log ('No candles have been fetched');
     }

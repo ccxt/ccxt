@@ -2046,18 +2046,18 @@ class Transpiler {
                 language: "php",
                 async: true
             },
-            {
-                language: "php",
-                async: false
-            },
-            {
-                language: "python",
-                async: false
-            },
+            // {
+            //     language: "php",
+            //     async: false
+            // },
             {
                 language: "python",
                 async: true
             },
+            // {
+            //     language: "python",
+            //     async: false
+            // },
         ]
         const parserConfig = {
             'verbose': false,
@@ -2085,36 +2085,17 @@ class Transpiler {
         const phpPreamble = this.getPHPPreamble ();
 
         const preambles = {
-            phpSync: phpPreamble,
             phpAsync: phpPreamble,
-            pySync: pythonPreamble,
             pyAsync: pythonPreamble,
         };
 
         const fileHeaders = {
-            pySync: [
-                "",
-                "import ccxt  # noqa: E402",
-                "",
-                "",
-                "",
-                //"print('CCXT Version:', ccxt.__version__)"
-            ],
             pyAsync: [
                 "import asyncio",
                 "import ccxt.async_support as ccxt  # noqa: E402",
                 "",
                 "",
                 "",
-            ],
-            phpSync: [
-                "",
-                "error_reporting(E_ALL | E_STRICT);",
-                "date_default_timezone_set('UTC');",
-                "",
-                "",
-                "",
-                //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
             ],
             phpAsync: [
                 "",
@@ -2155,7 +2136,7 @@ class Transpiler {
 
                 // exec the main transpile function
                 const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
-                let [ phpAsyncBody, phpSyncBody, pythonSyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content, transpiled[2].content, transpiled[3].content ];
+                let [ phpAsyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content  ];
                 // ###### replace common (synchronity agnostic) syntaxes ######
                 const fixPython = (body, isAsync)=> {
                     return this.regexAll (body, [
@@ -2180,9 +2161,7 @@ class Transpiler {
 
                 // define bodies
                 const finalBodies = {};
-                finalBodies.pySync = fixPython (pythonSyncBody, false);
                 finalBodies.pyAsync = fixPython (pythonAsyncBody, true);
-                finalBodies.phpSync = fixPhp (phpSyncBody, false);
                 finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
@@ -2211,8 +2190,6 @@ class Transpiler {
                 }
 
                 // write files
-                //overwriteFile (examplesFolders.py  + fileName + '.py',       preambles.pySync + fileHeaders.pySync + finalBodies.pySync)
-                //overwriteFile (examplesFolders.php + fileName + '.php',      preambles.phpSync + fileHeaders.phpSync + finalBodies.phpSync)
                 overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }

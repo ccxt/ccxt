@@ -22,15 +22,15 @@ function example() {
     // ########## user inputs ##########
     return Async\async(function () {
         $exchange = new ('\\ccxt\\async\binance')(array(
-    'apiKey' => 'xxx',
-    'secret' => 'xxx',
-));
+            'apiKey' => 'xxx',
+            'secret' => 'xxx',
+        ));
         $symbol = 'BUSD/USDT'; // set target symbol
         $margin_mode = 'isolated'; // margin mode (cross or isolated)
         $collateral_coin = 'USDT'; // which asset you want to use for margin-borrow collateral
         $borrow_coin = 'BUSD'; // which coin to borrow
         $order_side = 'sell'; // which side to trade
-        $amount_to_trade = 20; // how many coins to sell
+        $amount_to_trade = 14; // how many coins to sell
         $order_type = 'limit'; // order type (can be market, limit or etc)
         $limit_price = 0.99; // price to sell at (set undefined/null/None if market-order)
         $margin_magnitude = 5; // target margin (aka 'leverage'). This might also be obtainable using other unified methods, but for example purposes, we set here manually
@@ -38,9 +38,9 @@ function example() {
         //
         // for example purposes, let's also check available balance at first
         $balance_margin = Async\await($exchange->fetch_balance(array(
-    'defaultType' => 'margin',
-    'marginMode' => $margin_mode,
-))); // use `defaultType` because of temporary bug, otherwise, after several days, you can use `type` too.
+            'defaultType' => 'margin',
+            'marginMode' => $margin_mode,
+        ))); // use `defaultType` because of temporary bug, otherwise, after several days, you can use `type` too.
         // if we don't have enought coins, then we have to borrow at first
         $needed_amount_to_borrow = null; // will be auto-set below
         if ($amount_to_trade > $balance_margin[$symbol][$borrow_coin]['free']) {
@@ -54,28 +54,28 @@ function example() {
                 var_dump('hmm, I have only ', $balance_margin[$symbol][$collateral_coin]['free'], ' in balance, but ', $needed_collateral_amount, ' collateral is needed. I should transfer ', $needed_collateral_amount, ' from spot');
                 // let's check if we have spot balance at all
                 $balance_spot = Async\await($exchange->fetch_balance(array(
-    'type' => 'spot',
-)));
+                    'type' => 'spot',
+                )));
                 if ($balance_spot[$collateral_coin]['free'] < $needed_collateral_amount) {
                     var_dump('hmm, I neither do have enough balance on spot - only ', $balance_spot[$collateral_coin]['free'], '. Script can not continue...');
                     return;
                 } else {
                     var_dump('Transferring  ', $needed_collateral_amount, ' to margin account');
                     Async\await($exchange->transfer($collateral_coin, $needed_collateral_amount, 'spot', $margin_mode, array(
-    'symbol' => $symbol,
-))); // because of temporary bug, you have to round "needed_collateral_amount" manually to 8 decimals. will be fixed a few days later
+                        'symbol' => $symbol,
+                    )));
                 }
             }
             // now, as we have enough margin collateral, initiate borrow
             var_dump('Initiating margin borrow of ', $needed_amount_to_borrow, ' ', $borrow_coin);
             $borrow_result = Async\await($exchange->borrow_margin($borrow_coin, $needed_amount_to_borrow, $symbol, array(
-    'marginMode' => $margin_mode,
-)));
+                'marginMode' => $margin_mode,
+            )));
         }
         var_dump('Submitting order.');
         $order = Async\await($exchange->create_order($symbol, $order_type, $order_side, $amount_to_trade, $limit_price, array(
-    'marginMode' => $margin_mode,
-)));
+            'marginMode' => $margin_mode,
+        )));
         var_dump('Order was submitted !', $order['id']);
         //
         //
@@ -93,12 +93,12 @@ function example() {
             var_dump('Making purchase back of ' . $amount_to_repay_back . ' ' . $borrow_coin . ' to repay it back.');
             $purchase_back_price = 1.01;
             $order_back = Async\await($exchange->create_order($symbol, $order_type, ($order_side === 'buy' ? 'sell' : 'buy'), $amount_to_repay_back, $purchase_back_price, array(
-    'marginMode' => $margin_mode,
-)));
+                'marginMode' => $margin_mode,
+            )));
             var_dump('Now, repaying the loan.');
             $repay_result = Async\await($exchange->repay_margin($borrow_coin, $amount_to_repay_back, $symbol, array(
-    'marginMode' => $margin_mode,
-)));
+                'marginMode' => $margin_mode,
+            )));
             var_dump('finished.');
         }
     }) ();

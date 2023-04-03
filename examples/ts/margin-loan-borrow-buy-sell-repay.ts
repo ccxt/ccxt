@@ -12,7 +12,7 @@ async function example () {
     const collateral_coin = 'USDT';  // which asset you want to use for margin-borrow collateral
     const borrow_coin = 'BUSD'; // which coin to borrow
     const order_side: any = 'sell'; // which side to trade
-    const amount_to_trade = 20; // how many coins to sell
+    const amount_to_trade = 14; // how many coins to sell
     const order_type = 'limit'; // order type (can be market, limit or etc)
     const limit_price: any = 0.99; // price to sell at (set undefined/null/None if market-order)
     const margin_magnitude = 5; // target margin (aka 'leverage'). This might also be obtainable using other unified methods, but for example purposes, we set here manually
@@ -38,7 +38,7 @@ async function example () {
                 return;
             } else {
                 console.log ('Transferring  ', needed_collateral_amount, ' to margin account');
-                await exchange.transfer (collateral_coin, needed_collateral_amount, 'spot', marginMode, { 'symbol': symbol }); // because of temporary bug, you have to round "needed_collateral_amount" manually to 8 decimals. will be fixed a few days later
+                await exchange.transfer (collateral_coin, needed_collateral_amount, 'spot', marginMode, { 'symbol': symbol });
             }
         }
         // now, as we have enough margin collateral, initiate borrow
