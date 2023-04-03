@@ -61,7 +61,7 @@ async function example () {
     if (needed_amount_to_borrow !== undefined) {
         const amount_to_repay_back = needed_amount_to_borrow;
         // At first, you need to get back the borrowed coin, by making an opposide trade
-        console.log ('Making purchase back of ' + amount_to_repay_back + ' ' + borrow_coin + ' to repay it back.');
+        console.log ('Making purchase back of ', amount_to_repay_back, ' ', borrow_coin, ' to repay it back.');
         const purchase_back_price: any = 1.01;
         const order_back = await exchange.createOrder (symbol, order_type, (order_side === 'buy' ? 'sell' : 'buy'), amount_to_repay_back, purchase_back_price, { 'marginMode': marginMode });
         console.log ('Now, repaying the loan.');

@@ -90,7 +90,7 @@ function example() {
         if ($needed_amount_to_borrow !== null) {
             $amount_to_repay_back = $needed_amount_to_borrow;
             // At first, you need to get back the borrowed coin, by making an opposide trade
-            var_dump('Making purchase back of ' . $amount_to_repay_back . ' ' . $borrow_coin . ' to repay it back.');
+            var_dump('Making purchase back of ', $amount_to_repay_back, ' ', $borrow_coin, ' to repay it back.');
             $purchase_back_price = 1.01;
             $order_back = Async\await($exchange->create_order($symbol, $order_type, ($order_side === 'buy' ? 'sell' : 'buy'), $amount_to_repay_back, $purchase_back_price, array(
                 'marginMode' => $margin_mode,
