@@ -2211,10 +2211,10 @@ class Transpiler {
                 }
 
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py',       preambles.pySync + fileHeaders.pySync + finalBodies.pySync)
-                overwriteFile (examplesFolders.php + fileName + '.php',      preambles.phpSync + fileHeaders.phpSync + finalBodies.phpSync)
-                overwriteFile (examplesFolders.py  + fileName + '-async.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
-                overwriteFile (examplesFolders.php + fileName + '-async.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
+                //overwriteFile (examplesFolders.py  + fileName + '.py',       preambles.pySync + fileHeaders.pySync + finalBodies.pySync)
+                //overwriteFile (examplesFolders.php + fileName + '.php',      preambles.phpSync + fileHeaders.phpSync + finalBodies.phpSync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
     }
