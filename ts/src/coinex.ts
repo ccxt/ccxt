@@ -1995,7 +1995,7 @@ export default class coinex extends Exchange {
         }
         const request = {
             'market': market['id'],
-            'id': id,
+            'id': parseInt (id),
         };
         if (amount !== undefined) {
             request['amount'] = this.amountToPrecision (symbol, amount);
