@@ -10,7 +10,7 @@ public partial class Exchange
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
 
-    public object normalizeIntIfNeeded(object a)
+    public static object normalizeIntIfNeeded(object a)
     {
         if (a == null)
             return null;
@@ -21,7 +21,7 @@ public partial class Exchange
         }
         return a;
     }
-    public object postFixIncrement(ref object a)
+    public static object postFixIncrement(ref object a)
     {
         if (a.GetType() == typeof(Int64))
         {
@@ -46,7 +46,7 @@ public partial class Exchange
         return a;
     }
 
-    public object prefixUnaryNeg(ref object a)
+    public static object prefixUnaryNeg(ref object a)
     {
         if (a.GetType() == typeof(Int64))
         {
@@ -71,7 +71,7 @@ public partial class Exchange
         return a;
     }
 
-    public object prefixUnaryPlus(ref object a)
+    public static object prefixUnaryPlus(ref object a)
     {
         if (a.GetType() == typeof(Int64))
         {
@@ -96,7 +96,7 @@ public partial class Exchange
         return a;
     }
 
-    public object plusEqual(object a, object value)
+    public static object plusEqual(object a, object value)
     {
 
         a = normalizeIntIfNeeded(a);
@@ -132,7 +132,7 @@ public partial class Exchange
         return JsonSerializer.Deserialize<Dictionary<string, object>>((string)json);
     }
 
-    public bool isTrue(object value)
+    public static bool isTrue(object value)
     {
         if (value == null)
         {
@@ -188,7 +188,7 @@ public partial class Exchange
         }
     }
 
-    public bool isEqual(object a, object b)
+    public static bool isEqual(object a, object b)
     {
 
         a = normalizeIntIfNeeded(a);
@@ -238,7 +238,7 @@ public partial class Exchange
         }
     }
 
-    public bool isGreaterThan(object a, object b)
+    public static bool isGreaterThan(object a, object b)
     {
         if (a != null && b == null)
         {
@@ -274,23 +274,23 @@ public partial class Exchange
         }
     }
 
-    public bool isLessThan(object a, object b)
+    public static bool isLessThan(object a, object b)
     {
 
         return !isGreaterThan(a, b) && !isEqual(a, b);
     }
 
-    public bool isGreaterThanOrEqual(object a, object b)
+    public static bool isGreaterThanOrEqual(object a, object b)
     {
         return isGreaterThan(a, b) || isEqual(a, b);
     }
 
-    public bool isLessThanOrEqual(object a, object b)
+    public static bool isLessThanOrEqual(object a, object b)
     {
         return isLessThan(a, b) || isEqual(a, b);
     }
 
-    public object mod(object a, object b)
+    public static object mod(object a, object b)
     {
         if (a == null || b == null)
         {
@@ -310,7 +310,7 @@ public partial class Exchange
         // return add(a, b);
     }
 
-    public object add(object a, object b)
+    public static object add(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
@@ -333,17 +333,17 @@ public partial class Exchange
         }
     }
 
-    public string add(string a, string b)
+    public static string add(string a, string b)
     {
         return a + b;
     }
 
-    public string add(string a, object b)
+    public static string add(string a, object b)
     {
         return add(a, b.ToString());
     }
 
-    public string add(object a, string b)
+    public static string add(object a, string b)
     {
         if (a == null || b == null)
         {
@@ -360,7 +360,7 @@ public partial class Exchange
         // return add(a, b);
     }
 
-    public int add(int a, int b)
+    public static int add(int a, int b)
     {
         return a + b;
     }
@@ -370,7 +370,7 @@ public partial class Exchange
         return a + b;
     }
 
-    public object subtract(object a, object b)
+    public static object subtract(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
@@ -394,7 +394,7 @@ public partial class Exchange
         }
     }
 
-    public int subtract(int a, int b)
+    public static int subtract(int a, int b)
     {
         return a - b;
     }
@@ -404,7 +404,7 @@ public partial class Exchange
         return a - b;
     }
 
-    public object divide(object a, object b)
+    public static object divide(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
@@ -423,7 +423,7 @@ public partial class Exchange
         }
     }
 
-    public object multiply(object a, object b)
+    public static object multiply(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
@@ -441,7 +441,7 @@ public partial class Exchange
         }
     }
 
-    public int getArrayLength(object value)
+    public static int getArrayLength(object value)
     {
         if (value == null)
         {
@@ -462,7 +462,7 @@ public partial class Exchange
         }
     }
 
-    public object mathMin(object a, object b)
+    public static object mathMin(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
@@ -480,7 +480,7 @@ public partial class Exchange
         }
     }
 
-    public object mathMax(object a, object b)
+    public static object mathMax(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
@@ -498,7 +498,7 @@ public partial class Exchange
         }
     }
 
-    public int getIndexOf(object str, object target)
+    public static int getIndexOf(object str, object target)
     {
         if (str.GetType() == typeof(List<object>))
         {
@@ -518,7 +518,7 @@ public partial class Exchange
         }
     }
 
-    public object parseInt(object a)
+    public static object parseInt(object a)
     {
         object parsedValue = null;
         try
@@ -531,7 +531,7 @@ public partial class Exchange
         return parsedValue;
     }
 
-    public object parseFloat(object a)
+    public static object parseFloat(object a)
     {
         object parsedValue = null;
         try
@@ -545,7 +545,7 @@ public partial class Exchange
     }
 
     // generic getValue to replace elementAccesses
-    public object getValue(object value2, object key)
+    public static object getValue(object value2, object key)
     {
         if (value2 == null || key == null)
         {
@@ -576,7 +576,7 @@ public partial class Exchange
         {
             // check here if index is out of bounds
             var parsed = (int)key;
-            var listLength = this.getArrayLength(value);
+            var listLength = getArrayLength(value);
             if (parsed >= listLength)
             {
                 return null;
@@ -586,7 +586,7 @@ public partial class Exchange
         else if (value.GetType() == typeof(List<string>))
         {
             var parsed = (int)key;
-            var listLength = this.getArrayLength(value);
+            var listLength = getArrayLength(value);
             if (parsed >= listLength)
             {
                 return null;
@@ -599,18 +599,18 @@ public partial class Exchange
             return ((List<Int64>)value)[parsed];
         }
         // check this last, avoid reflection
-        else if (key.GetType() == typeof(string) && (this.GetType()).GetProperty((string)key) != null)
-        {
-            var prop = (this.GetType()).GetProperty((string)key);
-            if (prop != null)
-            {
-                return prop.GetValue(this, null);
-            }
-            else
-            {
-                return null;
-            }
-        }
+        // else if (key.GetType() == typeof(string) && (GetType()).GetProperty((string)key) != null)
+        // {
+        //     var prop = (GetType()).GetProperty((string)key);
+        //     if (prop != null)
+        //     {
+        //         return prop.GetValue(this, null);
+        //     }
+        //     else
+        //     {
+        //         return null;
+        //     }
+        // }
         else
         {
             return null;
@@ -629,7 +629,7 @@ public partial class Exchange
         return results.ToList();
     }
 
-    public string toStringOrNull(object value)
+    public static string toStringOrNull(object value)
     {
         if (value == null)
         {
@@ -653,7 +653,7 @@ public partial class Exchange
         return Activator.CreateInstance(exception, message) as Exception;
     }
 
-    public object toFixed(object number, object decimals)
+    public static object toFixed(object number, object decimals)
     {
         return Math.Round((double)number, (int)decimals);
     }

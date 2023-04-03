@@ -1406,7 +1406,7 @@ public partial class Exchange
                     chosenNetworkId = networkId;
                 } else
                 {
-                    throw new NotSupported ((string)add(add(add(add(add(add(this.id, " - "), networkId), " network was not found for "), currencyCode), ", use one of "), String.Join(", ", availableNetworkIds))) ;
+                    throw new NotSupported ((string)add(add(add(add(add(add(this.id, " - "), networkId), " network was not found for "), currencyCode), ", use one of "), String.Join(", ", ((List<object>)availableNetworkIds).ToArray()))) ;
                 }
             }
         } else
@@ -3197,7 +3197,7 @@ public partial class Exchange
         object optionsLength = getArrayLength(options);
         if (isTrue(isTrue((isEqual(argument, null))) || isTrue((isTrue((isGreaterThan(optionsLength, 0))) && isTrue((!isTrue((this.inArray(argument, options)))))))))
         {
-            object messageOptions = String.Join(", ", options);
+            object messageOptions = String.Join(", ", ((List<object>)options).ToArray());
             object message = add(add(add(add(add(this.id, " "), methodName), "() requires a "), argumentName), " argument");
             if (isTrue(!isEqual(messageOptions, "")))
             {

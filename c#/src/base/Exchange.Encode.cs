@@ -19,19 +19,20 @@ public partial class Exchange
         return (string)str; // stub
     }
 
-    public string stringToBase64(object pt)
+    public string stringToBase64(object pt) => StringToBase64(pt);
+    public static string StringToBase64(object pt)
     {
         var plainText = (string)pt;
         var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
         return System.Convert.ToBase64String(plainTextBytes);
     }
-
-    public string base64ToBinary(object pt)
+    public byte[] base64ToBinary(object pt) => Base64ToBinary(pt);
+    public static byte[] Base64ToBinary(object pt)
     {
         // check this
         var plainText = (string)pt;
         var base64EncodedBytes = System.Convert.FromBase64String(plainText);
-        return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        return base64EncodedBytes;
     }
 
     public string base58ToBinary(object str)
@@ -172,6 +173,15 @@ public partial class Exchange
             }
         }
         return result.ToString();
+    }
+
+    public static string Base64urlEncode(string s)
+    {
+        char[] padding = { '=' };
+        // var toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(s);
+        // string returnValue = System.Convert.ToBase64String(toEncodeAsBytes)
+        string returnValue = s.TrimEnd(padding).Replace('+', '-').Replace('/', '_');
+        return returnValue;
     }
 
 }

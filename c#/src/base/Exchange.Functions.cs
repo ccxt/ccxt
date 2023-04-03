@@ -220,7 +220,12 @@ public partial class Exchange
 
     }
 
-    public string json(object obj)
+    public object json(object obj)
+    {
+        return Json(obj);
+    }
+
+    public static string Json(object obj)
     {
         var obj2 = (dict)obj;
         return JsonSerializer.Serialize<Dictionary<string, object>>(obj2);
