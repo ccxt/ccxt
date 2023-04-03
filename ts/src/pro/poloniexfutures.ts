@@ -4,7 +4,11 @@
 
 import poloniexfuturesRest from '../poloniexfutures.js';
 import { AuthenticationError } from '../base/errors.js';
+<<<<<<< Updated upstream
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+=======
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+>>>>>>> Stashed changes
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
@@ -59,6 +63,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         // TODO: deal with expired token?
     }
 
+<<<<<<< Updated upstream
     async authenticate (params = {}) {
         // TODO
         /**
@@ -115,6 +120,33 @@ export default class poloniexfutures extends poloniexfuturesRest {
             client.subscriptions[messageHash] = future;
         }
         return future;
+=======
+    async getPrivateToken (params = {}) {
+        if (this.options['privateToken'] === undefined) {
+            const response = await this.privatePostBulletPrivate ();
+            //
+            //   {
+            //       code: '200000',
+            //       data: {
+            //           instanceServers: [
+            //                {
+            //                    "pingInterval": 50000,
+            //                    "endpoint": "wss://futures-apiws.poloniex.com/endpoint",
+            //                    "protocol": "websocket",
+            //                    "encrypt": true,
+            //                    "pingTimeout": 10000
+            //                }
+            //            ],
+            //            "token": "vYNlCtbz4XNJ1QncwWilJnBtmmfe4geLQDUA62kKJsDChc6I4bRDQc73JfIrlFaVYIAE0Gv2--MROnLAgjVsWkcDq_MuG7qV7EktfCEIphiqnlfpQn4Ybg==.IoORVxR2LmKV7_maOR9xOg=="
+            //       }
+            //   }
+            //
+            const data = this.safeValue (response, 'data');
+            this.options['privateToken'] = this.safeString (data, 'token');
+        }
+        return this.options['privateToken'];
+        // TODO: deal with expired token?
+>>>>>>> Stashed changes
     }
 
     async subscribe (name, isPrivate, symbol = undefined, params = {}) {
@@ -129,7 +161,16 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {Object} data from the websocket stream
          */
         await this.loadMarkets ();
+<<<<<<< Updated upstream
         const token = await this.getPublicToken ();
+=======
+        let token = undefined;
+        if (isPrivate) {
+            token = await this.getPrivateToken ();
+        } else {
+            token = await this.getPublicToken ();
+        }
+>>>>>>> Stashed changes
         const url = this.urls['api']['ws'] + '?token=' + token;
         const subscribe = {
             'id': this.milliseconds () + name + symbol,   // ID is a unique string to mark the request which is same as the id property of ack.
@@ -218,7 +259,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
         await this.loadMarkets ();
         const name = '/contractMarket/tradeOrders';
         // const name = '/contractMarket/advancedOrders'; // TODO: for stop orders
+<<<<<<< Updated upstream
         await this.authenticate ();
+=======
+        // await this.authenticate ();
+>>>>>>> Stashed changes
         const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -240,7 +285,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
          */
         await this.loadMarkets ();
         const name = '/contractMarket/tradeOrders';
+<<<<<<< Updated upstream
         await this.authenticate ();
+=======
+        // await this.authenticate ();
+>>>>>>> Stashed changes
         const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -262,7 +311,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
          */
         await this.loadMarkets ();
         const name = '/contractAccount/wallet';
+<<<<<<< Updated upstream
         await this.authenticate ();
+=======
+        // await this.authenticate ();
+>>>>>>> Stashed changes
         return await this.subscribe (name, true, undefined, params);
     }
 
@@ -658,10 +711,17 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
+<<<<<<< Updated upstream
         const type = this.safeString (message, 'subject');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const orderId = this.safeString (data, 'orderId');
+=======
+        // const type = this.safeString (message, 'subject');
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        // const orderId = this.safeString (data, 'orderId');
+>>>>>>> Stashed changes
         const timestamp = this.safeInteger (data, 'ts') / 1000;
         const messageHash = this.safeString (data, 'topic');
         const side = this.safeString (data, 'side');
@@ -670,7 +730,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const symbol = this.safeString (market, 'symbol');
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
+<<<<<<< Updated upstream
         const update = type === 'done';
+=======
+        // const update = type === 'done';
+>>>>>>> Stashed changes
         const orderBook = this.safeValue (this.orderbooks, symbol);
         if (orderBook === undefined) {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
