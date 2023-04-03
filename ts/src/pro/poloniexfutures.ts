@@ -4,13 +4,8 @@
 
 import poloniexfuturesRest from '../poloniexfutures.js';
 import { AuthenticationError } from '../base/errors.js';
-<<<<<<< Updated upstream
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-=======
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
->>>>>>> Stashed changes
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,64 +58,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
         // TODO: deal with expired token?
     }
 
-<<<<<<< Updated upstream
-    async authenticate (params = {}) {
-        // TODO
-        /**
-         * @ignore
-         * @method
-         * @description authenticates the user to access private web socket channels
-         * @see https://futures-docs.poloniex.com/#apply-for-connection-token
-         * @returns {object} response from exchange
-         */
-        this.checkRequiredCredentials ();
-        const timestamp = this.numberToString (this.milliseconds ());
-        const url = this.urls['api']['ws']['private'];
-        const messageHash = 'authenticated';
-        const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            const accessPath = '/ws';
-            const auth = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
-            // let expires = this.milliseconds () + 10000;
-            // expires = expires.toString ();
-            const request = {
-                'event': 'subscribe',
-                'channel': [ 'auth' ],
-                'params': {
-                    'key': this.apiKey,
-                    'signTimestamp': timestamp,
-                    'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64'),
-                    'signatureMethod': 'HmacSHA256',  // optional
-                    'signatureVersion': '2',          // optional
-                },
-            };
-            const message = this.extend (request, params);
-            future = await this.watch (url, messageHash, message);
-            //
-            //    {
-            //        "data": {
-            //            "success": true,
-            //            "ts": 1645597033915
-            //        },
-            //        "channel": "auth"
-            //    }
-            //
-            //    # Failure to return results
-            //
-            //    {
-            //        "data": {
-            //            "success": false,
-            //            "message": "Authentication failed!",
-            //            "ts": 1646276295075
-            //        },
-            //        "channel": "auth"
-            //    }
-            //
-            client.subscriptions[messageHash] = future;
-        }
-        return future;
-=======
     async getPrivateToken (params = {}) {
         if (this.options['privateToken'] === undefined) {
             const response = await this.privatePostBulletPrivate ();
@@ -146,7 +83,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }
         return this.options['privateToken'];
         // TODO: deal with expired token?
->>>>>>> Stashed changes
     }
 
     async subscribe (name, isPrivate, symbol = undefined, params = {}) {
@@ -161,16 +97,12 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {Object} data from the websocket stream
          */
         await this.loadMarkets ();
-<<<<<<< Updated upstream
-        const token = await this.getPublicToken ();
-=======
         let token = undefined;
         if (isPrivate) {
             token = await this.getPrivateToken ();
         } else {
             token = await this.getPublicToken ();
         }
->>>>>>> Stashed changes
         const url = this.urls['api']['ws'] + '?token=' + token;
         const subscribe = {
             'id': this.milliseconds () + name + symbol,   // ID is a unique string to mark the request which is same as the id property of ack.
@@ -259,11 +191,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         await this.loadMarkets ();
         const name = '/contractMarket/tradeOrders';
         // const name = '/contractMarket/advancedOrders'; // TODO: for stop orders
-<<<<<<< Updated upstream
-        await this.authenticate ();
-=======
         // await this.authenticate ();
->>>>>>> Stashed changes
         const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -285,11 +213,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          */
         await this.loadMarkets ();
         const name = '/contractMarket/tradeOrders';
-<<<<<<< Updated upstream
-        await this.authenticate ();
-=======
         // await this.authenticate ();
->>>>>>> Stashed changes
         const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -311,11 +235,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          */
         await this.loadMarkets ();
         const name = '/contractAccount/wallet';
-<<<<<<< Updated upstream
-        await this.authenticate ();
-=======
         // await this.authenticate ();
->>>>>>> Stashed changes
         return await this.subscribe (name, true, undefined, params);
     }
 
@@ -451,36 +371,29 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleOrder (client, message) {
         //
-        // level2
-        //
         //    {
-        //        "subject": "level2",
-        //        "topic": "/contractMarket/level2:BTCUSDTPERP",
-        //        "type": "message",
-        //        "data": {
-        //          "sequence": 18,                     // Sequence number which is used to judge the continuity of pushed messages
-        //          "change": "5000.0,sell,83"          // Price, side, quantity
-        //          "timestamp": 1551770400000
-        //        }
-        //    }
-        //
-        // level3
-        //
-        //    {
-        //        "topic": "/contractMarket/execution:BTCUSDTPERP",
-        //        "subject": "match",
-        //        "data": {
-        //             "symbol": "BTCUSDTPERP",                       // Symbol
-        //             "sequence": 36,                                // Sequence number which is used to judge the continuity of the pushed messages
-        //             "side": "buy",                                 // Side of liquidity taker
-        //             "matchSize": 1,                                // Filled quantity
-        //             "size": 1,                                     // unFilled quantity
-        //             "price": 3200.00,                              // Filled price
-        //             "takerOrderId": "5c9dd00870744d71c43f5e25",    // Taker order ID
-        //             "ts": 1553846281766256031,                     // Filled time - nanosecond
-        //             "makerOrderId": "5c9d852070744d0976909a0c",    // Maker order ID
-        //             "tradeId": "5c9dd00970744d6f5a3d32fc"          // Transaction ID
-        //        }
+        //        data: {
+        //          symbol: 'ADAUSDTPERP',
+        //          orderType: 'limit',
+        //          side: 'buy',
+        //          canceledSize: '1',
+        //          orderId: '642b4d4c0494cd0007c76813',
+        //          type: 'canceled',
+        //          orderTime: '1680559436101909048',
+        //          size: '1',
+        //          filledSize: '0',
+        //          marginType: 1,
+        //          price: '0.25',
+        //          remainSize: '0',
+        //          clientOid: '112cbbf1-95a3-4917-957c-d3a87d81f853',
+        //          status: 'done',
+        //          ts: 1680559677560686600
+        //        },
+        //        subject: 'orderChange',
+        //        topic: '/contractMarket/tradeOrders',
+        //        channelType: 'private',
+        //        type: 'message',
+        //        userId: '1139790'
         //    }
         //
         const data = this.safeValue (message, 'data');
@@ -490,8 +403,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const order = this.safeValue (data, 0);
-        const marketId = this.safeString (order, 'symbol');
+        const marketId = this.safeString (data, 'symbol');
         if (marketId !== undefined) {
             const messageHash = 'orders:' + marketId;
             const symbol = this.safeSymbol (marketId);
@@ -711,17 +623,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-<<<<<<< Updated upstream
-        const type = this.safeString (message, 'subject');
-        const marketId = this.safeString (data, 'symbol');
-        const market = this.safeMarket (marketId);
-        const orderId = this.safeString (data, 'orderId');
-=======
         // const type = this.safeString (message, 'subject');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         // const orderId = this.safeString (data, 'orderId');
->>>>>>> Stashed changes
         const timestamp = this.safeInteger (data, 'ts') / 1000;
         const messageHash = this.safeString (data, 'topic');
         const side = this.safeString (data, 'side');
@@ -730,11 +635,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const symbol = this.safeString (market, 'symbol');
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
-<<<<<<< Updated upstream
-        const update = type === 'done';
-=======
         // const update = type === 'done';
->>>>>>> Stashed changes
         const orderBook = this.safeValue (this.orderbooks, symbol);
         if (orderBook === undefined) {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -752,37 +653,52 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleBalance (client, message) {
         //
-        // Order Margin Event
+        //    {
+        //        data: {
+        //          currency: 'USDT',
+        //          availableBalance: '4.0000000000',
+        //          timestamp: '1680557568670'
+        //        },
+        //        subject: 'availableBalance.change',
+        //        topic: '/contractAccount/wallet',
+        //        channelType: 'private',
+        //        id: '642b4600cae86800074b5ab7',
+        //        type: 'message',
+        //        userId: '1139790'
+        //    }
         //
         //    {
-        //        "topic": "/contractAccount/wallet",
-        //        "subject": "orderMargin.change",
-        //        "channelType": "private",
-        //        "data": {
-        //            "orderMargin": 5923,              // Current order margin
-        //            "currency":"USDT",                // Currency
-        //            "timestamp": 1553842862614
-        //        }
+        //        data: {
+        //          currency: 'USDT',
+        //          orderMargin: '0.0000000000',
+        //          timestamp: '1680558743307'
+        //        },
+        //        subject: 'orderMargin.change',
+        //        topic: '/contractAccount/wallet',
+        //        channelType: 'private',
+        //        id: '642b4a97b58e360007c3a237',
+        //        type: 'message',
+        //        userId: '1139790'
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const availableBalance = this.safeNumber (message, 'availableBalance');
-        if (availableBalance !== undefined) {
-            const currencyId = this.safeString (data, 'currency');
-            const messageHash = 'wallet:' + currencyId;
-            this.balance = this.parseWsBalance (data);
-            client.resolve (this.balance, messageHash);
-        }
+        const messageHash = '/contractAccount/wallet';
+        const currencyId = this.safeString (data, 'currency');
+        const currency = this.currency (currencyId);
+        const code = currency['code'];
+        const balance = this.safeValue (this.balance, code, {});
+        this.balance[code] = this.deepExtend (balance, this.parseWsBalance (data));
+        client.resolve (this.balance[code], messageHash);
+        // TODO: free and used are returned as separate objects
         return message;
     }
 
     parseWsBalance (response) {
         //
         //    {
-        //        "orderMargin": 5923,              // not present if availableBalance is present
-        //        "availableBalance": 5923,         // not present if orderMargin is present
-        //        "currency": "USDT",               // Currency
-        //        "timestamp": 1553842862614
+        //        currency: 'USDT',
+        //        availableBalance: '4.0000000000',
+        //        timestamp: '1680557568670'
         //    }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
@@ -814,8 +730,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'ticker': this.handleTicker,
             // 'trades': this.handleTrade,
             'match': this.handleTrade,
-            'orders': this.handleOrder,
-            'balances': this.handleBalance,
+            'orderChange': this.handleOrder,
+            'availableBalance.change': this.handleBalance,
+            'orderMargin.change': this.handleBalance,
         };
         const method = this.safeValue (methods, subject);
         if (subject === 'auth') {
