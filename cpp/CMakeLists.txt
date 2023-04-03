@@ -13,7 +13,7 @@ find_package (Threads REQUIRED)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 
-find_package(Boost 1.74 COMPONENTS system filesystem)
+find_package(Boost REQUIRED)
 IF(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 ENDIF(Boost_FOUND)

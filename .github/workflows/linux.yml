@@ -54,5 +54,5 @@ jobs:
     - name: Test
       working-directory: ${{runner.workspace}}/build
       run: |
-        cpp/test/base/test-base
-        cpp/test/tests
+        cpp/test/unit/base/test-base
+        cpp/test/unit/tests
