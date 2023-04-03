@@ -279,10 +279,10 @@ export default class coinbase extends Exchange {
                 ],
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
-                'fetchMarkets': 'fetchMarketsV2', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
-                'fetchAccounts': 'fetchAccountsV2', // 'fetchAccountsV3' or 'fetchAccountsV2'
+                'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
             },
         });
     }
