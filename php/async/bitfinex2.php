@@ -333,6 +333,9 @@ class bitfinex2 extends Exchange {
                     'derivatives' => 'margin',
                     'future' => 'margin',
                 ),
+                'withdraw' => array(
+                    'includeFee' => false,
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1996,10 +1999,14 @@ class bitfinex2 extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'SUCCESS' => 'ok',
+            'COMPLETED' => 'ok',
             'ERROR' => 'failed',
             'FAILURE' => 'failed',
             'CANCELED' => 'canceled',
-            'COMPLETED' => 'ok',
+            'PENDING APPROVAL' => 'pending',
+            'PENDING' => 'pending',
+            'PENDING REVIEW' => 'pending',
+            'PENDING CANCELLATION' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -2081,7 +2088,7 @@ class bitfinex2 extends Exchange {
                 $feeCost = Precise::string_abs($feeCost);
             }
             $amount = $this->safe_number($data, 5);
-            $id = $this->safe_value($data, 0);
+            $id = $this->safe_string($data, 0);
             $status = 'ok';
             if ($id === 0) {
                 $id = null;
@@ -2333,7 +2340,7 @@ class bitfinex2 extends Exchange {
             $currencyNetwork = $this->safe_value($currencyNetworks, $network);
             $networkId = $this->safe_string($currencyNetwork, 'id');
             if ($networkId === null) {
-                throw new ArgumentsRequired($this->id . " fetchDepositAddress() could not find a $network for '" . $code . "'. You can specify it by providing the 'network' value inside $params");
+                throw new ArgumentsRequired($this->id . " withdraw() could not find a $network for '" . $code . "'. You can specify it by providing the 'network' value inside $params");
             }
             $wallet = $this->safe_string($params, 'wallet', 'exchange');  // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             $params = $this->omit($params, 'network', 'wallet');
@@ -2345,6 +2352,11 @@ class bitfinex2 extends Exchange {
             );
             if ($tag !== null) {
                 $request['payment_id'] = $tag;
+            }
+            $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+            $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+            if ($includeFee) {
+                $request['fee_deduct'] = 1;
             }
             $response = Async\await($this->privatePostAuthWWithdraw (array_merge($request, $params)));
             //
