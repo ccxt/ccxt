@@ -2049,18 +2049,10 @@ class Transpiler {
                 language: "php",
                 async: true
             },
-            // {
-            //     language: "php",
-            //     async: false
-            // },
             {
                 language: "python",
                 async: true
             },
-            // {
-            //     language: "python",
-            //     async: false
-            // },
         ]
         const parserConfig = {
             'verbose': false,
@@ -2108,8 +2100,6 @@ class Transpiler {
                 "use ccxt\\Precise;",
                 "use React\\Async;",
                 "use React\\Promise;",
-                //"$loop = \\React\\EventLoop\\Factory::create();",
-                //"$kernel = \\Recoil\\React\\ReactKernel::create($loop);",
                 "",
                 "",
                 "",
