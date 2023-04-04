@@ -3861,7 +3861,7 @@ class bybit extends Exchange {
                 // mandatory field for options
                 $request['orderLinkId'] = $this->uuid16();
             }
-            $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+            $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
             $response = Async\await($this->privatePostContractV3PrivateOrderCreate (array_merge($request, $params)));
             //
             //     {

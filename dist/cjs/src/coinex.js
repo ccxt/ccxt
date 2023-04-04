@@ -40,6 +40,7 @@ class coinex extends coinex$1 {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
@@ -1993,7 +1994,7 @@ class coinex extends coinex$1 {
         }
         const request = {
             'market': market['id'],
-            'id': id,
+            'id': parseInt(id),
         };
         if (amount !== undefined) {
             request['amount'] = this.amountToPrecision(symbol, amount);
