@@ -334,6 +334,9 @@ class hitbtc3(Exchange):
                     'funding': 'wallet',
                     'future': 'derivatives',
                 },
+                'withdraw': {
+                    'includeFee': False,
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
@@ -1968,6 +1971,10 @@ class hitbtc3(Exchange):
             if parsedNetwork is not None:
                 request['currency'] = parsedNetwork
             params = self.omit(params, 'network')
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        if includeFee:
+            request['include_fee'] = True
         response = await self.privatePostWalletCryptoWithdraw(self.extend(request, params))
         #
         #     {

@@ -317,6 +317,9 @@ export default class hitbtc3 extends Exchange {
                     'funding': 'wallet',
                     'future': 'derivatives',
                 },
+                'withdraw': {
+                    'includeFee': false,
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
@@ -2088,6 +2091,11 @@ export default class hitbtc3 extends Exchange {
                 request['currency'] = parsedNetwork;
             }
             params = this.omit(params, 'network');
+        }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw(this.extend(request, params));
         //
