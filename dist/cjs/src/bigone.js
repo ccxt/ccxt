@@ -1125,7 +1125,7 @@ class bigone extends bigone$1 {
     }
     nonce() {
         const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
-        return this.microseconds() * 1000 + exchangeTimeCorrection;
+        return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
