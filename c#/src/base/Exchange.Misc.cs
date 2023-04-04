@@ -7,6 +7,14 @@ using list = List<object>;
 public partial class Exchange
 {
 
+    public object roundTimeframe(object timeframe, object timestamp, object direction = null)
+    {
+        direction ??= ROUND_DOWN;
+        var ms = parseTimeframe(timeframe) * 1000;
+        var offset = (Int64)timestamp % ms;
+        return (Int64)timestamp - offset + (((int)direction == ROUND_UP) ? ms : 0);
+    }
+
     public object implodeParams(object path2, object parameter2)
     {
 

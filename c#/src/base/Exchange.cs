@@ -18,9 +18,9 @@ using dict = Dictionary<string, object>;
 public partial class Exchange
 {
 
-    public Exchange()
+    public Exchange(dict userConfig = null)
     {
-        this.initializeProperties();
+        this.initializeProperties(userConfig);
         var empty = new List<string>();
         transformApiNew(this.api);
 
@@ -351,17 +351,46 @@ public partial class Exchange
         return true;
     }
 
-    public string parseTimeframe(object timeframe)
+    public int parseTimeframe(object timeframe2)
     {
-
-        // var x = this.teste(1, 2, 3, 3);
-        return ""; // stub
+        var timeframe = (string)timeframe2;
+        var amount = Int32.Parse(timeframe.Substring(0, timeframe.Length - 1));
+        var unit = timeframe.Substring(timeframe.Length - 1);
+        int scale = 0;
+        if (unit == "y")
+        {
+            scale = 60 * 60 * 24 * 365;
+        }
+        else if (unit == "M")
+        {
+            scale = 60 * 60 * 24 * 30;
+        }
+        else if (unit == "w")
+        {
+            scale = 60 * 60 * 24 * 7;
+        }
+        else if (unit == "d")
+        {
+            scale = 60 * 60 * 24;
+        }
+        else if (unit == "h")
+        {
+            scale = 60 * 60;
+        }
+        else if (unit == "m")
+        {
+            scale = 60;
+        }
+        else if (unit == "s")
+        {
+            scale = 1;
+        }
+        else
+        {
+            throw new Exception("Invalid timeframe: " + timeframe);
+        }
+        return amount * scale;
     }
-
-    // public async Task throttle(object cost)
-    // {
-    //     return;
-    // }
 
     public async Task throttle(object cost)
     {

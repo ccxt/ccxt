@@ -299,38 +299,40 @@ public partial class Exchange
         };  // return
     }
 
-    void initializeProperties()
+    void initializeProperties(dict userConfig = null)
     {
         var properties = this.describe();
 
-        this.version = (string)this.safeString(properties, "version", "");
+        var extendedProperties = this.deepExtend(properties, userConfig);
+
+        this.version = SafeString(extendedProperties, "version", "");
 
         // credentials initis
-        this.requiredCredentials = this.safeValue(properties, "requiredCredentials") as dict;
-        this.apiKey = SafeString(properties, "apiKey", "");
-        this.secret = SafeString(properties, "secret", "");
-        this.password = SafeString(properties, "password", "");
-        this.login = SafeString(properties, "login", "");
-        this.twofa = SafeString(properties, "twofa", "");
-        this.privateKey = SafeString(properties, "privateKey", "");
-        this.walletAddress = SafeString(properties, "walletAddress", "");
-        this.token = SafeString(properties, "token", "");
-        this.uid = SafeString(properties, "uid", "");
+        this.requiredCredentials = SafeValue(extendedProperties, "requiredCredentials") as dict;
+        this.apiKey = SafeString(extendedProperties, "apiKey", "");
+        this.secret = SafeString(extendedProperties, "secret", "");
+        this.password = SafeString(extendedProperties, "password", "");
+        this.login = SafeString(extendedProperties, "login", "");
+        this.twofa = SafeString(extendedProperties, "twofa", "");
+        this.privateKey = SafeString(extendedProperties, "privateKey", "");
+        this.walletAddress = SafeString(extendedProperties, "walletAddress", "");
+        this.token = SafeString(extendedProperties, "token", "");
+        this.uid = SafeString(extendedProperties, "uid", "");
 
-        this.userAgents = this.safeValue(properties, "userAgents") as dict;
-        this.timeout = SafeInteger(properties, "timeout", 10000) ?? 10000;
-        this.id = SafeString(properties, "id");
+        this.userAgents = SafeValue(extendedProperties, "userAgents") as dict;
+        this.timeout = SafeInteger(extendedProperties, "timeout", 10000) ?? 10000;
+        this.id = SafeString(extendedProperties, "id");
 
-        this.api = this.safeValue(properties, "api") as dict;
-        this.hostname = SafeString(properties, "hostname");
-        this.urls = this.safeValue(properties, "urls") as dict;
-        this.options = this.safeValue(properties, "options") as dict ?? new dict();
-        this.verbose = (bool)this.safeValue(properties, "verbose", false);
-        this.timeframes = this.safeValue(properties, "timeframes") as dict;
-        this.fees = this.safeValue(properties, "fees") as dict;
-        this.has = this.safeValue(properties, "has") as dict;
-        this.httpExceptions = this.safeValue(properties, "httpExceptions") as dict;
-        this.exceptions = this.safeValue(properties, "exceptions") as dict;
-        this.rateLimit = SafeFloat(properties, "rateLimit", -1) ?? -1;
+        this.api = SafeValue(extendedProperties, "api") as dict;
+        this.hostname = SafeString(extendedProperties, "hostname");
+        this.urls = SafeValue(extendedProperties, "urls") as dict;
+        this.options = SafeValue(extendedProperties, "options") as dict ?? new dict();
+        this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
+        this.timeframes = SafeValue(extendedProperties, "timeframes") as dict;
+        this.fees = SafeValue(extendedProperties, "fees") as dict;
+        this.has = SafeValue(extendedProperties, "has") as dict;
+        this.httpExceptions = SafeValue(extendedProperties, "httpExceptions") as dict;
+        this.exceptions = SafeValue(extendedProperties, "exceptions") as dict;
+        this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
     }
 }

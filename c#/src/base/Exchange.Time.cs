@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Main;
 
 public partial class Exchange
@@ -15,27 +17,44 @@ public partial class Exchange
         return DateTime.Now.Ticks / TimeSpan.TicksPerMicrosecond;
     }
 
-    public object parseDate(object date)
+    public object parseDate(object datetime2)
     {
-        var stringDate = (string)date;
-        // if (stringDate.IndexOf("GMT") >= 0)
-        // {
-        //     return DateTime.ParseExact(stringDate, "ddd MMM dd yyyy HH:mm:ss 'GMT'K");
-        // }
-        // else
-        // {
-        //     return DateTime.ParseExact(stringDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        // }
-        return parse8601(date); // stub implement later
+        if (datetime2 == null || datetime2.GetType() != typeof(string))
+        {
+            return null;
+        }
+        var datetime = (string)datetime2;
+        Int64 timestamp;
+        try
+        {
+            timestamp = (long)DateTime.Parse(datetime, null, System.Globalization.DateTimeStyles.RoundtripKind).Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+        return timestamp;
     }
 
-    public string iso8601(object ts)
+    public string iso8601(object ts = null)
     {
         if (ts == null)
         {
             return null;
         }
-        var startdatetime = Convert.ToInt64(ts);
+        Int64 startdatetime;
+        try
+        {
+            startdatetime = Convert.ToInt64(ts);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+        if (startdatetime < 0)
+        {
+            return null;
+        }
         var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
         return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
@@ -116,11 +135,22 @@ public partial class Exchange
         return date.ToString("yyyy" + infix + "MM" + infix + "dd");
     }
 
-    public object parse8601(object timestamp2)
+    public Int64? parse8601(object datetime2 = null)
     {
-        // stub check this out
-        var timestamp = (string)timestamp2;
-        return DateTime.Parse(timestamp).Millisecond;
+        if (datetime2 == null || datetime2.GetType() != typeof(string))
+        {
+            return null;
+        }
+        var datetime = (string)datetime2;
+        Int64 timestamp;
+        try
+        {
+            timestamp = (long)DateTime.Parse(datetime, null, System.Globalization.DateTimeStyles.RoundtripKind).Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+        return timestamp;
     }
-
 }

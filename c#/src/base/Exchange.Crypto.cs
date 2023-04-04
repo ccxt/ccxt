@@ -229,6 +229,7 @@ public partial class Exchange
 
     public object eddsa(object request, object secret, object alg = null)
     {
+        // ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         alg ??= "EdDSA";
         return null;
         // stub

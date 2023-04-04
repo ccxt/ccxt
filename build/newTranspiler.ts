@@ -349,7 +349,7 @@ class NewTranspiler {
     createCSharpWrappers(wrappers) {
         const wrapperFile = "./c#/src/base/Exchange.Wrappers.cs";
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(wrapper)).filter(wrapper => wrapper !== '').join('\n');
-        const classesIndented = this.createExchangesWrappers().filter(e=> !!e).map(e => '    ' + e).join('\n');
+        const classes = this.createExchangesWrappers().filter(e=> !!e).join('\n');
         const file = [
             'namespace Main;',
             '',
@@ -357,8 +357,8 @@ class NewTranspiler {
             'public partial class Exchange',
             '{',
             wrappersIndented,
-            classesIndented,
             '}',
+            classes
         ].join('\n')
         log.magenta ('→', (wrapperFile as any).yellow)
 
@@ -489,6 +489,8 @@ class NewTranspiler {
 
         // encapsulate inside transpileTests
         this.transpilePrecisionTestsToCSharp();
+        this.transpileCryptoTestsToCSharp();
+        this.transpileDatetimeTestsToCSharp();
 
         this.transpileBaseMethods (exchangeBase)
 
@@ -584,6 +586,8 @@ class NewTranspiler {
         return []
     }
 
+    // ---------------------------------------------------------------------------------------------
+
     transpilePrecisionTestsToCSharp () {
 
         const jsFile = './ts/src/test/base/functions/test.number.ts';
@@ -610,6 +614,79 @@ class NewTranspiler {
             '{',
             '    [Fact]',
             '    public void TestPrecision()',
+            '    {',
+            contentIdented,
+            '    }',
+            '}',
+        ].join('\n')
+
+        log.magenta ('→', (csharpFile as any).yellow)
+
+        overwriteFile (csharpFile, file);
+    }
+
+    transpileCryptoTestsToCSharp () {
+
+        const jsFile = './ts/src/test/base/functions/test.crypto.ts';
+        const csharpFile = './c#/Tests/Generated/Crypto.cs';
+
+        log.magenta ('Transpiling from', (jsFile as any).yellow)
+
+        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
+        let content = csharp.content;
+        content = this.regexAll (content, [
+            [ /\s+object\sfunction\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+            [/assert/g, 'Assert.True'],
+        ]).trim ()
+
+        const contentLines = content.split ('\n');
+        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+
+        const file = [
+            'using Main;',
+            'namespace Tests;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            'public class PrecisionTests : BaseTest',
+            '{',
+            '    [Fact]',
+            '    public void TestCrypto()',
+            '    {',
+            contentIdented,
+            '    }',
+            '}',
+        ].join('\n')
+
+        log.magenta ('→', (csharpFile as any).yellow)
+
+        overwriteFile (csharpFile, file);
+    }
+    transpileDatetimeTestsToCSharp () {
+
+        const jsFile = './ts/src/test/base/functions/test.datetime.ts';
+        const csharpFile = './c#/Tests/Generated/Datetime.cs';
+
+        log.magenta ('Transpiling from', (jsFile as any).yellow)
+
+        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
+        let content = csharp.content;
+        content = this.regexAll (content, [
+            [ /\s*object\s+=\sfunctions;\n/gm, '' ],
+            [/assert/g, 'Assert.True'],
+        ]).trim ()
+
+        const contentLines = content.split ('\n');
+        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+
+        const file = [
+            'using Main;',
+            'namespace Tests;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            'public class DateTime : BaseTest',
+            '{',
+            '    [Fact]',
+            '    public void TestDate()',
             '    {',
             contentIdented,
             '    }',
