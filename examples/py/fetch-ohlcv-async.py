@@ -10,14 +10,14 @@ sys.path.append(root + '/python')
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 # ----------------------------------------------------------------------------
+import asyncio
+import ccxt.async_support as ccxt  # noqa: E402
 
-import ccxt  # noqa: E402
 
-
-def example():
+async def example():
     myex = ccxt.okx({})
     from_timestamp = myex.milliseconds() - 86400 * 1000  # last 24 hrs
-    ohlcv = myex.fetch_ohlcv('BTC/USDT', '1m', from_timestamp, 3, {
+    ohlcv = await myex.fetch_ohlcv('BTC/USDT', '1m', from_timestamp, 3, {
     'whatever': 123,
 })
     length = len(ohlcv)
@@ -27,5 +27,7 @@ def example():
     else:
         print('No candles have been fetched')
 
+    await myex.close()
 
-example()
+
+asyncio.run(example())
