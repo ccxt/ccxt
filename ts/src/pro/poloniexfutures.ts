@@ -405,39 +405,43 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }
         const marketId = this.safeString (data, 'symbol');
         if (marketId !== undefined) {
-            const messageHash = 'orders:' + marketId;
+            const messageHash = '/contractMarket/tradeOrders:' + marketId;
             const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (order, 'orderId');
-            const clientOrderId = this.safeString (order, 'clientOrderId');
+            const orderId = this.safeString (data, 'orderId');
+            const clientOrderId = this.safeString (data, 'clientOid');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
             if (previousOrder === undefined) {
-                const parsed = this.parseWsOrder (order);
+                const parsed = this.parseWsOrder (data);
                 orders.append (parsed);
                 client.resolve (orders, messageHash);
             } else {
-                const trade = this.parseWsTrade (order);
+                const trade = this.parseWsTrade (data);
                 if (previousOrder['trades'] === undefined) {
                     previousOrder['trades'] = [];
                 }
                 previousOrder['trades'].push (trade);
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = 0;
-                let totalAmount = 0;
+                let totalCost = '0';
+                let totalAmount = '0';
                 const trades = previousOrder['trades'];
                 for (let i = 0; i < trades.length; i++) {
                     const trade = trades[i];
-                    totalCost = this.sum (totalCost, trade['cost']);
-                    totalAmount = this.sum (totalAmount, trade['amount']);
+                    totalCost = Precise.stringAdd (totalCost, trade['cost']);
+                    totalAmount = Precise.stringAdd (totalAmount, trade['amount']);
                 }
-                if (totalAmount > 0) {
-                    previousOrder['average'] = totalCost / totalAmount;
+                if (Precise.stringGt (totalAmount, '0')) {
+                    previousOrder['average'] = this.parseNumber (Precise.stringDiv (totalCost, totalAmount));
                 }
-                previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) { // ? previousOrder['filled'] = 0
-                    previousOrder['filled'] += trade['amount'];
+                previousOrder['cost'] = this.parseNumber (totalCost);
+                if (previousOrder['filled'] !== undefined) {
+                    const tradeAmount = this.numberToString (trade['amount']);
+                    let previousFilled = this.numberToString (previousOrder['filled']);
+                    const previousAmount = this.numberToString (previousOrder['amount']);
+                    previousFilled = Precise.stringAdd (tradeAmount, previousFilled);
+                    previousOrder['filled'] = this.parseNumber (previousFilled);
                     if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
+                        previousOrder['remaining'] = this.parseNumber (Precise.stringSub (previousAmount, previousFilled));
                     }
                 }
                 if (previousOrder['fee'] === undefined) {
@@ -455,22 +459,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 // update the newUpdates count
                 orders.append (previousOrder);
                 client.resolve (orders, messageHash);
-                // } else if ((type === 'received') || (type === 'done')) { // TODO?: delete
-                //     const info = this.extend (previousOrder['info'], data);
-                //     const order = this.parseWsOrder (info);
-                //     const keys = Object.keys (order);
-                //     // update the reference
-                //     for (let i = 0; i < keys.length; i++) {
-                //         const key = keys[i];
-                //         if (order[key] !== undefined) {
-                //             previousOrder[key] = order[key];
-                //         }
-                //     }
-                //     // update the newUpdates count
-                //     orders.append (previousOrder);
-                //     client.resolve (orders, messageHash);
-                // }
             }
+            client.resolve (orders, '/contractMarket/tradeOrders');
         }
         return message;
     }
@@ -478,37 +468,28 @@ export default class poloniexfutures extends poloniexfuturesRest {
     parseWsOrder (order, market = undefined) {
         //
         //    {
-        //        "symbol": "BTC_USDT",
-        //        "type": "LIMIT",
-        //        "quantity": "1",
-        //        "orderId": "32471407854219264",
-        //        "tradeFee": "0",
-        //        "clientOrderId": "",
-        //        "accountType": "SPOT",
-        //        "feeCurrency": "",
-        //        "eventType": "place",
-        //        "source": "API",
-        //        "side": "BUY",
-        //        "filledQuantity": "0",
-        //        "filledAmount": "0",
-        //        "matchRole": "MAKER",
-        //        "state": "NEW",
-        //        "tradeTime": 0,
-        //        "tradeAmount": "0",
-        //        "orderAmount": "0",
-        //        "createTime": 1648708186922,
-        //        "price": "47112.1",
-        //        "tradeQty": "0",
-        //        "tradePrice": "0",
-        //        "tradeId": "0",
-        //        "ts": 1648708187469
+        //        symbol: 'ADAUSDTPERP',
+        //        orderType: 'limit',
+        //        side: 'buy',
+        //        canceledSize: '1',
+        //        orderId: '642b4d4c0494cd0007c76813',
+        //        type: 'canceled',
+        //        orderTime: '1680559436101909048',
+        //        size: '1',
+        //        filledSize: '0',
+        //        marginType: 1,
+        //        price: '0.25',
+        //        remainSize: '0',
+        //        clientOid: '112cbbf1-95a3-4917-957c-d3a87d81f853',
+        //        status: 'done',
+        //        ts: 1680559677560686600
         //    }
         //
         const id = this.safeString (order, 'orderId');
-        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const clientOrderId = this.safeString (order, 'clientOid');
         const marketId = this.safeString (order, 'symbol');
-        const timestamp = this.safeString (order, 'ts');
-        const filledAmount = this.safeString (order, 'filledAmount'); // TODO? filledQuantity
+        const timestamp = this.safeInteger (order, 'ts') / 1000000;
+        const filledAmount = this.safeString (order, 'filledSize');
         let trades = undefined;
         if (!Precise.stringEq (filledAmount, '0')) {
             trades = [];
@@ -523,19 +504,19 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'type': this.safeString (order, 'type'),
+            'type': this.safeString (order, 'orderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.safeString (order, 'side'),
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': this.safeString (order, 'orderAmount'),
+            'amount': this.safeString (order, 'size'),
             'cost': undefined,
             'average': undefined,
             'filled': filledAmount,
-            'remaining': this.safeString (order, 'remaining_size'),
-            'status': undefined, // TODO?: eventType, state
+            'remaining': this.safeString (order, 'remainSize'),
+            'status': this.safeString (order, 'status'), // ? type
             'fee': {
                 'rate': undefined,
                 'cost': this.safeString (order, 'tradeFee'),
