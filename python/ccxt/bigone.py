@@ -1061,7 +1061,7 @@ class bigone(Exchange):
 
     def nonce(self):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
-        return self.microseconds() * 1000 + exchangeTimeCorrection
+        return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

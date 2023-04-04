@@ -40,6 +40,7 @@ class coinex extends coinex$1 {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
