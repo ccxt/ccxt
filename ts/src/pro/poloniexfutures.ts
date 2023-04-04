@@ -22,7 +22,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'watchBalance': true,
                 'watchStatus': false,
                 'watchOrders': true,
-                'watchMyTrades': true,
+                'watchMyTrades': false,
             },
             'urls': {
                 'api': {
@@ -191,28 +191,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
         await this.loadMarkets ();
         const name = '/contractMarket/tradeOrders';
         // const name = '/contractMarket/advancedOrders'; // TODO: for stop orders
-        // await this.authenticate ();
-        const orders = await this.subscribe (name, true, symbol, params);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
-    }
-
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniexfutures#watchMyTrades
-         * @description watches information on multiple orders made by the user
-         * @see https://futures-docs.poloniex.com/#private-messages
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since not used by poloniexfutures watchMyTrades
-         * @param {int|undefined} limit not used by poloniexfutures watchMyTrades
-         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const name = '/contractMarket/tradeOrders';
         // await this.authenticate ();
         const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
