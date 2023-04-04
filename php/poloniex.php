@@ -244,35 +244,112 @@ class poloniex extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
-                    'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
-                    'Invalid order number, or you are not the person who placed the order.' => '\\ccxt\\OrderNotFound',
-                    'Permission denied' => '\\ccxt\\PermissionDenied',
-                    'Permission denied.' => '\\ccxt\\PermissionDenied',
-                    'Connection timed out. Please try again.' => '\\ccxt\\RequestTimeout',
-                    'Internal error. Please try again.' => '\\ccxt\\ExchangeNotAvailable',
-                    'Currently in maintenance mode.' => '\\ccxt\\OnMaintenance',
-                    'Order not found, or you are not the person who placed it.' => '\\ccxt\\OrderNotFound',
-                    'Invalid API key/secret pair.' => '\\ccxt\\AuthenticationError',
-                    'Please do not make more than 8 API calls per second.' => '\\ccxt\\RateLimitExceeded',
-                    'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.' => '\\ccxt\\RateLimitExceeded',
-                    'Rate must be greater than zero.' => '\\ccxt\\InvalidOrder', // array("error":"Rate must be greater than zero.")
-                    'Invalid currency pair.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currency pair.")
-                    'Invalid currencyPair parameter.' => '\\ccxt\\BadSymbol', // array("error":"Invalid currencyPair parameter.")
-                    'Trading is disabled in this market.' => '\\ccxt\\BadSymbol', // array("error":"Trading is disabled in this market.")
-                    'Invalid orderNumber parameter.' => '\\ccxt\\OrderNotFound',
-                    'Order is beyond acceptable bounds.' => '\\ccxt\\InvalidOrder', // array("error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA")
-                    'This account is closed.' => '\\ccxt\\AccountSuspended', // array("error":"This account is closed.")
+                    // General
+                    '500' => '\\ccxt\\ExchangeNotAvailable', // Internal System Error
+                    '603' => '\\ccxt\\RequestTimeout', // Internal Request Timeout
+                    '601' => '\\ccxt\\BadRequest', // Invalid Parameter
+                    '415' => '\\ccxt\\ExchangeError', // System Error
+                    '602' => '\\ccxt\\ArgumentsRequired', // Missing Required Parameters
+                    // Accounts
+                    '21604' => '\\ccxt\\BadRequest', // Invalid UserId
+                    '21600' => '\\ccxt\\AuthenticationError', // Account Not Found
+                    '21605' => '\\ccxt\\AuthenticationError', // Invalid Account Type
+                    '21102' => '\\ccxt\\ExchangeError', // Invalid Currency
+                    '21100' => '\\ccxt\\AuthenticationError', // Invalid account
+                    '21704' => '\\ccxt\\AuthenticationError', // Missing UserId and/or AccountId
+                    '21700' => '\\ccxt\\BadRequest', // Error updating accounts
+                    '21705' => '\\ccxt\\BadRequest', // Invalid currency type
+                    '21707' => '\\ccxt\\ExchangeError', // Internal accounts Error
+                    '21708' => '\\ccxt\\BadRequest', // Currency not available to User
+                    '21601' => '\\ccxt\\AccountSuspended', // Account locked. Contact support
+                    '21711' => '\\ccxt\\ExchangeError', // Currency locked. Contact support
+                    '21709' => '\\ccxt\\InsufficientFunds', // Insufficient balance
+                    '250000' => '\\ccxt\\ExchangeError', // Transfer error. Try again later
+                    '250001' => '\\ccxt\\BadRequest', // Invalid toAccount for transfer
+                    '250002' => '\\ccxt\\BadRequest', // Invalid fromAccount for transfer
+                    '250003' => '\\ccxt\\BadRequest', // Invalid transfer amount
+                    '250004' => '\\ccxt\\BadRequest', // Transfer is not supported
+                    '250005' => '\\ccxt\\InsufficientFunds', // Insufficient transfer balance
+                    '250008' => '\\ccxt\\BadRequest', // Invalid transfer currency
+                    '250012' => '\\ccxt\\ExchangeError', // Futures account is not valid
+                    // Trading
+                    '21110' => '\\ccxt\\BadRequest', // Invalid quote currency
+                    '10040' => '\\ccxt\\BadSymbol', // Invalid symbol
+                    '10060' => '\\ccxt\\ExchangeError', // Symbol setup error
+                    '10020' => '\\ccxt\\BadSymbol', // Invalid currency
+                    '10041' => '\\ccxt\\BadSymbol', // Symbol frozen for trading
+                    '21340' => '\\ccxt\\OnMaintenance', // No order creation/cancelation is allowed is in Maintenane Mode
+                    '21341' => '\\ccxt\\InvalidOrder', // Post-only orders type allowed is in Post Only Mode
+                    '21342' => '\\ccxt\\InvalidOrder', // Price is higher than highest bid is in Maintenance Mode
+                    '21343' => '\\ccxt\\InvalidOrder', // Price is lower than lowest bid is in Maintenance Mode
+                    '21351' => '\\ccxt\\AccountSuspended', // Trading for this account is frozen. Contact support
+                    '21352' => '\\ccxt\\BadSymbol', // Trading for this currency is frozen
+                    '21353' => '\\ccxt\\PermissionDenied', // Trading for US customers is not supported
+                    '21354' => '\\ccxt\\PermissionDenied', // Account needs to be verified via email before trading is enabled. Contact support
+                    '24106' => '\\ccxt\\BadRequest', // Invalid market depth
+                    '24201' => '\\ccxt\\ExchangeNotAvailable', // Service busy. Try again later
+                    // Orders
+                    '21301' => '\\ccxt\\OrderNotFound', // Order not found
+                    '21302' => '\\ccxt\\ExchangeError', // Batch cancel order error
+                    '21304' => '\\ccxt\\ExchangeError', // Order is filled
+                    '21305' => '\\ccxt\\OrderNotFound', // Order is canceled
+                    '21307' => '\\ccxt\\ExchangeError', // Error during Order Cancelation
+                    '21309' => '\\ccxt\\InvalidOrder', // Order price must be greater than 0
+                    '21310' => '\\ccxt\\InvalidOrder', // Order price must be less than max price
+                    '21311' => '\\ccxt\\InvalidOrder', // Order price must be greater than min price
+                    '21312' => '\\ccxt\\InvalidOrder', // Client orderId already exists
+                    '21314' => '\\ccxt\\InvalidOrder', // Max limit of open orders (2000) exceeded
+                    '21315' => '\\ccxt\\InvalidOrder', // Client orderId exceeded max length of 17 digits
+                    '21317' => '\\ccxt\\InvalidOrder', // Amount must be greater than 0
+                    '21319' => '\\ccxt\\InvalidOrder', // Invalid order side
+                    '21320' => '\\ccxt\\InvalidOrder', // Invalid order type
+                    '21321' => '\\ccxt\\InvalidOrder', // Invalid timeInForce value
+                    '21322' => '\\ccxt\\InvalidOrder', // Amount is less than minAmount trade limit
+                    '21324' => '\\ccxt\\BadRequest', // Invalid account type
+                    '21327' => '\\ccxt\\InvalidOrder', // Order pice must be greater than 0
+                    '21328' => '\\ccxt\\InvalidOrder', // Order quantity must be greater than 0
+                    '21330' => '\\ccxt\\InvalidOrder', // Quantity is less than minQuantity trade limit
+                    '21335' => '\\ccxt\\InvalidOrder', // Invalid priceScale for this symbol
+                    '21336' => '\\ccxt\\InvalidOrder', // Invalid quantityScale for this symbol
+                    '21337' => '\\ccxt\\InvalidOrder', // Invalid amountScale for this symbol
+                    '21344' => '\\ccxt\\InvalidOrder', // Value of limit param is greater than max value of 100
+                    '21345' => '\\ccxt\\InvalidOrder', // Value of limit param value must be greater than 0
+                    '21346' => '\\ccxt\\InvalidOrder', // Order Id must be of type Long
+                    '21348' => '\\ccxt\\InvalidOrder', // Order type must be LIMIT_MAKER
+                    '21347' => '\\ccxt\\InvalidOrder', // Stop price must be greater than 0
+                    '21349' => '\\ccxt\\InvalidOrder', // Order value is too large
+                    '21350' => '\\ccxt\\InvalidOrder', // Amount must be greater than 1 USDT
+                    '21355' => '\\ccxt\\ExchangeError', // Interval between startTime and endTime in trade/order history has exceeded 7 day limit
+                    '21356' => '\\ccxt\\BadRequest', // Order size would cause too much price movement. Reduce order size.
+                    '24101' => '\\ccxt\\BadSymbol', // Invalid symbol
+                    '24102' => '\\ccxt\\InvalidOrder', // Invalid K-line type
+                    '24103' => '\\ccxt\\InvalidOrder', // Invalid endTime
+                    '24104' => '\\ccxt\\InvalidOrder', // Invalid amount
+                    '24105' => '\\ccxt\\InvalidOrder', // Invalid startTime
+                    '25020' => '\\ccxt\\InvalidOrder', // No active kill switch
+                    // Smartorders
+                    '25000' => '\\ccxt\\InvalidOrder', // Invalid userId
+                    '25001' => '\\ccxt\\InvalidOrder', // Invalid parameter
+                    '25002' => '\\ccxt\\InvalidOrder', // Invalid userId.
+                    '25003' => '\\ccxt\\ExchangeError', // Unable to place order
+                    '25004' => '\\ccxt\\InvalidOrder', // Client orderId already exists
+                    '25005' => '\\ccxt\\ExchangeError', // Unable to place smart order
+                    '25006' => '\\ccxt\\InvalidOrder', // OrderId and clientOrderId already exists
+                    '25007' => '\\ccxt\\InvalidOrder', // Invalid orderid
+                    '25008' => '\\ccxt\\InvalidOrder', // Both orderId and clientOrderId are required
+                    '25009' => '\\ccxt\\ExchangeError', // Failed to cancel order
+                    '25010' => '\\ccxt\\PermissionDenied', // Unauthorized to cancel order
+                    '25011' => '\\ccxt\\InvalidOrder', // Failed to cancel due to invalid paramters
+                    '25012' => '\\ccxt\\ExchangeError', // Failed to cancel
+                    '25013' => '\\ccxt\\OrderNotFound', // Failed to cancel were not found
+                    '25014' => '\\ccxt\\OrderNotFound', // Failed to cancel were not found
+                    '25015' => '\\ccxt\\OrderNotFound', // Failed to cancel orders exist
+                    '25016' => '\\ccxt\\ExchangeError', // Failed to cancel to release funds
+                    '25017' => '\\ccxt\\ExchangeError', // No orders were canceled
+                    '25018' => '\\ccxt\\BadRequest', // Invalid accountType
+                    '25019' => '\\ccxt\\BadSymbol', // Invalid symbol
                 ),
                 'broad' => array(
-                    'Total must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Total must be at least 0.0001.")
-                    'This account is frozen' => '\\ccxt\\AccountSuspended', // array("error":"This account is frozen for trading.") || array("error":"This account is frozen.")
-                    'This account is locked.' => '\\ccxt\\AccountSuspended', // array("error":"This account is locked.")
-                    'Not enough' => '\\ccxt\\InsufficientFunds',
-                    'Nonce must be greater' => '\\ccxt\\InvalidNonce',
-                    'You have already called cancelOrder' => '\\ccxt\\CancelPending', // array("error":"You have already called cancelOrder, moveOrder, or cancelReplace on this order. Please wait for that call's response.")
-                    'Amount must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Amount must be at least 0.000001.")
-                    'is either completed or does not exist' => '\\ccxt\\OrderNotFound', // array("error":"Order 587957810791 is either completed or does not exist.")
-                    'Error pulling ' => '\\ccxt\\ExchangeError', // array("error":"Error pulling order book")
                 ),
             ),
         ));
@@ -2022,11 +2099,17 @@ class poloniex extends Exchange {
         if ($response === null) {
             return;
         }
-        // array("error":"Permission denied.")
-        if (is_array($response) && array_key_exists('error', $response)) {
-            $message = $response['error'];
+        //
+        //     {
+        //         "code" : 21709,
+        //         "message" : "Low available balance"
+        //     }
+        //
+        if (is_array($response) && array_key_exists('code', $response)) {
+            $code = $response['code'];
+            $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
