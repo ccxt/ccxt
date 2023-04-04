@@ -25,7 +25,7 @@
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
     "tsBuild": "tsc || true",
-    "tsBuildExamples": "cd examples && tsc || true && cd ..",
+    "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
     "emitTypes": "node build/generateImplicitAPI.js && node build/emitTypes.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
@@ -100,7 +100,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-json": "^4.1.0",
-    "@types/node": "^18.11.0",
+    "@types/node": "^18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
     "ansicolor": "1.1.81",

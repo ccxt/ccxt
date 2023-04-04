@@ -1,4 +1,4 @@
-import { binance } from '../../ts/ccxt.js';
+import { binance } from '../../js/ccxt.js';
 
 async function example () {
     const exchange = new binance ({});
@@ -8,5 +8,4 @@ async function example () {
     console.log (asks);
     console.log (bids);
 }
-
 example ();
