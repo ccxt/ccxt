@@ -1652,44 +1652,28 @@ export default class poloniex extends Exchange {
         const response = await this.privatePostAccountsTransfer (this.extend (request, params));
         //
         //    {
-        //        success: '1',
-        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
         return this.parseTransfer (response, currency);
     }
 
-    parseTransferStatus (status) {
-        const statuses = {
-            '1': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     parseTransfer (transfer, currency = undefined) {
         //
         //    {
-        //        success: '1',
-        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
-        const message = this.safeString (transfer, 'message');
-        const words = message.split (' ');
-        const amount = this.safeNumber (words, 1);
-        const currencyId = this.safeString (words, 2);
-        const fromAccountId = this.safeString (words, 4);
-        const toAccountId = this.safeString (words, 6);
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
         return {
             'info': transfer,
-            'id': undefined,
+            'id': this.safeString (transfer, 'transferId'),
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': amount,
-            'fromAccount': this.safeString (accountsById, fromAccountId),
-            'toAccount': this.safeString (accountsById, toAccountId),
-            'status': this.parseOrderStatus (this.safeString (transfer, 'success', 'failed')),
+            'currency': this.safeString (currency, 'id'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
         };
     }
 
