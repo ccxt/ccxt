@@ -1553,42 +1553,27 @@ class poloniex(Exchange):
         response = self.privatePostAccountsTransfer(self.extend(request, params))
         #
         #    {
-        #        success: '1',
-        #        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        #        "transferId" : "168041074"
         #    }
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer_status(self, status):
-        statuses = {
-            '1': 'ok',
-        }
-        return self.safe_string(statuses, status, status)
-
     def parse_transfer(self, transfer, currency=None):
         #
         #    {
-        #        success: '1',
-        #        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        #        "transferId" : "168041074"
         #    }
         #
-        message = self.safe_string(transfer, 'message')
-        words = message.split(' ')
-        amount = self.safe_number(words, 1)
-        currencyId = self.safe_string(words, 2)
-        fromAccountId = self.safe_string(words, 4)
-        toAccountId = self.safe_string(words, 6)
-        accountsById = self.safe_value(self.options, 'accountsById', {})
         return {
             'info': transfer,
-            'id': None,
+            'id': self.safe_string(transfer, 'transferId'),
             'timestamp': None,
             'datetime': None,
-            'currency': self.safe_currency_code(currencyId, currency),
-            'amount': amount,
-            'fromAccount': self.safe_string(accountsById, fromAccountId),
-            'toAccount': self.safe_string(accountsById, toAccountId),
-            'status': self.parse_order_status(self.safe_string(transfer, 'success', 'failed')),
+            'currency': self.safe_string(currency, 'id'),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
         }
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):

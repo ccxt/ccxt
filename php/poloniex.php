@@ -1609,44 +1609,28 @@ class poloniex extends Exchange {
         $response = $this->privatePostAccountsTransfer (array_merge($request, $params));
         //
         //    {
-        //        success => '1',
-        //        message => 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer_status($status) {
-        $statuses = array(
-            '1' => 'ok',
-        );
-        return $this->safe_string($statuses, $status, $status);
-    }
-
     public function parse_transfer($transfer, $currency = null) {
         //
         //    {
-        //        success => '1',
-        //        $message => 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
-        $message = $this->safe_string($transfer, 'message');
-        $words = explode(' ', $message);
-        $amount = $this->safe_number($words, 1);
-        $currencyId = $this->safe_string($words, 2);
-        $fromAccountId = $this->safe_string($words, 4);
-        $toAccountId = $this->safe_string($words, 6);
-        $accountsById = $this->safe_value($this->options, 'accountsById', array());
         return array(
             'info' => $transfer,
-            'id' => null,
+            'id' => $this->safe_string($transfer, 'transferId'),
             'timestamp' => null,
             'datetime' => null,
-            'currency' => $this->safe_currency_code($currencyId, $currency),
-            'amount' => $amount,
-            'fromAccount' => $this->safe_string($accountsById, $fromAccountId),
-            'toAccount' => $this->safe_string($accountsById, $toAccountId),
-            'status' => $this->parse_order_status($this->safe_string($transfer, 'success', 'failed')),
+            'currency' => $this->safe_string($currency, 'id'),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
         );
     }
 

@@ -47,26 +47,25 @@ export default class poloniex extends Exchange {
     }>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
-        id: any;
+        id: string;
         timestamp: any;
         datetime: any;
-        currency: any;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
+        currency: string;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
     }>;
-    parseTransferStatus(status: any): string;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
-        id: any;
+        id: string;
         timestamp: any;
         datetime: any;
-        currency: any;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
+        currency: string;
+        amount: any;
+        fromAccount: any;
+        toAccount: any;
+        status: any;
     };
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         info: any;

@@ -192,7 +192,7 @@ export default class latoken extends Exchange {
                     'Unable to resolve currency by tag': BadSymbol,
                     "Can't find currency with tag": BadSymbol,
                     'Unable to place order because pair is in inactive state': BadSymbol,
-                    'API keys are not available for FROZEN user': AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
+                    'API keys are not available for': AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {
