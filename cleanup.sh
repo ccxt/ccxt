@@ -9,3 +9,4 @@ git checkout HEAD ts/src/abstract
 git checkout HEAD python
 git checkout HEAD php
 git checkout HEAD dist
+git checkout HEAD examples
