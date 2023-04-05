@@ -1190,7 +1190,6 @@ class Transpiler {
         if (fs.existsSync (sync)) {
             fs.truncateSync (sync)
         }
-        fs.truncateSync (sync)
         fs.writeFileSync (sync, newContents)
     }
 
@@ -1210,8 +1209,9 @@ class Transpiler {
         ]
 
         const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
-
-        fs.truncateSync (sync)
+        if (fs.existsSync (sync)) {
+            fs.truncateSync (sync)
+        }
         fs.writeFileSync (sync, newContents)
     }
 

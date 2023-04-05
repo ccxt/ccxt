@@ -47,14 +47,14 @@ for (let i = 0; i < properties.length; i++) {
         testFiles[property] = await import(pathToFileURL(filePath)) as any;
     }
 }
-//import errors from '../base/errorHierarchy';
+import { errorHierarchy as errors } from '../base/errorHierarchy.js';
 
 Object.keys (errors)
     // eslint-disable-next-line no-path-concat
-    .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.ts'))
+    .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
     .forEach ((error) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[error] = require (__dirname + '/errors/test.' + error + '.ts');
+        testFiles[error] = require (__dirname + '/errors/test.' + error + '.js');
     });
 
 const AuthenticationError = errors.AuthenticationError;
