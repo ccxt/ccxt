@@ -1876,10 +1876,12 @@ export default class xt extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
+        let type = undefined;
         let subType = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
-        if (subType === 'linear') {
+        if ((type === 'swap') || (type === 'future')) {
             response = await this.privateLinearGetFutureUserV1BalanceList (params);
         } else if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1BalanceList (params);
