@@ -1736,6 +1736,10 @@ class mexc(Exchange):
             if marginMode != 'isolated':
                 raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
             method = 'spotPrivatePostMarginOrder'
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
+        if postOnly:
+            request['type'] = 'LIMIT_MAKER'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1782,7 +1786,8 @@ class mexc(Exchange):
             openType = self.safe_integer(params, 'openType', 2)  # defaulting to cross margin
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', type == 2, params)
         if postOnly:
             type = 2
         elif type == 'limit':
