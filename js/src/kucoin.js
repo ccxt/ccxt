@@ -1508,6 +1508,11 @@ export default class kucoin extends Exchange {
                 request['marginModel'] = 'isolated';
             }
         }
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
         const response = await this[method](this.extend(request, params));
         //
         //     {

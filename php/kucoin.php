@@ -1491,6 +1491,11 @@ class kucoin extends Exchange {
                 $request['marginModel'] = 'isolated';
             }
         }
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
+        if ($postOnly) {
+            $request['postOnly'] = true;
+        }
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
