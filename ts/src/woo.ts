@@ -870,12 +870,15 @@ export default class woo extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString2 (params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let method = undefined;
         if (isByClientOrder) {
+            method = 'v1PrivateDeleteClientOrder';
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         } else {
+            method = 'v1PrivateDeleteOrder';
             request['order_id'] = id;
         }
         let market = undefined;
@@ -883,7 +886,7 @@ export default class woo extends Exchange {
             market = this.market (symbol);
         }
         request['symbol'] = market['id'];
-        const response = await this.v1PrivateDeleteOrder (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
