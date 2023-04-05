@@ -47,9 +47,8 @@ for (let i = 0; i < properties.length; i++) {
         testFiles[property] = await import(pathToFileURL(filePath)) as any;
     }
 }
-import { errorHierarchy as errors } from '../base/errorHierarchy.js';
-
-Object.keys (errors)
+import errorsHierarchy from '../base/errorHierrorHierarchy.js';
+Object.keys (errorsHierarchy)
     // eslint-disable-next-line no-path-concat
     .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
     .forEach ((error) => {
@@ -57,7 +56,7 @@ Object.keys (errors)
         testFiles[error] = require (__dirname + '/errors/test.' + error + '.js');
     });
 
-const AuthenticationError = errors.AuthenticationError;
+const AuthenticationError = errorsHierarchy.AuthenticationError;
 
 // non-transpiled commons
 const rootDir = __dirname + '/../../../';
