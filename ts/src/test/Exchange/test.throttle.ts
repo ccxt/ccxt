@@ -1,5 +1,5 @@
 /* eslint-disable */
-const { throttle } = require ('../../base/functions/throttle.js')
+import { Throttler } from '../../base/functions/throttle.js'
 
 const delta = 10
 const testCases = [
@@ -76,13 +76,13 @@ for (const test of testCases) {
 }
 
 async function runner (test) {
-    const throttler = throttle ({
+    const throttler = new Throttler ({
         'refillRate': test['refillRate'],
         'tokens': test['tokens'],
     })
     const start = performance.now ()
     for (let i = 0; i < test['runs']; i++) {
-        await throttler (test['cost'])
+        await throttler.throttle (test['cost'])
     }
     const end = performance.now ()
     const elapsed = end - start

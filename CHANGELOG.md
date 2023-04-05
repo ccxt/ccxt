@@ -2,6 +2,121 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.53 (2023-04-04)
+
+### 3.0.52 (2023-04-04)
+
+### 3.0.51 (2023-04-03)
+
+### 3.0.50 (2023-04-02)
+
+### 3.0.49 (2023-04-02)
+
+
+### Bug Fixes
+
+* **Phemex:** sandbox v2 ([7729365](https://github.com/ccxt/ccxt/commit/7729365dc40adc1264b54c7d32dc80fd802ca94e))
+
+### 3.0.48 (2023-04-01)
+
+
+### Bug Fixes
+
+* **gate:** watchOrders and watchMyTrades ([ed81fb6](https://github.com/ccxt/ccxt/commit/ed81fb6169ac28d3877e6a79765963e85954dcc0))
+
+### 3.0.47 (2023-03-31)
+
+### 3.0.46 (2023-03-31)
+
+### 3.0.45 (2023-03-30)
+
+
+### Bug Fixes
+
+* **types:** python3.7 support ([0487925](https://github.com/ccxt/ccxt/commit/0487925f69dd62e1adc63f527d4cf054d474176d))
+
+### 3.0.44 (2023-03-30)
+
+### 3.0.43 (2023-03-29)
+
+### 3.0.41 (2023-03-28)
+
+### 3.0.40 (2023-03-27)
+
+### 3.0.39 (2023-03-27)
+
+### 3.0.38 (2023-03-27)
+
+### 3.0.37 (2023-03-27)
+
+### 3.0.36 (2023-03-26)
+
+### 3.0.35 (2023-03-25)
+
+### 3.0.34 (2023-03-25)
+
+### 3.0.33 (2023-03-24)
+
+### 3.0.32 (2023-03-24)
+
+### 3.0.31 (2023-03-24)
+
+### 3.0.30 (2023-03-23)
+
+
+### Bug Fixes
+
+* **bybit,gate:** polluting markets loading ([2ba367e](https://github.com/ccxt/ccxt/commit/2ba367e1869b7c820a4f14c1ea6174b46a913626))
+
+### 3.0.29 (2023-03-23)
+
+### 3.0.27 (2023-03-22)
+
+### 3.0.26 (2023-03-21)
+
+
+### Bug Fixes
+
+* **kucoin:** handlePong ([756cb79](https://github.com/ccxt/ccxt/commit/756cb79fa2cdc7a34934c8f5cffaac1e6d422958))
+
+### 3.0.25 (2023-03-20)
+
+### 3.0.24 (2023-03-20)
+
+### 3.0.23 (2023-03-19)
+
+### 3.0.22 (2023-03-18)
+
+### 3.0.21 (2023-03-18)
+
+### 3.0.20 (2023-03-18)
+
+### 3.0.19 (2023-03-17)
+
+### 3.0.18 (2023-03-17)
+
+### 3.0.17 (2023-03-16)
+
+### 3.0.16 (2023-03-16)
+
+
+### Bug Fixes
+
+* **Exchange:** fetchDepositAddresses ([3cf0612](https://github.com/ccxt/ccxt/commit/3cf0612f672c4bd3c5286b08d2bc1e5a735f4879))
+
+### 3.0.15 (2023-03-16)
+
+
+### Bug Fixes
+
+* **kraken:** watchOrderbook handleDeltas ([ee7b0dc](https://github.com/ccxt/ccxt/commit/ee7b0dcea4eb63210a1e9c6b011cfa995ce55018))
+
+### 3.0.14 (2023-03-16)
+
+### 3.0.13 (2023-03-16)
+
+### 3.0.11 (2023-03-16)
+
 ### 3.0.10 (2023-03-15)
 
 ### 3.0.9 (2023-03-15)

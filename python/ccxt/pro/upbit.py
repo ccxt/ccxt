@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 
 
 class upbit(ccxt.async_support.upbit):
@@ -27,7 +29,7 @@ class upbit(ccxt.async_support.upbit):
             },
         })
 
-    async def watch_public(self, symbol, channel, params={}):
+    async def watch_public(self, symbol: str, channel, params={}):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -51,16 +53,16 @@ class upbit(ccxt.async_support.upbit):
         messageHash = channel + ':' + marketId
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the upbit api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public(symbol, 'ticker')
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -76,18 +78,18 @@ class upbit(ccxt.async_support.upbit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the upbit api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         orderbook = await self.watch_public(symbol, 'orderbook')
         return orderbook.limit()
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         # 2020-03-17T23:07:36.511Z 'onMessage' <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         # {type: 'ticker',
         #   code: 'BTC-ETH',
@@ -131,7 +133,7 @@ class upbit(ccxt.async_support.upbit):
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         # {type: 'orderbook',
         #   code: 'BTC-ETH',
         #   timestamp: 1584486737444,
@@ -183,7 +185,7 @@ class upbit(ccxt.async_support.upbit):
         messageHash = 'orderbook:' + marketId
         client.resolve(orderBook, messageHash)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         # {type: 'trade',
         #   code: 'KRW-BTC',
         #   timestamp: 1584508285812,
@@ -210,7 +212,7 @@ class upbit(ccxt.async_support.upbit):
         messageHash = 'trade:' + marketId
         client.resolve(stored, messageHash)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         methods = {
             'ticker': self.handle_ticker,
             'orderbook': self.handle_order_book,

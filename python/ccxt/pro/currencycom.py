@@ -5,6 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
+import hashlib
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.precise import Precise
 
 
@@ -61,11 +64,11 @@ class currencycom(ccxt.async_support.currencycom):
             'payload': {},
         }
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_balance(self, client, message, subscription):
+    def handle_balance(self, client: Client, message, subscription):
         #
         #     {
         #         status: 'OK',
@@ -108,7 +111,7 @@ class currencycom(ccxt.async_support.currencycom):
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
 
-    def handle_ticker(self, client, message, subscription):
+    def handle_ticker(self, client: Client, message, subscription):
         #
         #     {
         #         status: 'OK',
@@ -190,7 +193,7 @@ class currencycom(ccxt.async_support.currencycom):
             'fee': None,
         }
 
-    def handle_trades(self, client, message, subscription):
+    def handle_trades(self, client: Client, message, subscription):
         #
         #     {
         #         status: 'OK',
@@ -230,7 +233,7 @@ class currencycom(ccxt.async_support.currencycom):
                 return key
         return None
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         status: 'OK',
@@ -312,7 +315,7 @@ class currencycom(ccxt.async_support.currencycom):
             'correlationId': requestId,
             'payload': payload,
         }, params)
-        request['payload']['signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
+        request['payload']['signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         subscription = self.extend(request, {
             'messageHash': messageHash,
         })
@@ -327,12 +330,12 @@ class currencycom(ccxt.async_support.currencycom):
         await self.load_markets()
         return await self.watch_private('/api/v1/account', params)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the currencycom api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -354,7 +357,7 @@ class currencycom(ccxt.async_support.currencycom):
         })
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -370,20 +373,20 @@ class currencycom(ccxt.async_support.currencycom):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the currencycom api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
         orderbook = await self.watch_public('depthMarketData.subscribe', symbol, params)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -418,7 +421,7 @@ class currencycom(ccxt.async_support.currencycom):
             amount = deltas[price]
             bookside.store(float(price), float(amount))
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         status: 'OK',
@@ -451,7 +454,7 @@ class currencycom(ccxt.async_support.currencycom):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         #     {
         #         status: 'OK',

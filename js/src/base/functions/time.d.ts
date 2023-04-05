@@ -3,7 +3,7 @@ declare const microseconds: () => number;
 declare const milliseconds: () => number;
 declare const seconds: () => number;
 declare const uuidv1: () => string;
-declare const setTimeout_safe: (done: any, ms: any, setTimeout?: typeof setTimeout, targetTime?: any) => () => void;
+declare const setTimeout_safe: (done: any, ms: any, setTimeout?: any, targetTime?: any) => () => void;
 declare class TimedOut extends Error {
     constructor();
 }

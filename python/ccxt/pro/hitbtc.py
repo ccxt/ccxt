@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 
 
 class hitbtc(ccxt.async_support.hitbtc):
@@ -36,7 +38,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             },
         })
 
-    async def watch_public(self, symbol, channel, timeframe=None, params={}):
+    async def watch_public(self, symbol: str, channel, timeframe=None, params={}):
         await self.load_markets()
         marketId = self.market_id(symbol)
         url = self.urls['api']['ws']
@@ -56,18 +58,18 @@ class hitbtc(ccxt.async_support.hitbtc):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         orderbook = await self.watch_public(symbol, 'orderbook', None, params)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client, message):
+    def handle_order_book_snapshot(self, client: Client, message):
         #
         #     {
         #         jsonrpc: "2.0",
@@ -104,7 +106,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = 'orderbook:' + marketId
         client.resolve(orderbook, messageHash)
 
-    def handle_order_book_update(self, client, message):
+    def handle_order_book_update(self, client: Client, message):
         #
         #     {
         #         jsonrpc: "2.0",
@@ -154,16 +156,16 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the hitbtc api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public(symbol, 'ticker', None, params)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -192,7 +194,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = method + ':' + marketId
         client.resolve(result, messageHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -206,7 +208,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -253,7 +255,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         client.resolve(stored, messageHash)
         return message
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -279,7 +281,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         jsonrpc: '2.0',
@@ -331,13 +333,13 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def handle_notification(self, client, message):
+    def handle_notification(self, client: Client, message):
         #
         #     {jsonrpc: '2.0', result: True, id: null}
         #
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         methods = {
             'snapshotOrderbook': self.handle_order_book_snapshot,
             'updateOrderbook': self.handle_order_book_update,

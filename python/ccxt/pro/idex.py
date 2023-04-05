@@ -5,7 +5,10 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class idex(ccxt.async_support.idex):
@@ -62,12 +65,12 @@ class idex(ccxt.async_support.idex):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the idex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -79,7 +82,7 @@ class idex(ccxt.async_support.idex):
         messageHash = name + ':' + market['id']
         return await self.subscribe(self.extend(subscribeObject, params), messageHash)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         # {type: 'tickers',
         #   data:
         #    {m: 'DIL-ETH',
@@ -102,36 +105,36 @@ class idex(ccxt.async_support.idex):
         symbol = self.safe_symbol(marketId)
         messageHash = type + ':' + marketId
         timestamp = self.safe_integer(data, 't')
-        close = self.safe_float(data, 'c')
-        percentage = self.safe_float(data, 'P')
+        close = self.safe_string(data, 'c')
+        percentage = self.safe_string(data, 'P')
         change = None
         if (percentage is not None) and (close is not None):
-            change = close * percentage
-        ticker = {
+            change = Precise.string_mul(close, percentage)
+        ticker = self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(data, 'h'),
-            'low': self.safe_float(data, 'l'),
-            'bid': self.safe_float(data, 'b'),
+            'high': self.safe_string(data, 'h'),
+            'low': self.safe_string(data, 'l'),
+            'bid': self.safe_string(data, 'b'),
             'bidVolume': None,
-            'ask': self.safe_float(data, 'a'),
+            'ask': self.safe_string(data, 'a'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(data, 'o'),
+            'open': self.safe_string(data, 'o'),
             'close': close,
             'last': close,
             'previousClose': None,
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(data, 'v'),
-            'quoteVolume': self.safe_float(data, 'q'),
+            'baseVolume': self.safe_string(data, 'v'),
+            'quoteVolume': self.safe_string(data, 'q'),
             'info': message,
-        }
+        })
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -154,7 +157,7 @@ class idex(ccxt.async_support.idex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         type = self.safe_string(message, 'type')
         data = self.safe_value(message, 'data')
         marketId = self.safe_string(data, 'm')
@@ -221,7 +224,7 @@ class idex(ccxt.async_support.idex):
             'fee': fee,
         }
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -247,7 +250,7 @@ class idex(ccxt.async_support.idex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         # {type: 'candles',
         #   data:
         #    {m: 'DIL-ETH',
@@ -287,7 +290,7 @@ class idex(ccxt.async_support.idex):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def handle_subscribe_message(self, client, message):
+    def handle_subscribe_message(self, client: Client, message):
         # {
         #   "type": "subscriptions",
         #   "subscriptions": [
@@ -373,13 +376,13 @@ class idex(ccxt.async_support.idex):
             subscription['fetchingOrderBookSnapshot'] = False
             client.reject(e, messageHash)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the idex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -402,7 +405,7 @@ class idex(ccxt.async_support.idex):
         orderbook = await self.subscribe(subscribeObject, messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         data = self.safe_value(message, 'data')
         marketId = self.safe_string(data, 'm')
         symbol = self.safe_symbol(marketId)
@@ -413,7 +416,7 @@ class idex(ccxt.async_support.idex):
         else:
             self.handle_order_book_message(client, message, orderbook)
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         # {
         #   "type": "l2orderbook",
         #   "data": {
@@ -468,14 +471,14 @@ class idex(ccxt.async_support.idex):
             self.options['token'] = self.safe_string(response, 'token')
         return self.options['token']
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the idex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         name = 'orders'
@@ -493,7 +496,7 @@ class idex(ccxt.async_support.idex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         # {
         #   "type": "orders",
         #   "data": {
@@ -597,7 +600,7 @@ class idex(ccxt.async_support.idex):
         client.resolve(orders, symbolSpecificMessageHash)
         client.resolve(orders, type)
 
-    async def watch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def watch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         name = 'balances'
         subscribeObject = {
@@ -611,7 +614,7 @@ class idex(ccxt.async_support.idex):
             limit = transactions.getLimit(code, limit)
         return self.filter_by_since_limit(transactions, since, limit, 'timestamp', True)
 
-    def handle_transaction(self, client, message):
+    def handle_transaction(self, client: Client, message):
         # Update Speed: Real time, updates on any deposit or withdrawal of the wallet
         # {type: 'balances',
         #   data:
@@ -654,7 +657,7 @@ class idex(ccxt.async_support.idex):
         client.resolve(transactions, messageHash)
         client.resolve(transactions, type)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
         methods = {
             'tickers': self.handle_ticker,

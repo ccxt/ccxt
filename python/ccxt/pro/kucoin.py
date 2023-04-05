@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 
 
@@ -97,7 +99,7 @@ class kucoin(ccxt.async_support.kucoin):
         self.options['requestId'] = requestId
         return requestId
 
-    async def subscribe(self, url, messageHash, subscriptionHash, subscription, params={}):
+    async def subscribe(self, url, messageHash, subscriptionHash, params={}, subscription=None):
         requestId = str(self.request_id())
         request = {
             'id': requestId,
@@ -106,21 +108,17 @@ class kucoin(ccxt.async_support.kucoin):
             'response': True,
         }
         message = self.extend(request, params)
-        subscriptionRequest = {
-            'id': requestId,
-        }
-        if subscription is None:
-            subscription = subscriptionRequest
-        else:
-            subscription = self.extend(subscriptionRequest, subscription)
+        client = self.client(url)
+        if not (subscriptionHash in client.subscriptions):
+            client.subscriptions[requestId] = subscriptionHash
         return await self.watch(url, messageHash, message, subscriptionHash, subscription)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -129,9 +127,9 @@ class kucoin(ccxt.async_support.kucoin):
         method, query = self.handle_option_and_params(params, 'watchTicker', 'method', '/market/snapshot')
         topic = method + ':' + market['id']
         messageHash = 'ticker:' + symbol
-        return await self.subscribe(url, messageHash, topic, None, query)
+        return await self.subscribe(url, messageHash, topic, query)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         # market/snapshot
         #
@@ -200,7 +198,7 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -217,12 +215,12 @@ class kucoin(ccxt.async_support.kucoin):
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         topic = '/market/candles:' + market['id'] + '_' + period
         messageHash = 'candles:' + symbol + ':' + timeframe
-        ohlcv = await self.subscribe(url, messageHash, topic, None, params)
+        ohlcv = await self.subscribe(url, messageHash, topic, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         data: {
@@ -264,7 +262,7 @@ class kucoin(ccxt.async_support.kucoin):
         stored.append(ohlcv)
         client.resolve(stored, messageHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -279,12 +277,12 @@ class kucoin(ccxt.async_support.kucoin):
         symbol = market['symbol']
         topic = '/market/match:' + market['id']
         messageHash = 'trades:' + symbol
-        trades = await self.subscribe(url, messageHash, topic, None, params)
+        trades = await self.subscribe(url, messageHash, topic, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Client, message):
         #
         #     {
         #         data: {
@@ -316,13 +314,13 @@ class kucoin(ccxt.async_support.kucoin):
         trades.append(trade)
         client.resolve(trades, messageHash)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         #
         # https://docs.kucoin.com/#level-2-market-data
@@ -353,10 +351,10 @@ class kucoin(ccxt.async_support.kucoin):
             'symbol': symbol,
             'limit': limit,
         }
-        orderbook = await self.subscribe(url, messageHash, topic, subscription, params)
+        orderbook = await self.subscribe(url, messageHash, topic, params, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -430,7 +428,7 @@ class kucoin(ccxt.async_support.kucoin):
             bidAsk = self.parse_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
-    def handle_order_book_subscription(self, client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         self.orderbooks[symbol] = self.order_book({}, limit)
@@ -439,7 +437,7 @@ class kucoin(ccxt.async_support.kucoin):
         # the general idea is to fetch the snapshot after the first delta
         # but not before, because otherwise we cannot synchronize the feed
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         id: '1578090438322',
@@ -447,14 +445,14 @@ class kucoin(ccxt.async_support.kucoin):
         #     }
         #
         id = self.safe_string(message, 'id')
-        subscriptionsById = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_value(subscriptionsById, id, {})
+        subscriptionHash = self.safe_string(client.subscriptions, id)
+        subscription = self.safe_value(client.subscriptions, subscriptionHash)
+        del client.subscriptions[id]
         method = self.safe_value(subscription, 'method')
         if method is not None:
             method(client, message, subscription)
-        return message
 
-    def handle_system_status(self, client, message):
+    def handle_system_status(self, client: Client, message):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -467,14 +465,14 @@ class kucoin(ccxt.async_support.kucoin):
         #
         return message
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         url = await self.negotiate(True)
@@ -487,7 +485,7 @@ class kucoin(ccxt.async_support.kucoin):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = messageHash + ':' + symbol
-        orders = await self.subscribe(url, messageHash, topic, None, self.extend(request, params))
+        orders = await self.subscribe(url, messageHash, topic, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -528,7 +526,7 @@ class kucoin(ccxt.async_support.kucoin):
         amount = self.safe_string(order, 'size')
         rawType = self.safe_string(order, 'type')
         status = self.parse_ws_order_status(rawType)
-        timestamp = self.safe_integer_product(order, 'orderTime', 0.000001)
+        timestamp = self.safe_integer(order, 'orderTime')
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -558,7 +556,7 @@ class kucoin(ccxt.async_support.kucoin):
             'trades': None,
         }, market)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         messageHash = 'orders'
         data = self.safe_value(message, 'data')
         parsed = self.parse_ws_order(data)
@@ -582,14 +580,14 @@ class kucoin(ccxt.async_support.kucoin):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(self.orders, symbolSpecificMessageHash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         url = await self.negotiate(True)
@@ -602,12 +600,12 @@ class kucoin(ccxt.async_support.kucoin):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = messageHash + ':' + market['symbol']
-        trades = await self.subscribe(url, messageHash, topic, None, self.extend(request, params))
+        trades = await self.subscribe(url, messageHash, topic, self.extend(request, params))
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client: Client, message):
         trades = self.myTrades
         if trades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -683,9 +681,9 @@ class kucoin(ccxt.async_support.kucoin):
             'privateChannel': True,
         }
         messageHash = 'balance'
-        return await self.subscribe(url, messageHash, topic, None, self.extend(request, params))
+        return await self.subscribe(url, messageHash, topic, self.extend(request, params))
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         # {
         #     "id":"6217a451294b030001e3a26a",
@@ -736,7 +734,7 @@ class kucoin(ccxt.async_support.kucoin):
         if uniformType == selectedType:
             client.resolve(self.balance[uniformType], messageHash)
 
-    def handle_subject(self, client, message):
+    def handle_subject(self, client: Client, message):
         #
         #     {
         #         "type":"message",
@@ -780,14 +778,14 @@ class kucoin(ccxt.async_support.kucoin):
             'type': 'ping',
         }
 
-    def handle_pong(self, client, message):
-        # https = self.milliseconds()
-        pass
+    def handle_pong(self, client: Client, message):
+        client.lastPong = self.milliseconds()
+        # https://docs.kucoin.com/#ping
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
         methods = {
             # 'heartbeat': self.handleHeartbeat,

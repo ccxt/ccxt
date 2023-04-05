@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 
 
@@ -46,12 +48,12 @@ class huobijp(ccxt.async_support.huobijp):
         self.options['requestId'] = requestId
         return str(requestId)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the huobijp api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -74,7 +76,7 @@ class huobijp(ccxt.async_support.huobijp):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         ch: 'market.btcusdt.detail',
@@ -106,7 +108,7 @@ class huobijp(ccxt.async_support.huobijp):
         client.resolve(ticker, ch)
         return message
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -139,7 +141,7 @@ class huobijp(ccxt.async_support.huobijp):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         ch: "market.btcusdt.trade.detail",
@@ -178,7 +180,7 @@ class huobijp(ccxt.async_support.huobijp):
         client.resolve(tradesCache, ch)
         return message
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -213,7 +215,7 @@ class huobijp(ccxt.async_support.huobijp):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         ch: 'market.btcusdt.kline.1min',
@@ -248,13 +250,13 @@ class huobijp(ccxt.async_support.huobijp):
         stored.append(parsed)
         client.resolve(stored, ch)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the huobijp api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         if (limit is not None) and (limit != 150):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
@@ -283,7 +285,7 @@ class huobijp(ccxt.async_support.huobijp):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client, message, subscription):
+    def handle_order_book_snapshot(self, client: Client, message, subscription):
         #
         #     {
         #         id: 1583473663565,
@@ -358,7 +360,7 @@ class huobijp(ccxt.async_support.huobijp):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
         #         ch: "market.btcusdt.mbp.150",
@@ -393,7 +395,7 @@ class huobijp(ccxt.async_support.huobijp):
             orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         # deltas
         #
@@ -428,7 +430,7 @@ class huobijp(ccxt.async_support.huobijp):
             self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, messageHash)
 
-    def handle_order_book_subscription(self, client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         if symbol in self.orderbooks:
@@ -437,7 +439,7 @@ class huobijp(ccxt.async_support.huobijp):
         # watch the snapshot in a separate async call
         self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         #
         #     {
         #         "id": 1583414227,
@@ -458,7 +460,7 @@ class huobijp(ccxt.async_support.huobijp):
                 del client.subscriptions[id]
         return message
 
-    def handle_system_status(self, client, message):
+    def handle_system_status(self, client: Client, message):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -471,7 +473,7 @@ class huobijp(ccxt.async_support.huobijp):
         #
         return message
 
-    def handle_subject(self, client, message):
+    def handle_subject(self, client: Client, message):
         #
         #     {
         #         ch: "market.btcusdt.mbp.150",
@@ -516,10 +518,10 @@ class huobijp(ccxt.async_support.huobijp):
         #
         await client.send({'pong': self.safe_integer(message, 'ping')})
 
-    def handle_ping(self, client, message):
+    def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {
         #         ts: 1586323747018,
@@ -547,15 +549,23 @@ class huobijp(ccxt.async_support.huobijp):
             return False
         return message
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             #
-            if 'id' in message:
+            #           ________________________
+            #
+            # sometimes huobijp responds with half of a JSON response like
+            #
+            #     ' {"ch":"market.ethbtc.m '
+            #
+            # self is passed to handleMessage string since it failed to be decoded
+            #
+            if self.safe_string(message, 'id') is not None:
                 self.handle_subscription_status(client, message)
-            elif 'ch' in message:
+            elif self.safe_string(message, 'ch') is not None:
                 # route by channel aka topic aka subject
                 self.handle_subject(client, message)
-            elif 'ping' in message:
+            elif self.safe_string(message, 'ping') is not None:
                 self.handle_ping(client, message)

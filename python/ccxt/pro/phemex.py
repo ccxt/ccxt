@@ -6,6 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -126,7 +129,7 @@ class phemex(ccxt.async_support.phemex):
         }
         return result
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         spot_market24h: {
@@ -245,7 +248,7 @@ class phemex(ccxt.async_support.phemex):
         messageHash = type + ':balance'
         client.resolve(self.balance, messageHash)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         sequence: 1795484727,
@@ -274,7 +277,7 @@ class phemex(ccxt.async_support.phemex):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         kline: [
@@ -309,12 +312,12 @@ class phemex(ccxt.async_support.phemex):
                 stored.append(candle)
             client.resolve(stored, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -332,7 +335,7 @@ class phemex(ccxt.async_support.phemex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, subscriptionHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -362,13 +365,13 @@ class phemex(ccxt.async_support.phemex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -389,7 +392,7 @@ class phemex(ccxt.async_support.phemex):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -429,7 +432,7 @@ class phemex(ccxt.async_support.phemex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i], market)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         book: {
@@ -481,14 +484,14 @@ class phemex(ccxt.async_support.phemex):
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
         messageHash = 'trades'
@@ -506,7 +509,7 @@ class phemex(ccxt.async_support.phemex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         # [
         #    {
@@ -564,14 +567,14 @@ class phemex(ccxt.async_support.phemex):
         messageHash = channel + ':' + type
         client.resolve(cachedTrades, messageHash)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'
@@ -589,7 +592,7 @@ class phemex(ccxt.async_support.phemex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         # spot update
         # {
         #        "closed":[
@@ -833,7 +836,7 @@ class phemex(ccxt.async_support.phemex):
             'trades': None,
         }, market)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         # private spot update
         # {
         #     orders: {closed: [], fills: [], open: []},
@@ -929,21 +932,11 @@ class phemex(ccxt.async_support.phemex):
         #       }
         #     ]
         # }
-        id = self.safe_integer(message, 'id')
-        if id is not None:
-            # not every method stores its subscription
-            # object so we can't do indeById here
-            subs = client.subscriptions
-            values = list(subs.values())
-            for i in range(0, len(values)):
-                subscription = values[i]
-                if subscription is not True:
-                    subId = self.safe_integer(subscription, 'id')
-                    if (subId is not None) and (subId == id):
-                        method = self.safe_value(subscription, 'method')
-                        if method is not None:
-                            method(client, message)
-                            return
+        id = self.safe_string(message, 'id')
+        if id in client.subscriptions:
+            method = client.subscriptions[id]
+            del client.subscriptions[id]
+            return method(client, message)
         if ('market24h' in message) or ('spot_market24h' in message):
             return self.handle_ticker(client, message)
         elif 'trades' in message:
@@ -960,7 +953,7 @@ class phemex(ccxt.async_support.phemex):
             accounts = self.safe_value_2(message, 'accounts', 'wallets', [])
             self.handle_balance(type, client, accounts)
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         # {
         #     "error": null,
@@ -970,9 +963,16 @@ class phemex(ccxt.async_support.phemex):
         #     }
         # }
         #
-        future = client.futures['authenticated']
-        future.resolve(1)
-        return message
+        result = self.safe_value(message, 'result')
+        status = self.safe_string(result, 'status')
+        messageHash = 'authenticated'
+        if status == 'success':
+            client.resolve(message, messageHash)
+        else:
+            error = AuthenticationError(self.id + ' ' + self.json(message))
+            client.reject(error, messageHash)
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     async def subscribe_private(self, type, messageHash, params={}):
         await self.load_markets()
@@ -986,33 +986,30 @@ class phemex(ccxt.async_support.phemex):
             'params': [],
         }
         request = self.extend(request, params)
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-        }
-        return await self.watch(url, messageHash, request, channel, subscription)
+        return await self.watch(url, messageHash, request, channel)
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)
-        time = self.seconds()
+        requestId = self.request_id()
         messageHash = 'authenticated'
-        future = client.future(messageHash)
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
             expiryDelta = self.safe_integer(self.options, 'expires', 120)
             expiration = self.seconds() + expiryDelta
             payload = self.apiKey + str(expiration)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
+            method = 'user.auth'
             request = {
-                'method': 'user.auth',
+                'method': method,
                 'params': ['API', self.apiKey, signature, expiration],
-                'id': time,
+                'id': requestId,
             }
-            subscription = {
-                'id': time,
-                'method': self.handle_authenticate,
-            }
-            self.spawn(self.watch, url, messageHash, request, messageHash, subscription)
-        return await future
+            subscriptionHash = str(requestId)
+            message = self.extend(request, params)
+            if not (messageHash in client.subscriptions):
+                client.subscriptions[subscriptionHash] = self.handle_authenticate
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future

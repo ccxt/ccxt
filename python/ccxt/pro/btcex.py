@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
@@ -94,7 +96,7 @@ class btcex(ccxt.async_support.btcex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -125,7 +127,7 @@ class btcex(ccxt.async_support.btcex):
         self.balance = self.parse_balance(data)
         client.resolve(self.balance, messageHash)
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market.
         see https://docs.btcex.com/#chart-trades-instrument_name-resolution
@@ -161,7 +163,7 @@ class btcex(ccxt.async_support.btcex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         "params": {
@@ -200,13 +202,13 @@ class btcex(ccxt.async_support.btcex):
         stored.append(ohlcv)
         client.resolve(stored, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://docs.btcex.com/#ticker-instrument_name-interval
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -229,7 +231,7 @@ class btcex(ccxt.async_support.btcex):
         request = self.deep_extend(request, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #     {
         #         "params": {
@@ -267,7 +269,7 @@ class btcex(ccxt.async_support.btcex):
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://docs.btcex.com/#trades-instrument_name-interval
@@ -298,7 +300,7 @@ class btcex(ccxt.async_support.btcex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -337,7 +339,7 @@ class btcex(ccxt.async_support.btcex):
         self.trades[symbol] = stored
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watch all trades made by the user
         see https://docs.btcex.com/#user-trades-instrument_name-interval
@@ -345,7 +347,7 @@ class btcex(ccxt.async_support.btcex):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bibox api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
@@ -371,7 +373,7 @@ class btcex(ccxt.async_support.btcex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client, message):
+    def handle_my_trades(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -413,7 +415,7 @@ class btcex(ccxt.async_support.btcex):
         messageHash = 'myTrades:' + symbol
         client.resolve(stored, messageHash)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
         see https://docs.btcex.com/#user-changes-kind-currency-interval
@@ -421,7 +423,7 @@ class btcex(ccxt.async_support.btcex):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + 'watchesOrders() requires a symbol')
@@ -448,7 +450,7 @@ class btcex(ccxt.async_support.btcex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client, message):
+    def handle_order(self, client: Client, message):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -485,7 +487,7 @@ class btcex(ccxt.async_support.btcex):
         self.orders = cachedOrders
         client.resolve(self.orders, messageHash)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://docs.btcex.com/#book-instrument_name-interval
@@ -493,7 +495,7 @@ class btcex(ccxt.async_support.btcex):
         :param int|None limit: the maximum amount of order book entries to return
         :param dictConstructor params: extra parameters specific to the btcex api endpoint
         :param str|None params['type']: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -518,7 +520,7 @@ class btcex(ccxt.async_support.btcex):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "params": {
@@ -602,7 +604,7 @@ class btcex(ccxt.async_support.btcex):
             bidAsk = self.parse_bid_ask(bidAsks[i], 1, 2)
             bookSide.storeArray(bidAsk)
 
-    def handle_user(self, client, message):
+    def handle_user(self, client: Client, message):
         params = self.safe_value(message, 'params')
         fullChannel = self.safe_string(params, 'channel')
         sliceUser = fullChannel[5:]
@@ -618,7 +620,7 @@ class btcex(ccxt.async_support.btcex):
             return handler(client, message)
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         #     {
         #         id: '1',
@@ -632,7 +634,7 @@ class btcex(ccxt.async_support.btcex):
         error = self.safe_value(message, 'error', {})
         raise ExchangeError(self.id + ' error: ' + self.json(error))
 
-    def handle_authenticate(self, client, message):
+    def handle_authenticate(self, client: Client, message):
         #
         #     {
         #         id: '1',
@@ -656,7 +658,7 @@ class btcex(ccxt.async_support.btcex):
         accessToken = self.safe_string(result, 'access_token')
         client.resolve(accessToken, 'authenticated')
 
-    def handle_subscription(self, client, message):
+    def handle_subscription(self, client: Client, message):
         channels = self.safe_value(message, 'result', [])
         for i in range(0, len(channels)):
             fullChannel = channels[i]
@@ -668,10 +670,10 @@ class btcex(ccxt.async_support.btcex):
                 self.orderbooks[symbol] = self.order_book({})
                 # get full depth book
 
-    def handle_pong(self, client, message):
+    def handle_pong(self, client: Client, message):
         client.lastPong = self.milliseconds()
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         if message == 'PONG':
             self.handle_pong(client, message)
             return

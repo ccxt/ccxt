@@ -33,12 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances } from './src/base/types.js'
+import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax } from './src/base/types.js'
+import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending }  from './src/base/errors.js'
+
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.10';
+const version = '3.0.53';
 
 (Exchange as any).ccxtVersion = version
 
@@ -94,6 +96,7 @@ import coinex from  './src/coinex.js'
 import coinfalcon from  './src/coinfalcon.js'
 import coinmate from  './src/coinmate.js'
 import coinone from  './src/coinone.js'
+import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
 import currencycom from  './src/currencycom.js'
@@ -201,11 +204,13 @@ import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
+import mexc3Pro from  './src/pro/mexc3.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
+import probitPro from  './src/pro/probit.js'
 import ripioPro from  './src/pro/ripio.js'
 import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
@@ -264,6 +269,7 @@ const exchanges = {
     'coinfalcon':             coinfalcon,
     'coinmate':               coinmate,
     'coinone':                coinone,
+    'coinsph':                coinsph,
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
     'currencycom':            currencycom,
@@ -371,11 +377,13 @@ const pro = {
     'kucoinfutures':          kucoinfuturesPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
+    'mexc3':                  mexc3Pro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
     'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
+    'probit':                 probitPro,
     'ripio':                  ripioPro,
     'upbit':                  upbitPro,
     'wazirx':                 wazirxPro,
@@ -407,6 +415,36 @@ export {
     Precise,
     functions,
     errors,
+    BaseError,
+    ExchangeError,
+    PermissionDenied,
+    AccountNotEnabled,
+    AccountSuspended,
+    ArgumentsRequired,
+    BadRequest,
+    BadSymbol,
+    MarginModeAlreadySet,
+    BadResponse,
+    NullResponse,
+    InsufficientFunds,
+    InvalidAddress,
+    InvalidOrder,
+    OrderNotFound,
+    OrderNotCached,
+    CancelPending,
+    OrderImmediatelyFillable,
+    OrderNotFillable,
+    DuplicateOrderId,
+    NotSupported,
+    NetworkError,
+    DDoSProtection,
+    RateLimitExceeded,
+    ExchangeNotAvailable,
+    OnMaintenance,
+    InvalidNonce,
+    RequestTimeout,
+    AuthenticationError,
+    AddressPending,
     Market,
     Trade,
     Fee,
@@ -423,6 +461,8 @@ export {
     OHLCV,
     Balances,
     PartialBalances,
+    Dictionary,
+    MinMax,
     ace,
     alpaca,
     ascendex,
@@ -473,6 +513,7 @@ export {
     coinfalcon,
     coinmate,
     coinone,
+    coinsph,
     coinspot,
     cryptocom,
     currencycom,

@@ -1,5 +1,5 @@
 import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
-import { inflate, gunzip } from './functions.js';
+import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import Future from './Future.js';
 
 import {
@@ -8,6 +8,7 @@ import {
     deepExtend,
     milliseconds,
 } from '../../base/functions.js';
+import { utf8 } from '../../static_dependencies/scure-base/index.js';
 
 export default class Client {
     connected: Promise<any>
@@ -267,21 +268,29 @@ export default class Client {
         throw new NotSupported ('close() not implemented yet');
     }
 
-    onMessage (message) {
+    onMessage (messageEvent : any) {
         // if we use onmessage we get MessageEvent objects
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
-        message = message.data
-        if (message.byteLength !== undefined) {
-            if (this.gunzip) {
-                message = gunzip (message)
-            } else if (this.inflate) {
-                message = inflate (message)
+
+        let message : Buffer | string = messageEvent.data
+        let arrayBuffer : Uint8Array
+        if (this.gunzip || this.inflate) {
+            if (typeof message === 'string') {
+                arrayBuffer = utf8.decode (message)
+            } else {
+                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset))
             }
+            if (this.gunzip) {
+                arrayBuffer = gunzipSync (arrayBuffer)
+            } else if (this.inflate) {
+                arrayBuffer = inflateSync (arrayBuffer)
+            }
+            message = utf8.encode (arrayBuffer)
+        }
+        if (typeof message !== 'string') {
+            message = message.toString ()
         }
         try {
-            if (message instanceof Buffer) {
-                message = message.toString ()
-            }
             if (isJsonEncodedObject (message)) {
                 message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
             }

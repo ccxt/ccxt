@@ -232,6 +232,13 @@ assert (decimalToPrecision ('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) === '0');
 assert (decimalToPrecision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) === '1600000000000000000000');
 
 // ----------------------------------------------------------------------------
+// decimal_to_precision: stringified precision
+assert (decimalToPrecision ('-0.000123456789', ROUND, '0.00000012', TICK_SIZE) === '-0.00012348');
+assert (decimalToPrecision ('-0.000123456789', TRUNCATE, '0.00000012', TICK_SIZE) === '-0.00012336');
+assert (decimalToPrecision ('-165', TRUNCATE, '110', TICK_SIZE) === '-110');
+assert (decimalToPrecision ('-165', ROUND, '110', TICK_SIZE) === '-220');
+
+// ----------------------------------------------------------------------------
 // testDecimalToPrecisionErrorHandling (todo)
 //
 // throws (() =>
