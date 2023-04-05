@@ -4,7 +4,7 @@ import testLeverageTier from './test.leverageTier.js';
 
 async function testFetchLeverageTiers (exchange, symbol) {
     const method = 'fetchLeverageTiers';
-    const tiers = await exchange[method] (symbol);
+    const tiers = await exchange.fetchLeverageTiers (symbol);
     // const format = {
     //     'RAY/USDT': [
     //       {},

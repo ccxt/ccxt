@@ -4,7 +4,7 @@ import testBorrowRate from './test.borrowRate.js';
 
 async function testFetchBorrowRates (exchange) {
     const method = 'fetchBorrowRates';
-    const borrowRates = await exchange[method] ();
+    const borrowRates = await exchange.fetchBorrowRates ();
     assert (typeof borrowRates === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json (borrowRates));
     const keysLength = (Object.keys (borrowRates)).length;
     console.log (exchange.id, method, 'fetched', keysLength, 'entries, asserting each ...');

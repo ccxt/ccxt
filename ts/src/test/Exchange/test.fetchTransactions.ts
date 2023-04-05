@@ -5,7 +5,7 @@ import testTransaction from './test.transaction.js';
 
 async function testFetchTransactions (exchange, code) {
     const method = 'fetchTransactions';
-    const transactions = await exchange[method] (code);
+    const transactions = await exchange.fetchTransactions (code);
     assert (Array.isArray (transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (transactions));
     console.log (exchange.id, method, 'fetched', transactions.length, 'entries, asserting each ...');
     const now = exchange.milliseconds ();

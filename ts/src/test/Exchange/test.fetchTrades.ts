@@ -5,7 +5,7 @@ import testTrade from './test.trade.js';
 
 async function testFetchTrades (exchange, symbol) {
     const method = 'fetchTrades';
-    const trades = await exchange[method] (symbol);
+    const trades = await exchange.fetchTrades (symbol);
     assert (Array.isArray (trades), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (trades));
     console.log (exchange.id, symbol, 'fetched', trades.length, 'trades');
     const now = exchange.milliseconds ();

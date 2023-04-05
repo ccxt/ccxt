@@ -5,7 +5,7 @@ import testLedgerItem from './test.ledgerItem.js';
 
 async function testFetchLedger (exchange, code) {
     const method = 'fetchLedger';
-    const items = await exchange[method] (code);
+    const items = await exchange.fetchLedger (code);
     assert (Array.isArray (items), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (items));
     const now = exchange.milliseconds ();
     console.log (exchange.id, method, 'fetched', items.length, 'entries, asserting each ...');
