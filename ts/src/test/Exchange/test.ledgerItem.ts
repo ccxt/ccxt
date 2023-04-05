@@ -5,7 +5,7 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default (exchange, item, code, now) => {
+function test (exchange, item, code, now) {
     assert (typeof item === 'object');
     assert ('id' in item);
     assert (item['id'] === undefined || typeof item['id'] === 'string');
@@ -42,4 +42,6 @@ export default (exchange, item, code, now) => {
     }
     assert ('info' in item);
     assert ((item['info'] === undefined) || (typeof item['info'] === 'object'));
-};
+}
+
+export default test;

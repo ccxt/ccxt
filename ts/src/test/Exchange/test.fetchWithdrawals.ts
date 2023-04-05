@@ -6,7 +6,7 @@ import testTransaction from './test.transaction.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, code) => {
+async function test (exchange, code) {
     const method = 'fetchWithdrawals';
     if (exchange.has[method]) {
         const transactions = await exchange[method] (code);
@@ -20,4 +20,6 @@ export default async (exchange, code) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

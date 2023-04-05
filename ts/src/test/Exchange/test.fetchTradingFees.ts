@@ -1,7 +1,7 @@
 
 import testTradingFee from './test.tradingFee.js';
 
-export default async (exchange) => {
+async function test (exchange) {
     const method = 'fetchTradingFees';
     const skippedExchanges = [];
     if (skippedExchanges.includes (exchange.id)) {
@@ -19,4 +19,6 @@ export default async (exchange) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

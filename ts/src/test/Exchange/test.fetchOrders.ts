@@ -6,7 +6,7 @@ import testOrder from './test.order.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchOrders';
     const skippedExchanges = [
         'bitmart',
@@ -28,4 +28,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

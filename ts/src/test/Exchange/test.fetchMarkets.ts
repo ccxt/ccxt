@@ -5,7 +5,7 @@ import testMarket from './test.market.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange) => {
+async function test (exchange) {
     const method = 'fetchMarkets';
     const skippedExchanges = [
         'bitforex',
@@ -22,4 +22,6 @@ export default async (exchange) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

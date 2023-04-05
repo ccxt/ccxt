@@ -5,7 +5,7 @@ import testTicker from './test.ticker.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchTicker';
     const skippedExchanges = [
         'digifinex',
@@ -23,5 +23,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (symbol, method + '() is not supported');
     }
-};
+}
 
+export default test;

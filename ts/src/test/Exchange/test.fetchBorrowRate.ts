@@ -6,7 +6,7 @@ import testBorrowRate from './test.borrowRate.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, code) => {
+async function test (exchange, code) {
     const method = 'fetchBorrowRate';
     if (exchange.has[method]) {
         const borrowRate = await exchange[method] (code);
@@ -19,4 +19,6 @@ export default async (exchange, code) => {
     } else {
         console.log (code, method + '() is not supported');
     }
-};
+}
+
+export default test;

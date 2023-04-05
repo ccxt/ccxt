@@ -5,18 +5,15 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange) => {
+async function test (exchange) {
     const method = 'fetchStatus';
-
     const skippedExchanges = [
         'binanceus',
     ];
-
     if (skippedExchanges.includes (exchange.id)) {
         console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
         return;
     }
-
     if (exchange.has[method]) {
         const status = await exchange[method] ();
         const sampleStatus = {
@@ -34,4 +31,6 @@ export default async (exchange) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

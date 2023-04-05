@@ -5,7 +5,7 @@ import testOrderBook from './test.orderbook.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchOrderBook';
     if (exchange.has[method]) {
         const orderbook = await exchange[method] (symbol);
@@ -14,4 +14,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

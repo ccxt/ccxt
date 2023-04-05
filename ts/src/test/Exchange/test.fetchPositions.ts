@@ -6,7 +6,7 @@ import testPosition from './test.position.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchPositions';
     const skippedExchanges = [
         'bitmart',
@@ -37,4 +37,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

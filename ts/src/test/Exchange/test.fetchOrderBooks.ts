@@ -5,7 +5,7 @@ import testOrderBook from './test.orderbook.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange) => {
+async function test (exchange) {
     const method = 'fetchOrderBooks';
     const randomSymbols = exchange.symbols.slice ().sort (() => 0.5 - Math.random ()).slice (0, 2);
     const customExchangeParams = ([
@@ -24,4 +24,6 @@ export default async (exchange) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

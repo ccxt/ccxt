@@ -5,7 +5,7 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default (exchange, orderbook, method, symbol) => {
+function test (exchange, orderbook, method, symbol) {
     const format = {
         // 'symbol': 'ETH/BTC', // reserved
         'bids': [],
@@ -54,4 +54,6 @@ export default (exchange, orderbook, method, symbol) => {
         }
     }
     console.log (symbol, method, orderbook['nonce'] || orderbook['datetime'], bids.length, 'bids:', bids[0], asks.length, 'asks:', asks[0]);
-};
+}
+
+export default test;

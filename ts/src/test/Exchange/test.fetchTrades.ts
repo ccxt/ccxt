@@ -6,7 +6,7 @@ import testTrade from './test.trade.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchTrades';
     const skippedExchanges = [];
     if (skippedExchanges.includes (exchange.id)) {
@@ -29,4 +29,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (symbol, method + '() is not supported');
     }
-};
+}
+
+export default test;

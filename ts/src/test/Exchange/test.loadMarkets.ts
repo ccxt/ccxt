@@ -5,7 +5,7 @@ import testMarket from './test.market.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange) => {
+async function test (exchange) {
     const method = 'loadMarkets';
     const skippedExchanges = [
         'bitforex',
@@ -21,4 +21,6 @@ export default async (exchange) => {
         testMarket (exchange, market, method);
     }
     return markets;
-};
+}
+
+export default test;

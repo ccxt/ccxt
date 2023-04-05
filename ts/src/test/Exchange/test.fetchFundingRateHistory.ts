@@ -5,7 +5,7 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchFundingRateHistory';
     const format = {
         'symbol': 'BTC/USDT:USDT',
@@ -36,4 +36,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

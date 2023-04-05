@@ -5,7 +5,7 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default (exchange, ticker, method, symbol) => {
+function test (exchange, ticker, method, symbol) {
     const format = {
         'symbol': 'ETH/BTC',
         'info': {},
@@ -85,4 +85,6 @@ export default (exchange, ticker, method, symbol) => {
         }
     }
     return ticker;
-};
+}
+
+export default test;

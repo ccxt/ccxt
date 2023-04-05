@@ -4,7 +4,7 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, code, symbol) => {
+async function test (exchange, code, symbol) {
     const method = 'fetchBorrowInterest';
     if (exchange.has[method]) {
         const format = {
@@ -44,4 +44,6 @@ export default async (exchange, code, symbol) => {
     } else {
         console.log (code, method + '() is not supported');
     }
-};
+}
+
+export default test;

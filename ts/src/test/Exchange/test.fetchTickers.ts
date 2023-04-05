@@ -5,7 +5,7 @@ import testTicker from './test.ticker.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchTickers';
     const skippedExchanges = [
         'binance',
@@ -32,5 +32,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
 
+export default test;

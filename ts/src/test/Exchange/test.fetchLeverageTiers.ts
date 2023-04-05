@@ -2,7 +2,7 @@
 import assert from 'assert';
 import testLeverageTier from './test.leverageTier.js';
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchLeverageTiers';
     // const format = {
     //     'RAY/USDT': [
@@ -33,4 +33,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

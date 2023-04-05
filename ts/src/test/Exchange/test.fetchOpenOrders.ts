@@ -6,7 +6,7 @@ import testOrder from './test.order.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, symbol) => {
+async function test (exchange, symbol) {
     const method = 'fetchOpenOrders';
     if (exchange.has[method]) {
         // log ('fetching open orders...')
@@ -25,4 +25,6 @@ export default async (exchange, symbol) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

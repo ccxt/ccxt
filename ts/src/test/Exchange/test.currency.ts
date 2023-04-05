@@ -5,7 +5,7 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default (exchange, currency, method) => {
+function test (exchange, currency, method) {
     const format = {
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
@@ -44,4 +44,6 @@ export default (exchange, currency, method) => {
     // expect (currency['limits']['price']['min']).to.not.be.undefined
     // expect (market['limits']['cost']['min']).to.not.be.undefined
     return currency;
-};
+}
+
+export default test;

@@ -6,7 +6,7 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default (exchange, balance, method = undefined) => {
+function test (exchange, balance, method = undefined) {
     const currencies = [
         'USD',
         'USDT',
@@ -36,3 +36,5 @@ export default (exchange, balance, method = undefined) => {
         }
     }
 }
+
+export default test;

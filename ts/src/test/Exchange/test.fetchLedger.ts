@@ -6,7 +6,7 @@ import testLedgerItem from './test.ledgerItem.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange, code) => {
+async function test (exchange, code) {
     let method = 'fetchLedger';
     if (exchange.has[method]) {
         const items = await exchange[method] (code);
@@ -31,4 +31,6 @@ export default async (exchange, code) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

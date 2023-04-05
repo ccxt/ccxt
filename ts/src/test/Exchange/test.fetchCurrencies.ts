@@ -5,7 +5,7 @@ import testCurrency from './test.currency.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange) => {
+async function test (exchange) {
     const method = 'fetchCurrencies';
     const skippedExchanges = [];
     if (skippedExchanges.includes (exchange.id)) {
@@ -25,4 +25,6 @@ export default async (exchange) => {
     } else {
         console.log (method + '() is not supported');
     }
-};
+}
+
+export default test;

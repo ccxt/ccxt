@@ -5,7 +5,7 @@ import testBorrowRate from './test.borrowRate.js';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange) => {
+async function test (exchange) {
     const method = 'fetchBorrowRates';
     if (exchange.has[method]) {
         const borrowRates = await exchange[method] ();
@@ -19,4 +19,6 @@ export default async (exchange) => {
     } else {
         console.log (method + '() fetching all borrow rates at once is not supported');
     }
-};
+}
+
+export default test;
