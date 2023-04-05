@@ -326,7 +326,7 @@ export default class coinbase extends Exchange {
 
     async fetchAccountsV2 (params = {}, list = []) {
         const request = {
-            'limit': 100,
+            'limit': 249,
         };
         const response = await this.v2PrivateGetAccounts (this.extend (request, params));
         //
@@ -387,7 +387,7 @@ export default class coinbase extends Exchange {
 
     async fetchAccountsV3 (params = {}, list = []) {
         const request = {
-            'limit': 100,
+            'limit': 249,
         };
         const response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
         //
