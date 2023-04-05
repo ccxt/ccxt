@@ -1844,7 +1844,7 @@ export default class xt extends Exchange {
         const timestamp = this.safeIntegerN (trade, [ 't', 'time', 'timestamp' ]);
         const quantity = this.safeString2 (trade, 'q', 'quantity');
         const amount = (marketType === 'spot') ? quantity : Precise.stringMul (quantity, this.numberToString (market['contractSize']));
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': this.safeStringN (trade, [ 'i', 'tradeId', 'execId' ]),
             'timestamp': timestamp,
@@ -1854,15 +1854,15 @@ export default class xt extends Exchange {
             'type': this.safeStringLower (trade, 'orderType'),
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeNumber2 (trade, 'p', 'price'),
-            'amount': this.parseNumber (amount),
+            'price': this.safeString2 (trade, 'p', 'price'),
+            'amount': amount,
             'cost': undefined,
             'fee': {
                 'currency': this.safeCurrencyCode (this.safeString2 (trade, 'feeCurrency', 'feeCoin')),
-                'cost': this.safeNumber (trade, 'fee'),
+                'cost': this.safeString (trade, 'fee'),
                 'rate': undefined,
             },
-        };
+        }, market);
     }
 
     async fetchBalance (params = {}) {
