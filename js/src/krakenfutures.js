@@ -814,7 +814,7 @@ export default class krakenfutures extends Exchange {
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder requires params.stopPrice when type is ' + type);
         }
-        if (stopPrice !== undefined) {
+        if (stopPrice !== undefined && type !== 'take_profit') {
             type = 'stp';
         }
         else if (postOnly) {

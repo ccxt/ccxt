@@ -811,7 +811,7 @@ class krakenfutures extends krakenfutures$1 {
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder requires params.stopPrice when type is ' + type);
         }
-        if (stopPrice !== undefined) {
+        if (stopPrice !== undefined && type !== 'take_profit') {
             type = 'stp';
         }
         else if (postOnly) {
