@@ -46,8 +46,6 @@ class mexc(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': None,
                 'createDepositAddress': None,
-                'createLimitOrder': None,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'deposit': None,

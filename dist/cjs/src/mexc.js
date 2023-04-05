@@ -31,8 +31,6 @@ class mexc extends mexc$1 {
                 'cancelOrder': true,
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
-                'createLimitOrder': undefined,
-                'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,

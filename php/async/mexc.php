@@ -40,8 +40,6 @@ class mexc extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => null,
                 'createDepositAddress' => null,
-                'createLimitOrder' => null,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
