@@ -182,11 +182,11 @@ export default class testMainClass extends emptyClass {
             skipMessage = 'test not available';
         }
         if (skipMessage) {
-            dump ('[Skipping]', exchange.id, methodNameInTest, ' - ' + skipMessage);
+            dump ('(Skipping)', exchange.id, methodNameInTest, ' - ' + skipMessage);
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
-        dump ('[Testing]', exchange.id, methodNameInTest, argsStringified);
+        dump ('(Testing)', exchange.id, methodNameInTest, argsStringified);
         let result = null;
         try {
             result = await call_method (methodNameInTest, exchange, args);

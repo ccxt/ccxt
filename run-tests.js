@@ -96,6 +96,10 @@ const exec = (bin, ...args) =>
         psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         psSpawn.on ('exit', code => {
+            // keep this commented code for a while (just in case), as the below avoids vscode false positive: https://github.com/nodejs/node/issues/34799 during debugging
+            // stderr = stderr.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
+            // output = output.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
+            // if (stderr === '') { hasWarnings = false; }
 
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
@@ -188,7 +192,7 @@ const testExchange = async (exchange) => {
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
 
     log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, (failed      ? 'FAIL'.red :
-                                                                          (hasWarnings ? (warnings.length ? warnings.map(x=>x.includes('Skip')? x.yellow : x.green).join (' ') : 'WARN'.yellow)
+                                                                          (hasWarnings ? (warnings.length ? warnings.map(x=>x.includes('[SKIPPED]')? x.yellow : x.green).join (' ') : 'WARN'.yellow)
                                                                                        : 'OK'.green)))
 
 /*  Return collected data to main loop     */
@@ -201,8 +205,8 @@ const testExchange = async (exchange) => {
         explain () {
             for (const { language, failed, output, hasWarnings } of completeTests) {
                 if (failed || hasWarnings) {
-
-                    if (!failed && output.indexOf('[SKIPPED]') >= 0)
+                    const fullSkip = output.indexOf('[SKIPPED]') >= 0;
+                    if (!failed && fullSkip)
                         continue;
 
                     if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
