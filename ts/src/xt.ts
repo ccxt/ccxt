@@ -2006,70 +2006,53 @@ export default class xt extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
+        if (market['spot']) {
+            return await this.createSpotOrder (symbol, type, side, amount, price, params);
+        } else {
+            return await this.createContractOrder (symbol, type, side, amount, price, params);
+        }
+    }
+
+    async createSpotOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'type': type.toUpperCase (),
         };
-        let timeInForce = this.safeStringUpper (params, 'timeInForce', 'GTC');
-        let response = undefined;
-        if (market['spot']) {
-            request['side'] = side.toUpperCase ();
-            request['type'] = type.toUpperCase ();
-            let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-            const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
-            request['bizType'] = marginOrSpotRequest;
-            if (type === 'market') {
-                timeInForce = this.safeStringUpper (params, 'timeInForce', 'FOK');
-                if (side === 'buy') {
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price === undefined) {
-                            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
-                        } else {
-                            const amountString = this.numberToString (amount);
-                            const priceString = this.numberToString (price);
-                            const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                            request['quoteQty'] = this.costToPrecision (symbol, cost);
-                        }
+        let timeInForce = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const marginOrSpotRequest = (marginMode !== undefined) ? 'LEVER' : 'SPOT';
+        request['bizType'] = marginOrSpotRequest;
+        if (type === 'market') {
+            timeInForce = this.safeStringUpper (params, 'timeInForce', 'FOK');
+            if (side === 'buy') {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     } else {
-                        request['quoteQty'] = this.amountToPrecision (symbol, amount);
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        request['quoteQty'] = this.costToPrecision (symbol, cost);
                     }
                 } else {
-                    request['quantity'] = this.amountToPrecision (symbol, amount);
+                    request['quoteQty'] = this.amountToPrecision (symbol, amount);
                 }
-            } else {
-                request['price'] = this.priceToPrecision (symbol, price);
-                request['quantity'] = this.amountToPrecision (symbol, amount);
             }
-            request['timeInForce'] = timeInForce;
-            response = await this.privateSpotPostOrder (this.extend (request, params));
         } else {
-            request['orderSide'] = side.toUpperCase ();
-            request['orderType'] = type.toUpperCase ();
-            const convertContractsToAmount = Precise.stringDiv (this.numberToString (amount), this.numberToString (market['contractSize']));
-            request['origQty'] = this.amountToPrecision (symbol, this.parseNumber (convertContractsToAmount));
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-            if (timeInForce !== undefined) {
-                request['timeInForce'] = timeInForce;
-            }
-            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
-            if (side === 'buy') {
-                const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
-                request['positionSide'] = requestType;
-            } else {
-                const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
-                request['positionSide'] = requestType;
-            }
-            if (market['linear']) {
-                response = await this.privateLinearPostFutureTradeV1OrderCreate (this.extend (request, params));
-            } else if (market['inverse']) {
-                response = await this.privateInversePostFutureTradeV1OrderCreate (this.extend (request, params));
-            }
+            timeInForce = this.safeStringUpper (params, 'timeInForce', 'GTC');
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        //
-        // spot and margin
+        if ((side === 'sell') || (type === 'limit')) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        request['timeInForce'] = timeInForce;
+        const response = await this.privateSpotPostOrder (this.extend (request, params));
         //
         //     {
         //         "rc": 0,
@@ -2080,7 +2063,41 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        // swap and future
+        const order = this.safeValue (response, 'result', {});
+        return this.parseOrder (order, market);
+    }
+
+    async createContractOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const convertContractsToAmount = Precise.stringDiv (this.numberToString (amount), this.numberToString (market['contractSize']));
+        const request = {
+            'symbol': market['id'],
+            'orderSide': side.toUpperCase (),
+            'orderType': type.toUpperCase (),
+            'origQty': this.amountToPrecision (symbol, this.parseNumber (convertContractsToAmount)),
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        if (side === 'buy') {
+            const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
+            request['positionSide'] = requestType;
+        } else {
+            const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
+            request['positionSide'] = requestType;
+        }
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.privateLinearPostFutureTradeV1OrderCreate (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.privateInversePostFutureTradeV1OrderCreate (this.extend (request, params));
+        }
         //
         //     {
         //         "returnCode": 0,
@@ -2089,8 +2106,7 @@ export default class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
-        const order = (market['spot']) ? this.safeValue (response, 'result', {}) : response;
-        return this.parseOrder (order, market);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
