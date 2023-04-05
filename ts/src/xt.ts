@@ -1880,11 +1880,14 @@ export default class xt extends Exchange {
         let subType = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        const isContractWallet = (type === 'swap') || (type === 'future');
         let response = undefined;
-        if ((type === 'swap') || (type === 'future')) {
+        if (subType === 'linear') {
             response = await this.privateLinearGetFutureUserV1BalanceList (params);
         } else if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1BalanceList (params);
+        } else if (isContractWallet) {
+            response = await this.privateLinearGetFutureUserV1BalanceList (params);
         } else {
             response = await this.privateSpotGetBalances (params);
         }
@@ -1933,7 +1936,7 @@ export default class xt extends Exchange {
         //     }
         //
         let balances = undefined;
-        if (subType !== undefined) {
+        if ((subType !== undefined) || isContractWallet) {
             balances = this.safeValue (response, 'result', []);
         } else {
             const data = this.safeValue (response, 'result', {});
