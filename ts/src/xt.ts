@@ -1232,9 +1232,6 @@ export default class xt extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
             response = await this.publicSpotGetDepth (this.extend (request, params));
         } else {
             if (limit !== undefined) {
