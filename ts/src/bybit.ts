@@ -2260,6 +2260,12 @@ export default class bybit extends Exchange {
         params = this.omit (params, [ 'endTime', 'till', 'until' ]);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
+        } else {
+            if (since !== undefined) {
+                // end time is required when since is not empty
+                const fundingInterval = 60 * 60 * 8 * 1000;
+                request['endTime'] = since + limit * fundingInterval;
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;
