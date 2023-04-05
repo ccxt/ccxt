@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testTicker from "./test.ticker";
+import testTicker from './test.ticker.js';
 
 async function testFetchTickers (exchange, symbol) {
     const method = 'fetchTickers';
@@ -14,7 +14,7 @@ async function testFetchTickers (exchange, symbol) {
         tickers = await exchange[method] ([ symbol ]);
         checkedSymbol = symbol;
     }
-    assert (typeof tickers === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json(tickers));
+    assert (typeof tickers === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json (tickers));
     const values = Object.values (tickers);
     console.log (exchange.id, symbol, 'fetched', values.length, 'tickers');
     for (let i = 0; i < values.length; i++) {

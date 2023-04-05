@@ -1,5 +1,5 @@
 
-import testSharedMethods from "./test.sharedMethods";
+import testSharedMethods from './test.sharedMethods.js';
 
 function testBorrowInterest (exchange, method, entry, requestedCode, requestedSymbol) {
     const format = {

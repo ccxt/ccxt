@@ -1,6 +1,6 @@
-import testSharedMethods from './test.sharedMethods';
+import testSharedMethods from './test.sharedMethods.js';
 
-function testStatus (exchange, method, entry, now) {
+function testStatus (exchange, method, entry, now : number) {
     const format = {
         'info': { },
         'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
@@ -14,6 +14,7 @@ function testStatus (exchange, method, entry, now) {
     testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'ok', 'error', 'shutdown', 'maintenance' ]);
     testSharedMethods.assertGreater (exchange, method, entry, 'updated', '0');
     testSharedMethods.assertGreater (exchange, method, entry, 'eta', '0');
+    testSharedMethods.assertGreater (exchange, method, entry, 'eta', now.toString ());
 }
 
 export default testStatus;

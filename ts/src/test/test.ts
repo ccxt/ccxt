@@ -41,19 +41,19 @@ const properties = Object.keys (exchange.has);
 properties.push ('loadMarkets');
 for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
-    const filePath = __dirname + '/Exchange/test.' + property;
-    if (fs.existsSync (filePath + '.ts')) {
+    const filePath = __dirname + '/Exchange/test.' + property + '.js';
+    if (fs.existsSync (filePath)) {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[property] = await import(pathToFileURL(filePath)) as any;
+        testFiles[property] = await import (pathToFileURL(filePath)) as any;
     }
 }
-import errorsHierarchy from '../base/errorHierrorHierarchy.js';
+import errorsHierarchy from '../base/errorHierarchy.js';
 Object.keys (errorsHierarchy)
     // eslint-disable-next-line no-path-concat
     .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
-    .forEach ((error) => {
+    .forEach (async (error) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[error] = require (__dirname + '/errors/test.' + error + '.js');
+        testFiles[error] =  await import (__dirname + '/errors/test.' + error + '.js');
     });
 
 const AuthenticationError = errorsHierarchy.AuthenticationError;

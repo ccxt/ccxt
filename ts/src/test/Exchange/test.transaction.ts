@@ -1,5 +1,5 @@
 
-import testSharedMethods from './test.sharedMethods';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testTransaction (exchange, method, entry, requestedCode, now) {
     const format = {
@@ -28,7 +28,7 @@ function testTransaction (exchange, method, entry, requestedCode, now) {
     testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
     //
     testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
-    testSharedMethods.assertAgainstArray (exchange, method, entry, 'type', ['deposit', 'withdrawal']);
+    testSharedMethods.assertAgainstArray (exchange, method, entry, 'type', [ 'deposit', 'withdrawal' ]);
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
     testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
 }

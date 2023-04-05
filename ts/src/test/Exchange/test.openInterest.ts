@@ -1,6 +1,5 @@
 
-
-import testSharedMethods from './test.sharedMethods';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testOpenInterest (exchange, method, entry) {
     const format = {

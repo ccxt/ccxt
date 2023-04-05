@@ -1,5 +1,5 @@
 
-import testStatus from './test.status';
+import testStatus from './test.status.js';
 
 async function testFetchStatus (exchange) {
     const method = 'fetchStatus';

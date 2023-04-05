@@ -1,7 +1,7 @@
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods';
-import testPosition from './test.position';
+import testSharedMethods from './test.sharedMethods.js';
+import testPosition from './test.position.js';
 
 async function testFetchPositions (exchange, symbol) {
     const method = 'fetchPositions';

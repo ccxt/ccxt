@@ -1,6 +1,5 @@
 
-
-import testCurrency from "./test.currency";
+import testCurrency from './test.currency.js';
 
 async function testFetchCurrencies (exchange) {
     const method = 'fetchCurrencies';

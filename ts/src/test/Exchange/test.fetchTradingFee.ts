@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testTradingFee from './test.tradingFee';
+import testTradingFee from './test.tradingFee.js';
 
 async function testFetchTradingFee (exchange, symbol) {
     const method = 'fetchTradingFee';

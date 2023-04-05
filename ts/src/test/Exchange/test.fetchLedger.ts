@@ -1,12 +1,12 @@
 
 import assert from 'assert';
-import testSharedMethods from "./test.sharedMethods";
-import testLedgerItem from './test.ledgerItem';
+import testSharedMethods from './test.sharedMethods.js';
+import testLedgerItem from './test.ledgerItem.js';
 
 async function testFetchLedger (exchange, code) {
     const method = 'fetchLedger';
     const items = await exchange[method] (code);
-    assert (Array.isArray (items), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(items));
+    assert (Array.isArray (items), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (items));
     const now = exchange.milliseconds ();
     console.log (exchange.id, method, 'fetched', items.length, 'entries, asserting each ...');
     for (let i = 0; i < items.length; i++) {

@@ -1,5 +1,5 @@
 
-import testMarket from './test.market';
+import testMarket from './test.market.js';
 
 async function testLoadMarkets (exchange) {
     const method = 'loadMarkets';

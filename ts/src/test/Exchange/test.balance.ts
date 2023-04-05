@@ -3,8 +3,8 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods';
-import { Precise as PreciseNs } from '../../base/Precise';
+import testSharedMethods from './test.sharedMethods.js';
+import { Precise as PreciseNs } from '../../base/Precise.js';
 
 function testBalance (exchange, method, entry) {
     const format = {

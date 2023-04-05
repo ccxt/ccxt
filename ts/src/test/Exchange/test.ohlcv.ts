@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testOHLCV (exchange, method, entry, symbol, now) {
     const format = [

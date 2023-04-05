@@ -1,7 +1,7 @@
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods';
-import { Precise as PreciseNs } from '../../base/Precise';
+import testSharedMethods from './test.sharedMethods.js';
+import { Precise as PreciseNs } from '../../base/Precise.js';
 
 function testTicker (exchange, method, entry, symbol) {
     const format = {
@@ -74,7 +74,7 @@ function testTicker (exchange, method, entry, symbol) {
     const bid = exchange.safeString (entry, 'bid');
     const ask = exchange.safeString (entry, 'ask');
     if ((bid !== undefined) && (ask !== undefined)) {
-        assert (PreciseNs.stringGe  (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
+        assert (PreciseNs.stringGe (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
     }
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
 }

@@ -1,6 +1,6 @@
 
-import testSharedMethods from './test.sharedMethods';
-import testTrade from './test.trade';
+import testSharedMethods from './test.sharedMethods.js';
+import testTrade from './test.trade.js';
 
 function testOrder (exchange, method, entry, symbol, now) {
     const format = {

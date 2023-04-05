@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testOHLCV from './test.ohlcv';
+import testOHLCV from './test.ohlcv.js';
 
 async function testFetchOHLCV (exchange, symbol) {
     const method = 'fetchOHLCV';

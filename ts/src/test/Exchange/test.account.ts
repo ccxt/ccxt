@@ -1,4 +1,4 @@
-import testSharedMethods from "./test.sharedMethods";
+import testSharedMethods from './test.sharedMethods.js';
 
 function testAccount (exchange, method, entry) {
     const format = {

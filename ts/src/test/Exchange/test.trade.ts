@@ -1,5 +1,5 @@
 
-import testSharedMethods from './test.sharedMethods';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testTrade (exchange, method, entry, symbol, now) {
     const format = {

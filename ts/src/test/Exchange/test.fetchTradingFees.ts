@@ -1,5 +1,5 @@
 
-import testTradingFee from './test.tradingFee';
+import testTradingFee from './test.tradingFee.js';
 
 async function testFetchTradingFees (exchange) {
     const method = 'fetchTradingFees';

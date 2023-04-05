@@ -1,5 +1,4 @@
 
-
 async function testFetchTransactionFees (exchange) {
     const method = 'fetchTransactionFees';
     const fees = await exchange[method] ();

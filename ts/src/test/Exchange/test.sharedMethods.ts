@@ -1,9 +1,24 @@
 
 import assert from 'assert';
-import { Precise as PreciseNs } from '../../base/Precise';
+import { Precise as PreciseNs } from '../../base/Precise.js';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
+}
+
+function areSameTypes (exchange, entry, key, format) {
+    // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
+    const entryKeyVal = exchange.safeValue (entry, key);
+    const formatKeyVal = exchange.safeValue (format, key);
+    const same_string = (typeof entryKeyVal === 'string') && (typeof formatKeyVal === 'string');
+    const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
+    // todo: the below is correct, but is not being transpiled into python correctly: (x == False) instead of (x is False)
+    // const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
+    const same_boolean = ((entryKeyVal || !entryKeyVal) && (formatKeyVal || !formatKeyVal));
+    const same_array = Array.isArray (entryKeyVal) && Array.isArray (formatKeyVal);
+    const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
+    const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
+    return result;
 }
 
 function assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor = []) {
@@ -41,21 +56,6 @@ function assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
     }
 }
 
-function areSameTypes (exchange, entry, key, format) {
-    // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
-    const entryKeyVal = exchange.safeValue (entry, key);
-    const formatKeyVal = exchange.safeValue (format, key);
-    const same_string = (typeof entryKeyVal === 'string') && (typeof formatKeyVal === 'string');
-    const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
-    // todo: the below is correct, but is not being transpiled into python correctly: (x == False) instead of (x is False)
-    // const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
-    const same_boolean = ((entryKeyVal || !entryKeyVal) && (formatKeyVal || !formatKeyVal));
-    const same_array = Array.isArray(entryKeyVal) && Array.isArray(formatKeyVal);
-    const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
-    const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
-    return result;
-}
-
 function assertCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName : any = 'timestamp') {
     // define common log text
     const logText = logTemplate (exchange, method, entry);
@@ -87,7 +87,6 @@ function assertCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
         }
     }
 }
-
 
 function assertCurrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
     const logText = logTemplate (exchange, method, entry);
@@ -152,7 +151,6 @@ function assertAgainstArray (exchange, method, entry, key, expectedArray) {
     }
 }
 
-
 function reviseFeeObject (exchange, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
@@ -179,7 +177,7 @@ function reviseSortedTimestamps (exchange, method, codeOrSymbol, items, ascendin
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const firstIndex = ascending ? i - 1 : i;
             const secondIndex = ascending ? i : i - 1;
-            assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + codeOrSymbol + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json(items));
+            assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + codeOrSymbol + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json (items));
         }
     }
 }

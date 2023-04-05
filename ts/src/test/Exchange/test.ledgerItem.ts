@@ -1,5 +1,5 @@
 
-import testSharedMethods from './test.sharedMethods';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testLedgerItem (exchange, method, entry, requestedCode, now) {
     const format = {

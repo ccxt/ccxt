@@ -1,5 +1,5 @@
 
-import testOrderBook from './test.orderBook';
+import testOrderBook from './test.orderBook.js';
 
 async function testFetchOrderBook (exchange, symbol) {
     const method = 'fetchOrderBook';

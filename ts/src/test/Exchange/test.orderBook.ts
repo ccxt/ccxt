@@ -1,7 +1,7 @@
 
 import assert from 'assert';
-import { Precise as PreciseNs } from '../../base/Precise';
-import testSharedMethods from './test.sharedMethods';
+import { Precise as PreciseNs } from '../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testOrderBook (exchange, method, entry, symbol) {
     const format = {

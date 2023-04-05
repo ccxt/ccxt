@@ -1,5 +1,5 @@
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testMarket (exchange, method, market) {
     const format = {
