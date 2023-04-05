@@ -56,7 +56,7 @@ export default class bitget extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': undefined,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -1244,6 +1244,76 @@ export default class bitget extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchMarketLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
+        }
+        request['symbol'] = market['id'];
+        request['productType'] = 'UMCBL';
+        const response = await this.publicMixGetMarketQueryPositionLever (this.extend (request, params));
+        //
+        //     {
+        //         "code":"00000",
+        //         "data":[
+        //             {
+        //                 "level": 1,
+        //                 "startUnit": 0,
+        //                 "endUnit": 150000,
+        //                 "leverage": 125,
+        //                 "keepMarginRate": "0.004"
+        //             }
+        //         ],
+        //         "msg":"success",
+        //         "requestTime":1627292076687
+        //     }
+        //
+        const result = this.safeValue (response, 'data');
+        return this.parseMarketLeverageTiers (result, market);
+    }
+
+    parseMarketLeverageTiers (info, market = undefined) {
+        //
+        //     [
+        //         {
+        //             "level": 1,
+        //             "startUnit": 0,
+        //             "endUnit": 150000,
+        //             "leverage": 125,
+        //             "keepMarginRate": "0.004"
+        //         }
+        //     ],
+        //
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const minNotional = this.safeNumber (item, 'startUnit');
+            const maxNotional = this.safeNumber (item, 'endUnit');
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['base'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': this.safeNumber (item, 'keepMarginRate'),
+                'maxLeverage': this.safeNumber (item, 'leverage'),
+                'info': item,
+            });
+        }
+        return tiers;
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
