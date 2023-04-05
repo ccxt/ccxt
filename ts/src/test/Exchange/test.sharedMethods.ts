@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import PreciseNs from '../../base/Precise';
+import { Precise as PreciseNs } from '../../base/Precise';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';

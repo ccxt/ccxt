@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods';
-import PreciseNs from '../../base/Precise';
+import { Precise as PreciseNs } from '../../base/Precise';
 
 function testTicker (exchange, method, entry, symbol) {
     const format = {
