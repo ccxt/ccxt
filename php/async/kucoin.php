@@ -857,7 +857,7 @@ class kucoin extends Exchange {
             $networkCode = $this->safe_string_upper($params, 'network');
             $network = $this->network_code_to_id($networkCode, $code);
             if ($network !== null) {
-                $request['chain'] = $network;
+                $request['chain'] = strtolower($network);
                 $params = $this->omit($params, array( 'network' ));
             }
             $response = Async\await($this->privateGetWithdrawalsQuotas (array_merge($request, $params)));

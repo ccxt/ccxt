@@ -844,7 +844,7 @@ class kucoin extends kucoin$1 {
         const networkCode = this.safeStringUpper(params, 'network');
         const network = this.networkCodeToId(networkCode, code);
         if (network !== undefined) {
-            request['chain'] = network;
+            request['chain'] = network.toLowerCase();
             params = this.omit(params, ['network']);
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
