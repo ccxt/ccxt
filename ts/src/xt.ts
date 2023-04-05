@@ -1401,9 +1401,6 @@ export default class xt extends Exchange {
             request['symbols'] = symbols;
             response = await this.publicSpotGetTicker24h (this.extend (request, params));
         } else {
-            if (symbols !== undefined) {
-                throw new NotSupported (this.id + ' the symbols argument is not supported for swap and future markets');
-            }
             if (subType === 'linear') {
                 response = await this.publicLinearGetFutureMarketV1PublicQAggTickers (this.extend (request, params));
             } else if (subType === 'inverse') {
