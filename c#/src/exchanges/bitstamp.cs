@@ -2080,7 +2080,7 @@ partial class bitstamp : Exchange
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         await this.loadMarkets();

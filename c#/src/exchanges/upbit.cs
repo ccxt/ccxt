@@ -1707,8 +1707,8 @@ partial class upbit : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object response = await this.privateGetDepositsCoinAddress(this.extend(new Dictionary<string, object>() {
-    { "currency", getValue(currency, "id") },
-}, parameters));
+            { "currency", getValue(currency, "id") },
+        }, parameters));
         //
         //     {
         //         "currency": "BTC",
@@ -1774,7 +1774,7 @@ partial class upbit : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);

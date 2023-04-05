@@ -38,6 +38,8 @@ partial class cryptocom : Exchange
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
+                { "fetchDepositWithdrawFee", "emulated" },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRates", false },
@@ -267,6 +269,17 @@ partial class cryptocom : Exchange
                     { "derivatives", "DERIVATIVES" },
                     { "swap", "DERIVATIVES" },
                     { "future", "DERIVATIVES" },
+                } },
+                { "networks", new Dictionary<string, object>() {
+                    { "BEP20", "BSC" },
+                    { "ERC20", "ETH" },
+                    { "TRX", "TRON" },
+                    { "TRC20", "TRON" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "BSC", "BEP20" },
+                    { "ETH", "ERC20" },
+                    { "TRON", "TRC20" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -1214,6 +1227,12 @@ partial class cryptocom : Exchange
         {
             ((Dictionary<string, object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(clientOrderId))
+        {
+            ((Dictionary<string, object>)request)["client_oid"] = clientOrderId;
+            parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
+        }
         object postOnly = this.safeValue(parameters, "postOnly", false);
         if (isTrue(postOnly))
         {
@@ -1518,7 +1537,7 @@ partial class cryptocom : Exchange
         object rawTag = null;
         if (isTrue(isGreaterThan(getIndexOf(addressString, "?"), 0)))
         {
-                        var addressrawTagVariable = ((string)addressString).Split((string)"?").ToList<object>();
+            var addressrawTagVariable = ((string)addressString).Split((string)"?").ToList<object>();
             address = ((List<object>)addressrawTagVariable)[0];
             rawTag = ((List<object>)addressrawTagVariable)[1];
             object splitted = ((string)rawTag).Split((string)"=").ToList<object>();
@@ -1544,7 +1563,7 @@ partial class cryptocom : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         await this.loadMarkets();
@@ -2653,7 +2672,7 @@ partial class cryptocom : Exchange
         object isMargin = this.safeValue(parameters, "margin", false);
         parameters = this.omit(parameters, "margin");
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams(methodName, parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams(methodName, parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(!isEqual(marginMode, null)))
@@ -2670,6 +2689,85 @@ partial class cryptocom : Exchange
             }
         }
         return new List<object>() {marginMode, parameters};
+    }
+
+    public override object parseDepositWithdrawFee(object fee, object currency = null)
+    {
+        //
+        //    {
+        //        full_name: 'Alchemix',
+        //        default_network: 'ETH',
+        //        network_list: [
+        //          {
+        //            network_id: 'ETH',
+        //            withdrawal_fee: '0.25000000',
+        //            withdraw_enabled: true,
+        //            min_withdrawal_amount: '0.5',
+        //            deposit_enabled: true,
+        //            confirmation_required: '0'
+        //          }
+        //        ]
+        //    }
+        //
+        object networkList = this.safeValue(fee, "network_list");
+        object networkListLength = getArrayLength(networkList);
+        object result = new Dictionary<string, object>() {
+            { "info", fee },
+            { "withdraw", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "deposit", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        };
+        if (isTrue(!isEqual(networkList, null)))
+        {
+            for (object i = 0; isLessThan(i, networkListLength); postFixIncrement(ref i))
+            {
+                object networkInfo = getValue(networkList, i);
+                object networkId = this.safeString(networkInfo, "network_id");
+                object currencyCode = this.safeString(currency, "code");
+                object networkCode = this.networkIdToCode(networkId, currencyCode);
+                ((Dictionary<string, object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "fee", this.safeNumber(networkInfo, "withdrawal_fee") },
+                        { "percentage", false },
+                    } },
+                };
+                if (isTrue(isEqual(networkListLength, 1)))
+                {
+                    ((Dictionary<string, object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(networkInfo, "withdrawal_fee");
+                    ((Dictionary<string, object>)getValue(result, "withdraw"))["percentage"] = false;
+                }
+            }
+        }
+        return result;
+    }
+
+    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#fetchDepositWithdrawFees
+        * @description fetch deposit and withdraw fees
+        * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+        * @param {[string]|undefined} codes list of unified currency codes
+        * @param {object} params extra parameters specific to the cryptocom api endpoint
+        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.callAsync("v2PrivatePostPrivateGetCurrencyNetworks", parameters);
+        object data = this.safeValue(response, "result");
+        object currencyMap = this.safeValue(data, "currency_map");
+        return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");
     }
 
     public override object nonce()

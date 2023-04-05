@@ -15,7 +15,7 @@ partial class idex : Exchange
             { "rateLimit", 200 },
             { "version", "v3" },
             { "pro", true },
-            { "certified", true },
+            { "certified", false },
             { "requiresWeb3", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -171,7 +171,7 @@ partial class idex : Exchange
         // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
         //
         object market = this.market(symbol);
-        object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+        object info = this.safeValue(market, "info", new Dictionary<string, object>() { });
         object quoteAssetPrecision = this.safeInteger(info, "quoteAssetPrecision");
         price = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode);
         return this.decimalToPrecision(price, TRUNCATE, quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
@@ -240,7 +240,7 @@ partial class idex : Exchange
         object makerMin = this.safeString(response2, "makerTradeMinimum");
         object takerMin = this.safeString(response2, "takerTradeMinimum");
         object minCostETH = this.parseNumber(Precise.stringMin(makerMin, takerMin));
-        object result = new List<object>() {};
+        object result = new List<object>() { };
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
@@ -475,10 +475,11 @@ partial class idex : Exchange
             //   }, ...
             // ]
             return this.parseOHLCVs(response, market, timeframe, since, limit);
-        } else
+        }
+        else
         {
             //  {"nextTime":1595536440000}
-            return new List<object>() {};
+            return new List<object>() { };
         }
     }
 
@@ -499,7 +500,7 @@ partial class idex : Exchange
         object low = this.safeNumber(ohlcv, "low");
         object close = this.safeNumber(ohlcv, "close");
         object volume = this.safeNumber(ohlcv, "volume");
-        return new List<object>() {timestamp, open, high, low, close, volume};
+        return new List<object>() { timestamp, open, high, low, close, volume };
     }
 
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -592,7 +593,7 @@ partial class idex : Exchange
         object symbol = this.safeSymbol(marketId, market, "-");
         // this code handles the duality of public vs private trades
         object makerSide = this.safeString(trade, "makerSide");
-        object oppositeSide = ((bool) isTrue((isEqual(makerSide, "buy")))) ? "sell" : "buy";
+        object oppositeSide = ((bool)isTrue((isEqual(makerSide, "buy")))) ? "sell" : "buy";
         object side = this.safeString(trade, "side", oppositeSide);
         object takerOrMaker = this.safeString(trade, "liquidity", "taker");
         object feeCostString = this.safeString(trade, "fee");
@@ -656,7 +657,7 @@ partial class idex : Exchange
         //
         object maker = this.safeNumber(response, "makerFeeRate");
         object taker = this.safeNumber(response, "takerFeeRate");
-        object result = new Dictionary<string, object>() {};
+        object result = new Dictionary<string, object>() { };
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
@@ -728,15 +729,15 @@ partial class idex : Exchange
 
     public virtual object parseSide(object book, object side)
     {
-        object bookSide = this.safeValue(book, side, new List<object>() {});
-        object result = new List<object>() {};
+        object bookSide = this.safeValue(book, side, new List<object>() { });
+        object result = new List<object>() { };
         for (object i = 0; isLessThan(i, getArrayLength(bookSide)); postFixIncrement(ref i))
         {
             object order = getValue(bookSide, i);
             object price = this.safeNumber(order, 0);
             object amount = this.safeNumber(order, 1);
             object orderCount = this.safeInteger(order, 2);
-            ((List<object>)result).Add(new List<object>() {price, amount, orderCount});
+            ((List<object>)result).Add(new List<object>() { price, amount, orderCount });
         }
         object descending = isEqual(side, "bids");
         return this.sortBy(result, 0, descending);
@@ -765,7 +766,7 @@ partial class idex : Exchange
         //        },
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
+        object result = new Dictionary<string, object>() { };
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
@@ -849,20 +850,22 @@ partial class idex : Exchange
         object extendedRequest = this.extend(request, parameters);
         if (isTrue(isEqual(getValue(extendedRequest, "wallet"), null)))
         {
-            throw new BadRequest ((string)add(this.id, " fetchBalance() wallet is undefined, set this.walletAddress or \"address\" in params")) ;
+            throw new BadRequest((string)add(this.id, " fetchBalance() wallet is undefined, set this.walletAddress or \"address\" in params"));
         }
         object response = null;
         try
         {
             response = await this.privateGetBalances(extendedRequest);
-        } catch(Exception e)
+        }
+        catch (Exception e)
         {
             if (isTrue(e is InvalidAddress))
             {
                 object walletAddress = getValue(extendedRequest, "wallet");
                 await this.associateWallet(walletAddress);
                 response = await this.privateGetBalances(extendedRequest);
-            } else
+            }
+            else
             {
                 throw e;
             }
@@ -926,20 +929,22 @@ partial class idex : Exchange
         object extendedRequest = this.extend(request, parameters);
         if (isTrue(isEqual(getValue(extendedRequest, "wallet"), null)))
         {
-            throw new BadRequest ((string)add(this.id, " fetchMyTrades() walletAddress is undefined, set this.walletAddress or \"address\" in params")) ;
+            throw new BadRequest((string)add(this.id, " fetchMyTrades() walletAddress is undefined, set this.walletAddress or \"address\" in params"));
         }
         object response = null;
         try
         {
             response = await this.privateGetFills(extendedRequest);
-        } catch(Exception e)
+        }
+        catch (Exception e)
         {
             if (isTrue(e is InvalidAddress))
             {
                 object walletAddress = getValue(extendedRequest, "wallet");
                 await this.associateWallet(walletAddress);
                 response = await this.privateGetFills(extendedRequest);
-            } else
+            }
+            else
             {
                 throw e;
             }
@@ -1089,7 +1094,8 @@ partial class idex : Exchange
         if (isTrue((response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return this.parseOrders(response, market, since, limit);
-        } else
+        }
+        else
         {
             return this.parseOrder(response, market);
         }
@@ -1143,7 +1149,7 @@ partial class idex : Exchange
         //     }
         //
         object timestamp = this.safeInteger(order, "time");
-        object fills = this.safeValue(order, "fills", new List<object>() {});
+        object fills = this.safeValue(order, "fills", new List<object>() { });
         object id = this.safeString(order, "orderId");
         object clientOrderId = this.safeString(order, "clientOrderId");
         object marketId = this.safeString(order, "market");
@@ -1188,7 +1194,7 @@ partial class idex : Exchange
         parameters ??= new Dictionary<string, object>();
         object nonce = this.uuidv1();
         object noPrefix = this.remove0xPrefix(walletAddress);
-        object byteArray = new List<object> {this.base16ToBinary(nonce), this.base16ToBinary(noPrefix)};
+        object byteArray = new List<object> { this.base16ToBinary(nonce), this.base16ToBinary(noPrefix) };
         object binary = this.binaryConcatArray(byteArray);
         object hash = this.hash(binary, keccak, "hex");
         object signature = this.signMessageString(hash, this.privateKey);
@@ -1235,11 +1241,11 @@ partial class idex : Exchange
             { "takeProfitLimit", 6 },
         };
         object stopPriceString = null;
-        if (isTrue(isTrue(isTrue((isEqual(type, "stopLossLimit"))) || isTrue((isEqual(type, "takeProfitLimit")))) || isTrue((((Dictionary<string,object>)parameters).ContainsKey(toStringOrNull("stopPrice"))))))
+        if (isTrue(isTrue(isTrue((isEqual(type, "stopLossLimit"))) || isTrue((isEqual(type, "takeProfitLimit")))) || isTrue((((Dictionary<string, object>)parameters).ContainsKey(toStringOrNull("stopPrice"))))))
         {
-            if (!isTrue((((Dictionary<string,object>)parameters).ContainsKey(toStringOrNull("stopPrice")))))
+            if (!isTrue((((Dictionary<string, object>)parameters).ContainsKey(toStringOrNull("stopPrice")))))
             {
-                throw new BadRequest ((string)add(add(add(this.id, " createOrder() stopPrice is a required parameter for "), type), "orders")) ;
+                throw new BadRequest((string)add(add(add(this.id, " createOrder() stopPrice is a required parameter for "), type), "orders"));
             }
             stopPriceString = this.priceToPrecision(symbol, getValue(parameters, "stopPrice"));
         }
@@ -1250,32 +1256,35 @@ partial class idex : Exchange
         object priceString = null;
         object typeLower = ((string)type).ToLower();
         object limitOrder = isGreaterThanOrEqual(getIndexOf(typeLower, "limit"), 0);
-        if (isTrue(((Dictionary<string,object>)limitTypeEnums).ContainsKey(toStringOrNull(type))))
+        if (isTrue(((Dictionary<string, object>)limitTypeEnums).ContainsKey(toStringOrNull(type))))
         {
             typeEnum = getValue(limitTypeEnums, type);
             priceString = this.priceToPrecision(symbol, price);
-        } else if (isTrue(((Dictionary<string,object>)stopLossTypeEnums).ContainsKey(toStringOrNull(type))))
+        }
+        else if (isTrue(((Dictionary<string, object>)stopLossTypeEnums).ContainsKey(toStringOrNull(type))))
         {
             typeEnum = getValue(stopLossTypeEnums, type);
             priceString = this.priceToPrecision(symbol, price);
-        } else if (isTrue(isEqual(type, "market")))
+        }
+        else if (isTrue(isEqual(type, "market")))
         {
             typeEnum = 0;
-        } else
+        }
+        else
         {
-            throw new BadRequest ((string)add(add(add(this.id, " "), type), " is not a valid order type")) ;
+            throw new BadRequest((string)add(add(add(this.id, " "), type), " is not a valid order type"));
         }
         object amountEnum = 0; // base quantity
-        if (isTrue(((Dictionary<string,object>)parameters).ContainsKey(toStringOrNull("quoteOrderQuantity"))))
+        if (isTrue(((Dictionary<string, object>)parameters).ContainsKey(toStringOrNull("quoteOrderQuantity"))))
         {
             if (isTrue(!isEqual(type, "market")))
             {
-                throw new NotSupported ((string)add(add(add(this.id, " createOrder() quoteOrderQuantity is not supported for "), type), " orders, only supported for market orders")) ;
+                throw new NotSupported((string)add(add(add(this.id, " createOrder() quoteOrderQuantity is not supported for "), type), " orders, only supported for market orders"));
             }
             amountEnum = 1;
             amount = this.safeNumber(parameters, "quoteOrderQuantity");
         }
-        object sideEnum = ((bool) isTrue((isEqual(side, "buy")))) ? 0 : 1;
+        object sideEnum = ((bool)isTrue((isEqual(side, "buy")))) ? 0 : 1;
         object walletBytes = this.remove0xPrefix(this.walletAddress);
         object network = this.safeString(this.options, "network", "ETH");
         object orderVersion = this.getSupportedMapping(network, new Dictionary<string, object>() {
@@ -1293,14 +1302,15 @@ partial class idex : Exchange
         object defaultTimeInForce = this.safeString(this.options, "defaultTimeInForce", "gtc");
         object timeInForce = this.safeString(parameters, "timeInForce", defaultTimeInForce);
         object timeInForceEnum = null;
-        if (isTrue(((Dictionary<string,object>)timeInForceEnums).ContainsKey(toStringOrNull(timeInForce))))
+        if (isTrue(((Dictionary<string, object>)timeInForceEnums).ContainsKey(toStringOrNull(timeInForce))))
         {
             timeInForceEnum = getValue(timeInForceEnums, timeInForce);
-        } else
+        }
+        else
         {
-            object allOptions = new List<string>(((Dictionary<string,object>)timeInForceEnums).Keys);
+            object allOptions = new List<string>(((Dictionary<string, object>)timeInForceEnums).Keys);
             object asString = String.Join(", ", allOptions);
-            throw new BadRequest ((string)add(add(add(add(this.id, " "), timeInForce), " is not a valid timeInForce, please choose one of "), asString)) ;
+            throw new BadRequest((string)add(add(add(add(this.id, " "), timeInForce), " is not a valid timeInForce, please choose one of "), asString));
         }
         // https://docs.idex.io/#self-trade-prevention
         object selfTradePreventionEnums = new Dictionary<string, object>() {
@@ -1312,22 +1322,23 @@ partial class idex : Exchange
         object defaultSelfTradePrevention = this.safeString(this.options, "defaultSelfTradePrevention", "cn");
         object selfTradePrevention = this.safeString(parameters, "selfTradePrevention", defaultSelfTradePrevention);
         object selfTradePreventionEnum = null;
-        if (isTrue(((Dictionary<string,object>)selfTradePreventionEnums).ContainsKey(toStringOrNull(selfTradePrevention))))
+        if (isTrue(((Dictionary<string, object>)selfTradePreventionEnums).ContainsKey(toStringOrNull(selfTradePrevention))))
         {
             selfTradePreventionEnum = getValue(selfTradePreventionEnums, selfTradePrevention);
-        } else
-        {
-            object allOptions = new List<string>(((Dictionary<string,object>)selfTradePreventionEnums).Keys);
-            object asString = String.Join(", ", allOptions);
-            throw new BadRequest ((string)add(add(add(add(this.id, " "), selfTradePrevention), " is not a valid selfTradePrevention, please choose one of "), asString)) ;
         }
-        object byteArray = new List<object> {this.numberToBE(orderVersion, 1), this.base16ToBinary(nonce), this.base16ToBinary(walletBytes), this.encode(getValue(market, "id")), this.numberToBE(typeEnum, 1), this.numberToBE(sideEnum, 1), this.encode(amountString), this.numberToBE(amountEnum, 1)};
+        else
+        {
+            object allOptions = new List<string>(((Dictionary<string, object>)selfTradePreventionEnums).Keys);
+            object asString = String.Join(", ", allOptions);
+            throw new BadRequest((string)add(add(add(add(this.id, " "), selfTradePrevention), " is not a valid selfTradePrevention, please choose one of "), asString));
+        }
+        object byteArray = new List<object> { this.numberToBE(orderVersion, 1), this.base16ToBinary(nonce), this.base16ToBinary(walletBytes), this.encode(getValue(market, "id")), this.numberToBE(typeEnum, 1), this.numberToBE(sideEnum, 1), this.encode(amountString), this.numberToBE(amountEnum, 1) };
         if (isTrue(limitOrder))
         {
             object encodedPrice = this.encode(priceString);
             ((List<object>)byteArray).Add(encodedPrice);
         }
-        if (isTrue(((Dictionary<string,object>)stopLossTypeEnums).ContainsKey(toStringOrNull(type))))
+        if (isTrue(((Dictionary<string, object>)stopLossTypeEnums).ContainsKey(toStringOrNull(type))))
         {
             object encodedPrice = this.encode(isTrue(stopPriceString) || isTrue(priceString));
             ((List<object>)byteArray).Add(encodedPrice);
@@ -1337,7 +1348,7 @@ partial class idex : Exchange
         {
             ((List<object>)byteArray).Add(this.encode(clientOrderId));
         }
-        object after = new List<object> {this.numberToBE(timeInForceEnum, 1), this.numberToBE(selfTradePreventionEnum, 1), this.numberToBE(0, 8)};
+        object after = new List<object> { this.numberToBE(timeInForceEnum, 1), this.numberToBE(selfTradePreventionEnum, 1), this.numberToBE(0, 8) };
         object allBytes = this.arrayConcat(byteArray, after);
         object binary = this.binaryConcatArray(allBytes);
         object hash = this.hash(binary, keccak, "hex");
@@ -1361,14 +1372,15 @@ partial class idex : Exchange
         {
             ((Dictionary<string, object>)getValue(request, "parameters"))["price"] = priceString;
         }
-        if (isTrue(((Dictionary<string,object>)stopLossTypeEnums).ContainsKey(toStringOrNull(type))))
+        if (isTrue(((Dictionary<string, object>)stopLossTypeEnums).ContainsKey(toStringOrNull(type))))
         {
             ((Dictionary<string, object>)getValue(request, "parameters"))["stopPrice"] = isTrue(stopPriceString) || isTrue(priceString);
         }
         if (isTrue(isEqual(amountEnum, 0)))
         {
             ((Dictionary<string, object>)getValue(request, "parameters"))["quantity"] = amountString;
-        } else
+        }
+        else
         {
             ((Dictionary<string, object>)getValue(request, "parameters"))["quoteOrderQuantity"] = amountString;
         }
@@ -1425,7 +1437,7 @@ partial class idex : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkRequiredCredentials();
@@ -1434,7 +1446,7 @@ partial class idex : Exchange
         object amountString = this.currencyToPrecision(code, amount);
         object currency = this.currency(code);
         object walletBytes = this.remove0xPrefix(this.walletAddress);
-        object byteArray = new List<object> {this.base16ToBinary(nonce), this.base16ToBinary(walletBytes), this.encode(getValue(currency, "id")), this.encode(amountString), this.numberToBE(1, 1)};
+        object byteArray = new List<object> { this.base16ToBinary(nonce), this.base16ToBinary(walletBytes), this.encode(getValue(currency, "id")), this.encode(amountString), this.numberToBE(1, 1) };
         object binary = this.binaryConcatArray(byteArray);
         object hash = this.hash(binary, keccak, "hex");
         object signature = this.signMessageString(hash, this.privateKey);
@@ -1489,7 +1501,7 @@ partial class idex : Exchange
             } },
         };
         object walletBytes = this.remove0xPrefix(this.walletAddress);
-        object byteArray = new List<object> {this.base16ToBinary(nonce), this.base16ToBinary(walletBytes)};
+        object byteArray = new List<object> { this.base16ToBinary(nonce), this.base16ToBinary(walletBytes) };
         if (isTrue(!isEqual(market, null)))
         {
             ((List<object>)byteArray).Add(this.encode(getValue(market, "id")));
@@ -1525,7 +1537,7 @@ partial class idex : Exchange
         }
         object nonce = this.uuidv1();
         object walletBytes = this.remove0xPrefix(this.walletAddress);
-        object byteArray = new List<object> {this.base16ToBinary(nonce), this.base16ToBinary(walletBytes), this.encode(id)};
+        object byteArray = new List<object> { this.base16ToBinary(nonce), this.base16ToBinary(walletBytes), this.encode(id) };
         object binary = this.binaryConcatArray(byteArray);
         object hash = this.hash(binary, keccak, "hex");
         object signature = this.signMessageString(hash, this.privateKey);
@@ -1547,14 +1559,14 @@ partial class idex : Exchange
     {
         object errorCode = this.safeString(response, "code");
         object message = this.safeString(response, "message");
-        if (isTrue(((Dictionary<string,object>)this.exceptions).ContainsKey(toStringOrNull(errorCode))))
+        if (isTrue(((Dictionary<string, object>)this.exceptions).ContainsKey(toStringOrNull(errorCode))))
         {
             object Exception = getValue(this.exceptions, errorCode);
-            throwDynamicException((string)Exception, add(add(this.id, " "), message));return null;
+            throwDynamicException((string)Exception, add(add(this.id, " "), message)); return null;
         }
         if (isTrue(!isEqual(errorCode, null)))
         {
-            throw new ExchangeError ((string)add(add(this.id, " "), message)) ;
+            throw new ExchangeError((string)add(add(this.id, " "), message));
         }
         return null;
     }
@@ -1748,10 +1760,11 @@ partial class idex : Exchange
         //     }
         //
         object type = null;
-        if (isTrue(((Dictionary<string,object>)transaction).ContainsKey(toStringOrNull("depositId"))))
+        if (isTrue(((Dictionary<string, object>)transaction).ContainsKey(toStringOrNull("depositId"))))
         {
             type = "deposit";
-        } else if (isTrue(isTrue((((Dictionary<string,object>)transaction).ContainsKey(toStringOrNull("withdrawId")))) || isTrue((((Dictionary<string,object>)transaction).ContainsKey(toStringOrNull("withdrawalId"))))))
+        }
+        else if (isTrue(isTrue((((Dictionary<string, object>)transaction).ContainsKey(toStringOrNull("withdrawId")))) || isTrue((((Dictionary<string, object>)transaction).ContainsKey(toStringOrNull("withdrawalId"))))))
         {
             type = "withdrawal";
         }
@@ -1762,7 +1775,7 @@ partial class idex : Exchange
         object txid = this.safeString(transaction, "txId");
         object timestamp = this.safeInteger2(transaction, "txTime", "time");
         object fee = null;
-        if (isTrue(((Dictionary<string,object>)transaction).ContainsKey(toStringOrNull("fee"))))
+        if (isTrue(((Dictionary<string, object>)transaction).ContainsKey(toStringOrNull("fee"))))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeNumber(transaction, "fee") },
@@ -1804,7 +1817,7 @@ partial class idex : Exchange
         object hasPrivateKey = (!isEqual(this.privateKey, null));
         object defaultCost = this.safeValue(config, "cost", 1);
         object authenticated = isTrue(isTrue(isTrue(hasApiKey) && isTrue(hasSecret)) && isTrue(hasWalletAddress)) && isTrue(hasPrivateKey);
-        return ((bool) isTrue(authenticated)) ? (divide(defaultCost, 2)) : defaultCost;
+        return ((bool)isTrue(authenticated)) ? (divide(defaultCost, 2)) : defaultCost;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -1815,7 +1828,7 @@ partial class idex : Exchange
         object network = this.safeString(this.options, "network", "ETH");
         object version = this.safeString(this.options, "version", "v1");
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), network), "/"), version), "/"), path);
-        object keys = new List<string>(((Dictionary<string,object>)parameters).Keys);
+        object keys = new List<string>(((Dictionary<string, object>)parameters).Keys);
         object length = getArrayLength(keys);
         object query = null;
         if (isTrue(isGreaterThan(length, 0)))
@@ -1824,7 +1837,8 @@ partial class idex : Exchange
             {
                 query = this.urlencode(parameters);
                 url = add(add(url, "?"), query);
-            } else
+            }
+            else
             {
                 body = this.json(parameters);
             }
@@ -1842,7 +1856,8 @@ partial class idex : Exchange
             if (isTrue(isEqual(method, "GET")))
             {
                 payload = query;
-            } else
+            }
+            else
             {
                 payload = body;
             }
@@ -1854,5 +1869,49 @@ partial class idex : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    public override object remove0xPrefix(object hexData)
+    {
+        if (isTrue(isEqual(((string)hexData).Substring((int)0, (int)2), "0x")))
+        {
+            return ((string)hexData).Substring((int)2);
+        }
+        else
+        {
+            return hexData;
+        }
+    }
+
+    public virtual object hashMessage(object message)
+    {
+        // takes a hex encoded message
+        object binaryMessage = this.base16ToBinary(this.remove0xPrefix(message));
+        // object prefix = this.encode(add("Ethereum Signed Message:\n", binaryMessage.byteLength));
+        object prefix = "p";
+        return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
+    }
+
+    public virtual object signHash(object hash, object privateKey)
+    {
+        object signature = ecdsa(((string)hash).Substring((int)-64), ((string)privateKey).Substring((int)-64), secp256k1, null);
+        return new Dictionary<string, object>() {
+            { "r", add("0x", getValue(signature, "r")) },
+            { "s", add("0x", getValue(signature, "s")) },
+            { "v", add(27, getValue(signature, "v")) },
+        };
+    }
+
+    public virtual object signMessage(object message, object privateKey)
+    {
+        return this.signHash(this.hashMessage(message), ((string)privateKey).Substring((int)-64));
+    }
+
+    public virtual object signMessageString(object message, object privateKey)
+    {
+        // still takes the input as a hex string
+        // same as above but returns a string instead of an object
+        object signature = this.signMessage(message, privateKey);
+        return add(add(getValue(signature, "r"), this.remove0xPrefix(getValue(signature, "s"))), this.binaryToBase16(this.numberToBE(getValue(signature, "v"), 1)));
     }
 }

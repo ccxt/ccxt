@@ -185,6 +185,7 @@ partial class binance : Exchange
                         { "asset/assetDetail", 0.1 },
                         { "asset/tradeFee", 0.1 },
                         { "asset/ledger-transfer/cloud-mining/queryByPage", 4 },
+                        { "asset/convert-transfer/queryByPage", 0.033335 },
                         { "margin/loan", 1 },
                         { "margin/repay", 1 },
                         { "margin/account", 1 },
@@ -270,12 +271,14 @@ partial class binance : Exchange
                         { "sub-account/transfer/subUserHistory", 0.1 },
                         { "sub-account/universalTransfer", 0.1 },
                         { "sub-account/apiRestrictions/ipRestriction/thirdPartyList", 1 },
+                        { "sub-account/transaction-tatistics", 0.4 },
                         { "managed-subaccount/asset", 0.1 },
                         { "managed-subaccount/accountSnapshot", 240 },
                         { "managed-subaccount/queryTransLogForInvestor", 0.1 },
                         { "managed-subaccount/queryTransLogForTradeParent", 0.1 },
                         { "managed-subaccount/fetch-future-asset", 0.1 },
                         { "managed-subaccount/marginAsset", 0.1 },
+                        { "managed-subaccount/info", 0.4 },
                         { "lending/daily/product/list", 0.1 },
                         { "lending/daily/userLeftQuota", 0.1 },
                         { "lending/daily/userRedemptionQuota", 0.1 },
@@ -364,7 +367,6 @@ partial class binance : Exchange
                         { "asset/transfer", 0.1 },
                         { "asset/get-funding-asset", 0.1 },
                         { "asset/convert-transfer", 0.033335 },
-                        { "asset/convert-transfer/queryByPage", 0.033335 },
                         { "account/disableFastWithdrawSwitch", 0.1 },
                         { "account/enableFastWithdrawSwitch", 0.1 },
                         { "capital/withdraw/apply", 4.0002 },
@@ -1457,13 +1459,14 @@ partial class binance : Exchange
             bs = this.safeString(optionParts, 0);
         }
         object expiry = this.safeString(optionParts, 1);
-        object strike = this.safeString(optionParts, 2);
+        object strike = this.safeInteger(optionParts, 2);
+        object strikeAsString = this.safeString(optionParts, 2);
         object optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         object timestamp = this.parse8601(datetime);
         return new Dictionary<string, object>() {
-            { "id", add(add(add(add(add(add(bs, "-"), expiry), "-"), strike), "-"), optionType) },
-            { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), settle), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
+            { "id", add(add(add(add(add(add(bs, "-"), expiry), "-"), strikeAsString), "-"), optionType) },
+            { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), settle), ":"), settle), "-"), expiry), "-"), strikeAsString), "-"), optionType) },
             { "base", bs },
             { "quote", settle },
             { "baseId", bs },
@@ -1628,7 +1631,7 @@ partial class binance : Exchange
         object type = this.safeString(parameters, "type", defaultType);
         object query = this.omit(parameters, "type");
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTime", null, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTime", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object method = "publicGetTime";
@@ -2403,7 +2406,7 @@ partial class binance : Exchange
         object defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
         object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
@@ -2969,10 +2972,10 @@ partial class binance : Exchange
         }
         object type = null;
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         object method = null;
@@ -3084,7 +3087,7 @@ partial class binance : Exchange
         object defaultType = this.safeString2(this.options, "fetchTickers", "defaultType", "spot");
         object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", null, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object query = this.omit(parameters, "type");
@@ -4560,7 +4563,7 @@ partial class binance : Exchange
         object request = new Dictionary<string, object>() {};
         object marginMode = null;
         object query = null;
-                var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
+        var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
         marginMode = ((List<object>)marginModequeryVariable)[0];
         query = ((List<object>)marginModequeryVariable)[1];
         if (isTrue(!isEqual(symbol, null)))
@@ -4582,7 +4585,7 @@ partial class binance : Exchange
             type = this.safeString(query, "type", defaultType);
         }
         object subType = null;
-                var subTypequeryVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, query);
+        var subTypequeryVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, query);
         subType = ((List<object>)subTypequeryVariable)[0];
         query = ((List<object>)subTypequeryVariable)[1];
         object requestParams = this.omit(query, "type");
@@ -4748,7 +4751,7 @@ partial class binance : Exchange
         }
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -4804,7 +4807,7 @@ partial class binance : Exchange
             market = this.market(symbol);
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
         }
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "option")))
@@ -4813,7 +4816,7 @@ partial class binance : Exchange
         } else
         {
             this.checkRequiredSymbol("fetchMyTrades", symbol);
-                        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
             marginMode = ((List<object>)marginModeparametersVariable)[0];
             parameters = ((List<object>)marginModeparametersVariable)[1];
             if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
@@ -4838,7 +4841,7 @@ partial class binance : Exchange
         object endTime = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(since, null)))
         {
-            object startTime = parseInt(since);
+            object startTime = since;
             ((Dictionary<string, object>)request)["startTime"] = startTime;
             // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
             // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
@@ -6013,7 +6016,7 @@ partial class binance : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -6106,7 +6109,7 @@ partial class binance : Exchange
         object type = this.safeString(parameters, "type", defaultType);
         parameters = this.omit(parameters, "type");
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object isSpotOrMargin = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
@@ -6387,7 +6390,7 @@ partial class binance : Exchange
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
         }
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         parameters = this.omit(parameters, "type");
@@ -6459,7 +6462,7 @@ partial class binance : Exchange
         object defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
         object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRates", null, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRates", null, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object query = this.omit(parameters, "type");
@@ -6982,7 +6985,7 @@ partial class binance : Exchange
             object type = this.safeString(parameters, "type", defaultType);
             object query = this.omit(parameters, "type");
             object subType = null;
-                        var subTypeparametersVariable = this.handleSubTypeAndParams("loadLeverageBrackets", null, parameters, "linear");
+            var subTypeparametersVariable = this.handleSubTypeAndParams("loadLeverageBrackets", null, parameters, "linear");
             subType = ((List<object>)subTypeparametersVariable)[0];
             parameters = ((List<object>)subTypeparametersVariable)[1];
             if (isTrue(this.isLinear(type, subType)))
@@ -7033,7 +7036,7 @@ partial class binance : Exchange
         var type = ((List<object>) typequeryVariable)[0];
         var query = ((List<object>) typequeryVariable)[1];
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLeverageTiers", null, query, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLeverageTiers", null, query, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object method = null;
@@ -7182,7 +7185,7 @@ partial class binance : Exchange
         object type = this.safeString(parameters, "type", defaultType);
         object query = this.omit(parameters, "type");
         object subType = null;
-                var subTypequeryVariable = this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
+        var subTypequeryVariable = this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
         subType = ((List<object>)subTypequeryVariable)[0];
         query = ((List<object>)subTypequeryVariable)[1];
         if (isTrue(this.isLinear(type, subType)))
@@ -7227,7 +7230,7 @@ partial class binance : Exchange
         defaultType = this.safeString(this.options, "defaultType", defaultType);
         object type = this.safeString(parameters, "type", defaultType);
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsRisk", null, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsRisk", null, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         parameters = this.omit(parameters, "type");
@@ -7281,7 +7284,7 @@ partial class binance : Exchange
             }
         }
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
@@ -7424,6 +7427,9 @@ partial class binance : Exchange
                         { "msg", "No need to change margin type." },
                     };
                 }
+            } else
+            {
+                throw e;
             }
         }
         return response;
@@ -7490,7 +7496,7 @@ partial class binance : Exchange
         await this.loadMarkets();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object type = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         if (isTrue(!isEqual(type, "option")))
@@ -7593,10 +7599,10 @@ partial class binance : Exchange
         object currency = null;
         object method = null;
         object request = new Dictionary<string, object>() {};
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLedger", null, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLedger", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(type, "option")))

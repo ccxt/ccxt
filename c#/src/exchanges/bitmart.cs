@@ -544,44 +544,54 @@ partial class bitmart : Exchange
     public async virtual Task<object> fetchContractMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetContractV1Tickers(parameters);
+        object response = await this.publicGetContractPublicDetails(parameters);
         //
-        //    {
-        //        "message": "OK",
-        //        "code": 1000,
-        //        "trace": "045d13a8-4bc7-4974-9748-97d0ea183ef0",
-        //        "data": {
-        //            "tickers": [
-        //                {
-        //                    "contract_symbol": "RAYUSDT",
-        //                    "last_price": "3.893",
-        //                    "index_price": "3.90248043",
-        //                    "last_funding_rate": "-0.00054285",
-        //                    "price_change_percent_24h": "-6.955",
-        //                    "volume_24h": "10450969.34602996",
-        //                    "url": "https://futures.bitmart.com/en?symbol=RAYUSDT",
-        //                    "high_price": "4.299",
-        //                    "low_price": "3.887",
-        //                    "legal_coin_price": "3.893056"
-        //                },
-        //                ...
-        //            ]
-        //        }
-        //    }
+        //     {
+        //       "code": 1000,
+        //       "message": "Ok",
+        //       "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
+        //       "data": {
+        //       "symbols": [{
+        //             "symbol": "BTCUSDT",
+        //             "product_type": 1,
+        //             "open_timestamp": 1594080000,
+        //             "expire_timestamp": 0,
+        //             "settle_timestamp": 0,
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT",
+        //             "last_price": "23920",
+        //             "volume_24h": "18969368",
+        //             "turnover_24h": "458933659.7858",
+        //             "index_price": "23945.25191635",
+        //             "index_name": "BTCUSDT",
+        //             "contract_size": "0.001",
+        //             "min_leverage": "1",
+        //             "max_leverage": "100",
+        //             "price_precision": "0.1",
+        //             "vol_precision": "1",
+        //             "max_volume": "500000",
+        //             "min_volume": "1"
+        //           },
+        //           ...
+        //         ]
+        //       }
+        //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object tickers = this.safeValue(data, "tickers", new List<object>() {});
+        object symbols = this.safeValue(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = getValue(tickers, i);
-            object id = this.safeString(market, "contract_symbol");
-            object baseId = ((string)id).Substring((int)0, (int)-4);
-            object quoteId = ((string)id).Substring((int)-4);
+            object market = getValue(symbols, i);
+            object id = this.safeString(market, "symbol");
+            object baseId = this.safeString(market, "base_currency");
+            object quoteId = this.safeString(market, "quote_currency");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object settle = "USDT";
             object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            object productType = this.safeNumber(market, "product_type");
+            object expiry = this.safeInteger(market, "expire_timestamp");
             ((List<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", null },
@@ -595,30 +605,30 @@ partial class bitmart : Exchange
                 { "type", "swap" },
                 { "spot", false },
                 { "margin", false },
-                { "swap", true },
-                { "future", false },
+                { "swap", (isEqual(productType, 1)) },
+                { "future", (isEqual(productType, 2)) },
                 { "option", false },
                 { "active", true },
                 { "contract", true },
                 { "linear", true },
                 { "inverse", false },
-                { "contractSize", null },
-                { "expiry", null },
-                { "expiryDatetime", null },
+                { "contractSize", this.safeNumber(market, "contract_size") },
+                { "expiry", expiry },
+                { "expiryDatetime", this.iso8601(expiry) },
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", null },
-                    { "price", null },
+                    { "amount", this.safeNumber(market, "vol_precision") },
+                    { "price", this.safeNumber(market, "price_precision") },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                        { "min", this.safeNumber(market, "min_leverage") },
+                        { "max", this.safeNumber(market, "max_leverage") },
                     } },
                     { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                        { "min", this.safeNumber(market, "min_volume") },
+                        { "max", this.safeNumber(market, "max_volume") },
                     } },
                     { "price", new Dictionary<string, object>() {
                         { "min", null },
@@ -1010,7 +1020,7 @@ partial class bitmart : Exchange
             object symbol = this.safeValue(symbols, 0);
             market = this.market(symbol);
         }
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         object method = this.getSupportedMapping(type, new Dictionary<string, object>() {
@@ -1422,7 +1432,7 @@ partial class bitmart : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1569,7 +1579,7 @@ partial class bitmart : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2064,7 +2074,7 @@ partial class bitmart : Exchange
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
         }
         object type = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         if (isTrue(!isEqual(type, "spot")))
@@ -2223,10 +2233,6 @@ partial class bitmart : Exchange
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
         }
-        if (isTrue(!((id).GetType() == typeof(string))))
-        {
-            id = ((object)id).ToString();
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "order_id", id },
@@ -2343,7 +2349,7 @@ partial class bitmart : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -3175,7 +3181,7 @@ partial class bitmart : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object marginMode = null;
-                var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(!isEqual(marginMode, null)))

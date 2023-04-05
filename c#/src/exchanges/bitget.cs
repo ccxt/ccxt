@@ -167,6 +167,7 @@ partial class bitget : Exchange
                             { "trade/batch-orders", 4 },
                             { "trade/cancel-order", 2 },
                             { "trade/cancel-batch-orders", 4 },
+                            { "trade/cancel-batch-orders-v2", 4 },
                             { "trade/orderInfo", 1 },
                             { "trade/open-orders", 1 },
                             { "trade/history", 1 },
@@ -1745,7 +1746,7 @@ partial class bitget : Exchange
             object symbol = this.safeValue(symbols, 0);
             market = this.market(symbol);
         }
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         object method = this.getSupportedMapping(type, new Dictionary<string, object>() {
@@ -1756,7 +1757,7 @@ partial class bitget : Exchange
         if (isTrue(isEqual(method, "publicMixGetMarketTickers")))
         {
             object subType = null;
-                        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", null, parameters);
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", null, parameters);
             subType = ((List<object>)subTypeparametersVariable)[0];
             parameters = ((List<object>)subTypeparametersVariable)[1];
             object productType = ((bool) isTrue((isEqual(subType, "linear")))) ? "UMCBL" : "DMCBL";
@@ -2195,7 +2196,7 @@ partial class bitget : Exchange
         if (isTrue(isEqual(marketType, "swap")))
         {
             object subType = null;
-                        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
             subType = ((List<object>)subTypeparametersVariable)[0];
             parameters = ((List<object>)subTypeparametersVariable)[1];
             object productType = ((bool) isTrue((isEqual(subType, "linear")))) ? "UMCBL" : "DMCBL";
@@ -2282,6 +2283,7 @@ partial class bitget : Exchange
             { "new", "open" },
             { "init", "open" },
             { "not_trigger", "open" },
+            { "partial_fill", "open" },
             { "triggered", "closed" },
             { "full_fill", "closed" },
             { "filled", "closed" },
@@ -2758,21 +2760,17 @@ partial class bitget : Exchange
         this.checkRequiredSymbol("cancelOrders", symbol);
         await this.loadMarkets();
         object market = this.market(symbol);
-        object type = this.safeString(parameters, "type", getValue(market, "type"));
-        if (isTrue(isEqual(type, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a type parameter (one of \'spot\', \'swap\').")) ;
-        }
-        parameters = this.omit(parameters, "type");
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+        type = ((List<object>)typeparametersVariable)[0];
+        parameters = ((List<object>)typeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object method = null;
         if (isTrue(isEqual(type, "spot")))
         {
-            method = "apiPostOrderOrdersBatchcancel";
-            ((Dictionary<string, object>)request)["method"] = "batchcancel";
-            object jsonIds = this.json(ids);
-            object parts = ((string)jsonIds).Split((string)"\"").ToList<object>();
-            ((Dictionary<string, object>)request)["order_ids"] = String.Join("", parts);
+            method = "privateSpotPostTradeCancelBatchOrdersV2";
+            ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
+            ((Dictionary<string, object>)request)["orderIds"] = ids;
         } else if (isTrue(isEqual(type, "swap")))
         {
             method = "privateMixPostOrderCancelBatchOrders";
@@ -2785,18 +2783,17 @@ partial class bitget : Exchange
         //     spot
         //
         //     {
-        //         "status": "ok",
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": "1680008815965",
         //         "data": {
-        //             "success": [
-        //                 "673451224205135872",
-        //             ],
-        //             "failed": [
+        //             "resultList": [
         //                 {
-        //                 "err-msg": "invalid record",
-        //                 "order-id": "673451224205135873",
-        //                 "err-code": "base record invalid"
-        //                 }
-        //             ]
+        //                     "orderId": "1024598257429823488",
+        //                     "clientOrderId": "876493ce-c287-4bfc-9f4a-8b1905881313"
+        //                 },
+        //             ],
+        //             "failed": []
         //         }
         //     }
         //
@@ -2843,7 +2840,7 @@ partial class bitget : Exchange
             market = this.market(symbol);
         }
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object productType = ((bool) isTrue((isEqual(subType, "linear")))) ? "UMCBL" : "DMCBL";
@@ -3005,7 +3002,7 @@ partial class bitget : Exchange
         object market = this.market(symbol);
         object marketType = null;
         object query = null;
-                var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+        var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = ((List<object>)marketTypequeryVariable)[0];
         query = ((List<object>)marketTypequeryVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -3135,6 +3132,10 @@ partial class bitget : Exchange
         //         }
         //     }
         //
+        if (isTrue(((response).GetType() == typeof(string))))
+        {
+            response = parseJson(response);
+        }
         object data = this.safeValue(response, "data", new List<object>() {});
         if (!isTrue((data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -3213,7 +3214,7 @@ partial class bitget : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -3520,7 +3521,7 @@ partial class bitget : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -3646,7 +3647,7 @@ partial class bitget : Exchange
             market = this.market(first);
         }
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object productType = ((bool) isTrue((isEqual(subType, "linear")))) ? "UMCBL" : "DMCBL";
@@ -3789,7 +3790,7 @@ partial class bitget : Exchange
         object maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
         object marginRatio = Precise.stringDiv(maintenanceMargin, collateral);
         object percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMargin, 4), "100");
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -3802,10 +3803,12 @@ partial class bitget : Exchange
             { "contracts", contracts },
             { "contractSize", contractSizeNumber },
             { "markPrice", this.parseNumber(markPrice) },
+            { "lastPrice", null },
             { "side", side },
             { "hedged", hedged },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", null },
             { "maintenanceMargin", this.parseNumber(maintenanceMargin) },
             { "maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentage) },
             { "collateral", this.parseNumber(collateral) },
@@ -3813,7 +3816,7 @@ partial class bitget : Exchange
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
             { "leverage", this.parseNumber(leverage) },
             { "marginRatio", this.parseNumber(marginRatio) },
-        };
+        });
     }
 
     public async virtual Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4267,7 +4270,7 @@ partial class bitget : Exchange
         {
             market = this.market(symbol);
         }
-                var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", market, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", market, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object productType = ((bool) isTrue((isEqual(subType, "linear")))) ? "UMCBL" : "DMCBL";
@@ -4342,7 +4345,7 @@ partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         object fromAccount = this.safeString(parameters, "fromAccount", type);

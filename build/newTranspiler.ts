@@ -487,10 +487,8 @@ class NewTranspiler {
             return
         }
 
-        // encapsulate inside transpileTests
-        this.transpilePrecisionTestsToCSharp();
-        this.transpileCryptoTestsToCSharp();
-        this.transpileDatetimeTestsToCSharp();
+        // crypto, precision, datetime
+        this.transpileBaseTestsToCSharp();
 
         this.transpileBaseMethods (exchangeBase)
 
@@ -591,7 +589,7 @@ class NewTranspiler {
     transpilePrecisionTestsToCSharp () {
 
         const jsFile = './ts/src/test/base/functions/test.number.ts';
-        const csharpFile = './c#/Tests/Generated/Precision.cs';
+        const csharpFile = './c#/newTests/Generated/Precision.cs';
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -599,7 +597,7 @@ class NewTranspiler {
         let content = csharp.content;
         content = this.regexAll (content, [
             [ /object  = functions;/g, '' ], // tmp fix
-            [/assert/g, 'Assert.True'],
+            [/assert/g, 'Assert'],
         ]).trim ()
 
         const contentLines = content.split ('\n');
@@ -610,10 +608,9 @@ class NewTranspiler {
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
-            'public class PrecisionTests : BaseTest',
+            'public partial class BaseTest',
             '{',
-            '    [Fact]',
-            '    public void TestPrecision()',
+            '    public void PrecisionTests()',
             '    {',
             contentIdented,
             '    }',
@@ -628,15 +625,15 @@ class NewTranspiler {
     transpileCryptoTestsToCSharp () {
 
         const jsFile = './ts/src/test/base/functions/test.crypto.ts';
-        const csharpFile = './c#/Tests/Generated/Crypto.cs';
+        const csharpFile = './c#/newTests/Generated/Crypto.cs';
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
         const csharp = this.transpiler.transpileCSharpByPath(jsFile);
         let content = csharp.content;
         content = this.regexAll (content, [
-            [ /\s+object\sfunction\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-            [/assert/g, 'Assert.True'],
+            [ /\s*object\sfunction\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+            [/assert/g, 'Assert'],
         ]).trim ()
 
         const contentLines = content.split ('\n');
@@ -647,10 +644,9 @@ class NewTranspiler {
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
-            'public class PrecisionTests : BaseTest',
+            'public partial class BaseTest',
             '{',
-            '    [Fact]',
-            '    public void TestCrypto()',
+            '    public void CryptoTests()',
             '    {',
             contentIdented,
             '    }',
@@ -661,10 +657,11 @@ class NewTranspiler {
 
         overwriteFile (csharpFile, file);
     }
+
     transpileDatetimeTestsToCSharp () {
 
         const jsFile = './ts/src/test/base/functions/test.datetime.ts';
-        const csharpFile = './c#/Tests/Generated/Datetime.cs';
+        const csharpFile = './c#/newTests/Generated/Datetime.cs';
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -672,7 +669,7 @@ class NewTranspiler {
         let content = csharp.content;
         content = this.regexAll (content, [
             [ /\s*object\s+=\sfunctions;\n/gm, '' ],
-            [/assert/g, 'Assert.True'],
+            [/assert/g, 'Assert'],
         ]).trim ()
 
         const contentLines = content.split ('\n');
@@ -683,10 +680,9 @@ class NewTranspiler {
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
-            'public class DateTime : BaseTest',
+            'public partial class BaseTest',
             '{',
-            '    [Fact]',
-            '    public void TestDate()',
+            '    public void DateTimeTests()',
             '    {',
             contentIdented,
             '    }',
@@ -696,6 +692,12 @@ class NewTranspiler {
         log.magenta ('→', (csharpFile as any).yellow)
 
         overwriteFile (csharpFile, file);
+    }
+
+    transpileBaseTestsToCSharp () {
+        this.transpilePrecisionTestsToCSharp();
+        this.transpileCryptoTestsToCSharp();
+        this.transpileDatetimeTestsToCSharp();
     }
 }
 

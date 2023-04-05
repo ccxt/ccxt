@@ -94,6 +94,11 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetPublicInstruments",parameters);
     }
 
+    public async Task<object> publicGetPublicInstrumentTickBands (object parameters = null)
+    {
+        return await this.callAsync ("publicGetPublicInstrumentTickBands",parameters);
+    }
+
     public async Task<object> publicGetPublicDeliveryExerciseHistory (object parameters = null)
     {
         return await this.callAsync ("publicGetPublicDeliveryExerciseHistory",parameters);
@@ -229,14 +234,14 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetSystemStatus",parameters);
     }
 
-    public async Task<object> publicGetAssetLendingRateSummary (object parameters = null)
+    public async Task<object> publicGetFinanceSavingsLendingRateSummary (object parameters = null)
     {
-        return await this.callAsync ("publicGetAssetLendingRateSummary",parameters);
+        return await this.callAsync ("publicGetFinanceSavingsLendingRateSummary",parameters);
     }
 
-    public async Task<object> publicGetAssetLendingRateHistory (object parameters = null)
+    public async Task<object> publicGetFinanceSavingsLendingRateHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetAssetLendingRateHistory",parameters);
+        return await this.callAsync ("publicGetFinanceSavingsLendingRateHistory",parameters);
     }
 
     public async Task<object> publicGetMarketExchangeRate (object parameters = null)
@@ -409,16 +414,6 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetAssetDepositLightning",parameters);
     }
 
-    public async Task<object> privateGetAssetLendingHistory (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAssetLendingHistory",parameters);
-    }
-
-    public async Task<object> privateGetAssetSavingBalance (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAssetSavingBalance",parameters);
-    }
-
     public async Task<object> privateGetAssetNonTradableAssets (object parameters = null)
     {
         return await this.callAsync ("privateGetAssetNonTradableAssets",parameters);
@@ -579,6 +574,16 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetFinanceStakingDefiOrdersHistory",parameters);
     }
 
+    public async Task<object> privateGetFinanceSavingsBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateGetFinanceSavingsBalance",parameters);
+    }
+
+    public async Task<object> privateGetFinanceSavingsLendingHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetFinanceSavingsLendingHistory",parameters);
+    }
+
     public async Task<object> privateGetRfqCounterparties (object parameters = null)
     {
         return await this.callAsync ("privateGetRfqCounterparties",parameters);
@@ -734,19 +739,9 @@ public partial class okx : Exchange
         return await this.callAsync ("privatePostAssetWithdrawal",parameters);
     }
 
-    public async Task<object> privatePostAssetPurchaseRedempt (object parameters = null)
-    {
-        return await this.callAsync ("privatePostAssetPurchaseRedempt",parameters);
-    }
-
     public async Task<object> privatePostAssetWithdrawalLightning (object parameters = null)
     {
         return await this.callAsync ("privatePostAssetWithdrawalLightning",parameters);
-    }
-
-    public async Task<object> privatePostAssetSetLendingRate (object parameters = null)
-    {
-        return await this.callAsync ("privatePostAssetSetLendingRate",parameters);
     }
 
     public async Task<object> privatePostAssetCancelWithdrawal (object parameters = null)
@@ -892,6 +887,16 @@ public partial class okx : Exchange
     public async Task<object> privatePostFinanceStakingDefiCancel (object parameters = null)
     {
         return await this.callAsync ("privatePostFinanceStakingDefiCancel",parameters);
+    }
+
+    public async Task<object> privatePostFinanceSavingsPurchaseRedempt (object parameters = null)
+    {
+        return await this.callAsync ("privatePostFinanceSavingsPurchaseRedempt",parameters);
+    }
+
+    public async Task<object> privatePostFinanceSavingsSetLendingRate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostFinanceSavingsSetLendingRate",parameters);
     }
 
     public async Task<object> privatePostRfqCreateRfq (object parameters = null)

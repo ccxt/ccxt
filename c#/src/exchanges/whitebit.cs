@@ -1557,7 +1557,7 @@ partial class whitebit : Exchange
         }, market);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

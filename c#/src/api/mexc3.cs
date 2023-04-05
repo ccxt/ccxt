@@ -7,7 +7,7 @@
 
 namespace Main;
 
-public partial class mexc3 : Exchange
+public partial class mexc3 : mexc
 {
     public async Task<object> spotPublicGetPing (object parameters = null)
     {
@@ -244,6 +244,11 @@ public partial class mexc3 : Exchange
         return await this.callAsync ("spotPrivateGetMxDeductEnable",parameters);
     }
 
+    public async Task<object> spotPrivateGetUserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetUserDataStream",parameters);
+    }
+
     public async Task<object> spotPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("spotPrivatePostOrder",parameters);
@@ -329,6 +334,16 @@ public partial class mexc3 : Exchange
         return await this.callAsync ("spotPrivatePostMxDeductEnable",parameters);
     }
 
+    public async Task<object> spotPrivatePostUserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostUserDataStream",parameters);
+    }
+
+    public async Task<object> spotPrivatePutUserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePutUserDataStream",parameters);
+    }
+
     public async Task<object> spotPrivateDeleteOrder (object parameters = null)
     {
         return await this.callAsync ("spotPrivateDeleteOrder",parameters);
@@ -352,6 +367,11 @@ public partial class mexc3 : Exchange
     public async Task<object> spotPrivateDeleteMarginOpenOrders (object parameters = null)
     {
         return await this.callAsync ("spotPrivateDeleteMarginOpenOrders",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteUserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteUserDataStream",parameters);
     }
 
     public async Task<object> contractPublicGetPing (object parameters = null)

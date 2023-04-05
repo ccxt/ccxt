@@ -1059,7 +1059,7 @@ partial class hitbtc : Exchange
         return order;
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1390,7 +1390,7 @@ partial class hitbtc : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1526,7 +1526,7 @@ partial class hitbtc : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         await this.loadMarkets();
@@ -1591,7 +1591,7 @@ partial class hitbtc : Exchange
             {
                 body = this.json(query);
             }
-            object payload = this.encode(add(add(this.apiKey, ":"), this.secret));
+            object payload = add(add(this.apiKey, ":"), this.secret);
             object auth = this.stringToBase64(payload);
             headers = new Dictionary<string, object>() {
                 { "Authorization", add("Basic ", auth) },

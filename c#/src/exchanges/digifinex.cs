@@ -761,7 +761,7 @@ partial class digifinex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -928,7 +928,7 @@ partial class digifinex : Exchange
             market = this.market(first);
         }
         object type = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         object method = "publicSpotGetTicker";
@@ -1576,7 +1576,7 @@ partial class digifinex : Exchange
         symbol = getValue(market, "symbol");
         object marketType = null;
         object marginMode = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1584,7 +1584,7 @@ partial class digifinex : Exchange
             { "margin", "privateSpotPostMarginOrderNew" },
             { "swap", "privateSwapPostTradeOrderPlace" },
         });
-                var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(!isEqual(marginMode, null)))
@@ -1712,7 +1712,7 @@ partial class digifinex : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1995,7 +1995,7 @@ partial class digifinex : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2110,7 +2110,7 @@ partial class digifinex : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2227,7 +2227,7 @@ partial class digifinex : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2337,7 +2337,7 @@ partial class digifinex : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2501,7 +2501,7 @@ partial class digifinex : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2908,7 +2908,7 @@ partial class digifinex : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -3349,7 +3349,7 @@ partial class digifinex : Exchange
             }
             market = this.market(symbol);
         }
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchPositions", parameters);
@@ -3450,7 +3450,7 @@ partial class digifinex : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPosition", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPosition", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         var marginModequeryVariable = this.handleMarginModeAndParams("fetchPosition", parameters);
@@ -3938,7 +3938,7 @@ partial class digifinex : Exchange
         object defaultType = this.safeString(this.options, "defaultType");
         object isMargin = this.safeValue(parameters, "margin", false);
         object marginMode = null;
-                var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(!isEqual(marginMode, null)))

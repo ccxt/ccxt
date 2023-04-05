@@ -280,8 +280,8 @@ partial class bl3p : Exchange
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object response = await this.publicGetMarketTrades(this.extend(new Dictionary<string, object>() {
-    { "market", getValue(market, "id") },
-}, parameters));
+            { "market", getValue(market, "id") },
+        }, parameters));
         object result = this.parseTrades(getValue(getValue(response, "data"), "trades"), market, since, limit);
         return result;
     }

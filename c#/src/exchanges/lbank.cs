@@ -403,7 +403,7 @@ partial class lbank : Exchange
         };
         if (isTrue(!isEqual(since, null)))
         {
-            ((Dictionary<string, object>)request)["time"] = parseInt(since);
+            ((Dictionary<string, object>)request)["time"] = since;
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -761,7 +761,7 @@ partial class lbank : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         // mark and fee are optional params, mark is a note and must be less than 255 characters
@@ -861,7 +861,7 @@ partial class lbank : Exchange
                 { "api_key", this.apiKey },
             }, parameters));
             object queryString = this.rawencode(queryInner);
-            object message = ((string)this.hash(this.encode(queryString), sha256)).ToUpper();
+            object message = ((string)this.hash(this.encode(queryString), md5)).ToUpper();
             object cacheSecretAsPem = this.safeValue(this.options, "cacheSecretAsPem", true);
             object pem = null;
             if (isTrue(cacheSecretAsPem))

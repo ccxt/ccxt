@@ -1857,7 +1857,7 @@ partial class deribit : Exchange
         return this.parseOrder(order, market);
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(amount, null)))
@@ -1998,7 +1998,7 @@ partial class deribit : Exchange
         return this.parseOrders(result, market, since, limit);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -2364,14 +2364,14 @@ partial class deribit : Exchange
         object initialMarginString = this.safeString(position, "initial_margin");
         object notionalString = this.safeString(position, "size_currency");
         object maintenanceMarginString = this.safeString(position, "maintenance_margin");
-        object percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMarginString), "100");
         object currentTime = this.milliseconds();
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", currentTime },
             { "datetime", this.iso8601(currentTime) },
+            { "lastUpdateTimestamp", null },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(Precise.stringMul(Precise.stringDiv(initialMarginString, notionalString), "100")) },
             { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
@@ -2385,11 +2385,12 @@ partial class deribit : Exchange
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "estimated_liquidation_price") },
             { "markPrice", this.safeNumber(position, "mark_price") },
+            { "lastPrice", null },
             { "collateral", null },
             { "marginMode", null },
             { "side", side },
-            { "percentage", this.parseNumber(percentage) },
-        };
+            { "percentage", null },
+        });
     }
 
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
@@ -2722,7 +2723,7 @@ partial class deribit : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);

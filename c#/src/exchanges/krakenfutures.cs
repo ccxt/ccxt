@@ -261,7 +261,7 @@ partial class krakenfutures : Exchange
             object symbol = id;
             object split = ((string)id).Split((string)"_").ToList<object>();
             object splitMarket = this.safeString(split, 1);
-            object baseId = ((string)splitMarket).Replace((string)"usd", (string)"");
+            object baseId = ((string)splitMarket).Substring((int)0, (int)subtract(((string)splitMarket).Length, 3));
             object quoteId = "usd"; // always USD
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
@@ -879,7 +879,7 @@ partial class krakenfutures : Exchange
         return this.parseOrder(sendStatus);
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -927,8 +927,8 @@ partial class krakenfutures : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostCancelorder(this.extend(new Dictionary<string, object>() {
-    { "order_id", id },
-}, parameters));
+            { "order_id", id },
+        }, parameters));
         object status = this.safeString(this.safeValue(response, "cancelStatus", new Dictionary<string, object>() {}), "status");
         this.verifyOrderActionSuccess(status, "cancelOrder");
         object order = new Dictionary<string, object>() {};
@@ -2102,7 +2102,7 @@ partial class krakenfutures : Exchange
         object url = add(getValue(getValue(this.urls, "api"), api), query);
         if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(access, "private"))))
         {
-            object auth = add(add(postData, "/api/"), endpoint); // 1
+            object auth = add(add(postData, "/api/"), (((bool) isTrue(isEqual(api, "private"))) ? endpoint : add(add(api, "/"), endpoint))); // 1
             object hash = this.hash(this.encode(auth), sha256, "binary"); // 2
             object secret = this.base64ToBinary(this.secret); // 3
             object signature = this.hmac(hash, secret, sha512, "base64"); // 4-5

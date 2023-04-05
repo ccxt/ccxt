@@ -1174,8 +1174,8 @@ partial class bitso : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetOrdersOid(new Dictionary<string, object>() {
-    { "oid", id },
-});
+            { "oid", id },
+        });
         object payload = this.safeValue(response, "payload");
         if (isTrue((payload.GetType().IsGenericType && payload.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -1188,7 +1188,7 @@ partial class bitso : Exchange
         throw new OrderNotFound ((string)add(add(add(this.id, ": The order "), id), " not found.")) ;
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1599,7 +1599,7 @@ partial class bitso : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);

@@ -1388,9 +1388,9 @@ partial class wavesexchange : Exchange
         await this.signIn();
         object wavesAddress = await this.getWavesAddress();
         object response = await this.forwardPostMatcherOrdersWavesAddressCancel(new Dictionary<string, object>() {
-    { "wavesAddress", wavesAddress },
-    { "orderId", id },
-});
+            { "wavesAddress", wavesAddress },
+            { "orderId", id },
+        });
         //  {
         //    "success":true,
         //    "message":[[{"orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled"}]],
@@ -2232,7 +2232,7 @@ partial class wavesexchange : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         // currently only works for BTC and WAVES
@@ -2264,7 +2264,7 @@ partial class wavesexchange : Exchange
         object isErc20 = true;
         object noPrefix = this.remove0xPrefix(address);
         object lower = ((string)noPrefix).ToLower();
-        for (object i = 0; isLessThan(i, ((string)lower).Length); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(lower)); postFixIncrement(ref i))
         {
             object character = getValue(lower, i);
             if (!isTrue((((Dictionary<string,object>)set).ContainsKey(toStringOrNull(character)))))

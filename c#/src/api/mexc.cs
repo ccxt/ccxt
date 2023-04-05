@@ -9,6 +9,371 @@ namespace Main;
 
 public partial class mexc : Exchange
 {
+    public async Task<object> spotPublicGetPing (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetPing",parameters);
+    }
+
+    public async Task<object> spotPublicGetTime (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetTime",parameters);
+    }
+
+    public async Task<object> spotPublicGetExchangeInfo (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetExchangeInfo",parameters);
+    }
+
+    public async Task<object> spotPublicGetDepth (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetDepth",parameters);
+    }
+
+    public async Task<object> spotPublicGetTrades (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetTrades",parameters);
+    }
+
+    public async Task<object> spotPublicGetHistoricalTrades (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetHistoricalTrades",parameters);
+    }
+
+    public async Task<object> spotPublicGetAggTrades (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetAggTrades",parameters);
+    }
+
+    public async Task<object> spotPublicGetKlines (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetKlines",parameters);
+    }
+
+    public async Task<object> spotPublicGetAvgPrice (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetAvgPrice",parameters);
+    }
+
+    public async Task<object> spotPublicGetTicker24hr (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetTicker24hr",parameters);
+    }
+
+    public async Task<object> spotPublicGetTickerPrice (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetTickerPrice",parameters);
+    }
+
+    public async Task<object> spotPublicGetTickerBookTicker (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetTickerBookTicker",parameters);
+    }
+
+    public async Task<object> spotPublicGetEtfInfo (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetEtfInfo",parameters);
+    }
+
+    public async Task<object> spotPrivateGetOrder (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetOrder",parameters);
+    }
+
+    public async Task<object> spotPrivateGetOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetOpenOrders",parameters);
+    }
+
+    public async Task<object> spotPrivateGetAllOrders (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetAllOrders",parameters);
+    }
+
+    public async Task<object> spotPrivateGetAccount (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetAccount",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMyTrades (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMyTrades",parameters);
+    }
+
+    public async Task<object> spotPrivateGetSubAccountList (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetSubAccountList",parameters);
+    }
+
+    public async Task<object> spotPrivateGetSubAccountApiKey (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetSubAccountApiKey",parameters);
+    }
+
+    public async Task<object> spotPrivateGetCapitalConfigGetall (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetCapitalConfigGetall",parameters);
+    }
+
+    public async Task<object> spotPrivateGetCapitalDepositHisrec (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetCapitalDepositHisrec",parameters);
+    }
+
+    public async Task<object> spotPrivateGetCapitalWithdrawHistory (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetCapitalWithdrawHistory",parameters);
+    }
+
+    public async Task<object> spotPrivateGetCapitalDepositAddress (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetCapitalDepositAddress",parameters);
+    }
+
+    public async Task<object> spotPrivateGetCapitalTransfer (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetCapitalTransfer",parameters);
+    }
+
+    public async Task<object> spotPrivateGetCapitalSubAccountUniversalTransfer (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetCapitalSubAccountUniversalTransfer",parameters);
+    }
+
+    public async Task<object> spotPrivateGetCapitalConvert (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetCapitalConvert",parameters);
+    }
+
+    public async Task<object> spotPrivateGetCapitalConvertList (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetCapitalConvertList",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginLoan (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginLoan",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginAllOrders (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginAllOrders",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginMyTrades (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginMyTrades",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginOpenOrders",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginMaxTransferable (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginMaxTransferable",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginPriceIndex (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginPriceIndex",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginOrder (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginOrder",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginIsolatedAccount (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginIsolatedAccount",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginMaxBorrowable (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginMaxBorrowable",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginRepay (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginRepay",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginIsolatedPair (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginIsolatedPair",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginForceLiquidationRec (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginForceLiquidationRec",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginIsolatedMarginData (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginIsolatedMarginData",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMarginIsolatedMarginTier (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMarginIsolatedMarginTier",parameters);
+    }
+
+    public async Task<object> spotPrivateGetRebateTaxQuery (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetRebateTaxQuery",parameters);
+    }
+
+    public async Task<object> spotPrivateGetRebateDetail (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetRebateDetail",parameters);
+    }
+
+    public async Task<object> spotPrivateGetRebateDetailKickback (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetRebateDetailKickback",parameters);
+    }
+
+    public async Task<object> spotPrivateGetRebateReferCode (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetRebateReferCode",parameters);
+    }
+
+    public async Task<object> spotPrivateGetMxDeductEnable (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetMxDeductEnable",parameters);
+    }
+
+    public async Task<object> spotPrivateGetUserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetUserDataStream",parameters);
+    }
+
+    public async Task<object> spotPrivatePostOrder (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostOrder",parameters);
+    }
+
+    public async Task<object> spotPrivatePostOrderTest (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostOrderTest",parameters);
+    }
+
+    public async Task<object> spotPrivatePostSubAccountVirtualSubAccount (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostSubAccountVirtualSubAccount",parameters);
+    }
+
+    public async Task<object> spotPrivatePostSubAccountApiKey (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostSubAccountApiKey",parameters);
+    }
+
+    public async Task<object> spotPrivatePostSubAccountFutures (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostSubAccountFutures",parameters);
+    }
+
+    public async Task<object> spotPrivatePostSubAccountMargin (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostSubAccountMargin",parameters);
+    }
+
+    public async Task<object> spotPrivatePostBatchOrders (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostBatchOrders",parameters);
+    }
+
+    public async Task<object> spotPrivatePostCapitalWithdrawApply (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostCapitalWithdrawApply",parameters);
+    }
+
+    public async Task<object> spotPrivatePostCapitalTransfer (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostCapitalTransfer",parameters);
+    }
+
+    public async Task<object> spotPrivatePostCapitalDepositAddress (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostCapitalDepositAddress",parameters);
+    }
+
+    public async Task<object> spotPrivatePostCapitalSubAccountUniversalTransfer (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostCapitalSubAccountUniversalTransfer",parameters);
+    }
+
+    public async Task<object> spotPrivatePostCapitalConvert (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostCapitalConvert",parameters);
+    }
+
+    public async Task<object> spotPrivatePostMarginTradeMode (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostMarginTradeMode",parameters);
+    }
+
+    public async Task<object> spotPrivatePostMarginOrder (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostMarginOrder",parameters);
+    }
+
+    public async Task<object> spotPrivatePostMarginLoan (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostMarginLoan",parameters);
+    }
+
+    public async Task<object> spotPrivatePostMarginRepay (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostMarginRepay",parameters);
+    }
+
+    public async Task<object> spotPrivatePostMxDeductEnable (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostMxDeductEnable",parameters);
+    }
+
+    public async Task<object> spotPrivatePostUserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostUserDataStream",parameters);
+    }
+
+    public async Task<object> spotPrivatePutUserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePutUserDataStream",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteOrder (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteOrder",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteOpenOrders",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteSubAccountApiKey (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteSubAccountApiKey",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteMarginOrder (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteMarginOrder",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteMarginOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteMarginOpenOrders",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteUserDataStream (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteUserDataStream",parameters);
+    }
+
     public async Task<object> contractPublicGetPing (object parameters = null)
     {
         return await this.callAsync ("contractPublicGetPing",parameters);
@@ -184,6 +549,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivateGetAccountTieredFeeRate",parameters);
     }
 
+    public async Task<object> contractPrivateGetPositionLeverage (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetPositionLeverage",parameters);
+    }
+
     public async Task<object> contractPrivatePostPositionChangeMargin (object parameters = null)
     {
         return await this.callAsync ("contractPrivatePostPositionChangeMargin",parameters);
@@ -264,154 +634,159 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivatePostStoporderChangePlanPrice",parameters);
     }
 
-    public async Task<object> spotPublicGetMarketSymbols (object parameters = null)
+    public async Task<object> spot2PublicGetMarketSymbols (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketSymbols",parameters);
+        return await this.callAsync ("spot2PublicGetMarketSymbols",parameters);
     }
 
-    public async Task<object> spotPublicGetMarketCoinList (object parameters = null)
+    public async Task<object> spot2PublicGetMarketCoinList (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketCoinList",parameters);
+        return await this.callAsync ("spot2PublicGetMarketCoinList",parameters);
     }
 
-    public async Task<object> spotPublicGetCommonTimestamp (object parameters = null)
+    public async Task<object> spot2PublicGetCommonTimestamp (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetCommonTimestamp",parameters);
+        return await this.callAsync ("spot2PublicGetCommonTimestamp",parameters);
     }
 
-    public async Task<object> spotPublicGetCommonPing (object parameters = null)
+    public async Task<object> spot2PublicGetCommonPing (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetCommonPing",parameters);
+        return await this.callAsync ("spot2PublicGetCommonPing",parameters);
     }
 
-    public async Task<object> spotPublicGetMarketTicker (object parameters = null)
+    public async Task<object> spot2PublicGetMarketTicker (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketTicker",parameters);
+        return await this.callAsync ("spot2PublicGetMarketTicker",parameters);
     }
 
-    public async Task<object> spotPublicGetMarketDepth (object parameters = null)
+    public async Task<object> spot2PublicGetMarketDepth (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketDepth",parameters);
+        return await this.callAsync ("spot2PublicGetMarketDepth",parameters);
     }
 
-    public async Task<object> spotPublicGetMarketDeals (object parameters = null)
+    public async Task<object> spot2PublicGetMarketDeals (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketDeals",parameters);
+        return await this.callAsync ("spot2PublicGetMarketDeals",parameters);
     }
 
-    public async Task<object> spotPublicGetMarketKline (object parameters = null)
+    public async Task<object> spot2PublicGetMarketKline (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketKline",parameters);
+        return await this.callAsync ("spot2PublicGetMarketKline",parameters);
     }
 
-    public async Task<object> spotPublicGetMarketApiDefaultSymbols (object parameters = null)
+    public async Task<object> spot2PublicGetMarketApiDefaultSymbols (object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketApiDefaultSymbols",parameters);
+        return await this.callAsync ("spot2PublicGetMarketApiDefaultSymbols",parameters);
     }
 
-    public async Task<object> spotPrivateGetAccountInfo (object parameters = null)
+    public async Task<object> spot2PrivateGetAccountInfo (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetAccountInfo",parameters);
+        return await this.callAsync ("spot2PrivateGetAccountInfo",parameters);
     }
 
-    public async Task<object> spotPrivateGetOrderOpenOrders (object parameters = null)
+    public async Task<object> spot2PrivateGetOrderOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetOrderOpenOrders",parameters);
+        return await this.callAsync ("spot2PrivateGetOrderOpenOrders",parameters);
     }
 
-    public async Task<object> spotPrivateGetOrderList (object parameters = null)
+    public async Task<object> spot2PrivateGetOrderList (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetOrderList",parameters);
+        return await this.callAsync ("spot2PrivateGetOrderList",parameters);
     }
 
-    public async Task<object> spotPrivateGetOrderQuery (object parameters = null)
+    public async Task<object> spot2PrivateGetOrderQuery (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetOrderQuery",parameters);
+        return await this.callAsync ("spot2PrivateGetOrderQuery",parameters);
     }
 
-    public async Task<object> spotPrivateGetOrderDeals (object parameters = null)
+    public async Task<object> spot2PrivateGetOrderDeals (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetOrderDeals",parameters);
+        return await this.callAsync ("spot2PrivateGetOrderDeals",parameters);
     }
 
-    public async Task<object> spotPrivateGetOrderDealDetail (object parameters = null)
+    public async Task<object> spot2PrivateGetOrderDealDetail (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetOrderDealDetail",parameters);
+        return await this.callAsync ("spot2PrivateGetOrderDealDetail",parameters);
     }
 
-    public async Task<object> spotPrivateGetAssetDepositAddressList (object parameters = null)
+    public async Task<object> spot2PrivateGetAssetDepositAddressList (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetAssetDepositAddressList",parameters);
+        return await this.callAsync ("spot2PrivateGetAssetDepositAddressList",parameters);
     }
 
-    public async Task<object> spotPrivateGetAssetDepositList (object parameters = null)
+    public async Task<object> spot2PrivateGetAssetDepositList (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetAssetDepositList",parameters);
+        return await this.callAsync ("spot2PrivateGetAssetDepositList",parameters);
     }
 
-    public async Task<object> spotPrivateGetAssetAddressList (object parameters = null)
+    public async Task<object> spot2PrivateGetAssetAddressList (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetAssetAddressList",parameters);
+        return await this.callAsync ("spot2PrivateGetAssetAddressList",parameters);
     }
 
-    public async Task<object> spotPrivateGetAssetWithdrawList (object parameters = null)
+    public async Task<object> spot2PrivateGetAssetWithdrawList (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetAssetWithdrawList",parameters);
+        return await this.callAsync ("spot2PrivateGetAssetWithdrawList",parameters);
     }
 
-    public async Task<object> spotPrivateGetAssetInternalTransferRecord (object parameters = null)
+    public async Task<object> spot2PrivateGetAssetInternalTransferRecord (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetAssetInternalTransferRecord",parameters);
+        return await this.callAsync ("spot2PrivateGetAssetInternalTransferRecord",parameters);
     }
 
-    public async Task<object> spotPrivateGetAccountBalance (object parameters = null)
+    public async Task<object> spot2PrivateGetAccountBalance (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetAccountBalance",parameters);
+        return await this.callAsync ("spot2PrivateGetAccountBalance",parameters);
     }
 
-    public async Task<object> spotPrivateGetAssetInternalTransferInfo (object parameters = null)
+    public async Task<object> spot2PrivateGetAssetInternalTransferInfo (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetAssetInternalTransferInfo",parameters);
+        return await this.callAsync ("spot2PrivateGetAssetInternalTransferInfo",parameters);
     }
 
-    public async Task<object> spotPrivateGetMarketApiSymbols (object parameters = null)
+    public async Task<object> spot2PrivateGetMarketApiSymbols (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetMarketApiSymbols",parameters);
+        return await this.callAsync ("spot2PrivateGetMarketApiSymbols",parameters);
     }
 
-    public async Task<object> spotPrivatePostOrderPlace (object parameters = null)
+    public async Task<object> spot2PrivatePostOrderPlace (object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostOrderPlace",parameters);
+        return await this.callAsync ("spot2PrivatePostOrderPlace",parameters);
     }
 
-    public async Task<object> spotPrivatePostOrderPlaceBatch (object parameters = null)
+    public async Task<object> spot2PrivatePostOrderPlaceBatch (object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostOrderPlaceBatch",parameters);
+        return await this.callAsync ("spot2PrivatePostOrderPlaceBatch",parameters);
     }
 
-    public async Task<object> spotPrivatePostAssetWithdraw (object parameters = null)
+    public async Task<object> spot2PrivatePostOrderAdvancedPlaceBatch (object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostAssetWithdraw",parameters);
+        return await this.callAsync ("spot2PrivatePostOrderAdvancedPlaceBatch",parameters);
     }
 
-    public async Task<object> spotPrivatePostAssetInternalTransfer (object parameters = null)
+    public async Task<object> spot2PrivatePostAssetWithdraw (object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostAssetInternalTransfer",parameters);
+        return await this.callAsync ("spot2PrivatePostAssetWithdraw",parameters);
     }
 
-    public async Task<object> spotPrivateDeleteOrderCancel (object parameters = null)
+    public async Task<object> spot2PrivatePostAssetInternalTransfer (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateDeleteOrderCancel",parameters);
+        return await this.callAsync ("spot2PrivatePostAssetInternalTransfer",parameters);
     }
 
-    public async Task<object> spotPrivateDeleteOrderCancelBySymbol (object parameters = null)
+    public async Task<object> spot2PrivateDeleteOrderCancel (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateDeleteOrderCancelBySymbol",parameters);
+        return await this.callAsync ("spot2PrivateDeleteOrderCancel",parameters);
     }
 
-    public async Task<object> spotPrivateDeleteAssetWithdraw (object parameters = null)
+    public async Task<object> spot2PrivateDeleteOrderCancelBySymbol (object parameters = null)
     {
-        return await this.callAsync ("spotPrivateDeleteAssetWithdraw",parameters);
+        return await this.callAsync ("spot2PrivateDeleteOrderCancelBySymbol",parameters);
+    }
+
+    public async Task<object> spot2PrivateDeleteAssetWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("spot2PrivateDeleteAssetWithdraw",parameters);
     }
 
 }

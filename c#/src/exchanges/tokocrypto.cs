@@ -1993,8 +1993,7 @@ partial class tokocrypto : Exchange
         object endTime = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(since, null)))
         {
-            object startTime = parseInt(since);
-            ((Dictionary<string, object>)request)["startTime"] = startTime;
+            ((Dictionary<string, object>)request)["startTime"] = since;
         }
         if (isTrue(!isEqual(endTime, null)))
         {
@@ -2385,7 +2384,7 @@ partial class tokocrypto : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         await this.loadMarkets();

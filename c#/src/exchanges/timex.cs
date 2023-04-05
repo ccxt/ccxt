@@ -750,7 +750,7 @@ partial class timex : Exchange
         return this.parseOrder(order, market);
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

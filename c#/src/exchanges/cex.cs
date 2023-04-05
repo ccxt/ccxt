@@ -1496,7 +1496,7 @@ partial class cex : Exchange
         return this.safeString(getValue(getValue(this.options, "order"), "status"), status, status);
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(amount, null)))

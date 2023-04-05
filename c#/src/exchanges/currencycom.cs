@@ -1987,10 +1987,11 @@ partial class currencycom : Exchange
         object unrealizedProfit = this.safeNumber(position, "upl");
         object marginCoeff = this.safeString(position, "margin");
         object leverage = Precise.stringDiv("1", marginCoeff);
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", null },
             { "contracts", this.parseNumber(quantity) },
             { "contractSize", null },
             { "entryPrice", entryPrice },
@@ -2002,6 +2003,7 @@ partial class currencycom : Exchange
             { "marginMode", null },
             { "notional", null },
             { "markPrice", null },
+            { "lastPrice", null },
             { "liquidationPrice", null },
             { "initialMargin", null },
             { "initialMarginPercentage", null },
@@ -2010,7 +2012,7 @@ partial class currencycom : Exchange
             { "marginRatio", null },
             { "info", position },
             { "id", null },
-        };
+        });
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

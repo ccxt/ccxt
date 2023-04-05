@@ -949,8 +949,8 @@ partial class okcoin : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(underlying)); postFixIncrement(ref i))
             {
                 object response = await this.optionGetInstrumentsUnderlying(new Dictionary<string, object>() {
-    { "underlying", getValue(underlying, i) },
-});
+                    { "underlying", getValue(underlying, i) },
+                });
                 result = this.arrayConcat(result, response);
             }
             return this.parseMarkets(result);
@@ -1214,7 +1214,7 @@ partial class okcoin : Exchange
             market = this.market(first);
         }
         object type = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         return await this.fetchTickersByType(type, symbols, this.omit(parameters, "type"));
@@ -2644,7 +2644,7 @@ partial class okcoin : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -3162,7 +3162,7 @@ partial class okcoin : Exchange
         return ((object)this.parseMyTrades(response, market, since, limit, parameters));
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method

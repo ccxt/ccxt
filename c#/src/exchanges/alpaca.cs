@@ -288,7 +288,7 @@ partial class alpaca : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((Dictionary<string, object>)request)["limit"] = parseInt(limit);
+            ((Dictionary<string, object>)request)["limit"] = limit;
         }
         object method = this.safeString(this.options, "fetchTradesMethod", "cryptoPublicGetCryptoTrades");
         object response = await this.callAsync(method, this.extend(request, parameters));

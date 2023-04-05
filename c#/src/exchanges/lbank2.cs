@@ -942,8 +942,8 @@ partial class lbank2 : Exchange
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object result = await this.fetchTradingFees(this.extend(parameters, new Dictionary<string, object>() {
-    { "category", getValue(market, "id") },
-}));
+            { "category", getValue(market, "id") },
+        }));
         return result;
     }
 
@@ -1736,7 +1736,7 @@ partial class lbank2 : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -2442,7 +2442,7 @@ partial class lbank2 : Exchange
                 { "timestamp", timestamp },
             }, query)));
             object encoded = this.encode(auth);
-            object hash = this.hash(encoded, sha256);
+            object hash = this.hash(encoded, md5);
             object uppercaseHash = ((string)hash).ToUpper();
             object sign = null;
             if (isTrue(isEqual(signatureMethod, "RSA")))

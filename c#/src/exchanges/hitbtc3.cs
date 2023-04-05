@@ -923,7 +923,7 @@ partial class hitbtc3 : Exchange
             ((Dictionary<string, object>)request)["from"] = since;
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1526,7 +1526,7 @@ partial class hitbtc3 : Exchange
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1566,7 +1566,7 @@ partial class hitbtc3 : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1608,7 +1608,7 @@ partial class hitbtc3 : Exchange
         return this.parseOrder(order, market);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1634,7 +1634,7 @@ partial class hitbtc3 : Exchange
             { "order_id", id },
         };
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1715,7 +1715,7 @@ partial class hitbtc3 : Exchange
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1774,7 +1774,7 @@ partial class hitbtc3 : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1818,7 +1818,7 @@ partial class hitbtc3 : Exchange
             ((Dictionary<string, object>)request)["symbol"] = getValue(market, "id");
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1861,7 +1861,7 @@ partial class hitbtc3 : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1902,7 +1902,7 @@ partial class hitbtc3 : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -1986,7 +1986,7 @@ partial class hitbtc3 : Exchange
             ((Dictionary<string, object>)request)["stop_price"] = this.priceToPrecision(symbol, stopPrice);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2247,7 +2247,7 @@ partial class hitbtc3 : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         await this.loadMarkets();
@@ -2370,7 +2370,7 @@ partial class hitbtc3 : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", null, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2440,7 +2440,7 @@ partial class hitbtc3 : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPosition", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPosition", null, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2552,7 +2552,7 @@ partial class hitbtc3 : Exchange
         object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -2566,10 +2566,12 @@ partial class hitbtc3 : Exchange
             { "contracts", contracts },
             { "contractSize", null },
             { "markPrice", null },
+            { "lastPrice", null },
             { "side", null },
             { "hedged", null },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
+            { "lastUpdateTimestamp", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
             { "collateral", collateral },
@@ -2577,7 +2579,7 @@ partial class hitbtc3 : Exchange
             { "initialMarginPercentage", null },
             { "leverage", leverage },
             { "marginRatio", null },
-        };
+        });
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -2688,7 +2690,7 @@ partial class hitbtc3 : Exchange
             ((Dictionary<string, object>)request)["leverage"] = leverage;
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("modifyMarginHelper", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("modifyMarginHelper", null, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2991,7 +2993,7 @@ partial class hitbtc3 : Exchange
         object defaultType = this.safeString(this.options, "defaultType");
         object isMargin = this.safeValue(parameters, "margin", false);
         object marginMode = null;
-                var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(!isEqual(marginMode, null)))

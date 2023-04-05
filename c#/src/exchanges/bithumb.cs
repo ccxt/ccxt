@@ -133,6 +133,7 @@ partial class bithumb : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "ALT", "ArchLoot" },
                 { "FTC", "FTC2" },
                 { "SOC", "Soda Coin" },
             } },
@@ -999,7 +1000,7 @@ partial class bithumb : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);

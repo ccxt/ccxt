@@ -646,8 +646,8 @@ partial class zonda : Exchange
         }
         request = this.extend(request, parameters);
         object response = await this.v1_01PrivateGetBalancesBITBAYHistory(new Dictionary<string, object>() {
-    { "query", this.json(request) },
-});
+            { "query", this.json(request) },
+        });
         object items = getValue(response, "items");
         return this.parseLedger(items, null, since, limit);
     }
@@ -1029,7 +1029,7 @@ partial class zonda : Exchange
             ((Dictionary<string, object>)request)["from"] = subtract(getValue(request, "to"), timerange);
         } else
         {
-            ((Dictionary<string, object>)request)["from"] = parseInt(since);
+            ((Dictionary<string, object>)request)["from"] = since;
             ((Dictionary<string, object>)request)["to"] = this.sum(getValue(request, "from"), timerange);
         }
         object response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution(this.extend(request, parameters));
@@ -1562,7 +1562,7 @@ partial class zonda : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);

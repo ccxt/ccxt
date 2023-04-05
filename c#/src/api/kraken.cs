@@ -229,4 +229,14 @@ public partial class kraken : Exchange
         return await this.callAsync ("privatePostStakingTransactions",parameters);
     }
 
+    public async Task<object> privatePostCreateSubaccount (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCreateSubaccount",parameters);
+    }
+
+    public async Task<object> privatePostAccountTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountTransfer",parameters);
+    }
+
 }

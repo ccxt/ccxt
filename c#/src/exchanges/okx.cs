@@ -35,6 +35,7 @@ partial class okx : Exchange
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
+                { "editOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", null },
@@ -160,6 +161,7 @@ partial class okx : Exchange
                         { "market/index-components", 1 },
                         { "market/option/instrument-family-trades", 1 },
                         { "public/instruments", 1 },
+                        { "public/instrument-tick-bands", 4 },
                         { "public/delivery-exercise-history", 0.5 },
                         { "public/open-interest", 1 },
                         { "public/funding-rate", 1 },
@@ -187,8 +189,8 @@ partial class okx : Exchange
                         { "rubik/stat/option/open-interest-volume-strike", 4 },
                         { "rubik/stat/option/taker-block-volume", 4 },
                         { "system/status", 100 },
-                        { "asset/lending-rate-summary", divide(5, 3) },
-                        { "asset/lending-rate-history", divide(5, 3) },
+                        { "finance/savings/lending-rate-summary", divide(5, 3) },
+                        { "finance/savings/lending-rate-history", divide(5, 3) },
                         { "market/exchange-rate", 20 },
                     } },
                 } },
@@ -227,8 +229,6 @@ partial class okx : Exchange
                         { "asset/bills", divide(5, 3) },
                         { "asset/piggy-balance", divide(5, 3) },
                         { "asset/deposit-lightning", 5 },
-                        { "asset/lending-history", divide(5, 3) },
-                        { "asset/saving-balance", divide(5, 3) },
                         { "asset/non-tradable-assets", divide(5, 3) },
                         { "trade/order", divide(1, 3) },
                         { "trade/orders-pending", 1 },
@@ -261,6 +261,8 @@ partial class okx : Exchange
                         { "finance/staking-defi/offers", 1 },
                         { "finance/staking-defi/orders-active", 1 },
                         { "finance/staking-defi/orders-history", 1 },
+                        { "finance/savings/balance", divide(5, 3) },
+                        { "finance/savings/lending-history", divide(5, 3) },
                         { "rfq/counterparties", 4 },
                         { "rfq/maker-instrument-settings", 4 },
                         { "rfq/rfqs", 10 },
@@ -294,9 +296,7 @@ partial class okx : Exchange
                         { "account/set-auto-loan", 4 },
                         { "asset/transfer", 10 },
                         { "asset/withdrawal", divide(5, 3) },
-                        { "asset/purchase_redempt", divide(5, 3) },
                         { "asset/withdrawal-lightning", 5 },
-                        { "asset/set-lending-rate", divide(5, 3) },
                         { "asset/cancel-withdrawal", divide(5, 3) },
                         { "asset/convert-dust-assets", 10 },
                         { "trade/order", divide(1, 3) },
@@ -326,6 +326,8 @@ partial class okx : Exchange
                         { "finance/staking-defi/purchase", 3 },
                         { "finance/staking-defi/redeem", 3 },
                         { "finance/staking-defi/cancel", 3 },
+                        { "finance/savings/purchase-redempt", divide(5, 3) },
+                        { "finance/savings/set-lending-rate", divide(5, 3) },
                         { "rfq/create-rfq", 4 },
                         { "rfq/cancel-rfq", 4 },
                         { "rfq/cancel-batch-rfqs", 10 },
@@ -2363,6 +2365,78 @@ partial class okx : Exchange
         });
     }
 
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#editOrder
+        * @description edit a trade order
+        * @see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+        * @param {string} id order id
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of the currency you want to trade in units of the base currency
+        * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {object} params extra parameters specific to the okx api endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "instId", getValue(market, "id") },
+        };
+        object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((Dictionary<string, object>)request)["clOrdId"] = clientOrderId;
+        } else
+        {
+            ((Dictionary<string, object>)request)["ordId"] = id;
+        }
+        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId"});
+        if (isTrue(!isEqual(amount, null)))
+        {
+            ((Dictionary<string, object>)request)["newSz"] = this.amountToPrecision(symbol, amount);
+        }
+        if (isTrue(!isEqual(price, null)))
+        {
+            ((Dictionary<string, object>)request)["newPx"] = this.priceToPrecision(symbol, price);
+        }
+        object response = await this.callAsync("privatePostTradeAmendOrder", this.extend(request, parameters));
+        //
+        //     {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //                 "ordId": "559176536793178112",
+        //                 "reqId": "",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //            }
+        //        ],
+        //        "msg": ""
+        //     }
+        //
+        object data = this.safeValue(response, "data", new List<object>() {});
+        object first = this.safeValue(data, 0);
+        object order = this.parseOrder(first, market);
+        return this.extend(order, new Dictionary<string, object>() {
+            { "type", type },
+            { "side", side },
+        });
+    }
+
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         /**
@@ -2548,6 +2622,16 @@ partial class okx : Exchange
         //         "clOrdId": "oktswap6",
         //         "ordId": "312269865356374016",
         //         "tag": "",
+        //         "sCode": "0",
+        //         "sMsg": ""
+        //     }
+        //
+        // editOrder
+        //
+        //     {
+        //         "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //         "ordId": "559176536793178112",
+        //         "reqId": "",
         //         "sCode": "0",
         //         "sMsg": ""
         //     }
@@ -3057,7 +3141,7 @@ partial class okx : Exchange
         }
         object type = null;
         object query = null;
-                var typequeryVariable = this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
+        var typequeryVariable = this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
         type = ((List<object>)typequeryVariable)[0];
         query = ((List<object>)typequeryVariable)[1];
         ((Dictionary<string, object>)request)["instType"] = this.convertToInstrumentType(type);
@@ -3234,7 +3318,7 @@ partial class okx : Exchange
         }
         object type = null;
         object query = null;
-                var typequeryVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+        var typequeryVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
         type = ((List<object>)typequeryVariable)[0];
         query = ((List<object>)typequeryVariable)[1];
         ((Dictionary<string, object>)request)["instType"] = this.convertToInstrumentType(type);
@@ -3433,7 +3517,7 @@ partial class okx : Exchange
         return this.parseTrades(data, market, since, limit, query);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -3477,7 +3561,7 @@ partial class okx : Exchange
         parameters = this.omit(parameters, "method");
         object request = new Dictionary<string, object>() {};
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLedger", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLedger", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, null)))
@@ -3862,7 +3946,7 @@ partial class okx : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -4207,9 +4291,9 @@ partial class okx : Exchange
         //         "ccy": "ETH",
         //         "from": "13426335357",
         //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        //         'tag': string,
-        //         'pmtId': string,
-        //         'memo': string,
+        //         'tag',
+        //         'pmtId',
+        //         'memo',
         //         "ts": "1597026383085",
         //         "state": "2"
         //     }
@@ -4300,7 +4384,7 @@ partial class okx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, null)))
@@ -4631,7 +4715,7 @@ partial class okx : Exchange
         object percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         object timestamp = this.safeInteger(position, "uTime");
         object marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -4644,10 +4728,12 @@ partial class okx : Exchange
             { "contracts", contracts },
             { "contractSize", contractSize },
             { "markPrice", this.parseNumber(markPriceString) },
+            { "lastPrice", null },
             { "side", side },
             { "hedged", hedged },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", null },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
             { "collateral", this.parseNumber(collateralString) },
@@ -4655,7 +4741,7 @@ partial class okx : Exchange
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
             { "leverage", this.parseNumber(leverageString) },
             { "marginRatio", marginRatio },
-        };
+        });
     }
 
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
@@ -5066,7 +5152,7 @@ partial class okx : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, null)))
@@ -5377,7 +5463,7 @@ partial class okx : Exchange
         {
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        object response = await this.publicGetAssetLendingRateHistory(this.extend(request, parameters));
+        object response = await this.publicGetFinanceSavingsLendingRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -5422,7 +5508,7 @@ partial class okx : Exchange
         {
             ((Dictionary<string, object>)request)["limit"] = limit;
         }
-        object response = await this.publicGetAssetLendingRateHistory(this.extend(request, parameters));
+        object response = await this.publicGetFinanceSavingsLendingRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -5549,7 +5635,7 @@ partial class okx : Exchange
             }
         }
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, null)))
@@ -5653,7 +5739,7 @@ partial class okx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, null)))

@@ -3380,7 +3380,7 @@ partial class zb : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         object password = this.safeString(parameters, "safePwd", this.password);
@@ -3750,7 +3750,7 @@ partial class zb : Exchange
         object notional = this.safeNumber(position, "nominalValue");
         object percentage = Precise.stringMul(this.safeString(position, "returnRate"), "100");
         object timestamp = this.safeNumber(position, "createTime");
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -3765,6 +3765,7 @@ partial class zb : Exchange
             { "marginMode", marginMode },
             { "notional", notional },
             { "markPrice", null },
+            { "lastPrice", null },
             { "liquidationPrice", liquidationPrice },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", null },
@@ -3773,7 +3774,8 @@ partial class zb : Exchange
             { "marginRatio", marginRatio },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        };
+            { "lastUpdateTimestamp", null },
+        });
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -4354,7 +4356,7 @@ partial class zb : Exchange
             symbol = getValue(market, "symbol");
         }
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("borrowMargin", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("borrowMargin", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, null)))

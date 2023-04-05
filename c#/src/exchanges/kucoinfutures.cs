@@ -979,12 +979,13 @@ partial class kucoinfutures : kucoin
         object crossMode = this.safeValue(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
         object marginMode = ((bool) isTrue(crossMode)) ? "cross" : "isolated";
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", null },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
             { "maintenanceMargin", this.safeNumber(position, "posMaint") },
@@ -998,11 +999,12 @@ partial class kucoinfutures : kucoin
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
             { "markPrice", this.safeNumber(position, "markPrice") },
+            { "lastPrice", null },
             { "collateral", this.safeNumber(position, "maintMargin") },
             { "marginMode", marginMode },
             { "side", side },
-            { "percentage", this.parseNumber(Precise.stringDiv(unrealisedPnl, initialMargin)) },
-        };
+            { "percentage", null },
+        });
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2089,13 +2091,6 @@ partial class kucoinfutures : kucoin
         return this.parseTransactions(responseData, currency, since, limit, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });
-    }
-
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
-    {
-        // throw new BadRequest (this.id + ' fetchLedger() is not supported yet');
-        parameters ??= new Dictionary<string, object>();
-        return null;
     }
 
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)

@@ -1131,7 +1131,7 @@ partial class yobit : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((Dictionary<string, object>)request)["count"] = parseInt(limit);
+            ((Dictionary<string, object>)request)["count"] = limit;
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -1248,7 +1248,7 @@ partial class yobit : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);

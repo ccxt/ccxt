@@ -808,7 +808,7 @@ partial class blockchaincom : Exchange
         if (isTrue(!isEqual(rawAddress, null)))
         {
             // if a tag or memo is used it is separated by a colon in the 'address' value
-                        var addresstagVariable = ((string)rawAddress).Split((string)":").ToList<object>();
+            var addresstagVariable = ((string)rawAddress).Split((string)":").ToList<object>();
             address = ((List<object>)addresstagVariable)[0];
             tag = ((List<object>)addresstagVariable)[1];
         }

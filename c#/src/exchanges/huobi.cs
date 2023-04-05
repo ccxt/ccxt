@@ -972,7 +972,7 @@ partial class huobi : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", null, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", null, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = "statusPublicSpotGetApiV2SummaryJson";
@@ -1944,10 +1944,10 @@ partial class huobi : Exchange
         object type = null;
         object subType = null;
         object method = "spotPublicGetMarketTickers";
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
@@ -2327,7 +2327,7 @@ partial class huobi : Exchange
         }, market);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -2347,7 +2347,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -2387,7 +2387,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
@@ -2427,7 +2427,7 @@ partial class huobi : Exchange
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
-                                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -3022,7 +3022,7 @@ partial class huobi : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         object options = this.safeValue(this.options, "fetchBalance", new Dictionary<string, object>() {});
@@ -3037,7 +3037,7 @@ partial class huobi : Exchange
         object inverse = (isEqual(subType, "inverse"));
         object linear = (isEqual(subType, "linear"));
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         parameters = this.omit(parameters, new List<object>() {"defaultSubType", "subType"});
@@ -3346,7 +3346,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
@@ -3372,7 +3372,7 @@ partial class huobi : Exchange
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
-                                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -3645,7 +3645,7 @@ partial class huobi : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -3662,7 +3662,7 @@ partial class huobi : Exchange
         if (isTrue(getValue(market, "linear")))
         {
             object marginMode = null;
-                        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchContractOrders", parameters);
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchContractOrders", parameters);
             marginMode = ((List<object>)marginModeparametersVariable)[0];
             parameters = ((List<object>)marginModeparametersVariable)[1];
             marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -3768,7 +3768,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -3808,7 +3808,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object method = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
@@ -3843,7 +3843,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
@@ -3892,7 +3892,7 @@ partial class huobi : Exchange
             if (isTrue(getValue(marketInner, "linear")))
             {
                 object marginMode = null;
-                                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -4506,7 +4506,7 @@ partial class huobi : Exchange
         if (isTrue(getValue(market, "linear")))
         {
             object marginMode = null;
-                        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((List<object>)marginModeparametersVariable)[0];
             parameters = ((List<object>)marginModeparametersVariable)[1];
             marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -4563,7 +4563,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
@@ -4591,7 +4591,7 @@ partial class huobi : Exchange
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
-                                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -4671,7 +4671,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
@@ -4712,7 +4712,7 @@ partial class huobi : Exchange
             if (isTrue(getValue(marketInner, "linear")))
             {
                 object marginMode = null;
-                                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -4821,7 +4821,7 @@ partial class huobi : Exchange
             market = this.market(symbol);
         }
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
@@ -4845,7 +4845,7 @@ partial class huobi : Exchange
             if (isTrue(getValue(marketInner, "linear")))
             {
                 object marginMode = null;
-                                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -5265,7 +5265,7 @@ partial class huobi : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         await this.loadMarkets();
@@ -5280,7 +5280,7 @@ partial class huobi : Exchange
             ((Dictionary<string, object>)request)["addr-tag"] = tag; // only for XRP?
         }
         object networkCode = null;
-                var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((List<object>)networkCodeparametersVariable)[0];
         parameters = ((List<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
@@ -5378,7 +5378,7 @@ partial class huobi : Exchange
             { "amount", parseFloat(this.currencyToPrecision(code, amount)) },
         };
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("transfer", null, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("transfer", null, parameters);
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object method = null;
@@ -5820,7 +5820,7 @@ partial class huobi : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -6174,7 +6174,7 @@ partial class huobi : Exchange
                 //    }
                 //
                 object marginMode = null;
-                                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchFundingHistory", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchFundingHistory", parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -6224,7 +6224,7 @@ partial class huobi : Exchange
         if (isTrue(getValue(market, "linear")))
         {
             object marginMode = null;
-                        var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
+            var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
             marginMode = ((List<object>)marginModeparametersVariable)[0];
             parameters = ((List<object>)marginModeparametersVariable)[1];
             marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -6347,7 +6347,7 @@ partial class huobi : Exchange
         object maintenanceMarginPercentage = Precise.stringDiv(adjustmentFactor, leverage);
         object maintenanceMargin = Precise.stringMul(maintenanceMarginPercentage, notional);
         object marginRatio = Precise.stringDiv(maintenanceMargin, collateral);
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
@@ -6362,6 +6362,7 @@ partial class huobi : Exchange
             { "marginMode", marginMode },
             { "notional", this.parseNumber(notional) },
             { "markPrice", null },
+            { "lastPrice", null },
             { "liquidationPrice", liquidationPrice },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", this.parseNumber(intialMarginPercentage) },
@@ -6370,7 +6371,8 @@ partial class huobi : Exchange
             { "marginRatio", this.parseNumber(marginRatio) },
             { "timestamp", null },
             { "datetime", null },
-        };
+            { "lastUpdateTimestamp", null },
+        });
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -6393,16 +6395,16 @@ partial class huobi : Exchange
             market = this.market(first);
         }
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositions", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositions", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
         object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
         subType = ((List<object>)subTypeparametersVariable)[0];
         parameters = ((List<object>)subTypeparametersVariable)[1];
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
@@ -6453,7 +6455,7 @@ partial class huobi : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPosition", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPosition", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -7129,7 +7131,7 @@ partial class huobi : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("borrowMargin", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("borrowMargin", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
@@ -7186,7 +7188,7 @@ partial class huobi : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("repayMargin", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("repayMargin", parameters);
         marginMode = ((List<object>)marginModeparametersVariable)[0];
         parameters = ((List<object>)marginModeparametersVariable)[1];
         marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;

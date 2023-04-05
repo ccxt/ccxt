@@ -798,7 +798,7 @@ partial class ascendex : Exchange
         await this.loadAccounts();
         object query = null;
         object marketType = null;
-                var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         marketType = ((List<object>)marketTypequeryVariable)[0];
         query = ((List<object>)marketTypequeryVariable)[1];
         object isMargin = this.safeValue(parameters, "margin", false);
@@ -1036,7 +1036,7 @@ partial class ascendex : Exchange
             ((Dictionary<string, object>)request)["symbol"] = String.Join(",", marketIds);
         }
         object type = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         object response = null;
@@ -1500,7 +1500,7 @@ partial class ascendex : Exchange
         await this.loadAccounts();
         object market = this.market(symbol);
         object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = ((List<object>)marketTypeparametersVariable)[0];
         parameters = ((List<object>)marketTypeparametersVariable)[1];
         object options = this.safeValue(this.options, "createOrder", new Dictionary<string, object>() {});
@@ -2547,6 +2547,9 @@ partial class ascendex : Exchange
         object tag = this.safeString(destAddress, "destTag");
         object timestamp = this.safeInteger(transaction, "time");
         object currencyId = this.safeString(transaction, "asset");
+        object amountString = this.safeString(transaction, "amount");
+        object feeCostString = this.safeString(transaction, "commission");
+        amountString = Precise.stringSub(amountString, feeCostString);
         object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -2555,7 +2558,7 @@ partial class ascendex : Exchange
             { "type", this.safeString(transaction, "transactionType") },
             { "currency", code },
             { "network", null },
-            { "amount", this.safeNumber(transaction, "amount") },
+            { "amount", this.parseNumber(amountString) },
             { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2569,7 +2572,7 @@ partial class ascendex : Exchange
             { "comment", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", code },
-                { "cost", this.safeNumber(transaction, "commission") },
+                { "cost", this.parseNumber(feeCostString) },
                 { "rate", null },
             } },
         };
@@ -2681,7 +2684,7 @@ partial class ascendex : Exchange
         {
             collateral = this.safeString(position, "isolatedMargin");
         }
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", getValue(market, "symbol") },
@@ -2694,10 +2697,12 @@ partial class ascendex : Exchange
             { "contracts", this.safeNumber(position, "position") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "markPrice", this.safeNumber(position, "markPrice") },
+            { "lastPrice", null },
             { "side", this.safeStringLower(position, "side") },
             { "hedged", null },
             { "timestamp", null },
             { "datetime", null },
+            { "lastUpdateTimestamp", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
             { "collateral", collateral },
@@ -2705,7 +2710,7 @@ partial class ascendex : Exchange
             { "initialMarginPercentage", null },
             { "leverage", this.safeInteger(position, "leverage") },
             { "marginRatio", null },
-        };
+        });
     }
 
     public override object parseFundingRate(object contract, object market = null)

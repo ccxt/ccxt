@@ -74,6 +74,11 @@ public partial class binanceusdm : binance
         return await this.callAsync ("sapiGetAssetLedgerTransferCloudMiningQueryByPage",parameters);
     }
 
+    public async Task<object> sapiGetAssetConvertTransferQueryByPage (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetAssetConvertTransferQueryByPage",parameters);
+    }
+
     public async Task<object> sapiGetMarginLoan (object parameters = null)
     {
         return await this.callAsync ("sapiGetMarginLoan",parameters);
@@ -469,6 +474,11 @@ public partial class binanceusdm : binance
         return await this.callAsync ("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList",parameters);
     }
 
+    public async Task<object> sapiGetSubAccountTransactionTatistics (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetSubAccountTransactionTatistics",parameters);
+    }
+
     public async Task<object> sapiGetManagedSubaccountAsset (object parameters = null)
     {
         return await this.callAsync ("sapiGetManagedSubaccountAsset",parameters);
@@ -497,6 +507,11 @@ public partial class binanceusdm : binance
     public async Task<object> sapiGetManagedSubaccountMarginAsset (object parameters = null)
     {
         return await this.callAsync ("sapiGetManagedSubaccountMarginAsset",parameters);
+    }
+
+    public async Task<object> sapiGetManagedSubaccountInfo (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetManagedSubaccountInfo",parameters);
     }
 
     public async Task<object> sapiGetLendingDailyProductList (object parameters = null)
@@ -912,11 +927,6 @@ public partial class binanceusdm : binance
     public async Task<object> sapiPostAssetConvertTransfer (object parameters = null)
     {
         return await this.callAsync ("sapiPostAssetConvertTransfer",parameters);
-    }
-
-    public async Task<object> sapiPostAssetConvertTransferQueryByPage (object parameters = null)
-    {
-        return await this.callAsync ("sapiPostAssetConvertTransferQueryByPage",parameters);
     }
 
     public async Task<object> sapiPostAccountDisableFastWithdrawSwitch (object parameters = null)

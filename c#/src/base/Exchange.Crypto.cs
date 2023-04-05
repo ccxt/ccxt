@@ -18,7 +18,6 @@ public partial class Exchange
     public static string keccak() => "keccak";
     public static string secp256k1() => "secp256k1";
 
-
     public static string Hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex")
     {
         var request = request2 as String;
@@ -212,14 +211,63 @@ public partial class Exchange
         }
     }
 
-    public string ecdsa(object request, object secret, object alg = null, object stub = null) => Ecdsa(request, secret, alg, stub);
-
-
-    public static string Ecdsa(object request, object secret, object alg = null, object stub = null)
+    public static byte[] StringToByteArray(string hex)
     {
-        alg ??= "ES256";
+        return Enumerable.Range(0, hex.Length)
+                         .Where(x => x % 2 == 0)
+                         .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                         .ToArray();
+    }
+
+    public string ecdsa(object request, object secret, Delegate alg = null, Delegate hash = null) => Ecdsa(request, secret, alg, hash);
+
+    public static string Ecdsa(object request, object secret, Delegate curve = null, Delegate hash = null)
+    {
+        // if (hash != null)
+        //     request = Hash(request, hash);
+        // var bytesSecret = Encoding.UTF8.GetBytes((string)secret);
+        // PrivateKey privateKey = PrivateKey.fromString(bytesSecret);
+        // Signature signature = Ecdsa.sign((string)request, privateKey);
+        // var sec = (string)secret;
+        // var curveName = curve.DynamicInvoke() as string ?? "secp256k1";
+        // var omg = StringToByteArray(sec);
+        // ECDsa key = ECDsa.Create(stringToCurve(curveName));
+        // var be = Encoding.BigEndianUnicode.GetString(omg);
+        // var beBytes = Encoding.BigEndianUnicode.GetBytes(be);
+        // key.ImportParameters(new ECParameters
+        // {
+        //     Curve = stringToCurve(curveName),
+        //     D = beBytes,
+        // });
+        // key.ImportECPrivateKey(beBytes, out _);
+        // var dataBytes = Encoding.UTF8.GetBytes((string)request);
+        // var signature = key.SignHash(dataBytes);
+        // var signatureString = binaryToBase64(signature);
+        // var newSign = ByteArrayToString(signature);
+        // return signatureString;
         return String.Empty;
-        // stub
+    }
+
+    public static string ByteArrayToString(byte[] ba)
+    {
+        return BitConverter.ToString(ba).Replace("-", "");
+    }
+
+    private static ECCurve stringToCurve(string curve)
+    {
+        switch (curve)
+        {
+            case "secp256k1":
+                return ECCurve.NamedCurves.nistP256;
+            case "secp256r1":
+                return ECCurve.NamedCurves.nistP256;
+            case "secp384r1":
+                return ECCurve.NamedCurves.nistP384;
+            case "secp521r1":
+                return ECCurve.NamedCurves.nistP521;
+            default:
+                throw new ArgumentException("Invalid curve name");
+        }
     }
 
     public object signMessageString(object str, object privateKey = null)

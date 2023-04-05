@@ -160,6 +160,8 @@ partial class kraken : Exchange
                         { "Staking/Assets", 3 },
                         { "Staking/Pending", 3 },
                         { "Staking/Transactions", 3 },
+                        { "CreateSubaccount", 3 },
+                        { "AccountTransfer", 3 },
                     } },
                 } },
             } },
@@ -1748,7 +1750,7 @@ partial class kraken : Exchange
         }, order);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1846,9 +1848,9 @@ partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostQueryOrders(this.extend(new Dictionary<string, object>() {
-    { "trades", true },
-    { "txid", String.Join(",", ids) },
-}, parameters));
+            { "trades", true },
+            { "txid", String.Join(",", ids) },
+        }, parameters));
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object orders = new List<object>() {};
         object orderIds = new List<string>(((Dictionary<string,object>)result).Keys);
@@ -2515,7 +2517,7 @@ partial class kraken : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);

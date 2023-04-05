@@ -13,6 +13,7 @@ partial class probit : Exchange
             { "name", "ProBit" },
             { "countries", new List<object>() {"SC", "KR"} },
             { "rateLimit", 50 },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
                 { "spot", true },
@@ -1123,21 +1124,21 @@ partial class probit : Exchange
     {
         //
         //     {
-        //         id: string,
-        //         user_id: string,
-        //         market_id: string,
+        //         id,
+        //         user_id,
+        //         market_id,
         //         type: 'orderType',
         //         side: 'side',
-        //         quantity: string,
-        //         limit_price: string,
+        //         quantity,
+        //         limit_price,
         //         time_in_force: 'timeInForce',
-        //         filled_cost: string,
-        //         filled_quantity: string,
-        //         open_quantity: string,
-        //         cancelled_quantity: string,
+        //         filled_cost,
+        //         filled_quantity,
+        //         open_quantity,
+        //         cancelled_quantity,
         //         status: 'orderStatus',
         //         time: 'date',
-        //         client_order_id: string,
+        //         client_order_id,
         //     }
         //
         object status = this.parseOrderStatus(this.safeString(order, "status"));
@@ -1264,21 +1265,21 @@ partial class probit : Exchange
         //
         //     {
         //         data: {
-        //             id: string,
-        //             user_id: string,
-        //             market_id: string,
+        //             id,
+        //             user_id,
+        //             market_id,
         //             type: 'orderType',
         //             side: 'side',
-        //             quantity: string,
-        //             limit_price: string,
+        //             quantity,
+        //             limit_price,
         //             time_in_force: 'timeInForce',
-        //             filled_cost: string,
-        //             filled_quantity: string,
-        //             open_quantity: string,
-        //             cancelled_quantity: string,
+        //             filled_cost,
+        //             filled_quantity,
+        //             open_quantity,
+        //             cancelled_quantity,
         //             status: 'orderStatus',
         //             time: 'date',
-        //             client_order_id: string,
+        //             client_order_id,
         //         }
         //     }
         //
@@ -1439,7 +1440,7 @@ partial class probit : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         // In order to use this method

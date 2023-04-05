@@ -15,6 +15,7 @@ partial class bitmex : Exchange
             { "version", "v1" },
             { "userAgent", null },
             { "rateLimit", 100 },
+            { "certified", true },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -384,22 +385,16 @@ partial class bitmex : Exchange
             // so let's take the settlCurrency first and then adjust if needed
             object type = null;
             object future = false;
-            object prediction = false;
-            object index = false;
             object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             object expiryDatetime = this.safeString(market, "expiry");
             object expiry = this.parse8601(expiryDatetime);
             object inverse = this.safeValue(market, "isInverse");
             object status = this.safeString(market, "state");
             object active = !isEqual(status, "Unlisted");
+            object contract = true;
             if (isTrue(swap))
             {
                 type = "swap";
-            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "B_"), 0)))
-            {
-                prediction = true;
-                type = "prediction";
-                symbol = id;
             } else if (isTrue(!isEqual(expiry, null)))
             {
                 future = true;
@@ -407,16 +402,14 @@ partial class bitmex : Exchange
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             } else
             {
-                index = true;
-                type = "index";
-                symbol = id;
+                symbol = add(add(bs, "/"), quote);
                 active = false;
+                contract = false;
             }
             object positionId = this.safeString2(market, "positionCurrency", "underlying");
             object position = this.safeCurrencyCode(positionId);
             object positionIsQuote = (isEqual(position, quote));
             object maxOrderQty = this.safeNumber(market, "maxOrderQty");
-            object contract = !isTrue(index);
             object initMargin = this.safeString(market, "initMargin", "1");
             object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
             object multiplierString = Precise.stringAbs(this.safeString(market, "multiplier"));
@@ -435,8 +428,6 @@ partial class bitmex : Exchange
                 { "swap", swap },
                 { "future", future },
                 { "option", false },
-                { "prediction", prediction },
-                { "index", index },
                 { "active", active },
                 { "contract", contract },
                 { "linear", ((bool) isTrue(contract)) ? !isTrue(inverse) : null },
@@ -1920,7 +1911,7 @@ partial class bitmex : Exchange
         return this.parseOrder(response, market);
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2307,18 +2298,20 @@ partial class bitmex : Exchange
         object maintenanceMargin = this.safeNumber(position, "maintMargin");
         object unrealisedPnl = this.safeNumber(position, "unrealisedPnl");
         object contracts = this.omitZero(this.safeNumber(position, "currentQty"));
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "account") },
             { "symbol", symbol },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
+            { "lastUpdateTimestamp", null },
             { "hedged", null },
             { "side", null },
             { "contracts", this.convertValue(contracts, market) },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(position, "avgEntryPrice") },
             { "markPrice", this.safeNumber(position, "markPrice") },
+            { "lastPrice", null },
             { "notional", notional },
             { "leverage", this.safeNumber(position, "leverage") },
             { "collateral", null },
@@ -2331,7 +2324,7 @@ partial class bitmex : Exchange
             { "marginMode", marginMode },
             { "marginRatio", null },
             { "percentage", this.safeNumber(position, "unrealisedPnlPcnt") },
-        };
+        });
     }
 
     public virtual object convertValue(object value, object market = null)
@@ -2392,7 +2385,7 @@ partial class bitmex : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -2972,9 +2965,10 @@ partial class bitmex : Exchange
                 { "Content-Type", "application/json" },
                 { "api-key", this.apiKey },
             };
-            expires = ((object)this.sum(this.seconds(), expires)).ToString();
-            auth = add(auth, expires);
-            ((Dictionary<string, object>)headers)["api-expires"] = expires;
+            expires = this.sum(this.seconds(), expires);
+            object stringExpires = ((object)expires).ToString();
+            auth = add(auth, stringExpires);
+            ((Dictionary<string, object>)headers)["api-expires"] = stringExpires;
             if (isTrue(isTrue(isTrue(isEqual(method, "POST")) || isTrue(isEqual(method, "PUT"))) || isTrue(isEqual(method, "DELETE"))))
             {
                 if (isTrue(getArrayLength(new List<string>(((Dictionary<string,object>)parameters).Keys))))

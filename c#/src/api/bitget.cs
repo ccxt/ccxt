@@ -194,6 +194,11 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateSpotPostTradeCancelBatchOrders",parameters);
     }
 
+    public async Task<object> privateSpotPostTradeCancelBatchOrdersV2 (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotPostTradeCancelBatchOrdersV2",parameters);
+    }
+
     public async Task<object> privateSpotPostTradeOrderInfo (object parameters = null)
     {
         return await this.callAsync ("privateSpotPostTradeOrderInfo",parameters);

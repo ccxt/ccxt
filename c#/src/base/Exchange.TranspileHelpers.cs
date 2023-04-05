@@ -545,7 +545,7 @@ public partial class Exchange
     }
 
     // generic getValue to replace elementAccesses
-    public static object getValue(object value2, object key)
+    public object getValue(object value2, object key)
     {
         if (value2 == null || key == null)
         {
@@ -599,18 +599,18 @@ public partial class Exchange
             return ((List<Int64>)value)[parsed];
         }
         // check this last, avoid reflection
-        // else if (key.GetType() == typeof(string) && (GetType()).GetProperty((string)key) != null)
-        // {
-        //     var prop = (GetType()).GetProperty((string)key);
-        //     if (prop != null)
-        //     {
-        //         return prop.GetValue(this, null);
-        //     }
-        //     else
-        //     {
-        //         return null;
-        //     }
-        // }
+        else if (key.GetType() == typeof(string) && (value.GetType()).GetProperty((string)key) != null)
+        {
+            var prop = (value.GetType()).GetProperty((string)key);
+            if (prop != null)
+            {
+                return prop.GetValue(value2, null);
+            }
+            else
+            {
+                return null;
+            }
+        }
         else
         {
             return null;

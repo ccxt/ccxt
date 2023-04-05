@@ -4,10 +4,10 @@
     <RootNamespace>Main</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- <Nullable>enable</Nullable> -->
-    <Nullable>disable</Nullable>
-    <NoWarn>1998,CS0168, CS0108</NoWarn>
+    <Nullable>enable</Nullable>
+    <NoWarn>1998,CS0168, CS0108, CS8604, CS8625, CS8600, CS8601, CS8603</NoWarn>
   </PropertyGroup>
-    <PropertyGroup>
+  <PropertyGroup>
     <PackageId>CCXT</PackageId>
     <Authors>Kroitor, Carlos, Carlo</Authors>
     <PackageVersion>0.0.1</PackageVersion>
@@ -19,11 +19,11 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
-    <PackageIcon>icon.png</PackageIcon>
+    <!-- <PackageIcon>icon.png</PackageIcon> -->
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes />
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="*" />

@@ -2534,7 +2534,7 @@ partial class gate : Exchange
         object market = this.market(symbol);
         object price = this.safeString(parameters, "price");
         object request = new Dictionary<string, object>() {};
-                var requestparametersVariable = this.prepareRequest(market, null, parameters);
+        var requestparametersVariable = this.prepareRequest(market, null, parameters);
         request = ((List<object>)requestparametersVariable)[0];
         parameters = ((List<object>)requestparametersVariable)[1];
         ((Dictionary<string, object>)request)["interval"] = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2768,7 +2768,7 @@ partial class gate : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -2807,8 +2807,8 @@ partial class gate : Exchange
         //      ]
         //
         object response = await this.fetchMyTrades(symbol, since, limit, new Dictionary<string, object>() {
-    { "order_id", id },
-});
+            { "order_id", id },
+        });
         return response;
     }
 
@@ -2841,13 +2841,13 @@ partial class gate : Exchange
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
         object until = this.safeInteger2(parameters, "until", "till");
         parameters = this.omit(parameters, new List<object>() {"until", "till"});
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         type = ((List<object>)typeparametersVariable)[0];
         parameters = ((List<object>)typeparametersVariable)[1];
         object contract = isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")));
         if (isTrue(contract))
         {
-                        var requestparametersVariable = this.prepareRequest(market, type, parameters);
+            var requestparametersVariable = this.prepareRequest(market, type, parameters);
             request = ((List<object>)requestparametersVariable)[0];
             parameters = ((List<object>)requestparametersVariable)[1];
         } else
@@ -2856,7 +2856,7 @@ partial class gate : Exchange
             {
                 ((Dictionary<string, object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-stop
             }
-                        var marginModeparametersVariable = this.getMarginMode(false, parameters);
+            var marginModeparametersVariable = this.getMarginMode(false, parameters);
             marginMode = ((List<object>)marginModeparametersVariable)[0];
             parameters = ((List<object>)marginModeparametersVariable)[1];
             ((Dictionary<string, object>)request)["account"] = marginMode;
@@ -3145,7 +3145,7 @@ partial class gate : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
-                var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((List<object>)tagparametersVariable)[0];
         parameters = ((List<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -3330,7 +3330,7 @@ partial class gate : Exchange
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         object exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new List<object>() {"timeInForce", "tif", "time_in_force"});
         object postOnly = null;
-                var postOnlyparametersVariable = this.handlePostOnly(isEqual(type, "market"), isEqual(exchangeSpecificTimeInForce, "poc"), parameters);
+        var postOnlyparametersVariable = this.handlePostOnly(isEqual(type, "market"), isEqual(exchangeSpecificTimeInForce, "poc"), parameters);
         postOnly = ((List<object>)postOnlyparametersVariable)[0];
         parameters = ((List<object>)postOnlyparametersVariable)[1];
         object timeInForce = this.handleTimeInForce(parameters);
@@ -3402,7 +3402,7 @@ partial class gate : Exchange
             } else
             {
                 object marginMode = null;
-                                var marginModeparametersVariable = this.getMarginMode(false, parameters);
+                var marginModeparametersVariable = this.getMarginMode(false, parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 // spot order
@@ -3517,7 +3517,7 @@ partial class gate : Exchange
                 // spot conditional order
                 object options = this.safeValue(this.options, "createOrder", new Dictionary<string, object>() {});
                 object marginMode = null;
-                                var marginModeparametersVariable = this.getMarginMode(true, parameters);
+                var marginModeparametersVariable = this.getMarginMode(true, parameters);
                 marginMode = ((List<object>)marginModeparametersVariable)[0];
                 parameters = ((List<object>)marginModeparametersVariable)[1];
                 if (isTrue(isEqual(timeInForce, null)))
@@ -4662,13 +4662,13 @@ partial class gate : Exchange
         object takerFee = "0.00075";
         object feePaid = Precise.stringMul(takerFee, notional);
         object initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), feePaid);
-        object percentage = Precise.stringMul(Precise.stringDiv(unrealisedPnl, initialMarginString), "100");
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", null },
             { "datetime", null },
+            { "lastUpdateTimestamp", null },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional)) },
             { "maintenanceMargin", this.parseNumber(Precise.stringMul(maintenanceRate, notional)) },
@@ -4682,11 +4682,12 @@ partial class gate : Exchange
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liq_price") },
             { "markPrice", this.safeNumber(position, "mark_price") },
+            { "lastPrice", null },
             { "collateral", this.safeNumber(position, "margin") },
             { "marginMode", marginMode },
             { "side", side },
-            { "percentage", this.parseNumber(percentage) },
-        };
+            { "percentage", null },
+        });
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)

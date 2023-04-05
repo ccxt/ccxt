@@ -214,6 +214,16 @@ public partial class bybit : Exchange
         return await this.callAsync ("publicGetSpotV3PublicInfos",parameters);
     }
 
+    public async Task<object> publicGetSpotV3PublicMarginProductInfos (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSpotV3PublicMarginProductInfos",parameters);
+    }
+
+    public async Task<object> publicGetSpotV3PublicMarginEnsureTokens (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSpotV3PublicMarginEnsureTokens",parameters);
+    }
+
     public async Task<object> publicGetV2PublicTime (object parameters = null)
     {
         return await this.callAsync ("publicGetV2PublicTime",parameters);
@@ -472,6 +482,11 @@ public partial class bybit : Exchange
     public async Task<object> publicGetV5SpotLeverTokenReference (object parameters = null)
     {
         return await this.callAsync ("publicGetV5SpotLeverTokenReference",parameters);
+    }
+
+    public async Task<object> publicGetV5AnnouncementsIndex (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5AnnouncementsIndex",parameters);
     }
 
     public async Task<object> privateGetV2PrivateOrderList (object parameters = null)
@@ -747,6 +762,21 @@ public partial class bybit : Exchange
     public async Task<object> privateGetSpotV3PrivateCrossMarginRepayHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetSpotV3PrivateCrossMarginRepayHistory",parameters);
+    }
+
+    public async Task<object> privateGetSpotV3PrivateMarginLoanInfos (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSpotV3PrivateMarginLoanInfos",parameters);
+    }
+
+    public async Task<object> privateGetSpotV3PrivateMarginRepaidInfos (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSpotV3PrivateMarginRepaidInfos",parameters);
+    }
+
+    public async Task<object> privateGetSpotV3PrivateMarginLtv (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSpotV3PrivateMarginLtv",parameters);
     }
 
     public async Task<object> privateGetAssetV1PrivateTransferList (object parameters = null)

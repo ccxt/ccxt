@@ -262,7 +262,9 @@ partial class btcex : Exchange
                 } },
                 { "createMarketBuyOrderRequiresPrice", true },
             } },
-            { "commonCurrencies", new Dictionary<string, object>() {} },
+            { "commonCurrencies", new Dictionary<string, object>() {
+                { "ALT", "ArchLoot" },
+            } },
         });
     }
 
@@ -1556,7 +1558,7 @@ partial class btcex : Exchange
         return this.parseOrders(result, market, since, limit);
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(id, null)))
@@ -1704,14 +1706,14 @@ partial class btcex : Exchange
         object notionalString = Precise.stringMul(markPrice, size);
         object unrealisedPnl = this.safeString(position, "floating_profit_loss");
         object initialMarginString = this.safeString(position, "initial_margin");
-        object percentage = Precise.stringMul(Precise.stringDiv(unrealisedPnl, initialMarginString), "100");
         object marginType = this.safeString(position, "margin_type");
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeString(market, "symbol") },
             { "timestamp", null },
             { "datetime", null },
+            { "lastUpdateTimestamp", null },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notionalString)) },
             { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
@@ -1725,11 +1727,12 @@ partial class btcex : Exchange
             { "marginRatio", this.parseNumber(riskLevel) },
             { "liquidationPrice", this.safeNumber(position, "liquid_price") },
             { "markPrice", this.parseNumber(markPrice) },
+            { "lastPrice", null },
             { "collateral", this.parseNumber(collateral) },
             { "marginType", marginType },
             { "side", side },
-            { "percentage", this.parseNumber(percentage) },
-        };
+            { "percentage", null },
+        });
     }
 
     public async override Task<object> fetchPosition(object symbol, object parameters = null)

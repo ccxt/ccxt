@@ -680,17 +680,13 @@ partial class oceanex : Exchange
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object ids = id;
-        if (!isTrue((id.GetType().IsGenericType && id.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            ids = new List<object>() {id};
-        }
         await this.loadMarkets();
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
+        object ids = new List<object>() {id};
         object request = new Dictionary<string, object>() {
             { "ids", ids },
         };
@@ -939,8 +935,8 @@ partial class oceanex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostOrderDelete(this.extend(new Dictionary<string, object>() {
-    { "id", id },
-}, parameters));
+            { "id", id },
+        }, parameters));
         object data = this.safeValue(response, "data");
         return this.parseOrder(data);
     }
@@ -959,8 +955,8 @@ partial class oceanex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostOrderDeleteMulti(this.extend(new Dictionary<string, object>() {
-    { "ids", ids },
-}, parameters));
+            { "ids", ids },
+        }, parameters));
         object data = this.safeValue(response, "data");
         return this.parseOrders(data);
     }

@@ -459,8 +459,8 @@ partial class independentreserve : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostGetOrderDetails(this.extend(new Dictionary<string, object>() {
-    { "orderGuid", id },
-}, parameters));
+            { "orderGuid", id },
+        }, parameters));
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {

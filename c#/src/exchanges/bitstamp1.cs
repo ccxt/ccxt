@@ -467,8 +467,8 @@ partial class bitstamp1 : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         return await this.privatePostCancelOrder(new Dictionary<string, object>() {
-    { "id", id },
-});
+            { "id", id },
+        });
     }
 
     public virtual object parseOrderStatus(object status)
