@@ -1394,18 +1394,18 @@ export default class xt extends Exchange {
             market = this.market (symbols[0]);
         }
         const request = {};
+        let type = undefined;
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
-        if (market['spot']) {
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
+        if (subType === 'inverse') {
+            response = await this.publicInverseGetFutureMarketV1PublicQAggTickers (this.extend (request, params));
+        } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
+            response = await this.publicLinearGetFutureMarketV1PublicQAggTickers (this.extend (request, params));
+        } else {
             request['symbols'] = symbols;
             response = await this.publicSpotGetTicker24h (this.extend (request, params));
-        } else {
-            if (subType === 'linear') {
-                response = await this.publicLinearGetFutureMarketV1PublicQAggTickers (this.extend (request, params));
-            } else if (subType === 'inverse') {
-                response = await this.publicInverseGetFutureMarketV1PublicQAggTickers (this.extend (request, params));
-            }
         }
         //
         // spot
@@ -1683,17 +1683,19 @@ export default class xt extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
+        let type = undefined;
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
         let response = undefined;
-        if (subType !== undefined) {
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
+        if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (limit !== undefined) {
                 request['size'] = limit;
             }
-            if (subType === 'linear') {
-                response = await this.privateLinearGetFutureTradeV1OrderTradeList (this.extend (request, params));
-            } else if (subType === 'inverse') {
+            if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1OrderTradeList (this.extend (request, params));
+            } else {
+                response = await this.privateLinearGetFutureTradeV1OrderTradeList (this.extend (request, params));
             }
         } else {
             let marginMode = undefined;
@@ -1878,15 +1880,13 @@ export default class xt extends Exchange {
         await this.loadMarkets ();
         let type = undefined;
         let subType = undefined;
+        let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
-        const isContractWallet = (type === 'swap') || (type === 'future');
-        let response = undefined;
-        if (subType === 'linear') {
-            response = await this.privateLinearGetFutureUserV1BalanceList (params);
-        } else if (subType === 'inverse') {
+        const isContractWallet = ((type === 'swap') || (type === 'future'));
+        if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1BalanceList (params);
-        } else if (isContractWallet) {
+        } else if ((subType === 'linear') || isContractWallet) {
             response = await this.privateLinearGetFutureUserV1BalanceList (params);
         } else {
             response = await this.privateSpotGetBalances (params);
@@ -2131,16 +2131,18 @@ export default class xt extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
         const request = {
             'orderId': id,
         };
+        let type = undefined;
+        let subType = undefined;
         let response = undefined;
-        if (subType === 'linear') {
-            response = await this.privateLinearGetFutureTradeV1OrderDetail (this.extend (request, params));
-        } else if (subType === 'inverse') {
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
+        if (subType === 'inverse') {
             response = await this.privateInverseGetFutureTradeV1OrderDetail (this.extend (request, params));
+        } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
+            response = await this.privateLinearGetFutureTradeV1OrderDetail (this.extend (request, params));
         } else {
             response = await this.privateSpotGetOrderOrderId (this.extend (request, params));
         }
@@ -2240,13 +2242,15 @@ export default class xt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        let type = undefined;
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
         let response = undefined;
-        if (subType === 'linear') {
-            response = await this.privateLinearGetFutureTradeV1OrderListHistory (this.extend (request, params));
-        } else if (subType === 'inverse') {
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
+        if (subType === 'inverse') {
             response = await this.privateInverseGetFutureTradeV1OrderListHistory (this.extend (request, params));
+        } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
+            response = await this.privateLinearGetFutureTradeV1OrderListHistory (this.extend (request, params));
         } else {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
@@ -2345,9 +2349,11 @@ export default class xt extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        let type = undefined;
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
         let response = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
         if (status === 'open') {
             if (subType !== undefined) {
                 request['state'] = 'NEW';
@@ -2359,17 +2365,17 @@ export default class xt extends Exchange {
         } else {
             request['state'] = status;
         }
-        if (subType !== undefined) {
+        if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['size'] = limit;
             }
-            if (subType === 'linear') {
-                response = await this.privateLinearGetFutureTradeV1OrderList (this.extend (request, params));
-            } else if (subType === 'inverse') {
+            if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1OrderList (this.extend (request, params));
+            } else {
+                response = await this.privateLinearGetFutureTradeV1OrderList (this.extend (request, params));
             }
         } else {
             let marginMode = undefined;
@@ -2575,13 +2581,15 @@ export default class xt extends Exchange {
         const request = {
             'orderId': id,
         };
+        let type = undefined;
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
         let response = undefined;
-        if (subType === 'linear') {
-            response = await this.privateLinearPostFutureTradeV1OrderCancel (this.extend (request, params));
-        } else if (subType === 'inverse') {
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
+        if (subType === 'inverse') {
             response = await this.privateInversePostFutureTradeV1OrderCancel (this.extend (request, params));
+        } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
+            response = await this.privateLinearPostFutureTradeV1OrderCancel (this.extend (request, params));
         } else {
             response = await this.privateSpotDeleteOrderOrderId (this.extend (request, params));
         }
@@ -2628,13 +2636,15 @@ export default class xt extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        let type = undefined;
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
         let response = undefined;
-        if (subType === 'linear') {
-            response = await this.privateLinearPostFutureTradeV1OrderCancelAll (this.extend (request, params));
-        } else if (subType === 'inverse') {
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        if (subType === 'inverse') {
             response = await this.privateInversePostFutureTradeV1OrderCancelAll (this.extend (request, params));
+        } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
+            response = await this.privateLinearPostFutureTradeV1OrderCancelAll (this.extend (request, params));
         } else {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
@@ -2856,12 +2866,14 @@ export default class xt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        let type = undefined;
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
         let response = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
         if (subType === 'inverse') {
             response = await this.privateInverseGetFutureUserV1BalanceBills (this.extend (request, params));
-        } else if (subType === 'linear') {
+        } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
             response = await this.privateLinearGetFutureUserV1BalanceBills (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported');
