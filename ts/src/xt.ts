@@ -1292,7 +1292,7 @@ export default class xt extends Exchange {
         //     }
         //
         const orderBook = this.safeValue (response, 'result', {});
-        const timestamp = this.safeNumber2 (orderBook, 'timestamp', 't');
+        const timestamp = this.safeInteger2 (orderBook, 'timestamp', 't');
         if (market['spot']) {
             return this.parseOrderBook (orderBook, symbol, timestamp);
         }
