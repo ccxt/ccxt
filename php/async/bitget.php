@@ -2458,8 +2458,9 @@ class bitget extends Exchange {
                 'spot' => 'privateSpotPostTradeOrders',
                 'swap' => 'privateMixPostOrderPlaceOrder',
             ));
-            $exchangeSpecificParam = $this->safe_string_2($params, 'force', 'timeInForceValue');
-            $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam === 'post_only', $params);
+            $exchangeSpecificTifParam = $this->safe_string_n($params, array( 'force', 'timeInForceValue', 'timeInForce' ));
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
             if ($marketType === 'spot') {
                 if ($isStopLossOrTakeProfit) {
                     throw new InvalidOrder($this->id . ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');

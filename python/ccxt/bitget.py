@@ -2359,8 +2359,9 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
         })
-        exchangeSpecificParam = self.safe_string_2(params, 'force', 'timeInForceValue')
-        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam == 'post_only', params)
+        exchangeSpecificTifParam = self.safe_string_n(params, ['force', 'timeInForceValue', 'timeInForce'])
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
         if marketType == 'spot':
             if isStopLossOrTakeProfit:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
