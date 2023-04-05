@@ -1823,8 +1823,11 @@ export default class bitmart extends Exchange {
         if (timeInForce === 'FOK') {
             throw new InvalidOrder(this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
         }
+        const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly(isMarketOrder, type === 'limit_maker', params);
+        let postOnly = undefined;
+        const isExchangeSpecificPo = (type === 'limit_maker') || (mode === 4);
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
         params = this.omit(params, ['timeInForce', 'postOnly']);
         const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
         const isLimitOrder = (type === 'limit') || postOnly || ioc;
