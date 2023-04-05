@@ -2614,7 +2614,8 @@ export default class xt extends Exchange {
         //         "result": "208319789679471616"
         //     }
         //
-        const order = (subType !== undefined) ? response : this.safeValue (response, 'result', {});
+        const isContractResponse = ((subType !== undefined) || (type === 'swap') || (type === 'future'));
+        const order = isContractResponse ? response : this.safeValue (response, 'result', {});
         return this.parseOrder (order, market);
     }
 
