@@ -3896,7 +3896,7 @@ export default class xt extends Exchange {
         const positionType = this.safeString (position, 'positionType');
         const marginMode = (positionType === 'CROSSED') ? 'cross' : 'isolated';
         const collateral = this.safeNumber (position, 'isolatedMargin');
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3920,7 +3920,7 @@ export default class xt extends Exchange {
             'marginMode': marginMode,
             'percentage': undefined,
             'marginRatio': undefined,
-        };
+        });
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
