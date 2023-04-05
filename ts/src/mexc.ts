@@ -33,8 +33,6 @@ export default class mexc extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
-                'createLimitOrder': undefined,
-                'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
