@@ -435,7 +435,6 @@ class mexc extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
-                'BIFI' => 'BIFIF',
                 'BYN' => 'BeyondFi',
                 'COFI' => 'COFIX', // conflict with CoinFi
                 'DFI' => 'DfiStarter',
