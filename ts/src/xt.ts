@@ -1070,8 +1070,8 @@ export default class xt extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.safeNumber (market, 'pricePrecision'),
-                'amount': this.safeNumber (market, 'quantityPrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
+                'amount': this.safeInteger (market, 'quantityPrecision'),
             },
             'limits': {
                 'leverage': {
