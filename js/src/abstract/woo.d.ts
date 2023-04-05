@@ -54,9 +54,9 @@ interface Exchange {
     v3PrivateGetBuypower(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostAlgoOrder(params?: {}): Promise<implicitReturnType>;
     v3PrivatePutOrderOid(params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutOrderClientOid(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePutOrderClientClientOrderId(params?: {}): Promise<implicitReturnType>;
     v3PrivatePutAlgoOrderOid(params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutAlgoOrderClientOid(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePutAlgoOrderClientClientOrderId(params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteAlgoOrderOid(params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteAlgoOrdersPending(params?: {}): Promise<implicitReturnType>;
     v3PrivateDeleteAlgoOrdersPendingSymbol(params?: {}): Promise<implicitReturnType>;

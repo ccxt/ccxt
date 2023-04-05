@@ -215,9 +215,9 @@ class woo(Exchange):
                         },
                         'put': {
                             'order/{oid}': 2,
-                            'order/client/{oid}': 2,
+                            'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
-                            'algo/order/client/{oid}': 2,
+                            'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
                             'algo/order/{oid}': 1,
@@ -794,7 +794,6 @@ class woo(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'oid': id,
             # 'quantity': self.amount_to_precision(symbol, amount),
             # 'price': self.price_to_precision(symbol, price),
         }
@@ -802,7 +801,18 @@ class woo(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        response = await self.v3PrivatePutOrderOid(self.extend(request, params))
+        clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
+        isByClientOrder = clientOrderIdExchangeSpecific is not None
+        method = None
+        if isByClientOrder:
+            method = 'v3PrivatePutOrderClientClientOrderId'
+            request['client_order_id'] = clientOrderIdExchangeSpecific
+            params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+        else:
+            method = 'v3PrivatePutOrderOid'
+            request['oid'] = id
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -831,18 +841,21 @@ class woo(Exchange):
         await self.load_markets()
         request = {}
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        clientOrderIdExchangeSpecific = self.safe_string_2(params, 'client_order_id', clientOrderIdUnified)
+        clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
+        method = None
         if isByClientOrder:
+            method = 'v1PrivateDeleteClientOrder'
             request['client_order_id'] = clientOrderIdExchangeSpecific
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         else:
+            method = 'v1PrivateDeleteOrder'
             request['order_id'] = id
         market = None
         if symbol is not None:
             market = self.market(symbol)
         request['symbol'] = market['id']
-        response = await self.v1PrivateDeleteOrder(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # {success: True, status: 'CANCEL_SENT'}
         #

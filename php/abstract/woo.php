@@ -166,14 +166,14 @@ abstract class woo extends \ccxt\Exchange {
     public function v3_private_put_order_oid($params = array()) {
         return $this->request('order/{oid}', array('v3', 'private'), 'PUT', $params);
     }
-    public function v3_private_put_order_client_oid($params = array()) {
-        return $this->request('order/client/{oid}', array('v3', 'private'), 'PUT', $params);
+    public function v3_private_put_order_client_client_order_id($params = array()) {
+        return $this->request('order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params);
     }
     public function v3_private_put_algo_order_oid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'PUT', $params);
     }
-    public function v3_private_put_algo_order_client_oid($params = array()) {
-        return $this->request('algo/order/client/{oid}', array('v3', 'private'), 'PUT', $params);
+    public function v3_private_put_algo_order_client_client_order_id($params = array()) {
+        return $this->request('algo/order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params);
     }
     public function v3_private_delete_algo_order_oid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'DELETE', $params);
@@ -346,14 +346,14 @@ abstract class woo extends \ccxt\Exchange {
     public function v3PrivatePutOrderOid($params = array()) {
         return $this->request('order/{oid}', array('v3', 'private'), 'PUT', $params);
     }
-    public function v3PrivatePutOrderClientOid($params = array()) {
-        return $this->request('order/client/{oid}', array('v3', 'private'), 'PUT', $params);
+    public function v3PrivatePutOrderClientClientOrderId($params = array()) {
+        return $this->request('order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params);
     }
     public function v3PrivatePutAlgoOrderOid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'PUT', $params);
     }
-    public function v3PrivatePutAlgoOrderClientOid($params = array()) {
-        return $this->request('algo/order/client/{oid}', array('v3', 'private'), 'PUT', $params);
+    public function v3PrivatePutAlgoOrderClientClientOrderId($params = array()) {
+        return $this->request('algo/order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params);
     }
     public function v3PrivateDeleteAlgoOrderOid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'DELETE', $params);
