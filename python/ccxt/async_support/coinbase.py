@@ -1286,20 +1286,26 @@ class coinbase(Exchange):
         #     {
         #         "trades": [
         #             {
-        #                 "trade_id": "10209805",
-        #                 "product_id": "BTC-USDT",
-        #                 "price": "19381.27",
-        #                 "size": "0.1",
-        #                 "time": "2023-01-13T20:35:41.865970Z",
+        #                 "trade_id": "518078013",
+        #                 "product_id": "BTC-USD",
+        #                 "price": "28208.1",
+        #                 "size": "0.00659179",
+        #                 "time": "2023-04-04T23:05:34.492746Z",
         #                 "side": "BUY",
         #                 "bid": "",
         #                 "ask": ""
         #             }
-        #         ]
+        #         ],
+        #         "best_bid": "28208.61",
+        #         "best_ask": "28208.62"
         #     }
         #
         data = self.safe_value(response, 'trades', [])
-        return self.parse_ticker(data[0], market)
+        ticker = self.parse_ticker(data[0], market)
+        return self.extend(ticker, {
+            'bid': self.safe_number(response, 'best_bid'),
+            'ask': self.safe_number(response, 'best_ask'),
+        })
 
     def parse_ticker(self, ticker, market=None):
         #
