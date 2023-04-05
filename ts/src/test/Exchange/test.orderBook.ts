@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import { Precise as PreciseNs } from '../../base/Precise.js';
+import Precise from '../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
 function testOrderBook (exchange, method, entry, symbol) {
@@ -32,7 +32,7 @@ function testOrderBook (exchange, method, entry, symbol) {
         const nextI = i + 1;
         if (bidsLength > nextI) {
             const nextBidString = exchange.safeString (bids[nextI], 0);
-            assert (PreciseNs.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
+            assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
         }
         testSharedMethods.assertGreater (exchange, method, bids[i], 0, '0');
         testSharedMethods.assertGreater (exchange, method, bids[i], 1, '0');
@@ -44,7 +44,7 @@ function testOrderBook (exchange, method, entry, symbol) {
         const nextI = i + 1;
         if (asksLength > nextI) {
             const nextAskString = exchange.safeString (asks[nextI], 0);
-            assert (PreciseNs.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
+            assert (Precise.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
         }
         testSharedMethods.assertGreater (exchange, method, asks[i], 0, '0');
         testSharedMethods.assertGreater (exchange, method, asks[i], 1, '0');

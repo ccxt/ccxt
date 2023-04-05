@@ -4,7 +4,7 @@
 
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
-import { Precise as PreciseNs } from '../../base/Precise.js';
+import Precise from '../../base/Precise.js';
 
 function testBalance (exchange, method, entry) {
     const format = {
@@ -28,8 +28,8 @@ function testBalance (exchange, method, entry) {
         const freeDefined = free !== undefined;
         const usedDefined = used !== undefined;
         if (totalDefined && freeDefined && usedDefined) {
-            const freeAndUsed = PreciseNs.stringAdd (free, used);
-            assert (PreciseNs.stringEq (total, freeAndUsed), 'free and used do not sum to total' + logText);
+            const freeAndUsed = Precise.stringAdd (free, used);
+            assert (Precise.stringEq (total, freeAndUsed), 'free and used do not sum to total' + logText);
         } else {
             assert (!totalDefined && freeDefined && usedDefined, 'value of "total" is missing from balance calculations' + logText);
             assert (totalDefined && !freeDefined && usedDefined, 'value of "free" is missing from balance calculations' + logText);

@@ -238,10 +238,10 @@ class testMainClass(emptyClass):
         elif not (methodNameInTest in testFiles):
             skipMessage = 'test not available'
         if skipMessage:
-            dump('[Skipping]', exchange.id, methodNameInTest, ' - ' + skipMessage)
+            dump('(Skipping)', exchange.id, methodNameInTest, ' - ' + skipMessage)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        dump('[Testing]', exchange.id, methodNameInTest, argsStringified)
+        dump('(Testing)', exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
             result = await call_method(methodNameInTest, exchange, args)

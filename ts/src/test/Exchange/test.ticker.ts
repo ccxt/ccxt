@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
-import { Precise as PreciseNs } from '../../base/Precise.js';
+import Precise from '../../base/Precise.js';
 
 function testTicker (exchange, method, entry, symbol) {
     const format = {
@@ -47,22 +47,22 @@ function testTicker (exchange, method, entry, symbol) {
     assert (!existsFirst, '`first` field leftover' + logText);
     const lastString = exchange.safeString (entry, 'last');
     const closeString = exchange.safeString (entry, 'close');
-    assert (((closeString === undefined) && (lastString === undefined)) || PreciseNs.stringEq (lastString, closeString), '`last` != `close`' + logText);
+    assert (((closeString === undefined) && (lastString === undefined)) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
     const baseVolume = exchange.safeString (entry, 'baseVolume');
     const quoteVolume = exchange.safeString (entry, 'quoteVolume');
     const high = exchange.safeString (entry, 'high');
     const low = exchange.safeString (entry, 'low');
     if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
-        const mulBaseVolLow = PreciseNs.stringMul (baseVolume, low);
-        assert (PreciseNs.stringGe (quoteVolume, mulBaseVolLow), 'quoteVolume >= baseVolume * low' + logText);
-        const mulBaseVolHigh = PreciseNs.stringMul (baseVolume, high);
-        assert (PreciseNs.stringLe (quoteVolume, mulBaseVolHigh), 'quoteVolume <= baseVolume * high' + logText);
+        const mulBaseVolLow = Precise.stringMul (baseVolume, low);
+        assert (Precise.stringGe (quoteVolume, mulBaseVolLow), 'quoteVolume >= baseVolume * low' + logText);
+        const mulBaseVolHigh = Precise.stringMul (baseVolume, high);
+        assert (Precise.stringLe (quoteVolume, mulBaseVolHigh), 'quoteVolume <= baseVolume * high' + logText);
     }
     const vwap = exchange.safeString (entry, 'vwap');
     if (vwap !== undefined) {
         // assert (high !== undefined, 'vwap is defined, but high is not' + logText);
         // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
-        assert (PreciseNs.stringGe (vwap, '0'), 'vwap is not greater than zero' + logText);
+        assert (Precise.stringGe (vwap, '0'), 'vwap is not greater than zero' + logText);
         //     assert (vwap >= low && vwap <= high)
         if (baseVolume !== undefined) {
             assert (quoteVolume !== undefined, 'baseVolume & vwap is defined, but quoteVolume is not' + logText);
@@ -74,7 +74,7 @@ function testTicker (exchange, method, entry, symbol) {
     const bid = exchange.safeString (entry, 'bid');
     const ask = exchange.safeString (entry, 'ask');
     if ((bid !== undefined) && (ask !== undefined)) {
-        assert (PreciseNs.stringGe (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
+        assert (Precise.stringGe (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
     }
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
 }

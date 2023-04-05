@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import { Precise as PreciseNs } from '../../base/Precise.js';
+import Precise from '../../base/Precise.js';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
@@ -69,7 +69,8 @@ function assertCommonTimestamp (exchange, method, entry, nowToCheck = undefined,
     }
     const ts = entry[keyName];
     if (ts !== undefined) {
-        assert (exchange.isInteger (ts), 'timestamp is not an integer' + logText);
+        // todo: add transpilable is_integer
+        assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
         assert (ts > 1230940800000, 'timestamp is impossible to be before 1230940800000 / 03.01.2009' + logText); // 03 Jan 2009 - first block
         assert (ts < 2147483648000, 'timestamp more than 2147483648000 / 19.01.2038' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {
@@ -115,7 +116,7 @@ function assertGreater (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
-        assert (PreciseNs.stringGt (value, compareTo), key + ' is expected to be > ' + compareTo + logText);
+        assert (Precise.stringGt (value, compareTo), key + ' is expected to be > ' + compareTo + logText);
     }
 }
 
@@ -123,7 +124,7 @@ function assertGreaterOrEqual (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
-        assert (PreciseNs.stringGe (value, compareTo), key + ' is expected to be >= ' + compareTo + logText);
+        assert (Precise.stringGe (value, compareTo), key + ' is expected to be >= ' + compareTo + logText);
     }
 }
 
@@ -131,7 +132,7 @@ function assertLess (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
-        assert (PreciseNs.stringLt (value, compareTo), key + ' is expected to be < ' + compareTo + logText);
+        assert (Precise.stringLt (value, compareTo), key + ' is expected to be < ' + compareTo + logText);
     }
 }
 
@@ -139,7 +140,7 @@ function assertLessOrEqual (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
-        assert (PreciseNs.stringLe (value, compareTo), key + ' is expected to be <= ' + compareTo + logText);
+        assert (Precise.stringLe (value, compareTo), key + ' is expected to be <= ' + compareTo + logText);
     }
 }
 

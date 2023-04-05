@@ -1168,8 +1168,8 @@ class Transpiler {
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
-                        .replace ('asyncio.gather\(\*', '(') //needed for test_async -> test_sync
-                        .replace ('asyncio.run', '') //needed for test_async -> test_sync
+                        .replace ('asyncio.gather\(\*', '(') // needed for async -> sync
+                        .replace ('asyncio.run', '') // needed for async -> sync
             })
 
         // lines.forEach (line => log (line))
@@ -1648,7 +1648,7 @@ class Transpiler {
 
         js = this.regexAll (js, [
             // [ /export { [^\;]+\s*\}\n/s, '' ], // new esm
-            [ /\s*export default[^\n]+;\n/g, '' ],
+            [ /\s*export default(.*?);/g, '' ],
             // [ /module\.exports = [^\;]+\;\n/s, '' ], // old commonjs
         ]).trim ()
 
@@ -2035,9 +2035,12 @@ class Transpiler {
         // ########### PHP ###########
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
         const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
-        const phpReform = (cont) =>
-            existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + cont + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
-        const bodyPhpAsync = phpReform (phpAsync);
+        const phpReform = (cont) => {
+            let newContent = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + cont + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
+            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as emptyClass;/g, '');
+            return newContent;
+        }
+        let bodyPhpAsync = phpReform (phpAsync);
         overwriteFile (files.phpFileAsync, bodyPhpAsync);
         //doesnt work: this.transpilePhpAsyncToSync (files.phpFileAsync, files.phpFileSync);
         const phpRemovedStart = php.replace (/\<\?php(.*?)(?:namespace ccxt)/gs, '');
@@ -2119,8 +2122,14 @@ class Transpiler {
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
-            const phpAsync = result[0].content;
-            const phpSync = result[1].content;
+            const phpVarNameFix = (str) => {
+                return str.
+                    replace (/\$exchange\[\$method\]/g, '$exchange->$method').
+                    replace (/\$test_shared_methods\->/g, '').
+                    replace (/Precise\->/g, 'Precise::');
+            }
+            const phpAsync = phpVarNameFix(result[0].content);
+            const phpSync = phpVarNameFix(result[1].content);
             const pythonSync = replaceAsert (result[2].content);
             const pythonAsync = replaceAsert (result[3].content);
 
