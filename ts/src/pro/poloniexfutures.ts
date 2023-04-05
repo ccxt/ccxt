@@ -189,9 +189,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const name = '/contractMarket/tradeOrders';
-        // const name = '/contractMarket/advancedOrders'; // TODO: for stop orders
-        // await this.authenticate ();
+        const stop = this.safeValue (params, 'stop');
+        const name = stop ? '/contractMarket/advancedOrders' : '/contractMarket/tradeOrders';
         const orders = await this.subscribe (name, true, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
