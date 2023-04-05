@@ -385,7 +385,7 @@ export default class coinbase extends Exchange {
         }
     }
 
-    async fetchAccountsV3 (params = {}, list = []) {
+    async fetchAccountsV3 (params = {}) {
         const request = {
             'limit': 249,
         };
@@ -421,15 +421,15 @@ export default class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'accounts', []);
-        list = list.concat (data);
-        const hasNext = this.safeValue (response, 'has_next', false);
-        if (hasNext) {
-            const cursor = this.safeString (response, 'cursor');
-            params['cursor'] = cursor;
-            return await this.fetchAccountsV3 (params, list);
-        } else {
-            return this.parseAccounts (list, params);
-        }
+        // list = list.concat (data);
+        // const hasNext = this.safeValue (response, 'has_next', false);
+        // if (hasNext) {
+        //     const cursor = this.safeString (response, 'cursor');
+        //     params['cursor'] = cursor;
+        //     return await this.fetchAccountsV3 (params, list);
+        // } else {
+        return this.parseAccounts (data, params);
+        // }
     }
 
     parseAccount (account) {
