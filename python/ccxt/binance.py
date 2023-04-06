@@ -3247,10 +3247,28 @@ class binance(Exchange):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+         * Default fetchTradesMethod
+        see https://binance-docs.github.io/apidocs/spot/en/#compressed-aggregate-trades-list        # publicGetAggTrades(spot)
+        see https://binance-docs.github.io/apidocs/futures/en/#compressed-aggregate-trades-list     # fapiPublicGetAggTrades(swap)
+        see https://binance-docs.github.io/apidocs/delivery/en/#compressed-aggregate-trades-list    # dapiPublicGetAggTrades(future)
+        see https://binance-docs.github.io/apidocs/voptions/en/#recent-trades-list                  # eapiPublicGetTrades(option)
+         * Other fetchTradesMethod
+        see https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list                      # publicGetTrades(spot)
+        see https://binance-docs.github.io/apidocs/futures/en/#recent-trades-list                   # fapiPublicGetTrades(swap)
+        see https://binance-docs.github.io/apidocs/delivery/en/#recent-trades-list                  # dapiPublicGetTrades(future)
+        see https://binance-docs.github.io/apidocs/spot/en/#old-trade-lookup-market_data            # publicGetHistoricalTrades(spot)
+        see https://binance-docs.github.io/apidocs/future/en/#old-trade-lookup-market_data          # fapiPublicGetHistoricalTrades(swap)
+        see https://binance-docs.github.io/apidocs/delivery/en/#old-trade-lookup-market_data        # dapiPublicGetHistoricalTrades(future)
+        see https://binance-docs.github.io/apidocs/voptions/en/#old-trade-lookup-market_data        # eapiPublicGetHistoricalTrades(option)
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
+        :param int|None since: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+        :param int|None limit: default 500, max 1000
         :param dict params: extra parameters specific to the binance api endpoint
+        :param int|None params['until']: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+        :param int|None params['fetchTradesMethod']: 'publicGetAggTrades'(spot default), 'fapiPublicGetAggTrades'(swap default), 'dapiPublicGetAggTrades'(future default), 'eapiPublicGetTrades'(option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int|None params['fromId']: trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
@@ -3263,6 +3281,7 @@ class binance(Exchange):
             # 'limit': 500,     # default = 500, maximum = 1000
         }
         method = self.safe_string(self.options, 'fetchTradesMethod')
+        method = self.safe_string_2(params, 'fetchTradesMethod', 'method', method)
         if method is None:
             if market['option']:
                 method = 'eapiPublicGetTrades'
@@ -3278,8 +3297,12 @@ class binance(Exchange):
                 # https://github.com/ccxt/ccxt/issues/6400
                 # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = self.sum(since, 3600000)
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                request['endTime'] = until
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
+        params = self.omit(params, ['until', 'fetchTradesMethod'])
         #
         # Caveats:
         # - default limit(500) applies only if no other parameters set, trades up
