@@ -67,41 +67,47 @@ class emptyClass {}
 function dump (...args) {
     console.log (...args);
 }
-function io_file_exists (path) {
+
+function ioFileExists (path) {
     return fs.existsSync(path);
 }
 
-function io_file_read (path, decode = true) {
+function ioFileRead (path, decode = true) {
     const content = fs.readFileSync(path, 'utf8');
     return decode ? JSON.parse(content) : content;
 }
 
-function exception_message (exc) {
+function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
 }
 
-async function call_method (methodName, exchange, args) {
+async function callMethod (methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
-function add_proxy_agent (exchange, settings) {
+function addProxyAgent (exchange, settings) {
     if (settings && settings.httpProxy) {
         const agent = new HttpsProxyAgent (settings.httpProxy)
         exchange.agent = agent;
     }
 }
 
-function exit_script() {
+function exitScript () {
     process.exit();
 }
 
-function get_exchange_prop (exchange, prop, defaultValue = undefined) {
+function getExchangeProp (exchange, prop, defaultValue = undefined) {
     return (prop in exchange) ? exchange[prop] : defaultValue;
 }
 
-function set_exchange_prop (exchange, prop, value) {
+function setExchangeProp (exchange, prop, value) {
     exchange[prop] = value;
 }
+
+async function testThrottle () {
+    // todo: exists in py/php not in js
+}
+
 var exports = {};
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
@@ -117,10 +123,10 @@ export default class testMainClass extends emptyClass {
         const exchangeId = exchange.id;
         const keysGlobal = rootDir + 'keys.json';
         const keysLocal = rootDir + 'keys.local.json';
-        const keysGlobalExists = io_file_exists (keysGlobal);
-        const keysLocalExists = io_file_exists (keysLocal);
-        const globalSettings = keysGlobalExists ? io_file_read (keysGlobal) : {};
-        const localSettings = keysLocalExists ? io_file_read (keysLocal) : {};
+        const keysGlobalExists = ioFileExists (keysGlobal);
+        const keysLocalExists = ioFileExists (keysLocal);
+        const globalSettings = keysGlobalExists ? ioFileRead (keysGlobal) : {};
+        const localSettings = keysLocalExists ? ioFileRead (keysLocal) : {};
         const allSettings = exchange.deepExtend (globalSettings, localSettings);
         const exchangeSettings = exchange.safeValue (allSettings, exchangeId, {});
         if (exchangeSettings) {
@@ -128,43 +134,43 @@ export default class testMainClass extends emptyClass {
             for (let i = 0; i < settingKeys.length; i++) {
                 const key = settingKeys[i];
                 if (exchangeSettings[key]) {
-                    const existing = get_exchange_prop (exchange, key, {});
-                    set_exchange_prop (exchange, key, exchange.deepExtend (existing, exchangeSettings[key]));
+                    const existing = getExchangeProp (exchange, key, {});
+                    setExchangeProp (exchange, key, exchange.deepExtend (existing, exchangeSettings[key]));
                 }
             }
         }
         // credentials
-        const reqCreds = get_exchange_prop (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        const reqCreds = getExchangeProp (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         const objkeys = Object.keys (reqCreds);
         for (let i = 0; i < objkeys.length; i++) {
             const credential = objkeys[i];
             const isRequired = reqCreds[credential];
-            if (isRequired && get_exchange_prop(exchange, credential) === undefined) {
+            if (isRequired && getExchangeProp(exchange, credential) === undefined) {
                 const fullKey = exchangeId + '_' + credential;
                 const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
                 const credentialValue = envVars[credentialEnvName];
                 if (credentialValue) {
-                    set_exchange_prop (exchange, credential, credentialValue);
+                    setExchangeProp (exchange, credential, credentialValue);
                 }
             }
         }
         // skipped tests
         const skippedFile = rootDir + 'skip-tests.json';
-        const skippedSettings = io_file_read (skippedFile);
+        const skippedSettings = ioFileRead (skippedFile);
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
         if (exchange.safeValue (skippedSettingsForExchange, 'skip')) {
             dump ('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol);
-            exit_script();
+            exitScript();
         }
         if (exchange.alias) {
             dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
-            exit_script();
+            exitScript();
         }
         //
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
-        add_proxy_agent (exchange, exchangeSettings);
+        addProxyAgent (exchange, exchangeSettings);
     }
 
     async testMethod (methodName, exchange, args, isPublic) {
@@ -189,7 +195,7 @@ export default class testMainClass extends emptyClass {
         dump ('(Testing)', exchange.id, methodNameInTest, argsStringified);
         let result = null;
         try {
-            result = await call_method (methodNameInTest, exchange, args);
+            result = await callMethod (methodNameInTest, exchange, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
@@ -199,7 +205,7 @@ export default class testMainClass extends emptyClass {
                 dump ('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests');
                 // do not throw exception from here, as it's public test and exception is destined to be thrown from private
             } else {
-                dump (exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
+                dump (exceptionMessage(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;
             }
         }
@@ -250,6 +256,8 @@ export default class testMainClass extends emptyClass {
             const testArgs = tests[testName];
             promises.push (this.testSafe (testName, exchange, testArgs, true));
         }
+        // todo - not yet ready in other langs too
+        // promises.push(testThrottle());
         await Promise.all (promises);
     }
 
@@ -588,7 +596,7 @@ export default class testMainClass extends emptyClass {
         if (exchange.alias) {
             return;
         }
-        if (sandbox || get_exchange_prop (exchange, 'sandbox')) {
+        if (sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
         await this.loadExchange (exchange);

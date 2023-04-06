@@ -74,7 +74,7 @@ import glob  # noqa: E402
 testFiles = {}
 for file_path in glob.glob(current_dir + '/test_*.py'):
     name = os.path.basename(file_path)[:-3]
-    if (name != 'test_async') and (name != 'test_sync'):
+    if not (name in ['test_async', 'test_sync', 'test_exchange_datetime_functions', 'test_base_functions_crypto', 'test_throttle']):
         if not is_sync and '_async' in name:
             testFiles[name.replace('_async', '')] = importlib.import_module(name)
         elif is_sync and '_async' not in name:
@@ -162,6 +162,9 @@ def get_exchange_prop(exchange, prop, defaultValue=None):
 def set_exchange_prop(exchange, prop, value):
     setattr(exchange, prop, value)
 
+
+async def test_throttle():
+    importlib.import_module(current_dir + '/test_throttle.py')
 # *********************************
 # ***** AUTO-TRANSPILER-START *****
 # -*- coding: utf-8 -*-
@@ -297,6 +300,8 @@ class testMainClass(emptyClass):
             testName = testNames[i]
             testArgs = tests[testName]
             promises.append(self.test_safe(testName, exchange, testArgs, True))
+        # todo - not yet ready in other langs too
+        # promises.append(test_throttle())
         await asyncio.gather(*promises)
 
     async def load_exchange(self, exchange):

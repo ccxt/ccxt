@@ -2010,6 +2010,13 @@ class Transpiler {
            // [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
+        const allDefinedFunctions = [ ...ts.matchAll (/function (.*?) \(/g)].map(m => m[1]);
+        const snakeCaseFunctions = (cont) => {
+            return this.regexAll (cont, allDefinedFunctions.map( fName => { 
+                return [ new RegExp ('\\b' + fName + '\\b', 'g'), unCamelCase (fName)];
+            })); 
+        };
+        
         const commentStartLine = '***** AUTO-TRANSPILER-START *****';
         const commentEndLine = '***** AUTO-TRANSPILER-END *****';
 
@@ -2024,12 +2031,13 @@ class Transpiler {
             replace (/^(async def|def) (\w)/gs, '\n$1 $2')
         const existinPythonBody = fs.readFileSync (files.pyFileAsync).toString ();
         let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n# ' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
+        newPython = snakeCaseFunctions (newPython);
         overwriteFile (files.pyFileAsync, newPython);
         this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
         // remove 4 extra newlines
         let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
         existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
-        overwriteFile (files.pyFileSync, newPython);
+        overwriteFile (files.pyFileSync, existingPythonWN);
 
 
         // ########### PHP ###########
@@ -2038,6 +2046,7 @@ class Transpiler {
         const phpReform = (cont) => {
             let newContent = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + cont + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];
             newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as emptyClass;/g, '');
+            newContent = snakeCaseFunctions (newContent);
             return newContent;
         }
         let bodyPhpAsync = phpReform (phpAsync);
