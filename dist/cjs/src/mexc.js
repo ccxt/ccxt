@@ -426,6 +426,7 @@ class mexc extends mexc$1 {
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
+                'BIFI': 'BIFIF',
                 'BYN': 'BeyondFi',
                 'COFI': 'COFIX',
                 'DFI': 'DfiStarter',

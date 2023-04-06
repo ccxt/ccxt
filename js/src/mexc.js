@@ -429,6 +429,7 @@ export default class mexc extends Exchange {
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
+                'BIFI': 'BIFIF',
                 'BYN': 'BeyondFi',
                 'COFI': 'COFIX',
                 'DFI': 'DfiStarter',

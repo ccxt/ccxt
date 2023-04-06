@@ -21,7 +21,7 @@ class bitrue extends \ccxt\async\bitrue {
                 'watchTrades' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => true,
-                'watchOrderBook' => false,
+                'watchOrderBook' => true,
                 'watchOHLCV' => false,
             ),
             'urls' => array(
