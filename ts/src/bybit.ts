@@ -4743,7 +4743,7 @@ export default class bybit extends Exchange {
             request['endTime'] = endTime;
         } else {
             if (since !== undefined) {
-                throw new BadRequest (this.id + ' fetchOrders() required both startTime and endTime.');
+                throw new BadRequest (this.id + ' fetchOrders() requires until/endTime when since is provided.');
             }
         }
         const response = await this.privateGetV5OrderHistory (this.extend (request, params));
