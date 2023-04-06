@@ -258,20 +258,49 @@ export default class krakenfutures extends krakenfuturesRest {
 
     handleTrade (client: Client, message) {
         //
+        // snapshot
+        //
         //    {
-        //        channel: 'trades',
-        //        data: [
+        //        "feed": "trade_snapshot",
+        //        "product_id": "PI_XBTUSD",
+        //        "trades": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                amount: '13.41634893',
-        //                quantity: '0.000537',
-        //                takerSide: 'buy',
-        //                createTime: 1676950548834,
-        //                price: '24983.89',
-        //                id: '62486976',
-        //                ts: 1676950548839
+        //                "feed": "trade",
+        //                "product_id": "PI_XBTUSD",
+        //                "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        //                "side": "sell",
+        //                "type": "fill",
+        //                "seq": 655508,
+        //                "time": 1612269657781,
+        //                "qty": 440,
+        //                "price": 34893
+        //            },
+        //            {
+        //                "feed": "trade",
+        //                "product_id": "PI_XBTUSD",
+        //                "uid": "45ee9737-1877-4682-bc68-e4ef818ef88a",
+        //                "side": "sell",
+        //                "type": "fill",
+        //                "seq": 655507,
+        //                "time": 1612269656839,
+        //                "qty": 9643,
+        //                "price": 34891
         //            }
         //        ]
+        //    }
+        //
+        // update
+        //
+        //    {
+        //        "feed": "trade",
+        //        "product_id": "PI_XBTUSD",
+        //        "uid": "05af78ac-a774-478c-a50c-8b9c234e071e",
+        //        "side": "sell",
+        //        "type": "fill",
+        //        "seq": 653355,
+        //        "time": 1612266317519,
+        //        "qty": 15000,
+        //        "price": 34969.5
         //    }
         //
         const data = this.safeValue (message, 'data', []);
@@ -297,8 +326,6 @@ export default class krakenfutures extends krakenfuturesRest {
     }
 
     parseWsTrade (trade, market = undefined) {
-        //
-        // handleTrade
         //
         //    {
         //        symbol: 'BTC_USDT',
@@ -389,38 +416,93 @@ export default class krakenfutures extends krakenfuturesRest {
 
     handleOrder (client: Client, message) {
         //
-        // Order is created
+        // snapshot (verbose)
         //
         //    {
-        //        channel: 'orders',
-        //        data: [
+        //        "feed": "open_orders_verbose_snapshot",
+        //        "account": "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
+        //        "orders": [
         //            {
-        //                "symbol": "BTC_USDT",
-        //                "type": "LIMIT",
-        //                "quantity": "1",
-        //                "orderId": "32471407854219264",
-        //                "tradeFee": "0",
-        //                "clientOrderId": "",
-        //                "accountType": "SPOT",
-        //                "feeCurrency": "",
-        //                "eventType": "place",
-        //                "source": "API",
-        //                "side": "BUY",
-        //                "filledQuantity": "0",
-        //                "filledAmount": "0",
-        //                "matchRole": "MAKER",
-        //                "state": "NEW",
-        //                "tradeTime": 0,
-        //                "tradeAmount": "0",
-        //                "orderAmount": "0",
-        //                "createTime": 1648708186922,
-        //                "price": "47112.1",
-        //                "tradeQty": "0",
-        //                "tradePrice": "0",
-        //                "tradeId": "0",
-        //                "ts": 1648708187469
-        //            }
+        //                "instrument": "PI_XBTUSD",
+        //                "time": 1567428848005,
+        //                "last_update_time": 1567428848005,
+        //                "qty": 100.0,
+        //                "filled": 0.0,
+        //                "limit_price": 8500.0,
+        //                "stop_price": 0.0,
+        //                "type": "limit",
+        //                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+        //                "direction": 0,
+        //                "reduce_only": false
+        //            },
+        //            ...
         //        ]
+        //    }
+        //
+        //  update (verbose)
+        //
+        //    {
+        //        "feed": "open_orders_verbose",
+        //        "order": {
+        //            "instrument": "PI_XBTUSD",
+        //            "time": 1567597581495,
+        //            "last_update_time": 1567597581495,
+        //            "qty": 102.0,
+        //            "filled": 0.0,
+        //            "limit_price": 10601.0,
+        //            "stop_price": 0.0,
+        //            "type": "limit",
+        //            "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
+        //            "direction": 0,
+        //            "reduce_only": false
+        //        },
+        //        "is_cancel": true,
+        //        "reason": "post_order_failed_because_it_would_be_filled"
+        //    }
+        //
+        // snapshot
+        //
+        //    {
+        //        "feed": "open_orders_snapshot",
+        //        "account": "e258dba9-4dd4-4da5-bfef-75beb91c098e",
+        //        "orders": [
+        //            {
+        //                "instrument": "PI_XBTUSD",
+        //                "time": 1612275024153,
+        //                "last_update_time": 1612275024153,
+        //                "qty": 1000,
+        //                "filled": 0,
+        //                "limit_price": 34900,
+        //                "stop_price": 13789,
+        //                "type": "stop",
+        //                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+        //                "direction": 1,
+        //                "reduce_only": false,
+        //                "triggerSignal": "last"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        // update
+        //
+        //    {
+        //        "feed": "open_orders",
+        //        "order": {
+        //          "instrument": "PI_XBTUSD",
+        //          "time": 1567702877410,
+        //          "last_update_time": 1567702877410,
+        //          "qty": 304.0,
+        //          "filled": 0.0,
+        //          "limit_price": 10640.0,
+        //          "stop_price": 0.0,
+        //          "type": "limit",
+        //          "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
+        //          "direction": 1,
+        //          "reduce_only": true
+        //        },
+        //        "is_cancel": false,
+        //        "reason": "new_placed_order_by_user"
         //    }
         //
         const data = this.safeValue (message, 'data');
@@ -576,24 +658,50 @@ export default class krakenfutures extends krakenfuturesRest {
     handleTicker (client: Client, message) {
         //
         //    {
-        //        channel: 'ticker',
-        //        data: [
-        //            {
-        //                symbol: 'BTC_USDT',
-        //                startTime: 1677280800000,
-        //                open: '23154.32',
-        //                high: '23212.21',
-        //                low: '22761.01',
-        //                close: '23148.86',
-        //                quantity: '105.179566',
-        //                amount: '2423161.17436702',
-        //                tradeCount: 17582,
-        //                dailyChange: '-0.0002',
-        //                markPrice: '23151.09',
-        //                closeTime: 1677367197924,
-        //                ts: 1677367251090
-        //            }
-        //        ]
+        //        "time":1676393235406,
+        //        "product_id": "PI_XBTUSD",
+        //        "funding_rate": -6.2604214e-11,
+        //        "funding_rate_prediction": -3.65989977e-10,
+        //        "relative_funding_rate": -1.380384722222e-6,
+        //        "relative_funding_rate_prediction": -8.047629166667e-6,
+        //        "next_funding_rate_time": 1676394000000,
+        //        "feed": "ticker",
+        //        "bid": 21978.5,
+        //        "ask": 21987.0,
+        //        "bid_size": 2536.0,
+        //        "ask_size": 13948.0,
+        //        "volume": 31403908.0,
+        //        "dtm": 0,
+        //        "leverage": "50x",
+        //        "index": 21984.54,
+        //        "premium": -0.0,
+        //        "last": 21983.5,
+        //        "change": 1.9974017538161748,
+        //        "suspended": false,
+        //        "tag": "perpetual",
+        //        "pair": "XBT:USD",
+        //        "openInterest": 30072580.0,
+        //        "markPrice": 21979.68641534714,
+        //        "maturityTime": 0,
+        //        "post_only": false,
+        //        "volumeQuote": 31403908.0
+        //    }
+        //
+        // ticker_lite
+        //
+        //    {
+        //        "feed": "ticker_lite",
+        //        "product_id": "FI_ETHUSD_210625",
+        //        "bid": 1753.45,
+        //        "ask": 1760.35,
+        //        "change": 13.448175559936647,
+        //        "premium": 9.1,
+        //        "volume": 6899673.0,
+        //        "tag": "semiannual",
+        //        "pair": "ETH:USD",
+        //        "dtm": 141,
+        //        "maturityTime": 1624633200000,
+        //        "volumeQuote": 6899673.0
         //    }
         //
         const data = this.safeValue (message, 'data');
@@ -619,47 +727,43 @@ export default class krakenfutures extends krakenfuturesRest {
         // snapshot
         //
         //    {
-        //        channel: 'book_lv2',
-        //        data: [
+        //        "feed": "book_snapshot",
+        //        "product_id": "PI_XBTUSD",
+        //        "timestamp": 1612269825817,
+        //        "seq": 326072249,
+        //        "tickSize": null,
+        //        "bids": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                createTime: 1677368876253,
-        //                "asks": [
-        //                    ["5.65", "0.02"],
-        //                    ...
-        //                ],
-        //                "bids": [
-        //                    ["6.16", "0.6"],
-        //                    ...
-        //                ],
-        //                lastId: 164148724,
-        //                id: 164148725,
-        //                ts: 1677368876316
-        //            }
+        //                "price": 34892.5,
+        //                "qty": 6385
+        //            },
+        //            {
+        //                "price": 34892,
+        //                "qty": 10924
+        //            },
         //        ],
-        //        action: 'snapshot'
+        //        "asks": [
+        //            {
+        //                "price": 34911.5,
+        //                "qty": 20598
+        //            },
+        //            {
+        //                "price": 34912,
+        //                "qty": 2300
+        //            },
+        //        ]
         //    }
         //
         // update
         //
         //    {
-        //        channel: 'book_lv2',
-        //        data: [
-        //            {
-        //                symbol: 'BTC_USDT',
-        //                createTime: 1677368876882,
-        //                "asks": [
-        //                    ["6.35", "3"]
-        //                ],
-        //                "bids": [
-        //                    ["5.65", "0.02"]
-        //                ],
-        //                lastId: 164148725,
-        //                id: 164148726,
-        //                ts: 1677368876890
-        //            }
-        //        ],
-        //        action: 'update'
+        //        "feed": "book",
+        //        "product_id": "PI_XBTUSD",
+        //        "side": "sell",
+        //        "seq": 326094134,
+        //        "price": 34981,
+        //        "qty": 0,
+        //        "timestamp": 1612269953629
         //    }
         //
         const data = this.safeValue (message, 'data', []);
@@ -706,22 +810,148 @@ export default class krakenfutures extends krakenfuturesRest {
 
     handleBalance (client: Client, message) {
         //
+        // snapshot
+        //
         //    {
-        //       "channel": "balances",
-        //       "data": [
-        //            {
-        //                "changeTime": 1657312008411,
-        //                "accountId": "1234",
-        //                "accountType": "SPOT",
-        //                "eventType": "place_order",
-        //                "available": "9999999983.668",
-        //                "currency": "BTC",
-        //                "id": 60018450912695040,
-        //                "userId": 12345,
-        //                "hold": "16.332",
-        //                "ts": 1657312008443
+        //        "feed": "balances_snapshot",
+        //        "account": "4a012c31-df95-484a-9473-d51e4a0c4ae7",
+        //        "holding": {
+        //            "USDT": 4997.5012493753,
+        //            "XBT": 0.1285407184,
+        //            ...
+        //        },
+        //        "futures": {
+        //            "F-ETH:EUR": {
+        //                "name": "F-ETH:EUR",
+        //                "pair": "ETH/EUR",
+        //                "unit": "EUR",
+        //                "portfolio_value": 0.0,
+        //                "balance": 0.0,
+        //                "maintenance_margin": 0.0,
+        //                "initial_margin": 0.0,
+        //                "available": 0.0,
+        //                "unrealized_funding": 0.0,
+        //                "pnl": 0.0
+        //            },
+        //            ...
+        //        },
+        //        "flex_futures": {
+        //            "currencies": {
+        //                "USDT": {
+        //                    "quantity": 0.0,
+        //                    "value": 0.0,
+        //                    "collateral_value": 0.0,
+        //                    "available": 0.0,
+        //                    "haircut": 0.0,
+        //                    "conversion_spread": 0.0
+        //                },
+        //                ...
+        //            },
+        //            "balance_value":0.0,
+        //            "portfolio_value":0.0,
+        //            "collateral_value":0.0,
+        //            "initial_margin":0.0,
+        //            "initial_margin_without_orders":0.0,
+        //            "maintenance_margin":0.0,
+        //            "pnl":0.0,
+        //            "unrealized_funding":0.0,
+        //            "total_unrealized":0.0,
+        //            "total_unrealized_as_margin":0.0,
+        //            "margin_equity":0.0,
+        //            "available_margin":0.0
+        //            "isolated":{
+        //            },
+        //            "cross":{
+        //                "balance_value":9963.66,
+        //                "portfolio_value":9963.66,
+        //                "collateral_value":9963.66,
+        //                "initial_margin":0.0,
+        //                "initial_margin_without_orders":0.0,
+        //                "maintenance_margin":0.0,
+        //                "pnl":0.0,
+        //                "unrealized_funding":0.0,
+        //                "total_unrealized":0.0,
+        //                "total_unrealized_as_margin":0.0,
+        //                "margin_equity":9963.66,
+        //                "available_margin":9963.66,
+        //                "effective_leverage":0.0
+        //            },
+        //        },
+        //        "timestamp":1640995200000,
+        //        "seq":0
+        //    }
+        //
+        // update
+        //
+        //    Holding Wallet
+        //
+        //    {
+        //        "feed": "balances",
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617",
+        //        "holding": {
+        //            "USD": 5000.0
+        //        },
+        //        "futures": {},
+        //        "timestamp": 1640995200000,
+        //        "seq": 83
+        //    }
+        //
+        //    Multi-Collateral
+        //
+        //    {
+        //        "feed": "balances"
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617"
+        //        "flex_futures": {
+        //            "currencies": {
+        //                "USDT": {
+        //                    "quantity": 0.0,
+        //                    "value": 0.0,
+        //                    "collateral_value": 0.0,
+        //                    "available": 0.0,
+        //                    "haircut": 0.0,
+        //                    "conversion_spread": 0.0
+        //                },
+        //                ...
+        //            },
+        //            "balance_value": 5000.0,
+        //            "portfolio_value": 5000.0,
+        //            "collateral_value": 5000.0,
+        //            "initial_margin": 0.0,
+        //            "initial_margin_without_orders": 0.0,
+        //            "maintenance_margin": 0.0,
+        //            "pnl": 0.0,
+        //            "unrealized_funding": 0.0,
+        //            "total_unrealized": 0.0,
+        //            "total_unrealized_as_margin": 0.0,
+        //            "margin_equity": 5000.0,
+        //            "available_margin": 5000.0
+        //        },
+        //        "timestamp": 1640995200000,
+        //        "seq": 1
+        //    }
+        //
+        //    Sample Single-Collateral Balance Delta
+        //
+        //    {
+        //        "feed": "balances",
+        //        "account": "7a641082-55c7-4411-a85f-930ec2e09617",
+        //        "holding": {},
+        //        "futures": {
+        //            "F-XBT:USD": {
+        //                "name": "F-XBT:USD",
+        //                "pair": "XBT/USD",
+        //                "unit": "XBT",
+        //                "portfolio_value": 0.1219368845,
+        //                "balance": 0.1219368845,
+        //                "maintenance_margin": 0.0,
+        //                "initial_margin": 0.0,
+        //                "available": 0.1219368845,
+        //                "unrealized_funding": 0.0,
+        //                "pnl": 0.0
         //            }
-        //        ]
+        //        },
+        //        "timestamp": 1640995200000,
+        //        "seq": 2
         //    }
         //
         const data = this.safeValue (message, 'data', []);
@@ -768,23 +998,56 @@ export default class krakenfutures extends krakenfuturesRest {
 
     handleMyTrades (client: Client, message) {
         //
-        //     {
-        //         channel: 'trade_history',
-        //         reset: false,
-        //         data: [{
-        //             id: 'BTC-USDT:8010722',
-        //             order_id: '4124999207',
-        //             side: 'buy',
-        //             fee_amount: '0.0134999868096',
-        //             fee_currency_id: 'USDT',
-        //             status: 'settled',
-        //             price: '23136.7',
-        //             quantity: '0.00032416',
-        //             cost: '7.499992672',
-        //             time: '2022-07-21T17:09:33.056Z',
-        //             market_id: 'BTC-USDT'
-        //         }]
-        //     }
+        // snapshot
+        //
+        //    {
+        //        "feed": "fills_snapshot",
+        //        "account": "DemoUser",
+        //        "fills": [
+        //            {
+        //                "instrument": "FI_XBTUSD_200925",
+        //                "time": 1600256910739,
+        //                "price": 10937.5,
+        //                "seq": 36,
+        //                "buy": true,
+        //                "qty": 5000.0,
+        //                "order_id": "9e30258b-5a98-4002-968a-5b0e149bcfbf",
+        //                "fill_id": "cad76f07-814e-4dc6-8478-7867407b6bff",
+        //                "fill_type": "maker",
+        //                "fee_paid": -0.00009142857,
+        //                "fee_currency": "BTC",
+        //                "taker_order_type": "ioc",
+        //                "order_type": "limit"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        // update
+        //
+        //    {
+        //        "feed": "fills",
+        //        "username": "DemoUser",
+        //        "fills": [
+        //            {
+        //                "instrument": "PI_XBTUSD",
+        //                "time": 1600256966528,
+        //                "price": 364.65,
+        //                "seq": 100,
+        //                "buy": true,
+        //                "qty": 5000.0,
+        //                "order_id": "3696d19b-3226-46bd-993d-a9a7aacc8fbc",
+        //                "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d",
+        //                "fill_id": "c14ee7cb-ae25-4601-853a-d0205e576099",
+        //                "fill_type": "taker",
+        //                "fee_paid": 0.00685588921,
+        //                "fee_currency": "ETH",
+        //                "taker_order_type": "liquidation",
+        //                "order_type": "limit"
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
         const rawTrades = this.safeValue (message, 'data', []);
         if (rawTrades.length === 0) {
