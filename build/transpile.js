@@ -2014,9 +2014,9 @@ class Transpiler {
         const snakeCaseFunctions = (cont) => {
             return this.regexAll (cont, allDefinedFunctions.map( fName => { 
                 return [ new RegExp ('\\b' + fName + '\\b', 'g'), unCamelCase (fName)];
-            })); 
+            }));
         };
-        
+
         const commentStartLine = '***** AUTO-TRANSPILER-START *****';
         const commentEndLine = '***** AUTO-TRANSPILER-END *****';
 
@@ -2053,12 +2053,12 @@ class Transpiler {
         overwriteFile (files.phpFileAsync, bodyPhpAsync);
         //doesnt work: this.transpilePhpAsyncToSync (files.phpFileAsync, files.phpFileSync);
         const phpRemovedStart = php.replace (/\<\?php(.*?)(?:namespace ccxt)/gs, '');
-        let bodyPhpSync = phpReform (phpRemovedStart); 
+        let bodyPhpSync = phpReform (phpRemovedStart);
         bodyPhpSync = bodyPhpSync.replace (/ccxt(\\)+async/g, 'ccxt');
         overwriteFile (files.phpFileSync, bodyPhpSync);
     }
 
-    
+
     // ============================================================================
 
     async transpileTest (tests) {
@@ -2165,7 +2165,7 @@ class Transpiler {
                 // python
                 if (subTestName.includes ('SharedMethods')) {
                     // pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
-                    pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
+                    pythonHeader.push (`from ccxt.test import test_shared_methods  # noqa E402`)
                 } else {
                     pythonHeader.push (`import ${snake_case}  # noqa E402`)
                 }
