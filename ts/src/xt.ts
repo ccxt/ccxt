@@ -1404,7 +1404,6 @@ export default class xt extends Exchange {
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
             response = await this.publicLinearGetFutureMarketV1PublicQAggTickers (this.extend (request, params));
         } else {
-            request['symbols'] = symbols;
             response = await this.publicSpotGetTicker24h (this.extend (request, params));
         }
         //
@@ -1436,21 +1435,23 @@ export default class xt extends Exchange {
         //         "returnCode": 0,
         //         "msgInfo": "success",
         //         "error": null,
-        //         "result": {
-        //             "t": 1678172848572,
-        //             "s": "btc_usdt",
-        //             "c": "22415.5",
-        //             "h": "22590.0",
-        //             "l": "22310.0",
-        //             "a": "623654031",
-        //             "v": "1399166074.31675",
-        //             "o": "22381.5",
-        //             "r": "0.0015",
-        //             "i": "22424.5",
-        //             "m": "22416.5",
-        //             "bp": "22415",
-        //             "ap": "22415.5"
-        //         }
+        //         "result": [
+        //             {
+        //                 "t": 1680738775108,
+        //                 "s": "badger_usdt",
+        //                 "c": "2.7176",
+        //                 "h": "2.7917",
+        //                 "l": "2.6818",
+        //                 "a": "88332",
+        //                 "v": "242286.3520",
+        //                 "o": "2.7422",
+        //                 "r": "-0.0089",
+        //                 "i": "2.7155",
+        //                 "m": "2.7161",
+        //                 "bp": "2.7152",
+        //                 "ap": "2.7176"
+        //             },
+        //         ]
         //     }
         //
         const tickers = this.safeValue (response, 'result', []);
@@ -1479,7 +1480,6 @@ export default class xt extends Exchange {
         let market = undefined;
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
-            request['symbols'] = symbols;
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
