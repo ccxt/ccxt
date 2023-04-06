@@ -403,6 +403,7 @@ class kucoin extends kucoin$1 {
                 },
             },
             'commonCurrencies': {
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI',
                 'HOT': 'HOTNOW',
                 'TRY': 'Trias',

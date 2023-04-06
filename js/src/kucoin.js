@@ -406,6 +406,7 @@ export default class kucoin extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI',
                 'HOT': 'HOTNOW',
                 'TRY': 'Trias',

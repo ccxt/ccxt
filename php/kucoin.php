@@ -404,6 +404,7 @@ class kucoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BIFI' => 'BIFIF',
                 'EDGE' => 'DADI', // https://github.com/ccxt/ccxt/issues/5756
                 'HOT' => 'HOTNOW',
                 'TRY' => 'Trias',
