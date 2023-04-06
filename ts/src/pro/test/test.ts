@@ -79,15 +79,15 @@ for (const file of filteredFiles) {
 }
 
 //-----------------------------------------------------------------------------
-
-const keysGlobal = 'keys.json'
-    , keysLocal = 'keys.local.json'
+const rootDir = __dirname + '/../../../../';
+const keysGlobal = rootDir + 'keys.json'
+    , keysLocal = rootDir + 'keys.local.json'
     , keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal;
 
 const settingsFile = fs.readFileSync (keysFile);
 let settings = JSON.parse (settingsFile as any);
 settings = exchange.safeValue (settings, exchangeId, {});
-const skipSettingsFile = fs.readFileSync (__dirname + '/../../../' + 'skip-tests.json');
+const skipSettingsFile = fs.readFileSync (rootDir + 'skip-tests.json');
 let skipSettings = JSON.parse (skipSettingsFile as any);
 skipSettings = exchange.safeValue (skipSettingsFile, exchangeId, {});
 
