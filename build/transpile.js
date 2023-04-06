@@ -2165,7 +2165,7 @@ class Transpiler {
                 // python
                 if (subTestName.includes ('SharedMethods')) {
                     // pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
-                    pythonHeader.push (`import test_shared_methods  # noqa E402`)
+                    pythonHeader.push (`from . import test_shared_methods  # noqa E402`)
                 } else {
                     pythonHeader.push (`import ${snake_case}  # noqa E402`)
                 }
