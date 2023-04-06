@@ -36,6 +36,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 'OHLCVLimit': 1000,
                 'connectionLimit': 100, // https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-subscriptions-limits
                 'requestLimit': 100, // per second
+                'watchTickerMethod': 'ticker', // or ticker_lite
+                'watchTickersMethod': 'ticker', // or ticker_lite
             },
         });
     }
@@ -137,7 +139,9 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const name = 'ticker';
+        const method = this.safeString (this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
+        const name = this.safeString2 (params, 'method', 'watchTickerMethod', method);
+        params = this.omit (params, [ 'watchTickerMethod', 'method' ]);
         return await this.subscribePublic (name, [ symbol ], params);
     }
 
@@ -151,7 +155,9 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const name = 'ticker';
+        const method = this.safeString (this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
+        const name = this.safeString2 (params, 'method', 'watchTickerMethod', method);
+        params = this.omit (params, [ 'watchTickerMethod', 'method' ]);
         return await this.subscribePublic (name, symbols, params);
     }
 
@@ -658,33 +664,33 @@ export default class krakenfutures extends krakenfuturesRest {
     handleTicker (client: Client, message) {
         //
         //    {
-        //        "time":1676393235406,
-        //        "product_id": "PI_XBTUSD",
-        //        "funding_rate": -6.2604214e-11,
-        //        "funding_rate_prediction": -3.65989977e-10,
-        //        "relative_funding_rate": -1.380384722222e-6,
-        //        "relative_funding_rate_prediction": -8.047629166667e-6,
-        //        "next_funding_rate_time": 1676394000000,
-        //        "feed": "ticker",
-        //        "bid": 21978.5,
-        //        "ask": 21987.0,
-        //        "bid_size": 2536.0,
-        //        "ask_size": 13948.0,
-        //        "volume": 31403908.0,
-        //        "dtm": 0,
-        //        "leverage": "50x",
-        //        "index": 21984.54,
-        //        "premium": -0.0,
-        //        "last": 21983.5,
-        //        "change": 1.9974017538161748,
-        //        "suspended": false,
-        //        "tag": "perpetual",
-        //        "pair": "XBT:USD",
-        //        "openInterest": 30072580.0,
-        //        "markPrice": 21979.68641534714,
-        //        "maturityTime": 0,
-        //        "post_only": false,
-        //        "volumeQuote": 31403908.0
+        //        time: 1680811086487,
+        //        product_id: 'PI_XBTUSD',
+        //        funding_rate: 7.792297e-12,
+        //        funding_rate_prediction: -4.2671095e-11,
+        //        relative_funding_rate: 2.18013888889e-7,
+        //        relative_funding_rate_prediction: -0.0000011974,
+        //        next_funding_rate_time: 1680811200000,
+        //        feed: 'ticker',
+        //        bid: 28060,
+        //        ask: 28070,
+        //        bid_size: 2844,
+        //        ask_size: 1902,
+        //        volume: 19628180,
+        //        dtm: 0,
+        //        leverage: '50x',
+        //        index: 28062.14,
+        //        premium: 0,
+        //        last: 28053.5,
+        //        change: -0.7710945651981715,
+        //        suspended: false,
+        //        tag: 'perpetual',
+        //        pair: 'XBT:USD',
+        //        openInterest: 28875946,
+        //        markPrice: 28064.92082724592,
+        //        maturityTime: 0,
+        //        post_only: false,
+        //        volumeQuote: 19628180
         //    }
         //
         // ticker_lite
@@ -704,22 +710,95 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        const data = this.safeValue (message, 'data');
-        if (data !== undefined) {
-            for (let i = 0; i < data.length; i++) {
-                const item = data[i];
-                const marketId = this.safeString (item, 'symbol');
-                if (marketId !== undefined) {
-                    const ticker = this.parseTicker (item);
-                    const symbol = ticker['symbol'];
-                    this.tickers[symbol] = ticker;
-                    const messageHash = 'ticker:' + marketId;
-                    client.resolve (ticker, messageHash);
-                }
-            }
-            client.resolve (this.tickers, 'ticker');
-            return message;
+        const marketId = this.safeStringLower (message, 'product_id');
+        const feed = this.safeString (message, 'feed');
+        if (marketId !== undefined) {
+            const ticker = this.parseWsTicker (message);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            const messageHash = feed + ':' + marketId;
+            client.resolve (ticker, messageHash);
         }
+        client.resolve (this.tickers, feed);
+        return message;
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        //
+        //    {
+        //        time: 1680811086487,
+        //        product_id: 'PI_XBTUSD',
+        //        funding_rate: 7.792297e-12,
+        //        funding_rate_prediction: -4.2671095e-11,
+        //        relative_funding_rate: 2.18013888889e-7,
+        //        relative_funding_rate_prediction: -0.0000011974,
+        //        next_funding_rate_time: 1680811200000,
+        //        feed: 'ticker',
+        //        bid: 28060,
+        //        ask: 28070,
+        //        bid_size: 2844,
+        //        ask_size: 1902,
+        //        volume: 19628180,
+        //        dtm: 0,
+        //        leverage: '50x',
+        //        index: 28062.14,
+        //        premium: 0,
+        //        last: 28053.5,
+        //        change: -0.7710945651981715,
+        //        suspended: false,
+        //        tag: 'perpetual',
+        //        pair: 'XBT:USD',
+        //        openInterest: 28875946,
+        //        markPrice: 28064.92082724592,
+        //        maturityTime: 0,
+        //        post_only: false,
+        //        volumeQuote: 19628180
+        //    }
+        //
+        // ticker_lite
+        //
+        //    {
+        //        "feed": "ticker_lite",
+        //        "product_id": "FI_ETHUSD_210625",
+        //        "bid": 1753.45,
+        //        "ask": 1760.35,
+        //        "change": 13.448175559936647,
+        //        "premium": 9.1,
+        //        "volume": 6899673.0,
+        //        "tag": "semiannual",
+        //        "pair": "ETH:USD",
+        //        "dtm": 141,
+        //        "maturityTime": 1624633200000,
+        //        "volumeQuote": 6899673.0
+        //    }
+        //
+        const marketId = this.safeStringLower (ticker, 'product_id');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'info': ticker,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bid_size'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'ask_size'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'change'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'volumeQuote'),
+        });
     }
 
     handleOrderBook (client: Client, message) {
@@ -1077,7 +1156,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (stored, messageHash);
     }
 
-    handleMessage (client: Client, message) {
+    handleMessage (client, message) {
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
@@ -1103,7 +1182,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 'balances_snapshot': this.handleBalance,
             };
             const method = this.safeValue (methods, feed);
-            return method.call (this, client, message);
+            if (method !== undefined) {
+                return method.call (this, client, message);
+            }
         }
     }
 
