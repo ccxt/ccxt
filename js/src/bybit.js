@@ -2232,12 +2232,15 @@ export default class bybit extends Exchange {
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
+        if (limit === undefined) {
+            limit = 200;
+        }
         const request = {
-        // 'category': '', // Product type. linear,inverse
-        // 'symbol': '', // Symbol name
-        // 'startTime': 0, // The start timestamp (ms)
-        // 'endTime': 0, // The end timestamp (ms)
-        // 'limit': 0, // Limit for data size per page. [1, 200]. Default: 200
+            // 'category': '', // Product type. linear,inverse
+            // 'symbol': '', // Symbol name
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            'limit': limit, // Limit for data size per page. [1, 200]. Default: 200
         };
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -2260,8 +2263,12 @@ export default class bybit extends Exchange {
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        else {
+            if (since !== undefined) {
+                // end time is required when since is not empty
+                const fundingInterval = 60 * 60 * 8 * 1000;
+                request['endTime'] = since + limit * fundingInterval;
+            }
         }
         const response = await this.publicGetV5MarketFundingHistory(this.extend(request, params));
         //

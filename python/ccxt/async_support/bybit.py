@@ -2182,12 +2182,14 @@ class bybit(Exchange):
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
+        if limit is None:
+            limit = 200
         request = {
             # 'category': '',  # Product type. linear,inverse
             # 'symbol': '',  # Symbol name
             # 'startTime': 0,  # The start timestamp(ms)
             # 'endTime': 0,  # The end timestamp(ms)
-            # 'limit': 0,  # Limit for data size per page. [1, 200]. Default: 200
+            'limit': limit,  # Limit for data size per page. [1, 200]. Default: 200
         }
         market = self.market(symbol)
         symbol = market['symbol']
@@ -2205,8 +2207,11 @@ class bybit(Exchange):
         params = self.omit(params, ['endTime', 'till', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
-        if limit is not None:
-            request['limit'] = limit
+        else:
+            if since is not None:
+                # end time is required when since is not empty
+                fundingInterval = 60 * 60 * 8 * 1000
+                request['endTime'] = since + limit * fundingInterval
         response = await self.publicGetV5MarketFundingHistory(self.extend(request, params))
         #
         #     {

@@ -2217,12 +2217,15 @@ class bybit extends Exchange {
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
+        if ($limit === null) {
+            $limit = 200;
+        }
         $request = array(
             // 'category' => '', // Product type. linear,inverse
             // 'symbol' => '', // Symbol name
             // 'startTime' => 0, // The start $timestamp (ms)
             // 'endTime' => 0, // The end $timestamp (ms)
-            // 'limit' => 0, // Limit for data size per page. [1, 200]. Default => 200
+            'limit' => $limit, // Limit for data size per page. [1, 200]. Default => 200
         );
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
@@ -2242,9 +2245,12 @@ class bybit extends Exchange {
         $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
+        } else {
+            if ($since !== null) {
+                // end time is required when $since is not empty
+                $fundingInterval = 60 * 60 * 8 * 1000;
+                $request['endTime'] = $since . $limit * $fundingInterval;
+            }
         }
         $response = $this->publicGetV5MarketFundingHistory (array_merge($request, $params));
         //
