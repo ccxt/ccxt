@@ -44,16 +44,17 @@ for (let i = 0; i < properties.length; i++) {
     const filePath = __dirname + '/Exchange/test.' + property + '.js';
     if (fs.existsSync (filePath)) {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[property] = await import (pathToFileURL (filePath)) as any;
+        testFiles[property] = (await import (pathToFileURL (filePath)) as any)['default'];
     }
 }
 import errorsHierarchy from '../base/errorHierarchy.js';
 Object.keys (errorsHierarchy)
-    // eslint-disable-next-line no-path-concat
-    .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
     .forEach (async (error) => {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[error] =  await import (pathToFileURL (__dirname + '/errors/test.' + error + '.js'));
+        const filePath = __dirname + '/errors/test.' + error + '.js';
+        if (fs.existsSync (filePath)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            testFiles[error] = (await import (pathToFileURL (filePath)) as any)['default'];
+        }
     });
 
 const AuthenticationError = errorsHierarchy.AuthenticationError;
