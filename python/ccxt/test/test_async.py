@@ -83,7 +83,7 @@ for file_path in glob.glob(current_dir + '/test_*.py'):
             finalName = name
         if finalName:
             imp = importlib.import_module(name)
-            testFiles[finalName] = imp  #  getattr(imp, finalName)
+            testFiles[finalName] = imp  # getattr(imp, finalName)
 
 
 # print a colored string
@@ -240,16 +240,16 @@ class testMainClass(emptyClass):
             return
         skipMessage = None
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
-            skipMessage = 'unsupported'
+            skipMessage = '[UNSUPPORTED]'
         elif methodName in self.skippedMethods:
-            skipMessage = 'skipped temporarily'
+            skipMessage = '[SKIPPED]    '
         elif not (methodNameInTest in testFiles):
-            skipMessage = 'test unavailable'
+            skipMessage = '[UNAVAILABLE]'
         if skipMessage:
-            dump('[Skipping]', exchange.id, methodNameInTest, ' - ' + skipMessage)
+            dump(skipMessage, exchange.id, methodNameInTest)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        dump('(Testing)', exchange.id, methodNameInTest, argsStringified)
+        dump('[TESTING]    ', exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
             result = await call_method(methodNameInTest, exchange, args)

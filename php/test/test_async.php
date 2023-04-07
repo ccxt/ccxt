@@ -141,6 +141,7 @@ function set_exchange_prop ($exchange, $prop, $value) {
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise;
@@ -217,18 +218,18 @@ class testMainClass extends emptyClass {
             }
             $skipMessage = null;
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
-                $skipMessage = 'not supported';
+                $skipMessage = '[UNSUPPORTED]';
             } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
-                $skipMessage = 'skipped within keys.json';
+                $skipMessage = '[SKIPPED]    ';
             } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
-                $skipMessage = 'test not available';
+                $skipMessage = '[UNAVAILABLE]';
             }
             if ($skipMessage) {
-                dump ('[Skipping]', $exchange->id, $methodNameInTest, ' - ' . $skipMessage);
+                dump ($skipMessage, $exchange->id, $methodNameInTest);
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
-            dump ('[Testing]', $exchange->id, $methodNameInTest, $argsStringified);
+            dump ('[TESTING]    ', $exchange->id, $methodNameInTest, $argsStringified);
             $result = null;
             try {
                 $result = Async\await(call_method ($methodNameInTest, $exchange, $args));
@@ -237,13 +238,14 @@ class testMainClass extends emptyClass {
                 }
             } catch (Exception $e) {
                 $isAuthError = ($e instanceof AuthenticationError);
-                if ($isPublic && $isAuthError) {
-                    dump ('[Skipped private]', $exchange->id, $methodNameInTest, ' - method req' . 'uires authentication, skipped from public tests');
-                    // do not throw exception from here,'s public test and exception is destined to be thrown from private
-                } else {
+                if (!($isPublic && $isAuthError)) {
                     dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;
                 }
+                //  else {
+                //     dump ('[Skipped private]', $exchange->id, $methodNameInTest, ' - method req' . 'uires authentication, skipped from public tests');
+                //     // do not throw exception from here,'s public test and exception is destined to be thrown from private
+                // }
             }
             return $result;
         }) ();
@@ -296,6 +298,8 @@ class testMainClass extends emptyClass {
                 $testArgs = $tests[$testName];
                 $promises[] = $this->test_safe($testName, $exchange, $testArgs, true);
             }
+            // todo - not yet ready in other langs too
+            // $promises[] = test_throttle();
             Async\await(Promise\all($promises));
         }) ();
     }
