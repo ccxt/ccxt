@@ -11,8 +11,6 @@ use React\Async;
 
 class currencycom extends \ccxt\async\currencycom {
 
-    use ClientTrait;
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -66,12 +64,12 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_balance($client, $message, $subscription) {
+    public function handle_balance(Client $client, $message, $subscription) {
         //
         //     {
         //         status => 'OK',
@@ -116,7 +114,7 @@ class currencycom extends \ccxt\async\currencycom {
         }
     }
 
-    public function handle_ticker($client, $message, $subscription) {
+    public function handle_ticker(Client $client, $message, $subscription) {
         //
         //     {
         //         status => 'OK',
@@ -181,7 +179,7 @@ class currencycom extends \ccxt\async\currencycom {
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
-        $id = $this->safe_string_2($trade, 'id');
+        $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $buyer = $this->safe_value($trade, 'buyer');
         $side = $buyer ? 'buy' : 'sell';
@@ -202,7 +200,7 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_trades($client, $message, $subscription) {
+    public function handle_trades(Client $client, $message, $subscription) {
         //
         //     {
         //         status => 'OK',
@@ -235,8 +233,8 @@ class currencycom extends \ccxt\async\currencycom {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function find_timeframe($timeframe) {
-        $timeframes = $this->safe_value($this->options, 'timeframes');
+    public function find_timeframe($timeframe, $defaultTimeframes = null) {
+        $timeframes = $this->safe_value($this->options, 'timeframes', $defaultTimeframes);
         $keys = is_array($timeframes) ? array_keys($timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -247,7 +245,7 @@ class currencycom extends \ccxt\async\currencycom {
         return null;
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         status => 'OK',
@@ -301,6 +299,7 @@ class currencycom extends \ccxt\async\currencycom {
         return Async\async(function () use ($destination, $symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $messageHash = $destination . ':' . $symbol;
             $url = $this->urls['api']['ws'];
             $requestId = (string) $this->request_id();
@@ -335,7 +334,7 @@ class currencycom extends \ccxt\async\currencycom {
                 'correlationId' => $requestId,
                 'payload' => $payload,
             ), $params);
-            $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $subscription = array_merge($request, array(
                 'messageHash' => $messageHash,
             ));
@@ -345,15 +344,27 @@ class currencycom extends \ccxt\async\currencycom {
 
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the currencycom api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
             Async\await($this->load_markets());
             return Async\await($this->watch_private('/api/v1/account', $params));
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the currencycom api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $destination = '/api/v1/ticker/24hr';
             $messageHash = $destination . ':' . $symbol;
             $url = $this->urls['api']['ws'];
@@ -373,8 +384,18 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the currencycom api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->watch_public('trades.subscribe', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -383,15 +404,35 @@ class currencycom extends \ccxt\async\currencycom {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the currencycom api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $orderbook = Async\await($this->watch_public('depthMarketData.subscribe', $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the currencycom api endpoint
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $destination = 'OHLCMarketData.subscribe';
             $messageHash = $destination . ':' . $timeframe;
             $timeframes = $this->safe_value($this->options, 'timeframes');
@@ -420,7 +461,7 @@ class currencycom extends \ccxt\async\currencycom {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         status => 'OK',
@@ -455,7 +496,7 @@ class currencycom extends \ccxt\async\currencycom {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //     {
         //         $status => 'OK',

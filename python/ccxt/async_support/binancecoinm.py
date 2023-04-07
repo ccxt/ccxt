@@ -29,15 +29,16 @@ class binancecoinm(binance):
                 'createStopMarketOrder': True,
             },
             'options': {
-                'defaultType': 'delivery',
+                'fetchMarkets': ['inverse'],
+                'defaultSubType': 'inverse',
                 'leverageBrackets': None,
             },
         })
 
-    async def transfer_in(self, code, amount, params={}):
+    async def transfer_in(self, code: str, amount, params={}):
         # transfer from spot wallet to coinm futures wallet
         return await self.futuresTransfer(code, amount, 3, params)
 
-    async def transfer_out(self, code, amount, params={}):
+    async def transfer_out(self, code: str, amount, params={}):
         # transfer from coinm futures wallet to spot wallet
         return await self.futuresTransfer(code, amount, 4, params)

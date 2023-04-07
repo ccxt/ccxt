@@ -52,7 +52,6 @@ def test_market(exchange, market, method):
                 'max': 1000,  # order cost should be < max
             },
         },
-        'info': {},  # the original unparsed market info from the exchange
     }
     keys = list(format.keys())
     for i in range(0, len(keys)):
@@ -92,7 +91,6 @@ def test_market(exchange, market, method):
         'future': True,
         'option': True,
     }
-    type = market['type']
     #
     # binance has type = 'delivery'
     # https://github.com/ccxt/ccxt/issues/11121
