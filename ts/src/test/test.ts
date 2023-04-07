@@ -182,18 +182,18 @@ export default class testMainClass extends emptyClass {
         }
         let skipMessage = undefined;
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
-            skipMessage = 'unsupported';
+            skipMessage = '[UNSUPPORTED]';
         } else if (methodName in this.skippedMethods) {
-            skipMessage = 'skipped temporarily';
+            skipMessage = '[SKIPPED]    ';
         } else if (!(methodNameInTest in testFiles)) {
-            skipMessage = 'test unavailable';
+            skipMessage = '[UNAVAILABLE]';
         }
         if (skipMessage) {
-            dump ('[Skipping]', exchange.id, methodNameInTest, ' - ' + skipMessage);
+            dump (skipMessage, exchange.id, methodNameInTest);
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
-        dump ('(Testing)', exchange.id, methodNameInTest, argsStringified);
+        dump ('[TESTING]    ', exchange.id, methodNameInTest, argsStringified);
         let result = null;
         try {
             result = await callMethod (methodNameInTest, exchange, args);
