@@ -2667,7 +2667,7 @@ module.exports = class Exchange {
         if (precision === undefined) {
             return fee;
         } else {
-            return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            return this.decimalToPrecision (fee, TRUNCATE, precision, this.precisionMode, this.paddingMode);
         }
     }
 
