@@ -414,6 +414,8 @@
 		}
 	},
 	"huobijp": {
+		"skip": true,
+		"//": "trade object does not include fee/s, causing many methods test to fail",
 		"skipWs": true,
 		"skipMethods": {
 			"fetchTickers": "quoteVolume <= baseVolume * high is failing",
@@ -554,8 +556,7 @@
 		"skipWs": true,
 		"skipMethods": {
 			"fetchTrades": "side is not buy/sell",
-			"fetchTickers": "quoteVolume >= baseVolume * low  is incorrect",
-			"fetchTrades": "same"
+			"fetchTickers": "quoteVolume >= baseVolume * low  is incorrect"
 		}
 	},
 	"oceanex": {

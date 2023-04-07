@@ -5,6 +5,7 @@ import testOHLCV from './test.ohlcv.js';
 async function testFetchOHLCV (exchange, symbol) {
     const method = 'fetchOHLCV';
     const timeframes = Object.keys (exchange.timeframes);
+    assert (timeframes.length > 0, exchange.id + ' ' + method + ' - no timeframes found');
     const timeframe = timeframes[0];
     const limit = 10;
     const duration = exchange.parseTimeframe (timeframe);
