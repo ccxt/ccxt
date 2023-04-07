@@ -66,19 +66,25 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 
 # ------------------------------------------------------------------------------
 
-# avoid mentioning the complete phrase together to trick transpiler
-is_sync = ('token_' + 'bucket') not in locals()
+# this logic is being transpiled from async->sync python, so the below variable tells runtime whether async or sync tests are being run
+# (we have to devide "token" and "bucket" together to trick transpiler)
+is_async = ('token_' + 'bucket') in locals()
 
+from ccxt.test import test_shared_methods_async  # noqa: E402
 import importlib  # noqa: E402
 import glob  # noqa: E402
 testFiles = {}
 for file_path in glob.glob(current_dir + '/test_*.py'):
     name = os.path.basename(file_path)[:-3]
-    if not (name in ['test_async', 'test_sync', 'test_exchange_datetime_functions', 'test_base_functions_crypto', 'test_throttle']):
-        if not is_sync and '_async' in name:
-            testFiles[name.replace('_async', '')] = importlib.import_module(name)
-        elif is_sync and '_async' not in name:
-            testFiles[name] = importlib.import_module(name.replace('test_async', 'test_sync'))
+    if not (name in ['test_async', 'test_sync', 'test_exchange_datetime_functions', 'test_base_functions_crypto', 'test_throttle', 'test_shared_methods_async']):
+        finalName = None
+        if is_async and '_async' in name:
+            finalName = name.replace('_async', '')
+        elif not is_async and '_async' not in name:
+            finalName = name
+        if finalName:
+            imp = importlib.import_module(name)
+            testFiles[finalName] = imp #getattr(imp, finalName)
 
 
 # print a colored string
@@ -235,13 +241,13 @@ class testMainClass(emptyClass):
             return
         skipMessage = None
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
-            skipMessage = 'not supported'
+            skipMessage = 'unsupported'
         elif methodName in self.skippedMethods:
-            skipMessage = 'skipped within keys.json'
+            skipMessage = 'skipped temporarily'
         elif not (methodNameInTest in testFiles):
-            skipMessage = 'test not available'
+            skipMessage = 'test unavailable'
         if skipMessage:
-            dump('(Skipping)', exchange.id, methodNameInTest, ' - ' + skipMessage)
+            dump('[Skipping]', exchange.id, methodNameInTest, ' - ' + skipMessage)
             return
         argsStringified = '(' + ','.join(args) + ')'
         dump('(Testing)', exchange.id, methodNameInTest, argsStringified)
@@ -252,12 +258,13 @@ class testMainClass(emptyClass):
                 self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
             isAuthError = (isinstance(e, AuthenticationError))
-            if isPublic and isAuthError:
-                dump('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests')
-                # do not raise exception from here,'s public test and exception is destined to be thrown from private
-            else:
+            if not (isPublic and isAuthError):
                 dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
                 raise e
+            #  else {
+            #     dump('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests')
+            #     # do not raise exception from here,'s public test and exception is destined to be thrown from private
+            # }
         return result
 
     async def test_safe(self, methodName, exchange, args, isPublic):

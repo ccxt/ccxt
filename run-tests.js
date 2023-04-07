@@ -191,9 +191,8 @@ const testExchange = async (exchange) => {
 
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
 
-    log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, (failed      ? 'FAIL'.red :
-                                                                          (hasWarnings ? (warnings.length ? warnings.map(x=>x.includes('[SKIPPED]')? x.yellow : x.green).join (' ') : 'WARN'.yellow)
-                                                                                       : 'OK'.green)))
+    const warningMsg = warnings.length ? (warnings.map(x=>x.includes('[SKIPPED]')? x.yellow : x.magenta).join (' ')) : 'WARN'.yellow
+    log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, failed ? 'FAIL'.red : (hasWarnings ? warningMsg : 'OK'.green))
 
 /*  Return collected data to main loop     */
 

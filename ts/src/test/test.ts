@@ -182,14 +182,14 @@ export default class testMainClass extends emptyClass {
         }
         let skipMessage = undefined;
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
-            skipMessage = 'not supported';
+            skipMessage = 'unsupported';
         } else if (methodName in this.skippedMethods) {
-            skipMessage = 'skipped within keys.json';
+            skipMessage = 'skipped temporarily';
         } else if (!(methodNameInTest in testFiles)) {
-            skipMessage = 'test not available';
+            skipMessage = 'test unavailable';
         }
         if (skipMessage) {
-            dump ('(Skipping)', exchange.id, methodNameInTest, ' - ' + skipMessage);
+            dump ('[Skipping]', exchange.id, methodNameInTest, ' - ' + skipMessage);
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
@@ -202,13 +202,14 @@ export default class testMainClass extends emptyClass {
             }
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
-            if (isPublic && isAuthError) {
-                dump ('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests');
-                // do not throw exception from here, as it's public test and exception is destined to be thrown from private
-            } else {
+            if (!(isPublic && isAuthError)) {
                 dump (exceptionMessage(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;
             }
+            //  else {
+            //     dump ('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests');
+            //     // do not throw exception from here, as it's public test and exception is destined to be thrown from private
+            // }
         }
         return result;
     }
