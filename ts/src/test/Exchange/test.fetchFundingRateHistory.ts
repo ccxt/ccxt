@@ -11,7 +11,7 @@ async function testFetchFundingRateHistory (exchange, symbol) {
     for (let i = 0; i < fundingRatesHistory.length; i++) {
         testFundingRateHistory (exchange, method, fundingRatesHistory[i], symbol);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, fundingRatesHistory);
+    testSharedMethods.assertTimestampOrder (exchange, method, symbol, fundingRatesHistory);
 }
 
 export default testFetchFundingRateHistory;

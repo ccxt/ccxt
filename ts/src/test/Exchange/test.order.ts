@@ -29,13 +29,13 @@ function testOrder (exchange, method, entry, symbol, now) {
     const emptyNotAllowedFor = [ 'id' ];
     // todo: skip some exchanges
     // const emptyNotAllowedFor = [ 'id', 'timestamp', 'symbol', 'type', 'side', 'price' ];
-    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, method, entry, now);
     //
-    testSharedMethods.assertAgainstArray (exchange, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
-    testSharedMethods.assertAgainstArray (exchange, method, entry, 'status', [ 'open', 'closed', 'canceled' ]);
-    testSharedMethods.assertAgainstArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
-    testSharedMethods.assertAgainstArray (exchange, method, entry, 'postOnly', [ true, false ]);
+    testSharedMethods.assertInArray (exchange, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
+    testSharedMethods.assertInArray (exchange, method, entry, 'status', [ 'open', 'closed', 'canceled' ]);
+    testSharedMethods.assertInArray (exchange, method, entry, 'side', [ 'buy', 'sell' ]);
+    testSharedMethods.assertInArray (exchange, method, entry, 'postOnly', [ true, false ]);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
     testSharedMethods.assertGreater (exchange, method, entry, 'price', '0');
     testSharedMethods.assertGreater (exchange, method, entry, 'stopPrice', '0');
@@ -52,7 +52,7 @@ function testOrder (exchange, method, entry, symbol, now) {
             testTrade (exchange, method, entry['trades'][i], symbol, now);
         }
     }
-    testSharedMethods.reviseFeeObject (exchange, method, entry['fee']);
+    testSharedMethods.assertFee (exchange, method, entry['fee']);
 }
 
 export default testOrder;

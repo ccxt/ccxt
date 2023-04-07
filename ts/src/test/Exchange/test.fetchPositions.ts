@@ -13,7 +13,7 @@ async function testFetchPositions (exchange, symbol) {
     for (let i = 0; i < positions.length; i++) {
         testPosition (exchange, method, positions[i], undefined, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, undefined, positions);
+    testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions);
     // with symbol
     const positionsForSymbol = await exchange[method] ([ symbol ]);
     assert (Array.isArray (positionsForSymbol), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbol));
@@ -23,7 +23,7 @@ async function testFetchPositions (exchange, symbol) {
     for (let i = 0; i < positionsForSymbol.length; i++) {
         testPosition (exchange, method, positionsForSymbol[i], symbol, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, positionsForSymbol);
+    testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbol);
 }
 
 export default testFetchPositions;

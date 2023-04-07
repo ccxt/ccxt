@@ -12,7 +12,7 @@ async function testFetchWithdrawals (exchange, code) {
     for (let i = 0; i < transactions.length; i++) {
         testTransaction (exchange, method, transactions[i], code, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, code, transactions);
+    testSharedMethods.assertTimestampOrder (exchange, method, code, transactions);
 }
 
 export default testFetchWithdrawals;

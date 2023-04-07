@@ -14,7 +14,7 @@ async function testFetchOpenOrders (exchange, symbol) {
         testOrder (exchange, method, order, symbol, now);
         assert (order['status'] === 'open', exchange.id + ' ' + method + ' ' + symbol + ' returned an order with status ' + order['status'] + ' (expected "open")');
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, orders);
+    testSharedMethods.assertTimestampOrder (exchange, method, symbol, orders);
 }
 
 export default testFetchOpenOrders;

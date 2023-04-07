@@ -12,7 +12,7 @@ async function testFetchOrders (exchange, symbol) {
     for (let i = 0; i < orders.length; i++) {
         testOrder (exchange, method, orders[i], symbol, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, orders);
+    testSharedMethods.assertTimestampOrder (exchange, method, symbol, orders);
 }
 
 export default testFetchOrders;

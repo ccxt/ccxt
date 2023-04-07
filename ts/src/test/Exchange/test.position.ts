@@ -26,11 +26,11 @@ function testPosition (exchange, method, entry, symbol, now) {
         'percentage': exchange.parseNumber ('1.234'),
     };
     const emptyNotAllowedFor = [ 'symbol', 'entryPrice', 'side', 'markPrice', 'contracts', 'contractSize', 'marginMode' ];
-    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertCommonTimestamp (exchange, method, entry, now);
+    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, method, entry, now);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
-    testSharedMethods.assertAgainstArray (exchange, method, entry, 'side', [ 'long', 'short' ]);
-    testSharedMethods.assertAgainstArray (exchange, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
+    testSharedMethods.assertInArray (exchange, method, entry, 'side', [ 'long', 'short' ]);
+    testSharedMethods.assertInArray (exchange, method, entry, 'marginMode', [ 'cross', 'isolated' ]);
     testSharedMethods.assertGreater (exchange, method, entry, 'leverage', '0');
     testSharedMethods.assertLessOrEqual (exchange, method, entry, 'leverage', '200');
     testSharedMethods.assertGreater (exchange, method, entry, 'initialMargin', '0');

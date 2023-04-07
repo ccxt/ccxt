@@ -9,7 +9,7 @@ function testAccount (exchange, method, entry) {
         'id': '12345',
     };
     const emptyNotAllowedFor = [ 'type' ];
-    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
 }
 

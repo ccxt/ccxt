@@ -27,8 +27,8 @@ function testTicker (exchange, method, entry, symbol) {
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
     const emptyNotAllowedFor = [ 'close', 'amount', 'currency' ];
-    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertCommonTimestamp (exchange, method, entry);
+    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     testSharedMethods.assertGreater (exchange, method, entry, 'open', '0');

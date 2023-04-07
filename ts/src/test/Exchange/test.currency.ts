@@ -23,7 +23,7 @@ function testCurrency (exchange, method, entry) {
         },
     };
     const emptyNotAllowedFor = [ 'id', 'code', 'precision' ];
-    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
     //
     testSharedMethods.assertGreater (exchange, method, entry, 'precision', '0');

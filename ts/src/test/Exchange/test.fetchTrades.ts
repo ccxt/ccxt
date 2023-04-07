@@ -12,7 +12,7 @@ async function testFetchTrades (exchange, symbol) {
     for (let i = 0; i < trades.length; i++) {
         testTrade (exchange, method, trades[i], symbol, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, symbol, trades);
+    testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
 }
 
 export default testFetchTrades;
