@@ -11,7 +11,7 @@ function testLeverageTier (exchange, method, entry) {
         'info': {},
     };
     const emptyNotAllowedFor = [ 'maxLeverage', ' info' ];
-    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
     //
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'tier', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'minNotional', '0');

@@ -11,7 +11,7 @@ function testTradingFee (exchange, method, symbol, entry) {
         'tierBased': false,
     };
     const emptyNotAllowedFor = [ 'maker', 'taker', 'percentage', 'tierBased' ];
-    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
 }
 

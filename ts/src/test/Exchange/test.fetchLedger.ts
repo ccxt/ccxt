@@ -8,11 +8,10 @@ async function testFetchLedger (exchange, code) {
     const items = await exchange.fetchLedger (code);
     assert (Array.isArray (items), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (items));
     const now = exchange.milliseconds ();
-    console.log (exchange.id, method, 'fetched', items.length, 'entries, asserting each ...');
     for (let i = 0; i < items.length; i++) {
         testLedgerItem (exchange, method, items[i], code, now);
     }
-    testSharedMethods.reviseSortedTimestamps (exchange, method, code, items);
+    testSharedMethods.assertTimestampOrder (exchange, method, code, items);
     //
     const itemMethod = 'fetchLedgerItem'; // todo: create separate testfile
     if (exchange.has[itemMethod]) {

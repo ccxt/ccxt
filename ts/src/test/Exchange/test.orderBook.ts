@@ -20,8 +20,8 @@ function testOrderBook (exchange, method, entry, symbol) {
         // 'info': {},
     };
     const emptyNotAllowedFor = [ 'bids', 'asks' ];
-    testSharedMethods.assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertCommonTimestamp (exchange, method, entry);
+    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, method, entry);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //

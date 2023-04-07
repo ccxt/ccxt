@@ -14,7 +14,6 @@ async function testFetchLeverageTiers (exchange, symbol) {
     const tierKeys = Object.keys (tiers);
     const arrayLength = tierKeys.length;
     assert (arrayLength >= 1, exchange.id + ' ' + method + ' ' + symbol + ' must have at least one entry. ' + exchange.json (tiers));
-    console.log (exchange.id, method, 'fetched', arrayLength, 'entries, asserting each ...');
     for (let i = 0; i < arrayLength; i++) {
         const tiersForSymbol = tiers[tierKeys[i]];
         const arrayLengthSymbol = tiersForSymbol.length;

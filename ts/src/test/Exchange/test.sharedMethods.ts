@@ -6,7 +6,7 @@ function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
-function areSameTypes (exchange, entry, key, format) {
+function assertType (exchange, entry, key, format) {
     // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     const entryKeyVal = exchange.safeValue (entry, key);
     const formatKeyVal = exchange.safeValue (format, key);
@@ -21,10 +21,8 @@ function areSameTypes (exchange, entry, key, format) {
     return result;
 }
 
-function assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFor = []) {
-    // define common log text
+function assertStructure (exchange, method, entry, format, emptyNotAllowedFor = []) {
     const logText = logTemplate (exchange, method, entry);
-    // ensure item is not null/undefined/unset
     assert (entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
     if (Array.isArray (format)) {
@@ -38,7 +36,7 @@ function assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
                 assert ((entry[i] !== undefined), i.toString () + ' index is undefined, but is is was expected to be set' + logText);
             }
             // because of other langs, this is needed for arrays
-            assert (areSameTypes (exchange, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
+            assert (assertType (exchange, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (typeof entry === 'object', 'entry is not an object' + logText);
@@ -51,16 +49,14 @@ function assertStructureKeys (exchange, method, entry, format, emptyNotAllowedFo
                 // if it was in needed keys, then it should have value.
                 assert (entry[key] !== undefined, key + ' key has an null value, but is expected to have a value' + logText);
             }
-            assert (areSameTypes (exchange, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+            assert (assertType (exchange, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
         }
     }
 }
 
-function assertCommonTimestamp (exchange, method, entry, nowToCheck = undefined, keyName : any = 'timestamp') {
-    // define common log text
+function assertTimestamp (exchange, method, entry, nowToCheck = undefined, keyName : any = 'timestamp') {
     const logText = logTemplate (exchange, method, entry);
     const isDateTimeObject = typeof keyName === 'string';
-    // ensure timestamp exists in object
     if (isDateTimeObject) {
         assert ((keyName in entry), 'timestamp key ' + keyName + ' is missing from structure' + logText);
     } else {
@@ -144,7 +140,7 @@ function assertLessOrEqual (exchange, method, entry, key, compareTo) {
     }
 }
 
-function assertAgainstArray (exchange, method, entry, key, expectedArray) {
+function assertInArray (exchange, method, entry, key, expectedArray) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeValue (entry, key);
     if (value !== undefined) {
@@ -152,7 +148,7 @@ function assertAgainstArray (exchange, method, entry, key, expectedArray) {
     }
 }
 
-function reviseFeeObject (exchange, method, entry) {
+function assertFee (exchange, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
         assert (('cost' in entry), '"fee" should contain a "cost" key' + logText);
@@ -162,17 +158,17 @@ function reviseFeeObject (exchange, method, entry) {
     }
 }
 
-function reviseFeesObject (exchange, method, entry) {
+function assertFees (exchange, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
         assert (Array.isArray (entry), '"fees" is not an array' + logText);
         for (let i = 0; i < entry.length; i++) {
-            reviseFeeObject (exchange, method, entry[i]);
+            assertFee (exchange, method, entry[i]);
         }
     }
 }
 
-function reviseSortedTimestamps (exchange, method, codeOrSymbol, items, ascending = false) {
+function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending = false) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
@@ -185,14 +181,14 @@ function reviseSortedTimestamps (exchange, method, codeOrSymbol, items, ascendin
 
 export default {
     logTemplate,
-    assertCommonTimestamp,
-    assertStructureKeys,
+    assertTimestamp,
+    assertStructure,
     assertSymbol,
     assertCurrencyCode,
-    assertAgainstArray,
-    reviseFeeObject,
-    reviseFeesObject,
-    reviseSortedTimestamps,
+    assertInArray,
+    assertFee,
+    assertFees,
+    assertTimestampOrder,
     assertGreater,
     assertGreaterOrEqual,
     assertLess,

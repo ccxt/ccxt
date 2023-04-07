@@ -10,13 +10,11 @@ async function testFetchTickers (exchange, symbol) {
     try {
         tickers = await exchange[method] ();
     } catch (e) {
-        console.log (exchange.id, symbol, 'failed to fetch all tickers, fetching multiple tickers at once...');
         tickers = await exchange[method] ([ symbol ]);
         checkedSymbol = symbol;
     }
     assert (typeof tickers === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json (tickers));
     const values = Object.values (tickers);
-    console.log (exchange.id, symbol, 'fetched', values.length, 'tickers');
     for (let i = 0; i < values.length; i++) {
         const ticker = values[i];
         testTicker (exchange, method, ticker, checkedSymbol);

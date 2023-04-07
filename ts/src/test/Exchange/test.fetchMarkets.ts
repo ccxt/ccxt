@@ -7,7 +7,6 @@ async function testFetchMarkets (exchange) {
     const markets = await exchange.fetchMarkets ();
     assert (typeof markets === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json (markets));
     const marketValues = Object.values (markets);
-    console.log (exchange.id, method, 'fetched', marketValues.length, 'entries, asserting each ...');
     for (let i = 0; i < marketValues.length; i++) {
         testMarket (exchange, method, marketValues[i]);
     }
