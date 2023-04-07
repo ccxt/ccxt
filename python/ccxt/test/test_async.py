@@ -67,10 +67,9 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 # ------------------------------------------------------------------------------
 
 # this logic is being transpiled from async->sync python, so the below variable tells runtime whether async or sync tests are being run
-# (we have to devide "token" and "bucket" together to trick transpiler)
-is_async = ('token_' + 'bucket') in locals()
+# to trick transpiler regexes, we have to: A) divide "token" and "bucket"; B)dont use word "a s y n c" together in the code
+is_asynchronous = ('token_' + 'bucket') in locals()
 
-from ccxt.test import test_shared_methods_async  # noqa: E402
 import importlib  # noqa: E402
 import glob  # noqa: E402
 testFiles = {}
@@ -78,13 +77,13 @@ for file_path in glob.glob(current_dir + '/test_*.py'):
     name = os.path.basename(file_path)[:-3]
     if not (name in ['test_async', 'test_sync', 'test_exchange_datetime_functions', 'test_base_functions_crypto', 'test_throttle', 'test_shared_methods_async']):
         finalName = None
-        if is_async and '_async' in name:
+        if is_asynchronous and '_async' in name:
             finalName = name.replace('_async', '')
-        elif not is_async and '_async' not in name:
+        elif not is_asynchronous and '_async' not in name:
             finalName = name
         if finalName:
             imp = importlib.import_module(name)
-            testFiles[finalName] = imp #getattr(imp, finalName)
+            testFiles[finalName] = imp #  getattr(imp, finalName)
 
 
 # print a colored string

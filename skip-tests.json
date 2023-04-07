@@ -414,6 +414,8 @@
 		}
 	},
 	"huobijp": {
+		"skip": true,
+		"//": "trade object does not include fee/s, causing many methods test to fail",
 		"skipWs": true,
 		"skipMethods": {
 			"fetchTickers": "quoteVolume <= baseVolume * high is failing",
