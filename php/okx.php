@@ -2143,7 +2143,8 @@ class okx extends Exchange {
             $request['tdMode'] = $marginMode;
         }
         $isMarketOrder = $type === 'market';
-        $postOnly = $this->is_post_only($isMarketOrder, $type === 'post_only', $params);
+        $postOnly = false;
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $params);
         $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');

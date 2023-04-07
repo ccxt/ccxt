@@ -205,7 +205,7 @@ class latoken(Exchange):
                     'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
                     "Can't find currency with tag": BadSymbol,  # {"status":"FAILURE","message":"Can't find currency with tag = None","error":"NOT_FOUND","errors":null,"result":false}
                     'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state(PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
-                    'API keys are not available for FROZEN user': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
+                    'API keys are not available for': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {

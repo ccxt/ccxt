@@ -2181,12 +2181,14 @@ class bybit(Exchange):
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
+        if limit is None:
+            limit = 200
         request = {
             # 'category': '',  # Product type. linear,inverse
             # 'symbol': '',  # Symbol name
             # 'startTime': 0,  # The start timestamp(ms)
             # 'endTime': 0,  # The end timestamp(ms)
-            # 'limit': 0,  # Limit for data size per page. [1, 200]. Default: 200
+            'limit': limit,  # Limit for data size per page. [1, 200]. Default: 200
         }
         market = self.market(symbol)
         symbol = market['symbol']
@@ -2204,8 +2206,11 @@ class bybit(Exchange):
         params = self.omit(params, ['endTime', 'till', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
-        if limit is not None:
-            request['limit'] = limit
+        else:
+            if since is not None:
+                # end time is required when since is not empty
+                fundingInterval = 60 * 60 * 8 * 1000
+                request['endTime'] = since + limit * fundingInterval
         response = self.publicGetV5MarketFundingHistory(self.extend(request, params))
         #
         #     {
@@ -3403,7 +3408,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit'])
         response = self.privatePostV5OrderCreate(self.extend(request, params))
         #
         #     {
@@ -3571,7 +3576,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit'])
         response = self.privatePostUnifiedV3PrivateOrderCreate(self.extend(request, params))
         #
         #     {
@@ -3663,7 +3668,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit'])
         response = self.privatePostContractV3PrivateOrderCreate(self.extend(request, params))
         #
         #     {
@@ -3755,7 +3760,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit'])
         method = 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' if market['option'] else 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -4434,6 +4439,8 @@ class bybit(Exchange):
             # 'orderFilter', Conditional order or active order
             # 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
             # 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            # 'startTime': 0,  # The start timestamp(ms) Support UTA only temporarily startTime and endTime must be passed together If not passed, query the past 7 days data by default
+            # 'endTime': 0,  # The end timestamp(ms)
         }
         market = None
         if symbol is None:
@@ -4465,6 +4472,16 @@ class bybit(Exchange):
                 request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till', 'until'])
+        if endTime is not None:
+            request['endTime'] = endTime
+        else:
+            if since is not None:
+                raise BadRequest(self.id + ' fetchOrders() requires until/endTime when since is provided.')
         response = self.privateGetV5OrderHistory(self.extend(request, params))
         #
         #     {

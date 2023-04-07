@@ -821,7 +821,7 @@ class krakenfutures extends Exchange {
             if (($type === 'stp' || $type === 'take_profit') && $stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder requires $params->stopPrice when $type is ' . $type);
             }
-            if ($stopPrice !== null) {
+            if ($stopPrice !== null && $type !== 'take_profit') {
                 $type = 'stp';
             } elseif ($postOnly) {
                 $type = 'postOnly';

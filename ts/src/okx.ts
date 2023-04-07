@@ -2172,7 +2172,8 @@ export default class okx extends Exchange {
             request['tdMode'] = marginMode;
         }
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
         params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');

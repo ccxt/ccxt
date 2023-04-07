@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.56 (2023-04-06)
+
+### 3.0.55 (2023-04-06)
+
+### 3.0.54 (2023-04-05)
+
+### 3.0.53 (2023-04-04)
+
+### 3.0.52 (2023-04-04)
+
+### 3.0.51 (2023-04-03)
+
+### 3.0.50 (2023-04-02)
+
+### 3.0.49 (2023-04-02)
+
+
+### Bug Fixes
+
+* **Phemex:** sandbox v2 ([7729365](https://github.com/ccxt/ccxt/commit/7729365dc40adc1264b54c7d32dc80fd802ca94e))
+
 ### 3.0.48 (2023-04-01)
 
 

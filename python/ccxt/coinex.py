@@ -55,6 +55,7 @@ class coinex(Exchange):
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
@@ -1905,7 +1906,7 @@ class coinex(Exchange):
             raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request = {
             'market': market['id'],
-            'id': id,
+            'id': int(id),
         }
         if amount is not None:
             request['amount'] = self.amount_to_precision(symbol, amount)

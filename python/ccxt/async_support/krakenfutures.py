@@ -790,7 +790,7 @@ class krakenfutures(Exchange):
         params = self.omit(params, ['clientOrderId', 'cliOrdId'])
         if (type == 'stp' or type == 'take_profit') and stopPrice is None:
             raise ArgumentsRequired(self.id + ' createOrder requires params.stopPrice when type is ' + type)
-        if stopPrice is not None:
+        if stopPrice is not None and type != 'take_profit':
             type = 'stp'
         elif postOnly:
             type = 'postOnly'

@@ -4139,7 +4139,8 @@ class huobi extends Exchange {
                 throw new NotSupported($this->id . ' createOrder() does not support ' . $type . ' orders');
             }
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($orderType === 'market', $orderType === 'limit-maker', $params);
         if ($postOnly) {
             $orderType = 'limit-maker';
         }
@@ -4291,7 +4292,8 @@ class huobi extends Exchange {
             throw new NotSupported($this->id . ' createOrder() supports tp_trigger_price . tp_order_price for take profit orders and/or sl_trigger_price . sl_order $price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
         $params = $this->omit($params, array( 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price' ));
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post_only', $params);
         if ($postOnly) {
             $type = 'post_only';
         }

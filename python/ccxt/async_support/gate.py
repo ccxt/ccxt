@@ -2381,7 +2381,8 @@ class gate(Exchange):
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = self.parse_to_int(since / 1000)
-            toTimestamp = self.sum(request['from'], limit * duration - 1)
+            distance = (limit - 1) * duration
+            toTimestamp = self.sum(request['from'], distance)
             currentTimestamp = self.seconds()
             to = min(toTimestamp, currentTimestamp)
             if until is not None:

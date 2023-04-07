@@ -3,7 +3,7 @@ import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
+import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
 export { Market, Trade, Fee, Ticker } from './types';
 export default class Exchange {
     options: {
@@ -149,7 +149,7 @@ export default class Exchange {
     precisionFromString: typeof functions.precisionFromString;
     capitalize: (s: string) => string;
     now: () => number;
-    buildOHLCVC: (trades: Trade[], timeframe?: string, since?: number, limit?: number) => import("./types").OHLCVC[];
+    buildOHLCVC: (trades: Trade[], timeframe?: string, since?: number, limit?: number) => OHLCVC[];
     decimalToPrecision: (x: any, roundingMode: any, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => any;
     safeValue: (o: any, k: string | number, $default?: any) => any;
     safeValue2: (o: any, k1: string | number, k2: string | number, $default?: any) => any;
@@ -594,7 +594,7 @@ export default class Exchange {
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<any>;
-    fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: Int, params?: {}): Promise<import("./types").OHLCVC[]>;
+    fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: Int, params?: {}): Promise<OHLCVC[]>;
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     editLimitBuyOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editLimitSellOrder(id: any, symbol: any, amount: any, price?: any, params?: {}): Promise<Order>;

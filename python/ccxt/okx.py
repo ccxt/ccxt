@@ -2092,7 +2092,8 @@ class okx(Exchange):
         elif contract:
             request['tdMode'] = marginMode
         isMarketOrder = type == 'market'
-        postOnly = self.is_post_only(isMarketOrder, type == 'post_only', params)
+        postOnly = False
+        postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
         params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')

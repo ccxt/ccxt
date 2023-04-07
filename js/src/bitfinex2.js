@@ -328,6 +328,9 @@ export default class bitfinex2 extends Exchange {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'withdraw': {
+                    'includeFee': false,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -1963,10 +1966,14 @@ export default class bitfinex2 extends Exchange {
     parseTransactionStatus(status) {
         const statuses = {
             'SUCCESS': 'ok',
+            'COMPLETED': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
-            'COMPLETED': 'ok',
+            'PENDING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'PENDING REVIEW': 'pending',
+            'PENDING CANCELLATION': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -2047,7 +2054,7 @@ export default class bitfinex2 extends Exchange {
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeValue(data, 0);
+            id = this.safeString(data, 0);
             status = 'ok';
             if (id === 0) {
                 id = undefined;
@@ -2301,7 +2308,7 @@ export default class bitfinex2 extends Exchange {
         const currencyNetwork = this.safeValue(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
         if (networkId === undefined) {
-            throw new ArgumentsRequired(this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
+            throw new ArgumentsRequired(this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
         }
         const wallet = this.safeString(params, 'wallet', 'exchange'); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = this.omit(params, 'network', 'wallet');
@@ -2313,6 +2320,11 @@ export default class bitfinex2 extends Exchange {
         };
         if (tag !== undefined) {
             request['payment_id'] = tag;
+        }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw(this.extend(request, params));
         //

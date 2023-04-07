@@ -40,6 +40,7 @@ class coinex extends Exchange {
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
@@ -1968,7 +1969,7 @@ class coinex extends Exchange {
         }
         $request = array(
             'market' => $market['id'],
-            'id' => $id,
+            'id' => intval($id),
         );
         if ($amount !== null) {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);

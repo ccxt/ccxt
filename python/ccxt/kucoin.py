@@ -845,7 +845,7 @@ class kucoin(Exchange):
         networkCode = self.safe_string_upper(params, 'network')
         network = self.network_code_to_id(networkCode, code)
         if network is not None:
-            request['chain'] = network
+            request['chain'] = network.lower()
             params = self.omit(params, ['network'])
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
         #
@@ -1459,6 +1459,10 @@ class kucoin(Exchange):
             method = 'privatePostMarginOrder'
             if marginMode == 'isolated':
                 request['marginModel'] = 'isolated'
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', False, params)
+        if postOnly:
+            request['postOnly'] = True
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {

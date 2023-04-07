@@ -2050,14 +2050,6 @@ class Transpiler {
                 async: true
             },
             {
-                language: "php",
-                async: false
-            },
-            {
-                language: "python",
-                async: false
-            },
-            {
                 language: "python",
                 async: true
             },
@@ -2071,7 +2063,7 @@ class Transpiler {
             'php':{
                 'uncamelcaseIdentifiers': true,
                 'parser': parser
-            }
+            },
         };
         const transpiler = new astTranspiler(parserConfig);
 
@@ -2088,36 +2080,17 @@ class Transpiler {
         const phpPreamble = this.getPHPPreamble ();
 
         const preambles = {
-            phpSync: phpPreamble,
             phpAsync: phpPreamble,
-            pySync: pythonPreamble,
             pyAsync: pythonPreamble,
         };
 
         const fileHeaders = {
-            pySync: [
-                "",
-                "import ccxt  # noqa: E402",
-                "",
-                "",
-                "",
-                //"print('CCXT Version:', ccxt.__version__)"
-            ],
             pyAsync: [
                 "import asyncio",
                 "import ccxt.async_support as ccxt  # noqa: E402",
                 "",
                 "",
                 "",
-            ],
-            phpSync: [
-                "",
-                "error_reporting(E_ALL | E_STRICT);",
-                "date_default_timezone_set('UTC');",
-                "",
-                "",
-                "",
-                //"echo \"CCXT v.\" . \ccxtpro\Exchange::VERSION . \"\n\";"
             ],
             phpAsync: [
                 "",
@@ -2127,8 +2100,6 @@ class Transpiler {
                 "use ccxt\\Precise;",
                 "use React\\Async;",
                 "use React\\Promise;",
-                //"$loop = \\React\\EventLoop\\Factory::create();",
-                //"$kernel = \\Recoil\\React\\ReactKernel::create($loop);",
                 "",
                 "",
                 "",
@@ -2147,27 +2118,25 @@ class Transpiler {
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
-
+                // temporary: avoid console.log with + (plos) because it may break in python. 
+                if (tsContent.match ('console\.log \((.*?)\\+(.*?)\);')){
+                    throw new Error ('console.log with +(plus) detected in ' + tsFile + '. Please use commas or string interpolation.');
+                }
                 // from JS content, remove everything before the transpile flag
-                tsContent = this.regexAll (tsContent, [
-                    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
-                ])
+                //tsContent = this.regexAll (tsContent, [
+                //    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
+                //])
 
                 // detect all function declarations in JS, e.g. `async function Xyz (...)`)
                 const allDetectedFunctionNames = [...tsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
 
                 // exec the main transpile function
                 const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
-                let [ phpAsyncBody, phpSyncBody, pythonSyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content, transpiled[2].content, transpiled[3].content ];
-
+                let [ phpAsyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content  ];
                 // ###### replace common (synchronity agnostic) syntaxes ######
                 const fixPython = (body, isAsync)=> {
                     return this.regexAll (body, [
-                        [ /function\s*(\w+\s*\(\))\s*{/g, 'def $1:' ], //need this to catch functions without any arguments
-                        [ /print\s*\((.*)\)/, function(match, contents)
-                        {
-                            return match.replace(/\+/g, ',');
-                        }],
+                        [ /console\.log/g, 'print' ],
                         // cases like: exchange = new ccxt.binance ()
                         //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
                         // cases like: exchange = new ccxt['name' or name] ()
@@ -2177,19 +2146,18 @@ class Transpiler {
                 const fixPhp = (body, isAsync)=> {
                     let asyncSub = isAsync ? 'async\\' : '';
                     const regexes = [
+                        [ /\$console\->log/g, 'var_dump' ],
                         // cases like: exchange = new ccxt.huobi ()
                         [ /new \$ccxt->/g, 'new \\ccxt\\' + asyncSub ],
                         // cases like: exchange = new ccxt['huobi' or varname] ()
-                        [ /new \$ccxt\[(.*?)\]\(/g, 'new ($classname = \'\\\\ccxt\\\\\'.$1' + asyncSub + ')(' ],
+                        [ /new \$ccxt\[(?:['"]|)(.*?)(?:['"]|)\]\(/g, 'new (\'\\\\ccxt\\\\' + asyncSub + '$1\')(' ],
                     ];
                     return this.regexAll (body, regexes);
                 };
 
                 // define bodies
                 const finalBodies = {};
-                finalBodies.pySync = fixPython (pythonSyncBody, false);
                 finalBodies.pyAsync = fixPython (pythonAsyncBody, true);
-                finalBodies.phpSync = fixPhp (phpSyncBody, false);
                 finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
@@ -2218,10 +2186,8 @@ class Transpiler {
                 }
 
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py',       preambles.pySync + fileHeaders.pySync + finalBodies.pySync)
-                overwriteFile (examplesFolders.php + fileName + '.php',      preambles.phpSync + fileHeaders.phpSync + finalBodies.phpSync)
-                overwriteFile (examplesFolders.py  + fileName + '-async.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
-                overwriteFile (examplesFolders.php + fileName + '-async.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
     }

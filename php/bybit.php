@@ -2217,12 +2217,15 @@ class bybit extends Exchange {
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
+        if ($limit === null) {
+            $limit = 200;
+        }
         $request = array(
             // 'category' => '', // Product type. linear,inverse
             // 'symbol' => '', // Symbol name
             // 'startTime' => 0, // The start $timestamp (ms)
             // 'endTime' => 0, // The end $timestamp (ms)
-            // 'limit' => 0, // Limit for data size per page. [1, 200]. Default => 200
+            'limit' => $limit, // Limit for data size per page. [1, 200]. Default => 200
         );
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
@@ -2242,9 +2245,12 @@ class bybit extends Exchange {
         $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
+        } else {
+            if ($since !== null) {
+                // end time is required when $since is not empty
+                $fundingInterval = 60 * 60 * 8 * 1000;
+                $request['endTime'] = $since . $limit * $fundingInterval;
+            }
         }
         $response = $this->publicGetV5MarketFundingHistory (array_merge($request, $params));
         //
@@ -3520,7 +3526,7 @@ class bybit extends Exchange {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostV5OrderCreate (array_merge($request, $params));
         //
         //     {
@@ -3708,7 +3714,7 @@ class bybit extends Exchange {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostUnifiedV3PrivateOrderCreate (array_merge($request, $params));
         //
         //     {
@@ -3809,7 +3815,7 @@ class bybit extends Exchange {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostContractV3PrivateOrderCreate (array_merge($request, $params));
         //
         //     {
@@ -3911,7 +3917,7 @@ class bybit extends Exchange {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $method = $market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
         $response = $this->$method (array_merge($request, $params));
         //
@@ -4662,6 +4668,8 @@ class bybit extends Exchange {
             // 'orderFilter', Conditional order or active order
             // 'limit' => number, Data quantity per page => Max $data value per page is 50, and default value at 20.
             // 'cursor', API pass-through. accountType . category . cursor +. If inconsistent, the following should be returned => The account $type does not match the service inquiry.
+            // 'startTime' => 0, // The start timestamp (ms) Support UTA only temporarily startTime and $endTime must be passed together If not passed, query the past 7 days $data by default
+            // 'endTime' => 0, // The end timestamp (ms)
         );
         $market = null;
         if ($symbol === null) {
@@ -4698,6 +4706,19 @@ class bybit extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
+        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+        } else {
+            if ($since !== null) {
+                throw new BadRequest($this->id . ' fetchOrders() requires until/endTime when $since is provided.');
+            }
         }
         $response = $this->privateGetV5OrderHistory (array_merge($request, $params));
         //

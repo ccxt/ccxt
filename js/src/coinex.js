@@ -43,6 +43,7 @@ export default class coinex extends Exchange {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
@@ -1996,7 +1997,7 @@ export default class coinex extends Exchange {
         }
         const request = {
             'market': market['id'],
-            'id': id,
+            'id': parseInt(id),
         };
         if (amount !== undefined) {
             request['amount'] = this.amountToPrecision(symbol, amount);

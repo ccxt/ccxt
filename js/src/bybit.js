@@ -2232,12 +2232,15 @@ export default class bybit extends Exchange {
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
+        if (limit === undefined) {
+            limit = 200;
+        }
         const request = {
-        // 'category': '', // Product type. linear,inverse
-        // 'symbol': '', // Symbol name
-        // 'startTime': 0, // The start timestamp (ms)
-        // 'endTime': 0, // The end timestamp (ms)
-        // 'limit': 0, // Limit for data size per page. [1, 200]. Default: 200
+            // 'category': '', // Product type. linear,inverse
+            // 'symbol': '', // Symbol name
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            'limit': limit, // Limit for data size per page. [1, 200]. Default: 200
         };
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -2260,8 +2263,12 @@ export default class bybit extends Exchange {
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        else {
+            if (since !== undefined) {
+                // end time is required when since is not empty
+                const fundingInterval = 60 * 60 * 8 * 1000;
+                request['endTime'] = since + limit * fundingInterval;
+            }
         }
         const response = await this.publicGetV5MarketFundingHistory(this.extend(request, params));
         //
@@ -3568,7 +3575,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16();
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostV5OrderCreate(this.extend(request, params));
         //
         //     {
@@ -3762,7 +3769,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16();
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostUnifiedV3PrivateOrderCreate(this.extend(request, params));
         //
         //     {
@@ -3868,7 +3875,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16();
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostContractV3PrivateOrderCreate(this.extend(request, params));
         //
         //     {
@@ -3975,7 +3982,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16();
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit']);
         const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
         const response = await this[method](this.extend(request, params));
         //
@@ -4739,6 +4746,8 @@ export default class bybit extends Exchange {
         // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
         // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'startTime': 0, // The start timestamp (ms) Support UTA only temporarily startTime and endTime must be passed together If not passed, query the past 7 days data by default
+        // 'endTime': 0, // The end timestamp (ms)
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4780,6 +4789,20 @@ export default class bybit extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit(params, ['endTime', 'till', 'until']);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        else {
+            if (since !== undefined) {
+                throw new BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
+            }
         }
         const response = await this.privateGetV5OrderHistory(this.extend(request, params));
         //

@@ -857,7 +857,7 @@ class kucoin extends Exchange {
             $networkCode = $this->safe_string_upper($params, 'network');
             $network = $this->network_code_to_id($networkCode, $code);
             if ($network !== null) {
-                $request['chain'] = $network;
+                $request['chain'] = strtolower($network);
                 $params = $this->omit($params, array( 'network' ));
             }
             $response = Async\await($this->privateGetWithdrawalsQuotas (array_merge($request, $params)));
@@ -1524,6 +1524,11 @@ class kucoin extends Exchange {
                 if ($marginMode === 'isolated') {
                     $request['marginModel'] = 'isolated';
                 }
+            }
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
+            if ($postOnly) {
+                $request['postOnly'] = true;
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //

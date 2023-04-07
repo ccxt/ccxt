@@ -238,6 +238,9 @@ class hitbtc(Exchange):
                     'trade': 'trading',
                     'trading': 'trading',
                 },
+                'withdraw': {
+                    'includeFee': False,
+                },
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
@@ -1363,6 +1366,10 @@ class hitbtc(Exchange):
         if network is not None:
             request['currency'] += network  # when network the currency need to be changed to currency + network
             params = self.omit(params, 'network')
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        if includeFee:
+            request['includeFee'] = True
         response = await self.privatePostAccountCryptoWithdraw(self.extend(request, params))
         #
         #     {

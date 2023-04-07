@@ -1142,7 +1142,7 @@ class bigone extends Exchange {
 
     public function nonce() {
         $exchangeTimeCorrection = $this->safe_integer($this->options, 'exchangeMillisecondsCorrection', 0) * 1000000;
-        return $this->microseconds() * 1000 . $exchangeTimeCorrection;
+        return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

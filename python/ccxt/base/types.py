@@ -1,10 +1,11 @@
 import sys
-from typing import Union, Literal
+from typing import Union
 
 if sys.version_info.minor > 7:
-    from typing import TypedDict
+    from typing import TypedDict, Literal
 else:
     TypedDict = dict
+    from typing_extensions import Literal
 
 
 OrderSide = Literal['buy', 'sell']

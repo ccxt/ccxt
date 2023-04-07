@@ -40,8 +40,6 @@ class mexc extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => null,
                 'createDepositAddress' => null,
-                'createLimitOrder' => null,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
@@ -1831,6 +1829,11 @@ class mexc extends Exchange {
                 }
                 $method = 'spotPrivatePostMarginOrder';
             }
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $params);
+            if ($postOnly) {
+                $request['type'] = 'LIMIT_MAKER';
+            }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
@@ -1884,7 +1887,8 @@ class mexc extends Exchange {
             if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
                 throw new InvalidOrder($this->id . ' createSwapOrder() order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
             }
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 2, $params);
             if ($postOnly) {
                 $type = 2;
             } elseif ($type === 'limit') {

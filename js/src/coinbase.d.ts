@@ -56,9 +56,9 @@ export default class coinbase extends Exchange {
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTickersV2(symbols?: string[], params?: {}): Promise<any>;
     fetchTickersV3(symbols?: string[], params?: {}): Promise<any>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<any>;
     fetchTickerV2(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV3(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickerV3(symbol: string, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseBalance(response: any, params?: {}): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
