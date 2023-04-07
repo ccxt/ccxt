@@ -3,10 +3,11 @@
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ArgumentsRequired } from '../base/errors.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bitrue extends bitrueRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -18,7 +19,7 @@ export default class bitrue extends bitrueRest {
                 'watchTrades': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -75,7 +76,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         e: 'BALANCE',
@@ -169,7 +170,7 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#watchOrders
@@ -202,7 +203,7 @@ export default class bitrue extends bitrueRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //    {
         //        e: 'ORDER',
@@ -297,7 +298,7 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrderBook() requires a symbol argument');
         }
@@ -319,7 +320,7 @@ export default class bitrue extends bitrueRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "channel": "market_ethbtc_simple_depth_step0",
@@ -386,7 +387,7 @@ export default class bitrue extends bitrueRest {
         return this.safeString (statuses, status, status);
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         this.spawn (this.pong, client, message);
     }
 
@@ -403,7 +404,7 @@ export default class bitrue extends bitrueRest {
         await client.send (pong);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if ('channel' in message) {
             this.handleOrderBook (client, message);
         } else if ('ping' in message) {

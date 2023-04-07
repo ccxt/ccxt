@@ -13,7 +13,6 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha1 } from './static_dependencies/noble-hashes/sha1.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class zb extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -3680,7 +3679,7 @@ export default class zb extends Exchange {
         const notional = this.safeNumber(position, 'nominalValue');
         const percentage = Precise.stringMul(this.safeString(position, 'returnRate'), '100');
         const timestamp = this.safeNumber(position, 'createTime');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3695,6 +3694,7 @@ export default class zb extends Exchange {
             'marginMode': marginMode,
             'notional': notional,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': undefined,
@@ -3703,7 +3703,8 @@ export default class zb extends Exchange {
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
     parseLedgerEntryType(type) {
         const types = {

@@ -5,10 +5,11 @@ import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bitopro extends bitoproRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -52,7 +53,7 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#watchOrderBook
@@ -81,7 +82,7 @@ export default class bitopro extends bitoproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         event: 'ORDER_BOOK',
@@ -118,7 +119,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitopro#watchTrades
@@ -140,7 +141,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         event: 'TRADE',
@@ -179,7 +180,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (tradesCache, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitopro#watchTicker
@@ -195,7 +196,7 @@ export default class bitopro extends bitoproRest {
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         event: 'TICKER',
@@ -277,7 +278,7 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //     {
         //         event: 'ACCOUNT_BALANCE',
@@ -318,7 +319,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (this.balance, event);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

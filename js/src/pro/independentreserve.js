@@ -9,7 +9,6 @@ import independentreserveRest from '../independentreserve.js';
 import { NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class independentreserve extends independentreserveRest {
     describe() {
         return this.deepExtend(super.describe(), {

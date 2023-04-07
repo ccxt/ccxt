@@ -5,7 +5,7 @@ import asTable from 'as-table'
 import ololog from 'ololog'
 import util from 'util'
 import { execSync } from 'child_process'
-import ccxt from '../../ts/ccxt.js'
+import ccxt from '../../js/ccxt.js'
 import { Agent } from 'https'
 
 ansi.nice

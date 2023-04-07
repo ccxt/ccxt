@@ -8,7 +8,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class yobit extends yobit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1065,7 +1064,7 @@ class yobit extends yobit$1 {
             'pair': market['id'],
         };
         if (limit !== undefined) {
-            request['count'] = parseInt(limit);
+            request['count'] = limit;
         }
         if (since !== undefined) {
             request['since'] = this.parseToInt(since / 1000);

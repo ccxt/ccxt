@@ -92,7 +92,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // subscription
         //     {
@@ -147,7 +147,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.deribit.com/#ticker-instrument_name-$interval
@@ -179,7 +179,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',
@@ -219,7 +219,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($ticker, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -254,7 +254,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -298,7 +298,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->trades[$symbol], $channel);
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
@@ -333,7 +333,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -385,7 +385,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($cachedTrades, $channel);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
@@ -419,7 +419,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //  snapshot
         //     {
@@ -519,7 +519,7 @@ class deribit extends \ccxt\async\deribit {
         }
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
@@ -558,7 +558,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         // Does not return a snapshot of current $orders
         //
         //     {
@@ -613,7 +613,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($this->orders, $channel);
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
@@ -651,7 +651,7 @@ class deribit extends \ccxt\async\deribit {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',
@@ -694,7 +694,7 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($stored, $channel);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         // $error
         //     {
@@ -789,7 +789,7 @@ class deribit extends \ccxt\async\deribit {
         return $message;
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         //
         //     {
         //         jsonrpc => '2.0',

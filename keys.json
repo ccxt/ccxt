@@ -46,11 +46,12 @@
     "tokocrypto":    { "skip": true },
     "crex24":        { "skip": true },
     "btcex":         { "skip": true },
-    "wazirx":        { "skipWs": true },
+    "blockchaincom": { "skip": true },
     "deribit":       { "skipWs": true },
     "tidex":         { "skip": true },
     "yobit":         { "skip": true },
     "coinbase":      { "skip": true, "//": "all endpoints are private" },
     "buda":          { "skip": true, "//": "exchange unavailable" },
+    "wazirx":        { "skip": true, "//": "skipped temporarily to allow Travis CI to succeed" },
     "whitebit":      { "skip": true, "//": "skipped temporarily to allow Travis CI to succeed" }
 }

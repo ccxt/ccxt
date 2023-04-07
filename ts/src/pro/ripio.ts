@@ -3,10 +3,11 @@
 
 import ripioRest from '../ripio.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class ripio extends ripioRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -28,7 +29,7 @@ export default class ripio extends ripioRest {
         });
     }
 
-    async watchTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -48,7 +49,7 @@ export default class ripio extends ripioRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message, subscription) {
+    handleTrade (client: Client, message, subscription) {
         //
         //     {
         //         messageId: 'CAAQAA==',
@@ -90,7 +91,7 @@ export default class ripio extends ripioRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name ripio#watchTicker
@@ -114,7 +115,7 @@ export default class ripio extends ripioRest {
         return await this.watch (url, messageHash, undefined, messageHash, subscription);
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         //     {
         //         messageId: 'CAAQAA==',
@@ -151,7 +152,7 @@ export default class ripio extends ripioRest {
         return message;
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ripio#watchOrderBook
@@ -207,7 +208,7 @@ export default class ripio extends ripioRest {
         }
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
         const orderbook = this.safeValue (this.orderbooks, symbol);
@@ -223,7 +224,7 @@ export default class ripio extends ripioRest {
         return message;
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
         //         messageId: 'CAAQAA==',
@@ -279,7 +280,7 @@ export default class ripio extends ripioRest {
         await client.send ({ 'messageId': messageId });
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //     {
         //         messageId: 'CAAQAA==',

@@ -6,7 +6,6 @@ var errors = require('../base/errors.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitrue extends bitrue$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -18,7 +17,7 @@ class bitrue extends bitrue$1 {
                 'watchTrades': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {

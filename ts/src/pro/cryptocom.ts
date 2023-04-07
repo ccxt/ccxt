@@ -5,10 +5,11 @@ import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class cryptocom extends cryptocomRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -51,7 +52,7 @@ export default class cryptocom extends cryptocomRest {
         await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOrderBook
@@ -72,7 +73,7 @@ export default class cryptocom extends cryptocomRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message) {
+    handleOrderBookSnapshot (client: Client, message) {
         // full snapshot
         //
         // {
@@ -113,7 +114,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchTrades
@@ -138,7 +139,7 @@ export default class cryptocom extends cryptocomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         // {
         //     code: 0,
@@ -181,7 +182,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, channel);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchMyTrades
@@ -208,7 +209,7 @@ export default class cryptocom extends cryptocomRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name cryptocom#watchTicker
@@ -226,7 +227,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchPublic (messageHash, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         // {
         //     "info":{
@@ -262,7 +263,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOHLCV
@@ -289,7 +290,7 @@ export default class cryptocom extends cryptocomRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //  {
         //       instrument_name: 'BTC_USDT',
@@ -322,7 +323,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOrders
@@ -349,7 +350,7 @@ export default class cryptocom extends cryptocomRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message, subscription = undefined) {
+    handleOrders (client: Client, message, subscription = undefined) {
         //
         // {
         //     "method": "subscribe",
@@ -412,7 +413,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchPrivate (messageHash, params);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         // {
         //     "method": "subscribe",
@@ -477,7 +478,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         // {
         //     id: 0,
         //     code: 10004,
@@ -509,7 +510,7 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         // ping
         // {
         //     "id": 1587523073344,
@@ -596,11 +597,11 @@ export default class cryptocom extends cryptocomRest {
         return future;
     }
 
-    handlePing (client, message) {
+    handlePing (client: Client, message) {
         this.spawn (this.pong, client, message);
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //  { id: 1648132625434, method: 'public/auth', code: 0 }
         //

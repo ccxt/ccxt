@@ -9,7 +9,6 @@ import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------xs
-// @ts-expect-error
 export default class alpaca extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -327,7 +326,7 @@ export default class alpaca extends Exchange {
             request['start'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
         const response = await this[method](this.extend(request, params));

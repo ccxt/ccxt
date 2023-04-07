@@ -123,7 +123,7 @@ class bybit extends \ccxt\async\bybit {
         return $requestId;
     }
 
-    public function get_url_by_market_type($symbol = null, $isPrivate = false, $method = null, $params = array ()) {
+    public function get_url_by_market_type(?string $symbol = null, $isPrivate = false, $method = null, $params = array ()) {
         $accessibility = $isPrivate ? 'private' : 'public';
         $isUsdcSettled = null;
         $isSpot = null;
@@ -164,7 +164,7 @@ class bybit extends \ccxt\async\bybit {
         return $params;
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -190,7 +190,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         // linear
         //     {
@@ -320,7 +320,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve ($this->tickers[$symbol], $messageHash);
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -350,7 +350,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         "topic" => "kline.5.BTCUSDT",
@@ -427,7 +427,7 @@ class bybit extends \ccxt\async\bybit {
         );
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -463,7 +463,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         "topic" => "orderbook.50.BTCUSDT",
@@ -537,7 +537,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
@@ -563,7 +563,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "topic" => "publicTrade.BTCUSDT",
@@ -687,7 +687,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -722,7 +722,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_my_trades($client, $message) {
+    public function handle_my_trades(Client $client, $message) {
         //
         // $spot
         //    {
@@ -815,7 +815,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -849,7 +849,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_order($client, $message, $subscription = null) {
+    public function handle_order(Client $client, $message, $subscription = null) {
         //
         //     spot
         //     {
@@ -1113,7 +1113,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // spot
         //    {
@@ -1385,7 +1385,7 @@ class bybit extends \ccxt\async\bybit {
         return $future;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //   {
         //       $success => false,
@@ -1443,7 +1443,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -1514,7 +1514,7 @@ class bybit extends \ccxt\async\bybit {
         );
     }
 
-    public function handle_pong($client, $message) {
+    public function handle_pong(Client $client, $message) {
         //
         //   {
         //       success => true,
@@ -1529,7 +1529,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //    {
         //        $success => true,
@@ -1552,7 +1552,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //    {
         //        topic => 'kline',

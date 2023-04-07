@@ -10,8 +10,8 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { rsa } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bybit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -176,6 +176,8 @@ export default class bybit extends Exchange {
                         'spot/v3/public/quote/ticker/bookTicker': 1,
                         'spot/v3/public/server-time': 1,
                         'spot/v3/public/infos': 1,
+                        'spot/v3/public/margin-product-infos': 1,
+                        'spot/v3/public/margin-ensure-tokens': 1,
                         // data
                         'v2/public/time': 1,
                         'v3/public/time': 1,
@@ -235,6 +237,7 @@ export default class bybit extends Exchange {
                         'v5/market/delivery-price': 1,
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
+                        'v5/announcements/index': 1,
                     },
                 },
                 'private': {
@@ -298,6 +301,9 @@ export default class bybit extends Exchange {
                         'spot/v3/private/cross-margin-account': 10,
                         'spot/v3/private/cross-margin-loan-info': 10,
                         'spot/v3/private/cross-margin-repay-history': 10,
+                        'spot/v3/private/margin-loan-infos': 10,
+                        'spot/v3/private/margin-repaid-infos': 10,
+                        'spot/v3/private/margin-ltv': 10,
                         // account
                         'asset/v1/private/transfer/list': 50,
                         'asset/v3/private/transfer/inter-transfer/list/query': 0.84,
@@ -739,6 +745,7 @@ export default class bybit extends Exchange {
                     '131097': ExchangeError,
                     '131098': ExchangeError,
                     '131099': ExchangeError,
+                    '140001': OrderNotFound,
                     '140003': InvalidOrder,
                     '140004': InsufficientFunds,
                     '140005': InvalidOrder,
@@ -2225,12 +2232,15 @@ export default class bybit extends Exchange {
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
+        if (limit === undefined) {
+            limit = 200;
+        }
         const request = {
-        // 'category': '', // Product type. linear,inverse
-        // 'symbol': '', // Symbol name
-        // 'startTime': 0, // The start timestamp (ms)
-        // 'endTime': 0, // The end timestamp (ms)
-        // 'limit': 0, // Limit for data size per page. [1, 200]. Default: 200
+            // 'category': '', // Product type. linear,inverse
+            // 'symbol': '', // Symbol name
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            'limit': limit, // Limit for data size per page. [1, 200]. Default: 200
         };
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -2253,8 +2263,12 @@ export default class bybit extends Exchange {
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        else {
+            if (since !== undefined) {
+                // end time is required when since is not empty
+                const fundingInterval = 60 * 60 * 8 * 1000;
+                request['endTime'] = since + limit * fundingInterval;
+            }
         }
         const response = await this.publicGetV5MarketFundingHistory(this.extend(request, params));
         //
@@ -3195,7 +3209,7 @@ export default class bybit extends Exchange {
         const cost = this.safeString(order, 'cumExecValue');
         const filled = this.safeString(order, 'cumExecQty');
         const remaining = this.safeString(order, 'leavesQty');
-        const lastTradeTimestamp = this.safeInteger(order, 'updateTime');
+        const lastTradeTimestamp = this.safeInteger(order, 'updatedTime');
         const rawStatus = this.safeString(order, 'orderStatus');
         const status = this.parseOrderStatus(rawStatus);
         const side = this.safeStringLower(order, 'side');
@@ -3561,7 +3575,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16();
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostV5OrderCreate(this.extend(request, params));
         //
         //     {
@@ -3755,7 +3769,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16();
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostUnifiedV3PrivateOrderCreate(this.extend(request, params));
         //
         //     {
@@ -3861,7 +3875,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16();
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostContractV3PrivateOrderCreate(this.extend(request, params));
         //
         //     {
@@ -3968,7 +3982,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16();
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit']);
         const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
         const response = await this[method](this.extend(request, params));
         //
@@ -4724,14 +4738,16 @@ export default class bybit extends Exchange {
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: spot, linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, // Return all status orders if not passed
-        // 'orderFilter': string, Conditional order or active order
+        // 'category', Type of derivatives product: spot, linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderStatus', // Return all status orders if not passed
+        // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'startTime': 0, // The start timestamp (ms) Support UTA only temporarily startTime and endTime must be passed together If not passed, query the past 7 days data by default
+        // 'endTime': 0, // The end timestamp (ms)
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4773,6 +4789,20 @@ export default class bybit extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit(params, ['endTime', 'till', 'until']);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        else {
+            if (since !== undefined) {
+                throw new BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
+            }
         }
         const response = await this.privateGetV5OrderHistory(this.extend(request, params));
         //
@@ -4833,15 +4863,15 @@ export default class bybit extends Exchange {
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
-        // 'orderFilter': string, Conditional order or active order
-        // 'direction': string, prev: prev, next: next.
+        // 'category', Type of derivatives product: linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderStatus', Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
+        // 'orderFilter', Conditional order or active order
+        // 'direction', prev: prev, next: next.
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4923,14 +4953,14 @@ export default class bybit extends Exchange {
         let market = undefined;
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: spot, linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderStatus': string, // Return all status orders if not passed
-        // 'orderFilter': string, Conditional order or active order
+        // 'category', Type of derivatives product: spot, linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderStatus', // Return all status orders if not passed
+        // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
         if (symbol === undefined) {
             let type = undefined;
@@ -5173,14 +5203,14 @@ export default class bybit extends Exchange {
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderFilter': string, Conditional order or active order
+        // 'category', Type of derivatives product: linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'settleCoin', Settle coin. For linear, either symbol or settleCoin is required
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         // 'openOnly': 0,
         };
         let market = undefined;
@@ -5419,14 +5449,14 @@ export default class bybit extends Exchange {
         let settle = undefined;
         const request = {
         // 'symbol': market['id'],
-        // 'category': string, Type of derivatives product: linear or option.
-        // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-        // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
-        // 'orderId': string, Order ID
-        // 'orderLinkId': string, Unique user-set order ID
-        // 'orderFilter': string, Conditional order or active order
+        // 'category', Type of derivatives product: linear or option.
+        // 'baseCoin', Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+        // 'settleCoin', Settle coin. For linear, either symbol or settleCoin is required
+        // 'orderId', Order ID
+        // 'orderLinkId', Unique user-set order ID
+        // 'orderFilter', Conditional order or active order
         // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
-        // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         // 'openOnly': 0,
         };
         if (symbol !== undefined) {
@@ -7270,7 +7300,7 @@ export default class bybit extends Exchange {
         let maintenanceMarginString = this.safeString(position, 'positionMM');
         let timestamp = this.parse8601(this.safeString(position, 'updated_at'));
         if (timestamp === undefined) {
-            timestamp = this.safeInteger(position, 'updatedAt');
+            timestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt']);
         }
         // default to cross of USDC margined positions
         const tradeMode = this.safeInteger(position, 'tradeMode', 0);
@@ -7315,14 +7345,14 @@ export default class bybit extends Exchange {
             }
         }
         const maintenanceMarginPercentage = Precise.stringDiv(maintenanceMarginString, notional);
-        const percentage = Precise.stringMul(Precise.stringDiv(unrealisedPnl, initialMarginString), '100');
         const marginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise.stringDiv(initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -7336,11 +7366,12 @@ export default class bybit extends Exchange {
             'marginRatio': this.parseNumber(marginRatio),
             'liquidationPrice': this.parseNumber(liquidationPrice),
             'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': undefined,
             'collateral': this.parseNumber(collateralString),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -8312,7 +8343,14 @@ export default class bybit extends Exchange {
                     authFull = auth_base + queryEncoded;
                     url += '?' + this.rawencode(query);
                 }
-                headers['X-BAPI-SIGN'] = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
+                let signature = undefined;
+                if (this.secret.indexOf('PRIVATE KEY') > -1) {
+                    signature = rsa(authFull, this.secret, sha256);
+                }
+                else {
+                    signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
+                }
+                headers['X-BAPI-SIGN'] = signature;
             }
             else {
                 const query = this.extend(params, {
@@ -8322,7 +8360,13 @@ export default class bybit extends Exchange {
                 });
                 const sortedQuery = this.keysort(query);
                 const auth = this.rawencode(sortedQuery);
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                let signature = undefined;
+                if (this.secret.indexOf('PRIVATE KEY') > -1) {
+                    signature = rsa(auth, this.secret, sha256);
+                }
+                else {
+                    signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                }
                 if (method === 'POST') {
                     const isSpot = url.indexOf('spot') >= 0;
                     const extendedQuery = this.extend(query, {

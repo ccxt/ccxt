@@ -10,7 +10,6 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class zb extends zb$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -3677,7 +3676,7 @@ class zb extends zb$1 {
         const notional = this.safeNumber(position, 'nominalValue');
         const percentage = Precise["default"].stringMul(this.safeString(position, 'returnRate'), '100');
         const timestamp = this.safeNumber(position, 'createTime');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3692,6 +3691,7 @@ class zb extends zb$1 {
             'marginMode': marginMode,
             'notional': notional,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': undefined,
@@ -3700,7 +3700,8 @@ class zb extends zb$1 {
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
     parseLedgerEntryType(type) {
         const types = {
