@@ -2143,10 +2143,10 @@ export default class poloniex extends Exchange {
         //     }
         //
         if ('code' in response) {
-            const code = response['code'];
+            const codeInner = response['code'];
             const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeInner, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

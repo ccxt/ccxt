@@ -1,6 +1,6 @@
-﻿using Main;
-using System;
+﻿using System;
 using System.Reflection;
+using Main;
 namespace Tests; // Note: actual namespace depends on the project name.
 
 using dict = Dictionary<string, object>;
@@ -27,7 +27,7 @@ public class Tests
     public static bool sandbox = false;
     public static bool privateTests = false;
     public static bool privateOnly = false;
-    public static bool baseTests = false;
+    public static bool baseTests = true;
 
     public static BaseTest tests = new BaseTest();
 
@@ -49,7 +49,7 @@ public class Tests
         {
             exchangeId = argsWithoutOptions[0];
         }
-        else if (!baseTests)
+        else if (false && !baseTests)
         {
             throw new Exception("Exchange name is required");
         }
@@ -57,6 +57,11 @@ public class Tests
         {
             symbol = argsWithoutOptions[1];
         }
+    }
+
+    static async Task<bool> YourMethodName()
+    {
+        return true;
     }
 
     static void ReadConfig()
@@ -67,16 +72,21 @@ public class Tests
         List<string> strings = ids.Select(s => (string)s).ToList();
         exchangesId = strings;
 
-        var keysFile = File.ReadAllText(keysPath);
-        dict keys = Exchange.JsonHelper.Deserialize(keysFile);
-        nestedDict parsedKey = new nestedDict();
-        foreach (var key in keys)
-        {
-            var exchangeId = key.Key;
-            var exchangeKeys = (dict)key.Value;
-            parsedKey[exchangeId] = exchangeKeys;
-        }
-        exchanges = keys;
+        // var keysFile = File.ReadAllText(keysPath);
+        // dict keys = Exchange.JsonHelper.Deserialize(keysFile);
+        // nestedDict parsedKey = new nestedDict();
+        // foreach (var key in keys)
+        // {
+        //     var exchangeId = key.Key;
+        //     var exchangeKeys = (dict)key.Value;
+        //     parsedKey[exchangeId] = exchangeKeys;
+        // }
+        // exchanges = keys;
+        var x = 1;
+        var teste = typeof(Tests).GetMethod("YourMethodName", BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(null, new object[] { });
+        var res = (Task<bool>)typeof(Tests).GetMethod("YourMethodName", BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(null, new object[] { });
+        res.Wait();
+        Console.WriteLine(res.Result);
     }
 
     static void CheckIfShouldSkip(Exchange exchange)

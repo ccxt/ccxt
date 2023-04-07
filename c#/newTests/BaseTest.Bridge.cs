@@ -30,11 +30,17 @@ public class Helper
 
 public partial class BaseTest
 {
-    public static void Assert(bool condition)
+    public static void Assert(bool condition, object message2 = null)
     {
+        var message = message2?.ToString();
         if (!condition)
         {
-            throw new Exception("Assertion failed");
+            var errorMessage = "Assertion failed";
+            if (message != null)
+            {
+                errorMessage += ": " + message;
+            }
+            throw new Exception(errorMessage);
         }
     }
 }
@@ -67,7 +73,16 @@ public partial class BaseTest
 {
 
     // bridges to make auxiliary methods available in tests
-
+    public object getValue(object a, object b) => Exchange.GetValue(a, b);
+    public object getArrayLength(object a) => Exchange.getArrayLength(a);
+    public bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);
+    public bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
+    public bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
+    public bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
+    public object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
+    public object add(object a, object b) => Exchange.add(a, b);
+    public object subtract(object a, object b) => Exchange.subtract(a, b);
+    public string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
     public static object encode(object a) => a;
