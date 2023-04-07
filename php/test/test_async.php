@@ -70,7 +70,8 @@ function method_namer_in_test($methodName) {
 define('rootDir', __DIR__ . '/../../');
 
 foreach (glob(__DIR__ . '/test_*.php') as $filename) {
-    if (strpos($filename, 'test_async') === false && strpos($filename, 'test_sync') === false && strpos($filename, 'datetime_functions') === false) {
+    $basename = basename($filename);
+    if (!in_array($basename, ['test_async.php', 'test_sync.php', 'datetime_functions.php', 'test_throttle.php'])) {
         if (
             (is_sync && stripos($filename, '_async') === false) 
                 ||
