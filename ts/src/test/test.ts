@@ -63,7 +63,7 @@ const AuthenticationError = errorsHierarchy.AuthenticationError;
 const rootDir = __dirname + '/../../../';
 const envVars = process.env;
 
-class emptyClass {}
+class baseMainTestClass {}
 
 function dump (...args) {
     console.log (...args);
@@ -113,7 +113,7 @@ var exports = {};
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 
-export default class testMainClass extends emptyClass {
+export default class testMainClass extends baseMainTestClass {
 
     async init (exchange, symbol) {
         this.expandSettings(exchange, symbol);

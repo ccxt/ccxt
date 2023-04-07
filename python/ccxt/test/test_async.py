@@ -127,7 +127,7 @@ rootDir = current_dir + '/../../'
 envVars = {}
 
 
-class emptyClass():
+class baseMainTestClass():
     pass
 
 
@@ -182,7 +182,7 @@ import asyncio
 from ccxt.base.errors import AuthenticationError
 
 
-class testMainClass(emptyClass):
+class testMainClass(baseMainTestClass):
 
     async def init(self, exchange, symbol):
         self.expand_settings(exchange, symbol)
