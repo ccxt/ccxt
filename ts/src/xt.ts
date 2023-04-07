@@ -3128,7 +3128,7 @@ export default class xt extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit, params);
     }
 
-    async withdraw (code, amount, address, tag: string = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name xt#withdraw
