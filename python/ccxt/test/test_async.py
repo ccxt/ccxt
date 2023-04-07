@@ -83,7 +83,7 @@ for file_path in glob.glob(current_dir + '/test_*.py'):
             finalName = name
         if finalName:
             imp = importlib.import_module(name)
-            testFiles[finalName] = imp #  getattr(imp, finalName)
+            testFiles[finalName] = imp  #  getattr(imp, finalName)
 
 
 # print a colored string
