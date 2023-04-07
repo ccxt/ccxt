@@ -174,7 +174,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const name = 'trades';
+        const name = 'trade';
         const trades = await this.subscribePublic (name, [ symbol ], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -281,17 +281,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //                "qty": 440,
         //                "price": 34893
         //            },
-        //            {
-        //                "feed": "trade",
-        //                "product_id": "PI_XBTUSD",
-        //                "uid": "45ee9737-1877-4682-bc68-e4ef818ef88a",
-        //                "side": "sell",
-        //                "type": "fill",
-        //                "seq": 655507,
-        //                "time": 1612269656839,
-        //                "qty": 9643,
-        //                "price": 34891
-        //            }
+        //            ...
         //        ]
         //    }
         //
@@ -309,24 +299,30 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "price": 34969.5
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const marketId = this.safeString (item, 'symbol');
-            if (marketId !== undefined) {
-                const trade = this.parseWsTrade (item);
-                const symbol = trade['symbol'];
-                const type = 'trades';
-                const messageHash = type + ':' + marketId;
-                let tradesArray = this.safeValue (this.trades, symbol);
-                if (tradesArray === undefined) {
-                    const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                    tradesArray = new ArrayCache (tradesLimit);
-                    this.trades[symbol] = tradesArray;
-                }
-                tradesArray.append (trade);
-                client.resolve (tradesArray, messageHash);
+        const channel = this.safeString (message, 'feed');
+        const marketId = this.safeStringLower (message, 'product_id');
+        if (marketId !== undefined) {
+            const messageHash = 'trade:' + marketId;
+            const market = this.market (marketId);
+            const symbol = market['symbol'];
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                tradesArray = new ArrayCache (tradesLimit);
+                this.trades[symbol] = tradesArray;
             }
+            if (channel === 'trade_snapshot') {
+                const trades = this.safeValue (message, 'trades', []);
+                for (let i = 0; i < trades.length; i++) {
+                    const item = trades[i];
+                    const trade = this.parseWsTrade (item);
+                    tradesArray.append (trade);
+                }
+            } else {
+                const trade = this.parseWsTrade (message);
+                tradesArray.append (trade);
+            }
+            client.resolve (tradesArray, messageHash);
         }
         return message;
     }
@@ -334,32 +330,33 @@ export default class krakenfutures extends krakenfuturesRest {
     parseWsTrade (trade, market = undefined) {
         //
         //    {
-        //        symbol: 'BTC_USDT',
-        //        amount: '13.41634893',
-        //        quantity: '0.000537',
-        //        takerSide: 'buy',
-        //        createTime: 1676950548834,
-        //        price: '24983.89',
-        //        id: '62486976',
-        //        ts: 1676950548839
+        //        "feed": "trade",
+        //        "product_id": "PI_XBTUSD",
+        //        "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        //        "side": "sell",
+        //        "type": "fill",
+        //        "seq": 655508,
+        //        "time": 1612269657781,
+        //        "qty": 440,
+        //        "price": 34893
         //    }
         //
-        const marketId = this.safeString (trade, 'symbol');
+        const marketId = this.safeStringLower (trade, 'product_id');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const timestamp = this.safeInteger (trade, 'time');
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString (trade, 'uid'),
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': undefined,
-            'type': this.safeStringLower (trade, 'type'),
-            'side': this.safeString (trade, 'takerSide'),
+            'type': this.safeString (trade, 'type'),
+            'side': this.safeString (trade, 'side'),
             'takerOrMaker': 'taker',
             'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'quantity'),
-            'cost': this.safeString (trade, 'amount'),
+            'amount': this.safeString (trade, 'qty'),
+            'cost': undefined,
             'fee': {
                 'rate': undefined,
                 'cost': undefined,
