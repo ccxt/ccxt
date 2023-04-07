@@ -11,7 +11,10 @@ import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler} from "./transpile.js";
+import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
+
+const promisedWriteFile = promisify (fs.writeFile);
 
 const tsFilename = './ccxt.d.ts'
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
@@ -339,9 +342,9 @@ class NewTranspiler {
     createExchangesWrappers(): string[] {
         // in csharp classes should be Capitalized, so I'm creating a wrapper class for each exchange
         const res: string[] = ['// class wrappers'];
-        exchanges.ids.forEach(exchange => {
+        exchanges.forEach(exchange => {
             const capitalizedExchange = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-            res.push(`public class ${capitalizedExchange} : ${exchange} { }`)
+            res.push(`public class ${capitalizedExchange.replace('.ts','')} : ${exchange.replace('.ts','')} { }`)
         });
         return res;
     }
@@ -481,14 +484,19 @@ class NewTranspiler {
             createFolderRecursively (csharpFolder)
         }
 
-        // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        const options = { csharpFolder, exchanges }
+
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
         }
 
         // crypto, precision, datetime
-        this.transpileBaseTestsToCSharp();
+        // this.transpileBaseTestsToCSharp();
+
+        // Exchange tests
+        // this.transpileExchangeTestsToCsharp();
 
         this.transpileBaseMethods (exchangeBase)
 
@@ -586,10 +594,10 @@ class NewTranspiler {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpilePrecisionTestsToCSharp () {
+    transpilePrecisionTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/test/base/functions/test.number.ts';
-        const csharpFile = './c#/newTests/Generated/Precision.cs';
+        const csharpFile = `${outDir}/Precision.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -622,10 +630,10 @@ class NewTranspiler {
         overwriteFile (csharpFile, file);
     }
 
-    transpileCryptoTestsToCSharp () {
+    transpileCryptoTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/test/base/functions/test.crypto.ts';
-        const csharpFile = './c#/newTests/Generated/Crypto.cs';
+        const csharpFile = `${outDir}/Crypto.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -658,10 +666,58 @@ class NewTranspiler {
         overwriteFile (csharpFile, file);
     }
 
-    transpileDatetimeTestsToCSharp () {
+    transpileExchangeTest(name: string, path: string): [string, string] {
+        const csharp = this.transpiler.transpileCSharpByPath(path);
+        let content = csharp.content;
+
+        const parsedName = name.replace('.ts', '');
+        const parsedParts = parsedName.split('.');
+        const finalName = parsedParts[0] + this.capitalize(parsedParts[1]);
+
+        content = this.regexAll (content, [
+            [/assert/g, 'Assert'],
+            [/object exchange/g, 'Exchange exchange'],
+            [/function test/g, finalName],
+        ]).trim ()
+
+        const contentLines = content.split ('\n');
+        const contentIdented = contentLines.map (line => '    ' + line).join ('\n');
+
+        const file = [
+            'using Main;',
+            'namespace Tests;',
+            'using System;',
+            'using System.Collections.Generic;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            'public partial class BaseTest',
+            '{',
+            contentIdented,
+            '}',
+        ].join('\n')
+        return [finalName, file];
+    }
+
+    async transpileExchangeTestsToCsharp() {
+        const inputDir = './ts/src/test/exchange/';
+        const outDir = `./c#/newTests/Generated/Exchange/`;
+        const ignore = [
+            'exportTests.ts',
+            'test.fetchLedger.ts',
+            'test.throttler.ts',
+            'test.fetchOrderBooks.ts', // uses spread operator
+        ]
+
+        const inputFiles = fs.readdirSync('./ts/src/test/exchange');
+        const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
+        const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
+        await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.cs', file[1])))
+    }
+
+    transpileDatetimeTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/test/base/functions/test.datetime.ts';
-        const csharpFile = './c#/newTests/Generated/Datetime.cs';
+        const csharpFile = `${outDir}/Datetime.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -695,9 +751,14 @@ class NewTranspiler {
     }
 
     transpileBaseTestsToCSharp () {
-        this.transpilePrecisionTestsToCSharp();
-        this.transpileCryptoTestsToCSharp();
-        this.transpileDatetimeTestsToCSharp();
+        const outDir = `./c#/newTests/Generated/Base`;
+        this.transpilePrecisionTestsToCSharp(outDir);
+        this.transpileCryptoTestsToCSharp(outDir);
+        this.transpileDatetimeTestsToCSharp(outDir);
+    }
+
+    capitalize(s: string) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
     }
 }
 
