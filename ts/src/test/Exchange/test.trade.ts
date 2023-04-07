@@ -14,6 +14,8 @@ function testTrade (exchange, method, entry, symbol, now) {
         'price': exchange.parseNumber ('0.06917684'), // float price in quote currency
         'amount': exchange.parseNumber ('1.5'), // amount of base currency
         'cost': exchange.parseNumber ('0.10376526'), // total cost (including fees), `price * amount`
+        'fees': [],
+        'fee': {},
     };
     // todo: add takeOrMaker as mandatory set
     const emptyNotAllowedFor = [ 'side', 'price', 'amount', 'cost' ];
