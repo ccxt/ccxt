@@ -556,8 +556,7 @@
 		"skipWs": true,
 		"skipMethods": {
 			"fetchTrades": "side is not buy/sell",
-			"fetchTickers": "quoteVolume >= baseVolume * low  is incorrect",
-			"fetchTrades": "same"
+			"fetchTickers": "quoteVolume >= baseVolume * low  is incorrect"
 		}
 	},
 	"oceanex": {
