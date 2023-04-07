@@ -42,8 +42,8 @@ let symbol = 'all'
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
-    if (arg in exchangeSpecificFlags) { exchangeSpecificFlags[arg] = true }
-    else if (arg.startsWith ('--'))               { keys[arg] = true }
+    if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
+    else if (arg.startsWith ('--'))          { keys[arg] = true }
     else if (arg.includes ('/'))             { symbol = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
@@ -190,9 +190,13 @@ const testExchange = async (exchange) => {
     numExchangesTested++
 
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
-
-    const warningMsg = warnings.length ? (warnings.map(
-        x=> x.includes('[SKIPPED]')? x.yellow : x.magenta).join (' ')) : 'WARN'.yellow
+    const warnStringify = (x)=> {
+        // temp debug
+        const w = warnings;
+        const ex = exchange;
+        return x.includes('[SKIPPED]')? x.yellow : x.magenta;
+    }
+    const warningMsg = warnings.length ? (warnings.map(warnStringify).join (' ')) : 'WARN'.yellow
     log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, failed ? 'FAIL'.red : (hasWarnings ? warningMsg : 'OK'.green))
 
 /*  Return collected data to main loop     */

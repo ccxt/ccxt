@@ -2,7 +2,7 @@
 
 use ccxt\async\Throttle;
 
-include '../../vendor/autoload.php';
+include __DIR__ . '/../../vendor/autoload.php';
 
 use Recoil\React\ReactKernel;
 use React\EventLoop\Loop;
