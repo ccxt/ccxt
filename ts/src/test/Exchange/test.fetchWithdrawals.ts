@@ -7,7 +7,6 @@ async function testFetchWithdrawals (exchange, code) {
     const method = 'fetchWithdrawals';
     const transactions = await exchange.fetchWithdrawals (code);
     assert (Array.isArray (transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (transactions));
-    console.log (exchange.id, method, 'fetched', transactions.length, 'entries, asserting each ...');
     const now = exchange.milliseconds ();
     for (let i = 0; i < transactions.length; i++) {
         testTransaction (exchange, method, transactions[i], code, now);
