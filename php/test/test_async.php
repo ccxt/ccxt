@@ -95,7 +95,10 @@ define('envVars', []);
 
 
 // non-transpiled commons
-class emptyClass {}
+class baseMainTestClass {
+    public $skippedMethods = [];
+    public $checkedPublicTests = [];
+}
 
 function io_file_exists($path) {
     return file_exists($path);
@@ -146,7 +149,7 @@ use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise;
 
-class testMainClass extends emptyClass {
+class testMainClass extends baseMainTestClass {
 
     public function init($exchange, $symbol) {
         return Async\async(function () use ($exchange, $symbol) {
