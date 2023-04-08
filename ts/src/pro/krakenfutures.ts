@@ -1099,31 +1099,30 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const rawTrades = this.safeValue (message, 'fills', []);
+        const trades = this.safeValue (message, 'fills', []);
         // if (rawTrades.length === 0) {
         //     return;
         // }
-        const messageHash = 'myTrades';
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCacheBySymbolById (limit);
             this.myTrades = stored;
         }
-        const trades = this.parseTrades (rawTrades);
         const tradeSymbols = {};
-        for (let j = 0; j < trades.length; j++) {
-            const trade = trades[j];
-            tradeSymbols[trade['symbol']] = true;
+        for (let i = 0; i < trades.length; i++) {
+            const trade = trades[i];
+            const parsedTrade = this.parseWsMyTrade (trade);
+            tradeSymbols[parsedTrade['symbol']] = true;
             stored.append (trade);
         }
-        const unique = Object.keys (tradeSymbols);
-        for (let i = 0; i < unique.length; i++) {
-            const symbol = unique[i];
-            const symbolSpecificMessageHash = messageHash + ':' + symbol;
-            client.resolve (stored, symbolSpecificMessageHash);
+        const tradeSymbolKeys = Object.keys (tradeSymbols);
+        for (let i = 0; i < tradeSymbolKeys.length; i++) {
+            const symbol = tradeSymbolKeys[i];
+            const messageHash = 'myTrades:' + symbol;
+            client.resolve (stored, messageHash);
         }
-        client.resolve (stored, messageHash);
+        client.resolve (stored, 'myTrades');
     }
 
     parseWsMyTrade (trade, market = undefined) {
