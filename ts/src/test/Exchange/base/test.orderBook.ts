@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import Precise from '../../base/Precise.js';
+import Precise from '../../../base/Precise.js';
 import testSharedMethods from './test.sharedMethods.js';
 
 function testOrderBook (exchange, method, entry, symbol) {

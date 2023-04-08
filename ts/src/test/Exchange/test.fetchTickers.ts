@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testTicker from './test.ticker.js';
+import testTicker from './base/test.ticker.js';
 
 async function testFetchTickers (exchange, symbol) {
     const method = 'fetchTickers';

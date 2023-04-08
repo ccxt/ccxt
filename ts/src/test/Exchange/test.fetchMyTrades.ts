@@ -1,7 +1,7 @@
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
-import testTrade from './test.trade.js';
+import testSharedMethods from './base/test.sharedMethods.js';
+import testTrade from './base/test.trade.js';
 
 async function testFetchMyTrades (exchange, symbol) {
     const method = 'fetchMyTrades';

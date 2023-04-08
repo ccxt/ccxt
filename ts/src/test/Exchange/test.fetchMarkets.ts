@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testMarket from './test.market.js';
+import testMarket from './base/test.market.js';
 
 async function testFetchMarkets (exchange) {
     const method = 'fetchMarkets';

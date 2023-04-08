@@ -1,11 +1,11 @@
-'use strict'
+'use strict';
 
 // ----------------------------------------------------------------------------
 
 import log from 'ololog';
 
 import assert from 'assert';
-import testBalance from '../../../test/Exchange/test.balance.js';
+import testBalance from '../../../test/Exchange/base/test.balance.js';
 import errors from '../../../base/errors.js';
 
 
@@ -13,38 +13,38 @@ import errors from '../../../base/errors.js';
 
 export default async (exchange) => {
 
-    const method = 'watchBalance'
+    const method = 'watchBalance';
 
     if (!exchange.has[method]) {
-        log (exchange.id, 'does not support', method + '() method')
-        return
+        log (exchange.id, 'does not support', method + '() method');
+        return;
     }
 
-    log ('watching balance...')
+    log ('watching balance...');
 
-    let now = Date.now ()
-    const ends = now + 10000
+    let now = Date.now ();
+    const ends = now + 10000;
 
     while (now < ends) {
 
         try {
 
-            const balance = await exchange[method] ()
+            const balance = await exchange[method] ();
 
-            log (exchange.iso8601 (now), exchange.id, method, balance)
+            log (exchange.iso8601 (now), exchange.id, method, balance);
 
-            testBalance (exchange, method, balance)
+            testBalance (exchange, method, balance);
 
         } catch (e) {
 
             if (!(e instanceof errors.NetworkError)) {
-                throw e
+                throw e;
             }
 
-            log.red (e)
+            log.red (e);
         }
 
-        now = Date.now ()
+        now = Date.now ();
     }
 
     /*

@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testAccount from './test.account.js';
+import testAccount from './base/test.account.js';
 
 async function testFetchAccounts (exchange) {
     const method = 'fetchAccounts';

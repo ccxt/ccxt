@@ -1,5 +1,5 @@
 
-import testTicker from './test.ticker.js';
+import testTicker from './base/test.ticker.js';
 
 async function testFetchTicker (exchange, symbol) {
     const method = 'fetchTicker';

@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testOrderBook from './test.orderBook.js';
+import testOrderBook from './base/test.orderBook.js';
 
 async function testFetchL2OrderBook (exchange, symbol) {
     const method = 'fetchL2OrderBook';

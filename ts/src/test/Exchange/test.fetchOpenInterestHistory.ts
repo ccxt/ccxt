@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testOpenInterest from './test.openInterest.js';
+import testOpenInterest from './base/test.openInterest.js';
 
 async function testFetchOpenInterestHistory (exchange, symbol) {
     const method = 'fetchOpenInterestHistory';

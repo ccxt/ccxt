@@ -1,7 +1,7 @@
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
-import testLedgerItem from './test.ledgerItem.js';
+import testSharedMethods from './base/test.sharedMethods.js';
+import testLedgerItem from './base/test.ledgerItem.js';
 
 async function testFetchLedger (exchange, code) {
     const method = 'fetchLedger';

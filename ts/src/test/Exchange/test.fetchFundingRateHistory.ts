@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import testFundingRateHistory from './test.fundingRateHistory.js';
-import testSharedMethods from './test.sharedMethods.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchFundingRateHistory (exchange, symbol) {
     const method = 'fetchFundingRateHistory';

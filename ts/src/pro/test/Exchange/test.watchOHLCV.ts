@@ -5,7 +5,7 @@
 import log from 'ololog';
 
 import assert from 'assert';
-import testOHLCV from '../../../test/Exchange/test.ohlcv.js';
+import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */

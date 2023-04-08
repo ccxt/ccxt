@@ -1,7 +1,7 @@
 
 import assert from 'assert';
-import testOrder from './test.order.js';
-import testSharedMethods from './test.sharedMethods.js';
+import testOrder from './base/test.order.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchClosedOrders (exchange, symbol) {
     const method = 'fetchClosedOrders';
