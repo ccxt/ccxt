@@ -189,7 +189,7 @@ export default class testMainClass extends baseMainTestClass {
             skipMessage = '[UNIMPLEMENTED]';
         }
         if (skipMessage) {
-            dump (skipMessage , exchange.id, methodNameInTest);
+            dump (skipMessage, exchange.id, methodNameInTest);
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
