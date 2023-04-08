@@ -193,9 +193,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        let name = this.safeString (this.options.watchOrderBook, 'name', 'book_lv2');
-        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
-        const orderbook = await this.subscribePublic (name, [ symbol ], params);
+        const orderbook = await this.subscribePublic ('book', [ symbol ], params);
         return orderbook.limit ();
     }
 
@@ -798,9 +796,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleOrderBook (client: Client, message) {
-        //
-        // snapshot
+    handleOrderBookSnapshot (client: Client, message) {
         //
         //    {
         //        "feed": "book_snapshot",
@@ -830,7 +826,35 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        // update
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'book:' + marketId;
+        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const limit = this.safeInteger (subscription, 'limit');
+        const timestamp = this.safeInteger (message, 'timestamp');
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        const bids = this.safeValue (message, 'bids');
+        const asks = this.safeValue (message, 'asks');
+        for (let i = 0; i < bids.length; i++) {
+            const bid = bids[i];
+            const price = this.safeNumber (bid, 'price');
+            const qty = this.safeNumber (bid, 'qty');
+            orderbook['bids'].store (price, qty);
+        }
+        for (let i = 0; i < asks.length; i++) {
+            const ask = asks[i];
+            const price = this.safeNumber (ask, 'price');
+            const qty = this.safeNumber (ask, 'qty');
+            orderbook['asks'].store (price, qty);
+        }
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleOrderBook (client: Client, message) {
         //
         //    {
         //        "feed": "book",
@@ -842,46 +866,23 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "timestamp": 1612269953629
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
-        const item = this.safeValue (data, 0, {});
-        const type = this.safeString (message, 'action');
-        const marketId = this.safeString (item, 'symbol');
+        const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const name = 'book_lv2';
-        const messageHash = name + ':' + marketId;
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const limit = this.safeInteger (subscription, 'limit');
-        const timestamp = this.safeInteger (item, 'ts');
-        const asks = this.safeValue (item, 'asks');
-        const bids = this.safeValue (item, 'bids');
-        const snapshot = type === 'snapshot';
-        const update = type === 'update';
-        if (snapshot || update) {
-            if (snapshot) {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-            const orderbook = this.orderbooks[symbol];
-            if (bids !== undefined) {
-                for (let i = 0; i < bids.length; i++) {
-                    const bid = this.safeValue (bids, i);
-                    const price = this.safeNumber (bid, 0);
-                    const amount = this.safeNumber (bid, 1);
-                    orderbook['bids'].store (price, amount);
-                }
-            }
-            if (asks !== undefined) {
-                for (let i = 0; i < asks.length; i++) {
-                    const ask = this.safeValue (asks, i);
-                    const price = this.safeNumber (ask, 0);
-                    const amount = this.safeNumber (ask, 1);
-                    orderbook['asks'].store (price, amount);
-                }
-            }
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            client.resolve (orderbook, messageHash);
+        const messageHash = 'book:' + marketId;
+        const orderbook = this.orderbooks[symbol];
+        const side = this.safeString (message, 'side');
+        const price = this.safeNumber (message, 'price');
+        const qty = this.safeNumber (message, 'qty');
+        const timestamp = this.safeInteger (message, 'timestamp');
+        if (side === 'sell') {
+            orderbook['asks'].store (price, qty);
+        } else {
+            orderbook['bids'].store (price, qty);
         }
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        client.resolve (orderbook, messageHash);
     }
 
     handleBalance (client: Client, message) {
@@ -1168,7 +1169,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 // 'heartbeat': this.handleStatus,
                 'ticker_lite': this.handleTicker,
                 'book': this.handleOrderBook,
-                'book_snapshot': this.handleOrderBook,
+                'book_snapshot': this.handleOrderBookSnapshot,
                 'open_orders_verbose': this.handleOrder,
                 'open_orders_verbose_snapshot': this.handleOrder,
                 'fills': this.handleMyTrades,
