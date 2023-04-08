@@ -54,7 +54,7 @@ nonce = argv.nonce
 exchangeName = argv.exchange
 exchangeSymbol = argv.symbol
 
-print('\nTESTING (PY)', { 'exchange': exchangeName, 'symbol': exchangeSymbol or 'all' }, '\n')
+print('\nTESTING (PY)', {'exchange': exchangeName, 'symbol': exchangeSymbol or 'all'}, '\n')
 
 exchange = getattr(ccxt, exchangeName)({'verbose': verbose})
 
@@ -72,20 +72,23 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 # to trick transpiler regexes, we have to: A) divide "token" and "bucket"; B)dont use word "a s y n c" together in the code
 is_asynchronous = ('token_' + 'bucket') in locals()
 
+skip_tests = ['test_throttle']
+
 import importlib  # noqa: E402
 import glob  # noqa: E402
 testFiles = {}
-for file_path in glob.glob(current_dir + '/test_*.py'):
-    name = os.path.basename(file_path)[:-3]
-    if not (name in ['test_async', 'test_sync', 'test_exchange_datetime_functions', 'test_base_functions_crypto', 'test_throttle', 'test_shared_methods',  'test_shared_methods_async', 'test_calculate_fee']):
-        finalName = None
-        if is_asynchronous and '_async' in name:
-            finalName = name.replace('_async', '')
-        elif not is_asynchronous and '_async' not in name:
-            finalName = name
-        if finalName:
-            imp = importlib.import_module(name)
-            testFiles[finalName] = imp  # getattr(imp, finalName)
+if is_asynchronous:
+    for file_path in glob.glob(current_dir + '/async/test_*.py'):
+        name = os.path.basename(file_path)[:-3]
+        if not (name in skip_tests):
+            imp = importlib.import_module('ccxt.test.async.' + name)
+            testFiles[name] = imp  # getattr(imp, finalName)
+else:
+    for file_path in glob.glob(current_dir + '/sync/test_*.py'):
+        name = os.path.basename(file_path)[:-3]
+        if not (name in skip_tests):
+            imp = importlib.import_module('ccxt.test.sync.' + name)
+            testFiles[name] = imp  # getattr(imp, finalName)
 
 
 # print a colored string
@@ -242,16 +245,16 @@ class testMainClass(baseMainTestClass):
             return
         skipMessage = None
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
-            skipMessage = '[UNSUPPORTED]'
+            skipMessage = '[UNSUPPORTED]  '  # keep it aligned with the longest message
         elif methodName in self.skippedMethods:
-            skipMessage = '[SKIPPED]'
+            skipMessage = '[SKIPPED]      '
         elif not (methodNameInTest in testFiles):
-            skipMessage = '[MISSING]'
+            skipMessage = '[UNIMPLEMENTED]'
         if skipMessage:
-            dump(skipMessage, exchange.id, methodNameInTest)
+            dump(skipMessage , exchange.id, methodNameInTest)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        dump('[TESTING]', exchange.id, methodNameInTest, argsStringified)
+        dump('[TESTING]      ', exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
             result = await call_method(methodNameInTest, exchange, args)
@@ -262,10 +265,6 @@ class testMainClass(baseMainTestClass):
             if not (isPublic and isAuthError):
                 dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
                 raise e
-            #  else {
-            #     dump('[Skipped private]', exchange.id, methodNameInTest, ' - method req' + 'uires authentication, skipped from public tests')
-            #     # do not raise exception from here,'s public test and exception is destined to be thrown from private
-            # }
         return result
 
     async def test_safe(self, methodName, exchange, args, isPublic):
