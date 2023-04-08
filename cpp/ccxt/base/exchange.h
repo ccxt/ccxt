@@ -7,20 +7,15 @@
 #include <optional>
 #include <ccxt/base/errors.h>
 #include <nlohmann/json.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
-#include <boost/beast/core/flat_buffer.hpp>
-#include <boost/beast/http/empty_body.hpp>
-#include <boost/beast/http/read.hpp>
-#include <boost/beast/http/string_body.hpp>
-#include <boost/beast/http/write.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/beast.hpp>
+#include <boost/beast/ssl.hpp>
 
 namespace ccxt {
 
 struct URLs
 {
-    std::string logo;
     std::map<std::string, std::string> test;
     std::map<std::string, std::string> api;    
     std::string www;
@@ -230,7 +225,9 @@ enum class MarketType {SPOT,     // Spot exchange rate product.
                        FUTURE,   // perpertual futures.
                        DELIVERY, // Delivery futures with expiry dates.
                        OPTION,   // Vanlilla options.
-                       SWAP};
+                       SWAP,
+                       LINEAR,
+                       INVERSE};
 
 enum class OptionType {CALL, PUT};
 
@@ -242,12 +239,20 @@ struct Precision
     double quote;
 };
 
+struct FeesTiers
+{
+    std::map<int, double> taker;
+    std::map<int, double> maker;
+};
+
 struct FeesTrading
 {
+    std::string feeside;
     bool tierBased;
     bool percentage {true};
     bool taker;
     bool maker;
+    FeesTiers tiers;
 };
 
 struct FeesFunding
@@ -261,6 +266,8 @@ struct FeesFunding
 struct Fees
 {
     FeesTrading trading;
+    FeesTrading linear;
+    FeesTrading inverse;
     FeesFunding funding;
 };
 
@@ -272,10 +279,12 @@ struct Market
     std::string quote;
     std::string baseId;
     std::string quoteId;
-    bool active;
+    std::optional<bool> active;
     MarketType type;
     bool linear;
     bool inverse;
+    bool taker;
+    bool maker;
     bool spot{false};
     bool swap{false};
     bool future{false};
@@ -284,7 +293,7 @@ struct Market
     bool contract{false};
     int contractSize;
     int expiry; 
-    std::time_t expiryDatetime; 
+    std::string expiryDatetime; 
     OptionType optionType;
     double strike;
     std::string settle; // settlement currency
@@ -293,7 +302,7 @@ struct Market
     int quoteNumericId;
     Precision precision;
     Limits limits;
-    std::string info;
+    nlohmann::json info;
 
     Fees fees;
 };
@@ -305,7 +314,10 @@ class Exchange
 {
     public:
         Exchange();
-        ~Exchange();
+        virtual ~Exchange() {};
+
+        // fetches the current timestamp in milliseconds from the exchange server
+        virtual long fetchTime(boost::beast::net::thread_pool& ioc) = 0;
 
         static bool checkRequiredVersion(const std::string requiredVersion, bool error = true);
         static bool unique(std::string str);
@@ -315,22 +327,13 @@ class Exchange
         virtual void setSandboxMode(bool enabled);
         std::map<MarketType, std::map<std::string, Market>> loadMarkets(bool reload = false);
         std::map<MarketType, std::map<std::string, Currency>> fetchCurrencies();
-        std::map<MarketType, std::map<std::string, Market>> fetchMarkets();        
+        std::map<MarketType, std::map<std::string, Market>> fetchMarkets();
+        double loadTimeDifference(boost::beast::net::thread_pool& ioc);
 
-    protected:
-        boost::beast::http::response<boost::beast::http::string_body> 
-            fetch(const std::string& hostname, boost::string_view uri);
+        std::string safeCurrencyCode(std::string currencyId, MarketType type, std::map<std::string, std::string> currency = {});
+        std::string commonCurrencyCode(std::string currency);
 
     private:
-        boost::asio::ip::tcp::resolver::results_type 
-            resolve(boost::asio::io_context& ctx, std::string const& hostname);
-        boost::asio::ip::tcp::socket 
-            connect(boost::asio::io_context& ctx, std::string const& hostname);        
-        void connect(boost::asio::io_context& ctx, boost::asio::ssl::context& ssl_ctx, std::string const& hostname);
-        boost::beast::http::response<boost::beast::http::string_body> 
-            get(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& stream, 
-                boost::string_view hostname, boost::string_view uri);
-
         void handleHttpStatusCode();
 
         std::map<MarketType, std::map<std::string, Market>> setMarkets(
@@ -338,6 +341,8 @@ class Exchange
                     std::map<MarketType, std::map<std::string, Currency>> currencies = {});
 
         std::map<MarketType, std::map<std::string, Market>> loadMarketsHelper(bool reload = false);
+
+        std::map<std::string, std::string> safeCurrency(std::string currencyId, MarketType type, std::map<std::string, std::string> currency = {});
 
         Market safeMarket(std::optional<int> marketId = std::nullopt, 
                     std::optional<Market> market = std::nullopt, std::optional<std::string> delimiter = std::nullopt, 
@@ -348,8 +353,10 @@ class Exchange
                  const std::vector<std::string>& countries, int rateLimit,
                  bool certified, bool pro,
                  Has has, const std::map<std::string, std::string>& timeframes,
-                 const URLs& urls, const nlohmann::json& api,
-                 const std::map<std::string, std::string>& commonCurrencies, DigitsCountingMode precisionMode);        
+                 const URLs& urls, const std::map<std::string, std::string>& commonCurrencies, 
+                 DigitsCountingMode precisionMode, bool verbose);
+
+        virtual void initFees() = 0;
     
     public:
         std::string _id;
@@ -362,7 +369,6 @@ class Exchange
         bool _alias {false}; // whether this exchange is an alias to another exchange
         Has _has; // API method metainfo
         URLs _urls;
-        nlohmann::json _api;
         std::map<MarketType, std::map<std::string, Market>> _markets;
         std::map<MarketType, std::map<std::string, Currency>> _currencies;
         std::map<MarketType, std::map<std::string, Currency>> _baseCurrencies;
@@ -385,14 +391,15 @@ class Exchange
         
         TokenBucket _tokenBucket;
 
-        std::shared_ptr<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> _stream_ptr;
         bool _validateServerSsl {true};
         bool _validateClientSsl {false};
 
         std::string _proxy;          // prepended to URL, like https://proxy.com/https://exchange.com/api...
         std::string _origin {"*"};  // CORS origin
+        bool substituteCommonCurrencyCodes = true; // reserved
         // underlying properties
         size_t _minFundingAddressLength {1}; // used in checkAddress
+        
 
         std::vector<std::string> _proxies;
         // default property values
@@ -457,6 +464,7 @@ class Exchange
         bool _handleContentTypeApplicationZip {false};
         // whether fees should be summed by currency code
         bool _reduceFees {true};
+        double _timeDifference = 0;
 };
 
 } // namespace ccxt

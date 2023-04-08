@@ -1,4 +1,5 @@
 #include <ccxt/base/exchange.h>
+#include <url.h>
 
 namespace ccxt {
 
@@ -6,14 +7,21 @@ class binance : public Exchange
 {
 public:
     binance();
+    virtual ~binance() {};
         
     // fetches the current timestamp in milliseconds from the exchange server
-    long fetchTime();  
+    long fetchTime(boost::beast::net::thread_pool& ioc) override;
+
+    // fetches all available currencies on an exchange
+    std::map<std::string, Currency> fetchCurrencies();
+
+    // Retrieves data on all markets for binance
+    std::map<MarketType, std::vector<Market>> fetchMarkets(boost::beast::net::thread_pool& ioc);
 
 private:
     // Exchange-specific options
     bool _sandboxMode{false};
-    std::vector<std::string> _fetchMarkets{"spot", "linear", "inverse"};
+    std::vector<MarketType> _fetchMarkets{MarketType::SPOT, MarketType::LINEAR, MarketType::INVERSE};
     bool _fetchCurrencies{true};
     std::string _defaultTimeInForce{"GTC"};
     MarketType _defaultType{MarketType::SPOT};
@@ -25,12 +33,16 @@ private:
     int _timeDifference{0};
     bool _adjustForTimeDifference{false};
 
-    bool isInverse(const MarketType type, const std::string& subType = "");
-    bool isLinear(const MarketType type, const std::string& subType = "");
+    void initFees() override;
+    bool isInverse(const MarketType type, const std::string& subType = "") const;
+    bool isLinear(const MarketType type, const std::string& subType = "") const;
     void setSandboxMode(bool enabled) override;
     long convertExpireDate(const std::string& date) const;  // parse YYMMDD to timestamp
     Market createExpiredOptionMarket(const std::string& symbol); // support expired option contracts
     Market market(const std::string& symbol);
+    nlohmann::json fetchMarket(boost::beast::net::thread_pool& ioc, Url& url);
+    std::vector<Market> parseMarkets(const nlohmann::json& markets, MarketType type);
+    Market parseMarket(const nlohmann::json& market, MarketType type);
 
     std::map<std::string, std::string> _newOrderRespType{
                     {"market", "FULL"},

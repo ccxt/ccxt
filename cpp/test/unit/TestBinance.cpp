@@ -4,8 +4,8 @@
 
 using namespace ccxt;
 
-
 TEST_CASE("test Binance")
 {
     binance b;
 }
+

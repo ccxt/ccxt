@@ -4,12 +4,12 @@
 #include <bits/stdc++.h>
 #include <ccxt/base/functions/string.h>
 #include <ccxt/base/functions/type.h>
+#include <ccxt/base/functions/time.h>
 #include <plog/Log.h>
 #include <plog/Init.h>
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
-#include <boost/certify/extensions.hpp>
-#include <boost/certify/https_verification.hpp>
+#include <httpsClass.h>
 
 namespace ccxt {
 
@@ -18,8 +18,6 @@ Exchange::Exchange()
     if (_verbose) {
         static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
         plog::init(plog::debug, &consoleAppender);
-        // TODO: Do this in places where we want logging.
-        PLOGD << "Hello log!";
     }
 
     // options = getDefaultOptions(); // exchange-specific options, if any
@@ -52,22 +50,14 @@ Exchange::Exchange(std::string id, std::string name,
                    const std::vector<std::string>& countries, int rateLimit,
                    bool certified, bool pro,
                    Has has, const std::map<std::string, std::string>& timeframes,
-                   const URLs& urls, const nlohmann::json& api,
-                   const std::map<std::string, std::string>& commonCurrencies, DigitsCountingMode precisionMode)
+                   const URLs& urls,
+                   const std::map<std::string, std::string>& commonCurrencies, DigitsCountingMode precisionMode,
+                   bool verbose)
     : _id{id}, _name{name}, _countries{countries}, _rateLimit{rateLimit}, 
       _certified{certified}, _pro{pro}, _has{has}, _timeframes{timeframes},
-      _urls{urls}, _api{api},
-      _commonCurrencies{commonCurrencies}, _precisionMode{precisionMode}
+      _urls{urls}, _commonCurrencies{commonCurrencies}, 
+      _precisionMode{precisionMode}, _verbose{verbose}
 {
-}
-
-Exchange::~Exchange()
-{
-    if (_stream_ptr) {
-        boost::system::error_code ec;
-        _stream_ptr->shutdown(ec);
-        _stream_ptr->next_layer().close(ec);
-    }
 }
 
 bool Exchange::checkRequiredVersion(const std::string requiredVersion, bool error) 
@@ -353,6 +343,32 @@ std::map<MarketType, std::map<std::string, Market>> Exchange::fetchMarkets()
     return _markets;
 }
 
+double Exchange::loadTimeDifference(boost::beast::net::thread_pool& ioc)
+{
+    auto serverTime = fetchTime(ioc);
+    auto after = now();
+    _timeDifference = after - serverTime;
+    return _timeDifference;
+}
+
+std::map<std::string, std::string> Exchange::safeCurrency(std::string currencyId, MarketType type, std::map<std::string, std::string> currency)
+{
+    if (currencyId == "" && currency.size() != 0)
+        return currency;
+    if (_currencies_by_id[type].count(currencyId) > 0) {
+        auto ccy = _currencies_by_id[type][currencyId];
+        return {{"id", ccy.id}, {"code", ccy.code}};
+    }
+    std::string code{currencyId};
+    if (currencyId.size() != 0)
+        code = commonCurrencyCode(currencyId);
+        std::transform(code.begin(), code.end(), code.begin(), ::toupper);
+    return {
+        {"id", currencyId},
+        {"code", code},
+    };
+}
+
 Market Exchange::safeMarket(std::optional<int> marketId, 
             std::optional<Market> market, std::optional<std::string> delimiter, 
             std::optional<MarketType> marketType)
@@ -360,63 +376,23 @@ Market Exchange::safeMarket(std::optional<int> marketId,
     throw std::runtime_error("Not Implemented");
 }
 
-boost::asio::ip::tcp::resolver::results_type 
-Exchange::resolve(boost::asio::io_context& ctx, std::string const& hostname)        
+std::string Exchange::safeCurrencyCode(std::string currencyId, MarketType type, std::map<std::string, std::string> currency)
 {
-    boost::asio::ip::tcp::resolver resolver{ctx};
-    return resolver.resolve(hostname, "https");
+    auto ccy = safeCurrency(currencyId, type, currency);
+    return ccy["code"];
 }
 
-boost::beast::http::response<boost::beast::http::string_body> 
-Exchange::fetch(const std::string& hostname, boost::string_view uri)
+std::string Exchange::commonCurrencyCode(std::string currency)
 {
-    boost::asio::io_context ctx;
-    boost::asio::ssl::context ssl_ctx{boost::asio::ssl::context::tls_client};
-    ssl_ctx.set_verify_mode(boost::asio::ssl::context::verify_peer |
-                            boost::asio::ssl::context::verify_fail_if_no_peer_cert);
-    ssl_ctx.set_default_verify_paths();
-    // tag::ctx_setup_source[]
-    boost::certify::enable_native_https_server_verification(ssl_ctx);
-    // end::ctx_setup_source[]
-    connect(ctx, ssl_ctx, hostname);
-    auto response = get(*_stream_ptr, hostname, uri);
-    return response;
-}
-
-boost::asio::ip::tcp::socket Exchange::connect(boost::asio::io_context& ctx, std::string const& hostname)
-{
-    boost::asio::ip::tcp::socket socket{ctx};
-    boost::asio::connect(socket, resolve(ctx, hostname));
-    return socket;
-}
-
-void Exchange::connect(boost::asio::io_context& ctx, boost::asio::ssl::context& ssl_ctx, std::string const& hostname)
-{
-    _stream_ptr = std::make_unique<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>>(
-      connect(ctx, hostname), ssl_ctx);
-    // tag::stream_setup_source[]
-    boost::certify::set_server_hostname(*_stream_ptr, hostname);
-    boost::certify::sni_hostname(*_stream_ptr, hostname);
-    // end::stream_setup_source[]
-
-    _stream_ptr->handshake(boost::asio::ssl::stream_base::handshake_type::client);    
-}
-
-boost::beast::http::response<boost::beast::http::string_body> 
-Exchange::get(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>& stream, boost::string_view hostname, boost::string_view uri)
-{
-    boost::beast::http::request<boost::beast::http::empty_body> request;
-    request.method(boost::beast::http::verb::get);
-    request.target(uri);
-    request.keep_alive(false);
-    request.set(boost::beast::http::field::host, hostname);
-    boost::beast::http::write(stream, request);
-
-    boost::beast::http::response<boost::beast::http::string_body> response;
-    boost::beast::flat_buffer buffer;
-    boost::beast::http::read(stream, buffer, response);
-
-    return response;
+    if (!substituteCommonCurrencyCodes) {
+        return currency;
+    }
+    if (_commonCurrencies.count(currency) > 0) {
+        return _commonCurrencies[currency];
+    }
+    else   {
+        return currency;
+    }    
 }
 
 void Exchange::handleHttpStatusCode()

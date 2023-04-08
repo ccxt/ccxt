@@ -14,13 +14,13 @@ if(ENABLE_TESTS)
 
     set(TESTS_SRCS
         main.cpp
-        TestBinance.cpp
+        RegTestBinance.cpp
     )
 
     add_executable(regression-tests ${TESTS_SRCS})    
 
     target_link_libraries(regression-tests PRIVATE ccxt doctest::doctest fmt::fmt nlohmann_json::nlohmann_json
-                                        boost_system OpenSSL::SSL OpenSSL::Crypto Threads::Threads)
+                                        boost_system boost_coroutine OpenSSL::SSL OpenSSL::Crypto Threads::Threads)
     target_include_directories(regression-tests PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp>")
     target_include_directories(regression-tests PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp/test>")
 endif()

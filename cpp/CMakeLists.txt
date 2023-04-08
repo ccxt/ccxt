@@ -17,6 +17,9 @@ find_package(Boost REQUIRED)
 IF(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 ENDIF(Boost_FOUND)
+# ignore BOOST deprecated headers until we can update boost
+add_definitions("-DBOOST_ALLOW_DEPRECATED_HEADERS")
+add_definitions("-DBOOST_BIND_GLOBAL_PLACEHOLDERS")
 ########################################################
 
 set(CCXT_HEADERS_DIR "${CMAKE_CURRENT_LIST_DIR}/cpp")
@@ -29,6 +32,9 @@ set(CCXT_SRCS
     ccxt/base/functions/throttle.cpp
     ccxt/base/functions/string.cpp
     ccxt/base/functions/generic.cpp
+    ccxt/base/functions/time.cpp
+    url.cpp
+    httpsClass.cpp
     binance.cpp)
 
 if(BUILD_SHARED_LIBS)
@@ -42,5 +48,6 @@ target_include_directories(ccxt PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp/3rdparty/plog-1.1.9/include>"
     "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp/3rdparty/certify/include>"
 )
+
 
 add_subdirectory(test)
