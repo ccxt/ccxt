@@ -32,7 +32,7 @@ jobs:
       run: |
         sudo apt update
         ${{matrix.install}}
-        sudo apt install -y cmake libfmt-dev libhowardhinnant-date-dev nlohmann-json3-dev libboost-all-dev libssl-dev
+        sudo apt install -y cmake ninja-build libfmt-dev libhowardhinnant-date-dev nlohmann-json3-dev libboost-all-dev libssl-dev
         cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure
@@ -43,13 +43,13 @@ jobs:
       run: |
         cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} ${{matrix.shared}} \
               -DCMAKE_CXX_STANDARD=${{matrix.std}} \
+              -GNinja \
               $GITHUB_WORKSPACE
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
-      run: |
-        threads=`nproc`
-        cmake --build . --config ${{matrix.build_type}} --parallel $threads
+      run: |        
+        cmake --build . --config ${{matrix.build_type}}
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
