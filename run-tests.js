@@ -195,12 +195,12 @@ const testExchange = async (exchange) => {
     numExchangesTested++
 
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
-    const warningMsg = warnings.length ? (warnings.filter( (x)=>!x.includes('[TESTING]')).map((x)=> x.includes('[SKIPPED_EXCHANGE]')? x.yellow : x.magenta).join (' ')) : 'WARN'.yellow
     let logMessage = '';
     if (failed) {
         logMessage = 'FAIL'.red;
     } else if (hasWarnings) { 
-        if (warningMsg) {
+        if (warnings.length) {
+            const warningMsg = warnings.filter( (x)=>!x.includes('[TESTING]')).map((x)=> x.includes('[SKIPPED_EXCHANGE]')? x.yellow : x.magenta).join (' ')
             if (warningMsg.includes ('[SKIPPED_EXCHANGE]')) {
                 logMessage = warningMsg;
             } else {
@@ -210,7 +210,7 @@ const testExchange = async (exchange) => {
                 }
             }
         } else {
-            logMessage = 'WARN'.yellow;
+            logMessage = 'OK'.cyan;
         }
     } else {
         logMessage = 'OK'.green;
