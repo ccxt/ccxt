@@ -3714,7 +3714,7 @@ export default class xt extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (since === undefined) {
+        if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
