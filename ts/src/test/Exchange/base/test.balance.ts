@@ -4,7 +4,7 @@
 
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
-import Precise from '../../base/Precise.js';
+import Precise from '../../../base/Precise.js';
 
 function testBalance (exchange, method, entry) {
     const format = {
