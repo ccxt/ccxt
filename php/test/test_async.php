@@ -59,7 +59,7 @@ if (!$selected_exchange) {
     throw new \Exception('No exchange specified');
 }
 
-var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange, 'symbol'=> $exchangeSymbol || 'all' ], '\n');
+var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange->id, 'symbol'=> $exchangeSymbol || 'all' ], '\n');
 
 function snake_case ($methodName) {
     return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
