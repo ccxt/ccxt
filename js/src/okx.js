@@ -3866,7 +3866,7 @@ export default class okx extends Exchange {
             'amt': this.numberToString(amount),
         };
         const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeString(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             request['chain'] = currency['id'] + '-' + network;
