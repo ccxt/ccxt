@@ -10,7 +10,7 @@ async function testFetchOHLCV (exchange, symbol) {
     const limit = 10;
     const duration = exchange.parseTimeframe (timeframe);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
-    const ohlcvs = await exchange[method] (symbol, timeframe, since, limit);
+    const ohlcvs = await exchange.fetchOHLCV (symbol, timeframe, since, limit);
     assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (ohlcvs));
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
