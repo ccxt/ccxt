@@ -2,7 +2,8 @@
 #include <chrono>
 #include <fmt/format.h>
 
-namespace ccxt {
+namespace ccxt
+{
 
     double now()
     {

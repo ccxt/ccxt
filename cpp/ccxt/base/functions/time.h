@@ -2,7 +2,8 @@
 
 #include <string>
 
-namespace ccxt {
+namespace ccxt
+{
 
     // returns the current timestamp in milliseconds
     double now();

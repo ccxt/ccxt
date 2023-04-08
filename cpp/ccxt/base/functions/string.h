@@ -2,8 +2,9 @@
 
 #include <string>
 
-namespace ccxt {
+namespace ccxt
+{
 
-std::string capitalize(const std::string& s);
+    std::string capitalize(const std::string &s);
 
 }

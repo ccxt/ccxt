@@ -12,312 +12,351 @@
 #include <boost/beast.hpp>
 #include <boost/beast/ssl.hpp>
 
-namespace ccxt {
-
-struct URLs
+namespace ccxt
 {
-    std::map<std::string, std::string> test;
-    std::map<std::string, std::string> api;    
-    std::string www;
-    std::map<std::string, std::string> referral;
-    std::vector<std::string> doc;
-    std::string api_management;
-    std::string fees;
-    
-    std::map<std::string, std::string> apiBackup;
-};
 
-struct BalanceCache
-{
-    // TODO:
-    // total
-    // free
-    // used    
-    // info
-    // timestamp
-    // datetime
-    // debt
-};
+    struct URLs
+    {
+        std::map<std::string, std::string> test;
+        std::map<std::string, std::string> api;
+        std::string www;
+        std::map<std::string, std::string> referral;
+        std::vector<std::string> doc;
+        std::string api_management;
+        std::string fees;
 
-struct OrderbooksCache {};
-struct TickersCache {};
-struct OrdersCache {};
-struct TradesCache {};
-struct TransactionsCache {};
-struct OHLCVsCache {};
-struct MyTradesCache {};
-struct PositionsCache {};
+        std::map<std::string, std::string> apiBackup;
+    };
 
-struct MinMax
-{
-    int min;
-    int max;
-};
+    struct BalanceCache
+    {
+        // TODO:
+        // total
+        // free
+        // used
+        // info
+        // timestamp
+        // datetime
+        // debt
+    };
 
-struct Limits
-{
-    MinMax leverage;
-    MinMax amount;
-    MinMax price;
-    MinMax cost;
-};
+    struct OrderbooksCache
+    {
+    };
+    struct TickersCache
+    {
+    };
+    struct OrdersCache
+    {
+    };
+    struct TradesCache
+    {
+    };
+    struct TransactionsCache
+    {
+    };
+    struct OHLCVsCache
+    {
+    };
+    struct MyTradesCache
+    {
+    };
+    struct PositionsCache
+    {
+    };
 
-struct Currency
-{
-    std::string id;
-    std::string numericId;
-    std::string code;
-    double precision;    
-};
+    struct MinMax
+    {
+        int min;
+        int max;
+    };
 
-typedef std::string AccountGroup;
-struct Accounts
-{
-    AccountGroup id;
-    // 'type': undefined,
-    // 'currency': undefined,
-    // 'info': response,
-};
+    struct Limits
+    {
+        MinMax leverage;
+        MinMax amount;
+        MinMax price;
+        MinMax cost;
+    };
 
-struct Status
-{
-    std::string status;
-    std::time_t updated;
-    std::time_t eta;
-    std::string url;
-};
+    struct Currency
+    {
+        std::string id;
+        std::string numericId;
+        std::string code;
+        double precision;
+    };
 
-struct TokenBucket
-{
-    double delay = 0.001;
-    int capacity = 1;
-    int cost = 1;
-    int maxCapacity = 1000;
-    int refillRate;
-};
+    typedef std::string AccountGroup;
+    struct Accounts
+    {
+        AccountGroup id;
+        // 'type': undefined,
+        // 'currency': undefined,
+        // 'info': response,
+    };
 
-struct RequiredCredentials
-{
-    bool apiKey = true;
-    bool secret = true;
-    bool uid = false;
-    bool login = false;
-    bool password = false;
-    bool twofa = false;         // 2-factor authentication (one-time password key)
-    bool privateKey = false;    // a "0x"-prefixed hexstring private key for a wallet
-    bool walletAddress = false; // the wallet address "0x"-prefixed hexstring
-    bool token = false;         // reserved for HTTP auth in some cases
-};
+    struct Status
+    {
+        std::string status;
+        std::time_t updated;
+        std::time_t eta;
+        std::string url;
+    };
 
-enum class ExchangeAPIOrEmulated {TRUE, EMULATED}; // exchange API provides endpoint (true) or emulated versions
+    struct TokenBucket
+    {
+        double delay = 0.001;
+        int capacity = 1;
+        int cost = 1;
+        int maxCapacity = 1000;
+        int refillRate;
+    };
 
-struct Has
-{
-    bool publicAPI {true};
-    bool privateAPI {true};
-    bool CORS;
-    bool spot;
-    bool margin;
-    bool swap;
-    bool future;
-    bool option;
-    bool addMargin;
-    bool borrowMargin;
-    bool cancelAllOrders;
-    bool cancelOrder {true};
-    bool cancelOrders;
-    bool createDepositAddress;
-    bool createLimitOrder {true};
-    bool createMarketOrder {true};
-    bool createOrder {true};
-    bool createPostOnlyOrder;
-    bool createReduceOnlyOrder;
-    bool createStopOrder;
-    bool createStopLimitOrder;
-    bool createStopMarketOrder;
-    ExchangeAPIOrEmulated editOrder {ExchangeAPIOrEmulated::EMULATED};
-    bool fetchAccounts;
-    bool fetchBalance {true};
-    bool fetchBidsAsks;
-    bool fetchBorrowInterest;
-    bool fetchBorrowRate;
-    bool fetchBorrowRateHistories;
-    bool fetchBorrowRateHistory;
-    bool fetchBorrowRatesPerSymbol;
-    bool fetchBorrowRates;
-    bool fetchCanceledOrders;
-    bool fetchClosedOrder;
-    ExchangeAPIOrEmulated fetchClosedOrders;
-    ExchangeAPIOrEmulated fetchCurrencies {ExchangeAPIOrEmulated::EMULATED};
-    bool fetchDeposit;
-    bool fetchDepositAddress;
-    bool fetchDepositAddresses;
-    bool fetchDepositAddressesByNetwork;
-    bool fetchDeposits;
-    ExchangeAPIOrEmulated fetchDepositWithdrawFee;
-    bool fetchDepositWithdrawFees;
-    bool fetchFundingFee;
-    bool fetchFundingFees;
-    bool fetchFundingHistory;
-    bool fetchFundingRate;
-    bool fetchFundingRateHistory;
-    bool fetchFundingRates;
-    bool fetchIndexOHLCV;
-    bool fetchL2OrderBook {true};
-    bool fetchL3OrderBook;
-    bool fetchLastPrices;
-    bool fetchLedger;
-    bool fetchLeverage;
-    bool fetchLedgerEntry;
-    bool fetchLeverageTiers;
-    ExchangeAPIOrEmulated fetchMarketLeverageTiers;
-    bool fetchMarkets {true};
-    bool fetchMarkOHLCV;
-    bool fetchMyTrades;
-    bool fetchOHLCV;
-    bool fetchOpenInterest;
-    bool fetchOpenInterestHistory;
-    bool fetchOpenOrder;
-    bool fetchOpenOrders;
-    bool fetchOrder;
-    bool fetchOrderBook {true};
-    bool fetchOrderBooks;
-    bool fetchOrders;
-    bool fetchOrderTrades;
-    bool fetchPermissions;
-    bool fetchPosition;
-    bool fetchPositions;
-    bool fetchPositionsRisk;
-    bool fetchPremiumIndexOHLCV;
-    bool fetchSettlementHistory;
-        ExchangeAPIOrEmulated fetchStatus {ExchangeAPIOrEmulated::EMULATED};
-    bool fetchTicker {true};
-    bool fetchTickers;
-    bool fetchTime;
-    bool fetchTrades {true};
-    bool fetchTradingFee;
-    bool fetchTradingFees;
-    bool fetchTradingLimits;
-    bool fetchTransactionFee;
-    bool fetchTransactionFees;
-    bool fetchTransactions;
-    bool fetchTransfers;
-    bool fetchWithdrawal;
-    bool fetchWithdrawals;
-    bool fetchWithdrawalWhitelist;
-    bool reduceMargin;
-    bool repayMargin;
-    bool setLeverage;
-    bool setMargin;
-    bool setMarginMode;
-    bool setPositionMode;
-    bool signIn;
-    bool transfer;
-    bool withdraw;
-};
+    struct RequiredCredentials
+    {
+        bool apiKey = true;
+        bool secret = true;
+        bool uid = false;
+        bool login = false;
+        bool password = false;
+        bool twofa = false;         // 2-factor authentication (one-time password key)
+        bool privateKey = false;    // a "0x"-prefixed hexstring private key for a wallet
+        bool walletAddress = false; // the wallet address "0x"-prefixed hexstring
+        bool token = false;         // reserved for HTTP auth in some cases
+    };
 
-enum DigitsCountingMode { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE };
-enum ZeroPaddingMode { NO_PADDING, PAD_WITH_ZERO };
+    enum class ExchangeAPIOrEmulated
+    {
+        TRUE,
+        EMULATED
+    }; // exchange API provides endpoint (true) or emulated versions
 
-struct Options {};
+    struct Has
+    {
+        bool publicAPI{true};
+        bool privateAPI{true};
+        bool CORS;
+        bool spot;
+        bool margin;
+        bool swap;
+        bool future;
+        bool option;
+        bool addMargin;
+        bool borrowMargin;
+        bool cancelAllOrders;
+        bool cancelOrder{true};
+        bool cancelOrders;
+        bool createDepositAddress;
+        bool createLimitOrder{true};
+        bool createMarketOrder{true};
+        bool createOrder{true};
+        bool createPostOnlyOrder;
+        bool createReduceOnlyOrder;
+        bool createStopOrder;
+        bool createStopLimitOrder;
+        bool createStopMarketOrder;
+        ExchangeAPIOrEmulated editOrder{ExchangeAPIOrEmulated::EMULATED};
+        bool fetchAccounts;
+        bool fetchBalance{true};
+        bool fetchBidsAsks;
+        bool fetchBorrowInterest;
+        bool fetchBorrowRate;
+        bool fetchBorrowRateHistories;
+        bool fetchBorrowRateHistory;
+        bool fetchBorrowRatesPerSymbol;
+        bool fetchBorrowRates;
+        bool fetchCanceledOrders;
+        bool fetchClosedOrder;
+        ExchangeAPIOrEmulated fetchClosedOrders;
+        ExchangeAPIOrEmulated fetchCurrencies{ExchangeAPIOrEmulated::EMULATED};
+        bool fetchDeposit;
+        bool fetchDepositAddress;
+        bool fetchDepositAddresses;
+        bool fetchDepositAddressesByNetwork;
+        bool fetchDeposits;
+        ExchangeAPIOrEmulated fetchDepositWithdrawFee;
+        bool fetchDepositWithdrawFees;
+        bool fetchFundingFee;
+        bool fetchFundingFees;
+        bool fetchFundingHistory;
+        bool fetchFundingRate;
+        bool fetchFundingRateHistory;
+        bool fetchFundingRates;
+        bool fetchIndexOHLCV;
+        bool fetchL2OrderBook{true};
+        bool fetchL3OrderBook;
+        bool fetchLastPrices;
+        bool fetchLedger;
+        bool fetchLeverage;
+        bool fetchLedgerEntry;
+        bool fetchLeverageTiers;
+        ExchangeAPIOrEmulated fetchMarketLeverageTiers;
+        bool fetchMarkets{true};
+        bool fetchMarkOHLCV;
+        bool fetchMyTrades;
+        bool fetchOHLCV;
+        bool fetchOpenInterest;
+        bool fetchOpenInterestHistory;
+        bool fetchOpenOrder;
+        bool fetchOpenOrders;
+        bool fetchOrder;
+        bool fetchOrderBook{true};
+        bool fetchOrderBooks;
+        bool fetchOrders;
+        bool fetchOrderTrades;
+        bool fetchPermissions;
+        bool fetchPosition;
+        bool fetchPositions;
+        bool fetchPositionsRisk;
+        bool fetchPremiumIndexOHLCV;
+        bool fetchSettlementHistory;
+        ExchangeAPIOrEmulated fetchStatus{ExchangeAPIOrEmulated::EMULATED};
+        bool fetchTicker{true};
+        bool fetchTickers;
+        bool fetchTime;
+        bool fetchTrades{true};
+        bool fetchTradingFee;
+        bool fetchTradingFees;
+        bool fetchTradingLimits;
+        bool fetchTransactionFee;
+        bool fetchTransactionFees;
+        bool fetchTransactions;
+        bool fetchTransfers;
+        bool fetchWithdrawal;
+        bool fetchWithdrawals;
+        bool fetchWithdrawalWhitelist;
+        bool reduceMargin;
+        bool repayMargin;
+        bool setLeverage;
+        bool setMargin;
+        bool setMarginMode;
+        bool setPositionMode;
+        bool signIn;
+        bool transfer;
+        bool withdraw;
+    };
 
-enum class MarketType {SPOT,     // Spot exchange rate product.
-                       FUTURE,   // perpertual futures.
-                       DELIVERY, // Delivery futures with expiry dates.
-                       OPTION,   // Vanlilla options.
-                       SWAP,
-                       LINEAR,
-                       INVERSE};
+    enum DigitsCountingMode
+    {
+        DECIMAL_PLACES,
+        SIGNIFICANT_DIGITS,
+        TICK_SIZE
+    };
+    enum ZeroPaddingMode
+    {
+        NO_PADDING,
+        PAD_WITH_ZERO
+    };
 
-enum class OptionType {CALL, PUT};
+    struct Options
+    {
+    };
 
-struct Precision
-{
-    double amount;
-    double price;
-    double base;
-    double quote;
-};
+    enum class MarketType
+    {
+        SPOT,     // Spot exchange rate product.
+        FUTURE,   // perpertual futures.
+        DELIVERY, // Delivery futures with expiry dates.
+        OPTION,   // Vanlilla options.
+        SWAP,
+        LINEAR,
+        INVERSE
+    };
 
-struct FeesTiers
-{
-    std::map<int, double> taker;
-    std::map<int, double> maker;
-};
+    enum class OptionType
+    {
+        CALL,
+        PUT
+    };
 
-struct FeesTrading
-{
-    std::string feeside;
-    bool tierBased;
-    bool percentage {true};
-    bool taker;
-    bool maker;
-    FeesTiers tiers;
-};
+    struct Precision
+    {
+        double amount;
+        double price;
+        double base;
+        double quote;
+    };
 
-struct FeesFunding
-{
-    bool tierBased;
-    bool percentage;
-    std::vector<double> withdraw;
-    std::vector<double> deposit;
-};
+    struct FeesTiers
+    {
+        std::map<int, double> taker;
+        std::map<int, double> maker;
+    };
 
-struct Fees
-{
-    FeesTrading trading;
-    FeesTrading linear;
-    FeesTrading inverse;
-    FeesFunding funding;
-};
+    struct FeesTrading
+    {
+        std::string feeside;
+        bool tierBased;
+        bool percentage{true};
+        bool taker;
+        bool maker;
+        FeesTiers tiers;
+    };
 
-struct Market 
-{
-    std::string id;
-    std::string symbol;
-    std::string base;
-    std::string quote;
-    std::string baseId;
-    std::string quoteId;
-    std::optional<bool> active;
-    MarketType type;
-    bool linear;
-    bool inverse;
-    bool taker;
-    bool maker;
-    bool spot{false};
-    bool swap{false};
-    bool future{false};
-    bool option{false};
-    bool margin{false};
-    bool contract{false};
-    int contractSize;
-    int expiry; 
-    std::string expiryDatetime; 
-    OptionType optionType;
-    double strike;
-    std::string settle; // settlement currency
-    std::string settleId;
-    int baseNumericId;
-    int quoteNumericId;
-    Precision precision;
-    Limits limits;
-    nlohmann::json info;
+    struct FeesFunding
+    {
+        bool tierBased;
+        bool percentage;
+        std::vector<double> withdraw;
+        std::vector<double> deposit;
+    };
 
-    Fees fees;
-};
-            
-const std::string ccxtVersion = "2.9.11";
+    struct Fees
+    {
+        FeesTrading trading;
+        FeesTrading linear;
+        FeesTrading inverse;
+        FeesFunding funding;
+    };
 
-// Base exchange class
-class Exchange
-{
+    struct Market
+    {
+        std::string id;
+        std::string symbol;
+        std::string base;
+        std::string quote;
+        std::string baseId;
+        std::string quoteId;
+        std::optional<bool> active;
+        MarketType type;
+        bool linear;
+        bool inverse;
+        bool taker;
+        bool maker;
+        bool spot{false};
+        bool swap{false};
+        bool future{false};
+        bool option{false};
+        bool margin{false};
+        bool contract{false};
+        int contractSize;
+        int expiry;
+        std::string expiryDatetime;
+        OptionType optionType;
+        double strike;
+        std::string settle; // settlement currency
+        std::string settleId;
+        int baseNumericId;
+        int quoteNumericId;
+        Precision precision;
+        Limits limits;
+        nlohmann::json info;
+
+        Fees fees;
+    };
+
+    const std::string ccxtVersion = "2.9.11";
+
+    // Base exchange class
+    class Exchange
+    {
     public:
         Exchange();
-        virtual ~Exchange() {};
+        virtual ~Exchange(){};
 
         // fetches the current timestamp in milliseconds from the exchange server
-        virtual long fetchTime(boost::beast::net::thread_pool& ioc) = 0;
+        virtual long fetchTime(boost::beast::net::thread_pool &ioc) = 0;
 
         static bool checkRequiredVersion(const std::string requiredVersion, bool error = true);
         static bool unique(std::string str);
@@ -328,7 +367,7 @@ class Exchange
         std::map<MarketType, std::map<std::string, Market>> loadMarkets(bool reload = false);
         std::map<MarketType, std::map<std::string, Currency>> fetchCurrencies();
         std::map<MarketType, std::map<std::string, Market>> fetchMarkets();
-        double loadTimeDifference(boost::beast::net::thread_pool& ioc);
+        double loadTimeDifference(boost::beast::net::thread_pool &ioc);
 
         std::string safeCurrencyCode(std::string currencyId, MarketType type, std::map<std::string, std::string> currency = {});
         std::string commonCurrencyCode(std::string currency);
@@ -337,37 +376,37 @@ class Exchange
         void handleHttpStatusCode();
 
         std::map<MarketType, std::map<std::string, Market>> setMarkets(
-                    const std::map<MarketType, std::map<std::string, Market>>& markets, 
-                    std::map<MarketType, std::map<std::string, Currency>> currencies = {});
+            const std::map<MarketType, std::map<std::string, Market>> &markets,
+            std::map<MarketType, std::map<std::string, Currency>> currencies = {});
 
         std::map<MarketType, std::map<std::string, Market>> loadMarketsHelper(bool reload = false);
 
         std::map<std::string, std::string> safeCurrency(std::string currencyId, MarketType type, std::map<std::string, std::string> currency = {});
 
-        Market safeMarket(std::optional<int> marketId = std::nullopt, 
-                    std::optional<Market> market = std::nullopt, std::optional<std::string> delimiter = std::nullopt, 
-                    std::optional<MarketType> marketType = std::nullopt);
+        Market safeMarket(std::optional<int> marketId = std::nullopt,
+                          std::optional<Market> market = std::nullopt, std::optional<std::string> delimiter = std::nullopt,
+                          std::optional<MarketType> marketType = std::nullopt);
 
     protected:
-        Exchange(std::string id, std::string name, 
-                 const std::vector<std::string>& countries, int rateLimit,
+        Exchange(std::string id, std::string name,
+                 const std::vector<std::string> &countries, int rateLimit,
                  bool certified, bool pro,
-                 Has has, const std::map<std::string, std::string>& timeframes,
-                 const URLs& urls, const std::map<std::string, std::string>& commonCurrencies, 
+                 Has has, const std::map<std::string, std::string> &timeframes,
+                 const URLs &urls, const std::map<std::string, std::string> &commonCurrencies,
                  DigitsCountingMode precisionMode, bool verbose);
 
         virtual void initFees() = 0;
-    
+
     public:
         std::string _id;
         std::string _name;
         std::vector<std::string> _countries;
-        bool _enableRateLimit {true};
-        int _rateLimit {2000};   // milliseconds = seconds * 1000
-        bool _certified {false};  // if certified by the CCXT dev team
-        bool _pro {false}; // if it is integrated with CCXT Pro for WebSocket support
-        bool _alias {false}; // whether this exchange is an alias to another exchange
-        Has _has; // API method metainfo
+        bool _enableRateLimit{true};
+        int _rateLimit{2000};   // milliseconds = seconds * 1000
+        bool _certified{false}; // if certified by the CCXT dev team
+        bool _pro{false};       // if it is integrated with CCXT Pro for WebSocket support
+        bool _alias{false};     // whether this exchange is an alias to another exchange
+        Has _has;               // API method metainfo
         URLs _urls;
         std::map<MarketType, std::map<std::string, Market>> _markets;
         std::map<MarketType, std::map<std::string, Currency>> _currencies;
@@ -379,43 +418,41 @@ class Exchange
         Fees _fees;
         Status _status;
         std::map<std::string, std::string> _commonCurrencies = // gets extended/overwritten in subclasses
-        {
-            {"XBT", "BTC"},
-            {"BCC", "BCH"},
-            {"BCHABC", "BCH"},
-            {"BCHSV", "BSV"}
-        };
-        DigitsCountingMode _precisionMode {DECIMAL_PLACES};
-        ZeroPaddingMode _paddingMode {NO_PADDING};
+            {
+                {"XBT", "BTC"},
+                {"BCC", "BCH"},
+                {"BCHABC", "BCH"},
+                {"BCHSV", "BSV"}};
+        DigitsCountingMode _precisionMode{DECIMAL_PLACES};
+        ZeroPaddingMode _paddingMode{NO_PADDING};
         Limits _limits;
-        
+
         TokenBucket _tokenBucket;
 
-        bool _validateServerSsl {true};
-        bool _validateClientSsl {false};
+        bool _validateServerSsl{true};
+        bool _validateClientSsl{false};
 
-        std::string _proxy;          // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        std::string _origin {"*"};  // CORS origin
+        std::string _proxy;                        // prepended to URL, like https://proxy.com/https://exchange.com/api...
+        std::string _origin{"*"};                  // CORS origin
         bool substituteCommonCurrencyCodes = true; // reserved
         // underlying properties
-        size_t _minFundingAddressLength {1}; // used in checkAddress
-        
+        size_t _minFundingAddressLength{1}; // used in checkAddress
 
         std::vector<std::string> _proxies;
         // default property values
-        int _timeout {10000};    // milliseconds = seconds * 1000
-        bool _verbose {false};
-        bool _debug {false};
-        bool _twofa {false};     // 2-factor authentication (one-time password key)        
+        int _timeout{10000}; // milliseconds = seconds * 1000
+        bool _verbose{false};
+        bool _debug{false};
+        bool _twofa{false}; // 2-factor authentication (one-time password key)
         // default credentials
-        bool _apiKey {true};
-        bool _secret {true};
-        bool _uid {false};
-        bool _login {false};
-        bool _password {false};
-        bool _privateKey;        // a "0x"-prefixed hexstring private key for a wallet
-        bool _walletAddress;     // the wallet address "0x"-prefixed hexstring
-        bool _token;             // reserved for HTTP auth in some cases
+        bool _apiKey{true};
+        bool _secret{true};
+        bool _uid{false};
+        bool _login{false};
+        bool _password{false};
+        bool _privateKey;    // a "0x"-prefixed hexstring private key for a wallet
+        bool _walletAddress; // the wallet address "0x"-prefixed hexstring
+        bool _token;         // reserved for HTTP auth in some cases
         // placeholders for cached data
         std::map<std::string, BalanceCache> _balance;
         std::map<std::string, OrderbooksCache> _orderbooks;
@@ -427,44 +464,43 @@ class Exchange
         std::map<std::string, MyTradesCache> _myTrades;
         std::map<std::string, PositionsCache> _positions;
         // web3 and cryptography flags
-        bool _requiresWeb3 {false};
-        bool _requiresEddsa {false};
+        bool _requiresWeb3{false};
+        bool _requiresEddsa{false};
         // precision = {}
         // response handling flags and properties
         std::time_t _lastRestRequestTimestamp;
-        bool _enableLastJsonResponse {true};
-        bool _enableLastHttpResponse {true};
-        bool _enableLastResponseHeaders {true};
+        bool _enableLastJsonResponse{true};
+        bool _enableLastHttpResponse{true};
+        bool _enableLastResponseHeaders{true};
         std::string _last_http_response;
         std::string _last_json_response;
         std::string _last_response_headers;
 
         std::map<int, std::string> _marketIds;
         std::map<int, std::string> _currenciesIds;
-        Precision _precision;        
-        
-        std::map<std::string,std::string> _headers;
+        Precision _precision;
 
-        
+        std::map<std::string, std::string> _headers;
+
         Options _options;
         Accounts _accounts;
 
         RequiredCredentials _requiredCredentials;
-        
+
         std::map<MarketType, std::vector<std::string>> _symbols;
-        std::map<MarketType, std::vector<std::string>> _ids;        
+        std::map<MarketType, std::vector<std::string>> _ids;
 
         std::map<MarketType, std::map<std::string, Market>> _markets_by_id;
         bool _reloadingMarkets;
         std::map<MarketType, std::map<std::string, Market>> _marketsLoading;
 
-        bool _substituteCommonCurrencyCodes {true};
-        bool _quoteJsonNumbers {true};
+        bool _substituteCommonCurrencyCodes{true};
+        bool _quoteJsonNumbers{true};
         double _number; // or str (a pointer to a class)
-        bool _handleContentTypeApplicationZip {false};
+        bool _handleContentTypeApplicationZip{false};
         // whether fees should be summed by currency code
-        bool _reduceFees {true};
+        bool _reduceFees{true};
         double _timeDifference = 0;
-};
+    };
 
 } // namespace ccxt

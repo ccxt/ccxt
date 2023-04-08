@@ -4,11 +4,12 @@
 using namespace ccxt;
 
 TEST_CASE("regression test binance fetchTime")
-{  
+{
     binance b;
-    boost::beast::net::thread_pool ioc;    
+    boost::beast::net::thread_pool ioc;
 
-    for (auto i : {1, 2}) {
+    for (auto i : {1, 2})
+    {
         auto serverTime = b.fetchTime(ioc);
         CHECK(serverTime != std::numeric_limits<long>::min());
     }
@@ -16,10 +17,9 @@ TEST_CASE("regression test binance fetchTime")
 }
 
 TEST_CASE("regression test binance fetchMarkets")
-{  
+{
     binance b;
-    boost::beast::net::thread_pool ioc;    
+    boost::beast::net::thread_pool ioc;
     auto res = b.fetchMarkets(ioc);
-    CHECK(res.size() > 0);   
+    CHECK(res.size() > 0);
 }
-

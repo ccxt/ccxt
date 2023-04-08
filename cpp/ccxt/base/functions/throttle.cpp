@@ -8,16 +8,17 @@
 // https://github.com/rigtorp/TokenBucket
 // https://rextester.com/discussion/YPQYU2506/Throttle-Example-in-C-80-requests-every-2-seconds-
 
-namespace ccxt {
-
-Throttle::Throttle(double refillRate, 
-                   double delay, 
-                   double capacity,
-                   int maxCapacity,
-                   int tokens,
-                   double cost) 
-                : _refillRate{refillRate}, _delay{delay}, _capacity{capacity}, _maxCapacity{maxCapacity}, _tokens{tokens}, _cost{cost}
+namespace ccxt
 {
-}
+
+   Throttle::Throttle(double refillRate,
+                      double delay,
+                      double capacity,
+                      int maxCapacity,
+                      int tokens,
+                      double cost)
+       : _refillRate{refillRate}, _delay{delay}, _capacity{capacity}, _maxCapacity{maxCapacity}, _tokens{tokens}, _cost{cost}
+   {
+   }
 
 }

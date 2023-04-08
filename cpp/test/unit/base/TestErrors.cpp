@@ -3,16 +3,17 @@
 
 using namespace ccxt;
 
-TEST_CASE("test errors") {
+TEST_CASE("test errors")
+{
     CHECK_THROWS_AS(throw BaseError("test"), std::exception);
-    CHECK_THROWS_AS(throw ExchangeError("test"), BaseError);    
+    CHECK_THROWS_AS(throw ExchangeError("test"), BaseError);
 
     try
     {
         throw ExchangeError("test error");
     }
-    catch(std::runtime_error e)
+    catch (std::runtime_error e)
     {
-        CHECK(e.what() == std::string("test error"));        
+        CHECK(e.what() == std::string("test error"));
     }
 }
