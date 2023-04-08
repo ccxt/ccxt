@@ -1,5 +1,5 @@
 
-import testSharedMethods from './base/test.sharedMethods.js';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testFundingRateHistory (exchange, method, entry, symbol) {
     const format = {
