@@ -33,6 +33,7 @@ const keys = {
 const exchangeSpecificFlags = {
     '--sandbox': false,
     '--verbose': false,
+    '--warnings': false,
     '--private': false,
     '--privateOnly': false,
 }
@@ -183,21 +184,38 @@ const testExchange = async (exchange) => {
         , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.hasWarnings)
-        , warnings       = completeTests.reduce ((total, { warnings }) => total.concat (warnings), [])
+        , warnings       = completeTests.reduce (
+            (total, { warnings }) => {
+                return total.concat (warnings)
+            }, []
+        )
 
 /*  Print interactive log output    */
 
     numExchangesTested++
 
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
-    const warnStringify = (x)=> {
-        // temp debug
-        const w = warnings;
-        const ex = exchange;
-        return x.includes('[SKIPPED]')? x.yellow : x.magenta;
+    const warningMsg = warnings.length ? (warnings.filter( (x)=>!x.includes('[TESTING]')).map((x)=> x.includes('[SKIPPED_EXCHANGE]')? x.yellow : x.magenta).join (' ')) : 'WARN'.yellow
+    let logMessage = '';
+    if (failed) {
+        logMessage = 'FAIL'.red;
+    } else if (hasWarnings) { 
+        if (warningMsg) {
+            if (warningMsg.includes ('[SKIPPED_EXCHANGE]')) {
+                logMessage = warningMsg;
+            } else {
+                logMessage = 'OK'.yellow;
+                if (exchangeSpecificFlags['--warnings']) {
+                    logMessage +=  ' | ' + warningMsg;
+                }
+            }
+        } else {
+            logMessage = 'WARN'.yellow;
+        }
+    } else {
+        logMessage = 'OK'.green;
     }
-    const warningMsg = warnings.length ? (warnings.map(warnStringify).join (' ')) : 'WARN'.yellow
-    log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, failed ? 'FAIL'.red : (hasWarnings ? warningMsg : 'OK'.green))
+    log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, logMessage)
 
 /*  Return collected data to main loop     */
 

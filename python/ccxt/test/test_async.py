@@ -26,6 +26,7 @@ class Argv(object):
     privateOnly = False
     private = False
     verbose = False
+    warnings = False
     nonce = None
     exchange = None
     symbol = None
@@ -39,11 +40,11 @@ parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode'
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
+parser.add_argument('--warnings', action='store_true', help='enable warnings')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
 parser.parse_args(namespace=argv)
-
 token_bucket = argv.token_bucket
 sandbox = argv.sandbox
 privateOnly = argv.privateOnly
@@ -53,6 +54,7 @@ nonce = argv.nonce
 exchangeName = argv.exchange
 exchangeSymbol = argv.symbol
 
+print('\nTESTING (PY)', { 'exchange': exchangeName, 'symbol': exchangeSymbol or 'all' }, '\n')
 
 exchange = getattr(ccxt, exchangeName)({'verbose': verbose})
 
@@ -223,10 +225,10 @@ class testMainClass(baseMainTestClass):
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
         if exchange.safe_value(skippedSettingsForExchange, 'skip'):
-            dump('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED_EXCHANGE]', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         if exchange.alias:
-            dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED_EXCHANGE] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         #
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
@@ -242,14 +244,14 @@ class testMainClass(baseMainTestClass):
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
             skipMessage = '[UNSUPPORTED]'
         elif methodName in self.skippedMethods:
-            skipMessage = '[SKIPPED]    '
+            skipMessage = '[SKIPPED]'
         elif not (methodNameInTest in testFiles):
-            skipMessage = '[UNAVAILABLE]'
+            skipMessage = '[MISSING]'
         if skipMessage:
             dump(skipMessage, exchange.id, methodNameInTest)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        dump('[TESTING]    ', exchange.id, methodNameInTest, argsStringified)
+        dump('[TESTING]', exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
             result = await call_method(methodNameInTest, exchange, args)

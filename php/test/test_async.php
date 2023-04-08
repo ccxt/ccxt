@@ -59,6 +59,8 @@ if (!$selected_exchange) {
     throw new \Exception('No exchange specified');
 }
 
+var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange, 'symbol'=> $exchangeSymbol || 'all' ], '\n');
+
 function snake_case ($methodName) {
     return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
 }
@@ -200,11 +202,11 @@ class testMainClass extends baseMainTestClass {
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
         if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED]', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED_EXCHANGE]', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         if ($exchange->alias) {
-            dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED_EXCHANGE] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         //
@@ -224,16 +226,16 @@ class testMainClass extends baseMainTestClass {
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
                 $skipMessage = '[UNSUPPORTED]';
             } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
-                $skipMessage = '[SKIPPED]    ';
+                $skipMessage = '[SKIPPED]';
             } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
-                $skipMessage = '[UNAVAILABLE]';
+                $skipMessage = '[MISSING]';
             }
             if ($skipMessage) {
                 dump ($skipMessage, $exchange->id, $methodNameInTest);
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
-            dump ('[TESTING]    ', $exchange->id, $methodNameInTest, $argsStringified);
+            dump ('[TESTING]', $exchange->id, $methodNameInTest, $argsStringified);
             $result = null;
             try {
                 $result = Async\await(call_method ($methodNameInTest, $exchange, $args));

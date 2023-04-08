@@ -20,7 +20,7 @@ const privateOnly = process.argv.includes ('--privateOnly') || false;
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
 process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) });
 // ----------------------------------------------------------------------------
-console.log ('\nTESTING', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n');
+console.log ('\nTESTING (JS)', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n');
 //-----------------------------------------------------------------------------
 const enableRateLimit = true;
 const httpsAgent = new Agent ({
@@ -161,11 +161,11 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
         if (exchange.safeValue (skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[SKIPPED_EXCHANGE]', 'exchange', exchangeId, 'symbol', symbol);
             exitScript();
         }
         if (exchange.alias) {
-            dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[SKIPPED_EXCHANGE] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exitScript();
         }
         //
@@ -182,18 +182,18 @@ export default class testMainClass extends baseMainTestClass {
         }
         let skipMessage = undefined;
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
-            skipMessage = '[UNSUPPORTED]';
+            skipMessage = 'UNSUPPORTED';
         } else if (methodName in this.skippedMethods) {
-            skipMessage = '[SKIPPED]    ';
+            skipMessage = 'TEMPORARY';
         } else if (!(methodNameInTest in testFiles)) {
-            skipMessage = '[UNAVAILABLE]';
+            skipMessage = 'MISSING';
         }
         if (skipMessage) {
-            dump (skipMessage, exchange.id, methodNameInTest);
+            dump ('[SKIPPED-' + skipMessage +']', exchange.id, methodNameInTest);
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
-        dump ('[TESTING]    ', exchange.id, methodNameInTest, argsStringified);
+        dump ('[TESTING]', exchange.id, methodNameInTest, argsStringified);
         let result = null;
         try {
             result = await callMethod (methodNameInTest, exchange, args);
