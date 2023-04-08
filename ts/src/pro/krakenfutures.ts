@@ -588,71 +588,78 @@ export default class krakenfutures extends krakenfuturesRest {
 
     parseWsOrder (order, market = undefined) {
         //
+        // update
+        //
         //    {
-        //        "symbol": "BTC_USDT",
-        //        "type": "LIMIT",
-        //        "quantity": "1",
-        //        "orderId": "32471407854219264",
-        //        "tradeFee": "0",
-        //        "clientOrderId": "",
-        //        "accountType": "SPOT",
-        //        "feeCurrency": "",
-        //        "eventType": "place",
-        //        "source": "API",
-        //        "side": "BUY",
-        //        "filledQuantity": "0",
-        //        "filledAmount": "0",
-        //        "matchRole": "MAKER",
-        //        "state": "NEW",
-        //        "tradeTime": 0,
-        //        "tradeAmount": "0",
-        //        "orderAmount": "0",
-        //        "createTime": 1648708186922,
-        //        "price": "47112.1",
-        //        "tradeQty": "0",
-        //        "tradePrice": "0",
-        //        "tradeId": "0",
-        //        "ts": 1648708187469
+        //        "feed": "open_orders_verbose",
+        //        "order": {
+        //            "instrument": "PI_XBTUSD",
+        //            "time": 1567597581495,
+        //            "last_update_time": 1567597581495,
+        //            "qty": 102.0,
+        //            "filled": 0.0,
+        //            "limit_price": 10601.0,
+        //            "stop_price": 0.0,
+        //            "type": "limit",
+        //            "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
+        //            "direction": 0,
+        //            "reduce_only": false
+        //        },
+        //        "is_cancel": true,
+        //        "reason": "post_order_failed_because_it_would_be_filled"
         //    }
         //
-        const id = this.safeString (order, 'orderId');
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const marketId = this.safeString (order, 'symbol');
-        const timestamp = this.safeString (order, 'ts');
-        const filledAmount = this.safeString (order, 'filledAmount'); // TODO? filledQuantity
-        let trades = undefined;
-        if (!Precise.stringEq (filledAmount, '0')) {
-            trades = [];
-            const trade = this.parseWsOrderTrade (order);
-            trades.push (trade);
+        // snapshot
+        //
+        //    {
+        //        "instrument": "PI_XBTUSD",
+        //        "time": 1567597581495,
+        //        "last_update_time": 1567597581495,
+        //        "qty": 102.0,
+        //        "filled": 0.0,
+        //        "limit_price": 10601.0,
+        //        "stop_price": 0.0,
+        //        "type": "limit",
+        //        "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
+        //        "direction": 0,
+        //        "reduce_only": false
+        //    }
+        //
+        const isCancelled = this.safeValue (order, 'is_cancel');
+        let unparsedOrder = order;
+        if (isCancelled !== undefined) {
+            unparsedOrder = this.safeValue (order, 'order');
         }
+        const marketId = this.safeString (unparsedOrder, 'instrument');
+        const timestamp = this.safeString (unparsedOrder, 'time');
+        const direction = this.safeInteger (unparsedOrder, 'direction');
         return this.safeOrder ({
             'info': order,
             'symbol': this.safeSymbol (marketId, market),
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString (unparsedOrder, 'id'),
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'type': this.safeString (order, 'type'),
+            'type': this.safeString (unparsedOrder, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': this.safeString (order, 'side'),
-            'price': this.safeString (order, 'price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': this.safeString (order, 'orderAmount'),
+            'side': (direction === 0) ? 'buy' : 'sell',
+            'price': this.safeString (unparsedOrder, 'limit_price'),
+            'stopPrice': this.safeString (unparsedOrder, 'stop_price'),
+            'triggerPrice': this.safeString (unparsedOrder, 'stop_price'),
+            'amount': this.safeString (unparsedOrder, 'qty'),
             'cost': undefined,
             'average': undefined,
-            'filled': filledAmount,
-            'remaining': this.safeString (order, 'remaining_size'),
-            'status': undefined, // TODO?: eventType, state
+            'filled': this.safeString (unparsedOrder, 'filled'),
+            'remaining': undefined,
+            'status': undefined,
             'fee': {
                 'rate': undefined,
-                'cost': this.safeString (order, 'tradeFee'),
-                'currency': this.safeString (order, 'feeCurrency'),
+                'cost': undefined,
+                'currency': undefined,
             },
-            'trades': trades,
+            'trades': undefined,
         });
     }
 
