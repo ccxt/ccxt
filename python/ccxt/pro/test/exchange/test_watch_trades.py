@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt import NetworkError
-from ccxt.test import test_trade
+from ccxt.test.base import test_trade
 
 
 async def test_watch_trades(exchange, symbol):

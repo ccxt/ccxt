@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt import NetworkError
-from ccxt.test import test_ohlcv
+from ccxt.test.base import test_ohlcv
 
 
 async def test_watch_ohlcv(exchange, symbol):
