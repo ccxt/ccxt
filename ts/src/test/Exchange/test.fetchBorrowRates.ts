@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testBorrowRate from './test.borrowRate.js';
+import testBorrowRate from './base/test.borrowRate.js';
 
 async function testFetchBorrowRates (exchange) {
     const method = 'fetchBorrowRates';

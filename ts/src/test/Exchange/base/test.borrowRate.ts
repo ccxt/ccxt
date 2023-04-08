@@ -1,5 +1,5 @@
 
-import testSharedMethods from './base/test.sharedMethods.js';
+import testSharedMethods from './test.sharedMethods.js';
 
 function testBorrowRate (exchange, method, entry, requestedCode) {
     const format = {

@@ -1,5 +1,5 @@
 
-import testBorrowRate from './test.borrowRate.js';
+import testBorrowRate from './base/test.borrowRate.js';
 
 async function testFetchBorrowRate (exchange, code) {
     const method = 'fetchBorrowRate';
