@@ -417,29 +417,6 @@ export default class krakenfutures extends krakenfuturesRest {
 
     handleOrder (client: Client, message) {
         //
-        // snapshot (verbose)
-        //
-        //    {
-        //        "feed": "open_orders_verbose_snapshot",
-        //        "account": "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
-        //        "orders": [
-        //            {
-        //                "instrument": "PI_XBTUSD",
-        //                "time": 1567428848005,
-        //                "last_update_time": 1567428848005,
-        //                "qty": 100.0,
-        //                "filled": 0.0,
-        //                "limit_price": 8500.0,
-        //                "stop_price": 0.0,
-        //                "type": "limit",
-        //                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
-        //                "direction": 0,
-        //                "reduce_only": false
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
         //  update (verbose)
         //
         //    {
@@ -459,30 +436,6 @@ export default class krakenfutures extends krakenfuturesRest {
         //        },
         //        "is_cancel": true,
         //        "reason": "post_order_failed_because_it_would_be_filled"
-        //    }
-        //
-        // snapshot
-        //
-        //    {
-        //        "feed": "open_orders_snapshot",
-        //        "account": "e258dba9-4dd4-4da5-bfef-75beb91c098e",
-        //        "orders": [
-        //            {
-        //                "instrument": "PI_XBTUSD",
-        //                "time": 1612275024153,
-        //                "last_update_time": 1612275024153,
-        //                "qty": 1000,
-        //                "filled": 0,
-        //                "limit_price": 34900,
-        //                "stop_price": 13789,
-        //                "type": "stop",
-        //                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
-        //                "direction": 1,
-        //                "reduce_only": false,
-        //                "triggerSignal": "last"
-        //            },
-        //            ...
-        //        ]
         //    }
         //
         // update
@@ -506,22 +459,20 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "reason": "new_placed_order_by_user"
         //    }
         //
-        const data = this.safeValue (message, 'data');
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const order = this.safeValue (data, 0);
+        const order = this.safeValue (message, 'order');
         const marketId = this.safeString (order, 'symbol');
         if (marketId !== undefined) {
             const messageHash = 'orders:' + marketId;
             const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (order, 'orderId');
-            const clientOrderId = this.safeString (order, 'clientOrderId');
+            const orderId = this.safeString (order, 'order_id');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
+            const previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
                 const parsed = this.parseWsOrder (order);
                 orders.append (parsed);
@@ -533,29 +484,29 @@ export default class krakenfutures extends krakenfuturesRest {
                 }
                 previousOrder['trades'].push (trade);
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = 0;
-                let totalAmount = 0;
+                let totalCost = '0';
+                let totalAmount = '0';
                 const trades = previousOrder['trades'];
                 for (let i = 0; i < trades.length; i++) {
                     const trade = trades[i];
-                    totalCost = this.sum (totalCost, trade['cost']);
-                    totalAmount = this.sum (totalAmount, trade['amount']);
+                    totalCost = Precise.stringAdd (totalCost, this.numberToString (trade['cost']));
+                    totalAmount = Precise.stringAdd (totalAmount, this.numberToString (trade['amount']));
                 }
-                if (totalAmount > 0) {
-                    previousOrder['average'] = totalCost / totalAmount;
+                if (Precise.stringGt (totalAmount, '0')) {
+                    previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
                 }
                 previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) { // ? previousOrder['filled'] = 0
-                    previousOrder['filled'] += trade['amount'];
+                if (previousOrder['filled'] !== undefined) {
+                    previousOrder['filled'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
                     if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
+                        previousOrder['remaining'] = Precise.stringSub (previousOrder['amount'], previousOrder['filled']);
                     }
                 }
                 if (previousOrder['fee'] === undefined) {
                     previousOrder['fee'] = {
                         'rate': undefined,
-                        'cost': 0,
-                        'currency': trade['fee']['currency'],
+                        'cost': '0',
+                        'currency': this.numberToString (trade['fee']['currency']),
                     };
                 }
                 if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
@@ -564,26 +515,76 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
-                orders.append (previousOrder);
+                orders.append (this.safeOrder (previousOrder));
                 client.resolve (orders, messageHash);
-                // } else if ((type === 'received') || (type === 'done')) { // TODO?: delete
-                //     const info = this.extend (previousOrder['info'], data);
-                //     const order = this.parseWsOrder (info);
-                //     const keys = Object.keys (order);
-                //     // update the reference
-                //     for (let i = 0; i < keys.length; i++) {
-                //         const key = keys[i];
-                //         if (order[key] !== undefined) {
-                //             previousOrder[key] = order[key];
-                //         }
-                //     }
-                //     // update the newUpdates count
-                //     orders.append (previousOrder);
-                //     client.resolve (orders, messageHash);
-                // }
             }
         }
         return message;
+    }
+
+    handleOrderSnapshot (client: Client, message) {
+        //
+        // verbose
+        //
+        //    {
+        //        "feed": "open_orders_verbose_snapshot",
+        //        "account": "0f9c23b8-63e2-40e4-9592-6d5aa57c12ba",
+        //        "orders": [
+        //            {
+        //                "instrument": "PI_XBTUSD",
+        //                "time": 1567428848005,
+        //                "last_update_time": 1567428848005,
+        //                "qty": 100.0,
+        //                "filled": 0.0,
+        //                "limit_price": 8500.0,
+        //                "stop_price": 0.0,
+        //                "type": "limit",
+        //                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+        //                "direction": 0,
+        //                "reduce_only": false
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        // regular
+        //
+        //    {
+        //        "feed": "open_orders_snapshot",
+        //        "account": "e258dba9-4dd4-4da5-bfef-75beb91c098e",
+        //        "orders": [
+        //            {
+        //                "instrument": "PI_XBTUSD",
+        //                "time": 1612275024153,
+        //                "last_update_time": 1612275024153,
+        //                "qty": 1000,
+        //                "filled": 0,
+        //                "limit_price": 34900,
+        //                "stop_price": 13789,
+        //                "type": "stop",
+        //                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+        //                "direction": 1,
+        //                "reduce_only": false,
+        //                "triggerSignal": "last"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        const orders = this.safeValue (message, 'orders', []);
+        const marketIds = {};
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const marketId = this.safeStringLower (message, 'instrument');
+            marketIds[marketId] = true;
+            const parsed = this.parseWsOrder (order);
+            orders.append (parsed);
+        }
+        const marketIdKeys = Object.keys (marketIds);
+        for (let i = 0; i < marketIdKeys.length; i++) {
+            const marketId = marketIdKeys[i];
+            const messageHash = 'orders:' + marketId;
+            client.resolve (orders, messageHash);
+        }
     }
 
     parseWsOrder (order, market = undefined) {
@@ -627,8 +628,12 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const isCancelled = this.safeValue (order, 'is_cancel');
         let unparsedOrder = order;
+        let status = undefined;
         if (isCancelled !== undefined) {
             unparsedOrder = this.safeValue (order, 'order');
+            if (isCancelled === true) {
+                status = 'cancelled';
+            }
         }
         const marketId = this.safeString (unparsedOrder, 'instrument');
         const timestamp = this.safeString (unparsedOrder, 'time');
@@ -653,7 +658,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'average': undefined,
             'filled': this.safeString (unparsedOrder, 'filled'),
             'remaining': undefined,
-            'status': undefined,
+            'status': status,
             'fee': {
                 'rate': undefined,
                 'cost': undefined,
@@ -1194,11 +1199,11 @@ export default class krakenfutures extends krakenfuturesRest {
                 'book': this.handleOrderBook,
                 'book_snapshot': this.handleOrderBookSnapshot,
                 'open_orders_verbose': this.handleOrder,
-                'open_orders_verbose_snapshot': this.handleOrder,
+                'open_orders_verbose_snapshot': this.handleOrderSnapshot,
                 'fills': this.handleMyTrades,
                 'fills_snapshot': this.handleMyTrades,
                 'open_orders': this.handleOrder,
-                'open_orders_snapshot': this.handleOrder,
+                'open_orders_snapshot': this.handleOrderSnapshot,
                 'balances': this.handleBalance,
                 'balances_snapshot': this.handleBalance,
             };
