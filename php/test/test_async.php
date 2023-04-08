@@ -59,7 +59,7 @@ if (!$selected_exchange) {
     throw new \Exception('No exchange specified');
 }
 
-var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange, 'symbol'=> $exchangeSymbol || 'all' ], '\n');
+var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange->id, 'symbol'=> $exchangeSymbol || 'all' ], '\n');
 
 function snake_case ($methodName) {
     return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
@@ -71,14 +71,19 @@ function method_namer_in_test($methodName) {
 }
 define('rootDir', __DIR__ . '/../../');
 
-foreach (glob(__DIR__ . '/test_*.php') as $filename) {
-    $basename = basename($filename);
-    if (!in_array($basename, ['test_async.php', 'test_sync.php', 'datetime_functions.php', 'test_throttle.php'])) {
-        if (
-            (is_sync && stripos($filename, '_async') === false) 
-                ||
-            (!is_sync && stripos($filename, '_async') !== false)
-        ){
+if (is_sync) {
+    foreach (glob(__DIR__ . '/sync/test_*.php') as $filename) {
+        $basename = basename($filename);
+        if (!in_array($basename, ['test_throttle.php'])) {
+            include_once $filename;
+        }
+    }
+}
+
+if (!is_sync) {
+    foreach (glob(__DIR__ . '/async/test_*.php') as $filename) {
+        $basename = basename($filename);
+        if (!in_array($basename, ['test_throttle.php'])) {
             include_once $filename;
         }
     }
@@ -90,7 +95,6 @@ foreach ($allfuncs as $fName) {
     if (stripos($fName, 'ccxt\\test_')!==false) {
         $nameWithoutNs = str_replace('ccxt\\', '', $fName);
         $testFuncs[$nameWithoutNs] = $fName;
-        
     }
 }
 define('testFiles', $testFuncs);
@@ -224,14 +228,14 @@ class testMainClass extends baseMainTestClass {
             }
             $skipMessage = null;
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
-                $skipMessage = '[UNSUPPORTED]';
+                $skipMessage = 'UNSUPPORTED';
             } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
-                $skipMessage = '[SKIPPED]';
+                $skipMessage = 'TEMPORARY';
             } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
-                $skipMessage = '[MISSING]';
+                $skipMessage = 'MISSING';
             }
             if ($skipMessage) {
-                dump ($skipMessage, $exchange->id, $methodNameInTest);
+                dump ('[SKIPPED-' . $skipMessage +']', $exchange->id, $methodNameInTest);
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
