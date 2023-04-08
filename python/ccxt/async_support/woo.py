@@ -5,6 +5,8 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -213,9 +215,9 @@ class woo(Exchange):
                         },
                         'put': {
                             'order/{oid}': 2,
-                            'order/client/{oid}': 2,
+                            'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
-                            'algo/order/client/{oid}': 2,
+                            'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
                             'algo/order/{oid}': 1,
@@ -392,7 +394,7 @@ class woo(Exchange):
             })
         return result
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -699,7 +701,7 @@ class woo(Exchange):
             }
         return result
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -777,7 +779,7 @@ class woo(Exchange):
             {'type': type}
         )
 
-    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
         :param str id: order id
@@ -792,7 +794,6 @@ class woo(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'oid': id,
             # 'quantity': self.amount_to_precision(symbol, amount),
             # 'price': self.price_to_precision(symbol, price),
         }
@@ -800,7 +801,18 @@ class woo(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        response = await self.v3PrivatePutOrderOid(self.extend(request, params))
+        clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
+        isByClientOrder = clientOrderIdExchangeSpecific is not None
+        method = None
+        if isByClientOrder:
+            method = 'v3PrivatePutOrderClientClientOrderId'
+            request['client_order_id'] = clientOrderIdExchangeSpecific
+            params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+        else:
+            method = 'v3PrivatePutOrderOid'
+            request['oid'] = id
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -816,7 +828,7 @@ class woo(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -829,18 +841,21 @@ class woo(Exchange):
         await self.load_markets()
         request = {}
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        clientOrderIdExchangeSpecific = self.safe_string_2(params, 'client_order_id', clientOrderIdUnified)
+        clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
+        method = None
         if isByClientOrder:
+            method = 'v1PrivateDeleteClientOrder'
             request['client_order_id'] = clientOrderIdExchangeSpecific
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         else:
+            method = 'v1PrivateDeleteOrder'
             request['order_id'] = id
         market = None
         if symbol is not None:
             market = self.market(symbol)
         request['symbol'] = market['id']
-        response = await self.v1PrivateDeleteOrder(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # {success: True, status: 'CANCEL_SENT'}
         #
@@ -851,7 +866,7 @@ class woo(Exchange):
             extendParams['id'] = id
         return self.extend(self.parse_order(response), extendParams)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
         :param str|None symbol: unified market symbol
@@ -874,7 +889,7 @@ class woo(Exchange):
         #
         return response
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -930,7 +945,7 @@ class woo(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1061,7 +1076,7 @@ class woo(Exchange):
             return self.safe_string(statuses, status, status)
         return status
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1097,7 +1112,7 @@ class woo(Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1160,7 +1175,7 @@ class woo(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1199,7 +1214,7 @@ class woo(Exchange):
         trades = self.safe_value(response, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1335,7 +1350,7 @@ class woo(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1369,7 +1384,7 @@ class woo(Exchange):
             'info': response,
         }
 
-    async def get_asset_history_rows(self, code=None, since=None, limit=None, params={}):
+    async def get_asset_history_rows(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {}
         currency = None
@@ -1421,7 +1436,7 @@ class woo(Exchange):
         # }
         return [currency, self.safe_value(response, 'rows', {})]
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
@@ -1480,7 +1495,7 @@ class woo(Exchange):
             currency = self.safe_currency(currencyId)
         return currency
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1494,7 +1509,7 @@ class woo(Exchange):
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1508,7 +1523,7 @@ class woo(Exchange):
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -1574,7 +1589,7 @@ class woo(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1608,7 +1623,7 @@ class woo(Exchange):
             transfer['toAccount'] = toAccount
         return transfer
 
-    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
@@ -1692,7 +1707,7 @@ class woo(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1730,7 +1745,7 @@ class woo(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    async def repay_margin(self, code, amount, symbol=None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://docs.woo.org/#repay-interest
@@ -1869,7 +1884,7 @@ class woo(Exchange):
             'rate': rate,
         }
 
-    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {}
         market = None
@@ -1942,7 +1957,7 @@ class woo(Exchange):
             'previousFundingDatetime': self.iso8601(lastFundingRateTimestamp),
         }
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1963,7 +1978,7 @@ class woo(Exchange):
         #
         return self.parse_funding_rate(response, market)
 
-    async def fetch_funding_rates(self, symbols=None, params={}):
+    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.v1PublicGetFundingRates(params)
@@ -1987,7 +2002,7 @@ class woo(Exchange):
         result = self.parse_funding_rates(rows)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {}
         if symbol is not None:
@@ -2032,7 +2047,7 @@ class woo(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_leverage(self, symbol, params={}):
+    async def fetch_leverage(self, symbol: str, params={}):
         await self.load_markets()
         response = await self.v3PrivateGetAccountinfo(params)
         #
@@ -2070,7 +2085,7 @@ class woo(Exchange):
             'leverage': leverage,
         }
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         await self.load_markets()
         if (leverage < 1) or (leverage > 20):
             raise BadRequest(self.id + ' leverage should be between 1 and 20')
@@ -2079,7 +2094,7 @@ class woo(Exchange):
         }
         return await self.v1PrivatePostClientLeverage(self.extend(request, params))
 
-    async def fetch_position(self, symbol=None, params={}):
+    async def fetch_position(self, symbol: Optional[str] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2103,7 +2118,7 @@ class woo(Exchange):
         #
         return self.parse_position(response, market)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
         response = await self.v3PrivateGetPositions(params)
         #
@@ -2165,12 +2180,13 @@ class woo(Exchange):
         unrealisedPnl = Precise.string_mul(priceDifference, size)
         size = Precise.string_abs(size)
         notional = Precise.string_mul(size, markPrice)
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': None,
             'initialMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMargin': None,
@@ -2184,12 +2200,13 @@ class woo(Exchange):
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'estLiqPrice'),
             'markPrice': self.parse_number(markPrice),
+            'lastPrice': None,
             'collateral': None,
             'marginMode': 'cross',
             'marginType': None,
             'side': side,
             'percentage': None,
-        }
+        })
 
     def default_network_code_for_currency(self, code):
         currencyItem = self.currency(code)

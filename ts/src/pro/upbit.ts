@@ -3,10 +3,11 @@
 
 import upbitRest from '../upbit.js';
 import { ArrayCache } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class upbit extends upbitRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -27,7 +28,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    async watchPublic (symbol, channel, params = {}) {
+    async watchPublic (symbol: string, channel, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -52,7 +53,7 @@ export default class upbit extends upbitRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name upbit#watchTicker
@@ -64,7 +65,7 @@ export default class upbit extends upbitRest {
         return await this.watchPublic (symbol, 'ticker');
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchTrades
@@ -84,7 +85,7 @@ export default class upbit extends upbitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#watchOrderBook
@@ -98,7 +99,7 @@ export default class upbit extends upbitRest {
         return orderbook.limit ();
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         // 2020-03-17T23:07:36.511Z 'onMessage' <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: 'ticker',
         //   code: 'BTC-ETH',
@@ -143,7 +144,7 @@ export default class upbit extends upbitRest {
         client.resolve (ticker, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         // { type: 'orderbook',
         //   code: 'BTC-ETH',
         //   timestamp: 1584486737444,
@@ -198,7 +199,7 @@ export default class upbit extends upbitRest {
         client.resolve (orderBook, messageHash);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         // { type: 'trade',
         //   code: 'KRW-BTC',
         //   timestamp: 1584508285812,
@@ -227,7 +228,7 @@ export default class upbit extends upbitRest {
         client.resolve (stored, messageHash);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         const methods = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,

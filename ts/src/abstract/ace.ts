@@ -8,16 +8,19 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetOapiV2ListTradePrice (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOapiV2ListMarketPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetOpenV2PublicGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2CoinCustomerAccount (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2KlineGetKline (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderCancel (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderGetOrderList (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderShowOrderStatus (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderShowOrderHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostV2OrderGetTradeList (params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetOapiV2ListTradePrice (params?: {}): Promise<implicitReturnType>;
+    publicGetOapiV2ListMarketPair (params?: {}): Promise<implicitReturnType>;
+    publicGetOpenV2PublicGetOrderBook (params?: {}): Promise<implicitReturnType>;
+    privatePostV2CoinCustomerAccount (params?: {}): Promise<implicitReturnType>;
+    privatePostV2KlineGetKline (params?: {}): Promise<implicitReturnType>;
+    privatePostV2OrderOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostV2OrderCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostV2OrderGetOrderList (params?: {}): Promise<implicitReturnType>;
+    privatePostV2OrderShowOrderStatus (params?: {}): Promise<implicitReturnType>;
+    privatePostV2OrderShowOrderHistory (params?: {}): Promise<implicitReturnType>;
+    privatePostV2OrderGetTradeList (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

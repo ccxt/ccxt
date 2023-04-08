@@ -6,7 +6,6 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class zb extends zb$1 {
     describe() {
         return this.deepExtend(super.describe(), {

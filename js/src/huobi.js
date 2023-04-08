@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class huobi extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -4218,7 +4217,8 @@ export default class huobi extends Exchange {
                 throw new NotSupported(this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(orderType === 'market', orderType === 'limit-maker', params);
         if (postOnly) {
             orderType = 'limit-maker';
         }
@@ -4329,7 +4329,7 @@ export default class huobi extends Exchange {
             //     optimal_5_ioc
             //     optimal_10_ioc
             //     optimal_20_ioc
-            //     opponent_fok // FOR order using the BBO price
+            //     opponent_fok // FOK order using the BBO price
             //     optimal_5_fok
             //     optimal_10_fok
             //     optimal_20_fok
@@ -4373,7 +4373,8 @@ export default class huobi extends Exchange {
             throw new NotSupported(this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
         params = this.omit(params, ['sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price']);
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
         }
@@ -6112,7 +6113,7 @@ export default class huobi extends Exchange {
         const maintenanceMarginPercentage = Precise.stringDiv(adjustmentFactor, leverage);
         const maintenanceMargin = Precise.stringMul(maintenanceMarginPercentage, notional);
         const marginRatio = Precise.stringDiv(maintenanceMargin, collateral);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -6127,6 +6128,7 @@ export default class huobi extends Exchange {
             'marginMode': marginMode,
             'notional': this.parseNumber(notional),
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': this.parseNumber(intialMarginPercentage),
@@ -6135,7 +6137,8 @@ export default class huobi extends Exchange {
             'marginRatio': this.parseNumber(marginRatio),
             'timestamp': undefined,
             'datetime': undefined,
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**

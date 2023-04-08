@@ -10,7 +10,6 @@ import { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, Order
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class hitbtc extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -227,6 +226,9 @@ export default class hitbtc extends Exchange {
                     'spot': 'trading',
                     'trade': 'trading',
                     'trading': 'trading',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'commonCurrencies': {
@@ -1438,6 +1440,11 @@ export default class hitbtc extends Exchange {
         if (network !== undefined) {
             request['currency'] += network; // when network the currency need to be changed to currency + network
             params = this.omit(params, 'network');
+        }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['includeFee'] = true;
         }
         const response = await this.privatePostAccountCryptoWithdraw(this.extend(request, params));
         //

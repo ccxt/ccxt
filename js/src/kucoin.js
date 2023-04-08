@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class kucoin extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -445,7 +444,7 @@ export default class kucoin extends Exchange {
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
-                            'accounts': 'v2',
+                            'accounts': 'v1',
                         },
                     },
                     'futuresPrivate': {
@@ -848,7 +847,7 @@ export default class kucoin extends Exchange {
         const networkCode = this.safeStringUpper(params, 'network');
         const network = this.networkCodeToId(networkCode, code);
         if (network !== undefined) {
-            request['chain'] = network;
+            request['chain'] = network.toLowerCase();
             params = this.omit(params, ['network']);
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
@@ -1508,6 +1507,11 @@ export default class kucoin extends Exchange {
             if (marginMode === 'isolated') {
                 request['marginModel'] = 'isolated';
             }
+        }
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
         }
         const response = await this[method](this.extend(request, params));
         //

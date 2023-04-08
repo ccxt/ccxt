@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitmex extends bitmex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -22,6 +21,7 @@ class bitmex extends bitmex$1 {
             // 120 per minute => 2 per second => weight = 5 (authenticated)
             // 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
             'rateLimit': 100,
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -392,21 +392,15 @@ class bitmex extends bitmex$1 {
             // so let's take the settlCurrency first and then adjust if needed
             let type = undefined;
             let future = false;
-            let prediction = false;
-            let index = false;
             let symbol = base + '/' + quote + ':' + settle;
             const expiryDatetime = this.safeString(market, 'expiry');
             const expiry = this.parse8601(expiryDatetime);
             const inverse = this.safeValue(market, 'isInverse');
             const status = this.safeString(market, 'state');
             let active = status !== 'Unlisted';
+            let contract = true;
             if (swap) {
                 type = 'swap';
-            }
-            else if (id.indexOf('B_') >= 0) {
-                prediction = true;
-                type = 'prediction';
-                symbol = id;
             }
             else if (expiry !== undefined) {
                 future = true;
@@ -414,16 +408,14 @@ class bitmex extends bitmex$1 {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
             else {
-                index = true;
-                type = 'index';
-                symbol = id;
+                symbol = base + '/' + quote;
                 active = false;
+                contract = false;
             }
             const positionId = this.safeString2(market, 'positionCurrency', 'underlying');
             const position = this.safeCurrencyCode(positionId);
             const positionIsQuote = (position === quote);
             const maxOrderQty = this.safeNumber(market, 'maxOrderQty');
-            const contract = !index;
             const initMargin = this.safeString(market, 'initMargin', '1');
             const maxLeverage = this.parseNumber(Precise["default"].stringDiv('1', initMargin));
             const multiplierString = Precise["default"].stringAbs(this.safeString(market, 'multiplier'));
@@ -442,8 +434,6 @@ class bitmex extends bitmex$1 {
                 'swap': swap,
                 'future': future,
                 'option': false,
-                'prediction': prediction,
-                'index': index,
                 'active': active,
                 'contract': contract,
                 'linear': contract ? !inverse : undefined,
@@ -2190,18 +2180,20 @@ class bitmex extends bitmex$1 {
         const maintenanceMargin = this.safeNumber(position, 'maintMargin');
         const unrealisedPnl = this.safeNumber(position, 'unrealisedPnl');
         const contracts = this.omitZero(this.safeNumber(position, 'currentQty'));
-        return {
+        return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'account'),
             'symbol': symbol,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': undefined,
             'hedged': undefined,
             'side': undefined,
             'contracts': this.convertValue(contracts, market),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(position, 'avgEntryPrice'),
             'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': undefined,
             'notional': notional,
             'leverage': this.safeNumber(position, 'leverage'),
             'collateral': undefined,
@@ -2214,7 +2206,7 @@ class bitmex extends bitmex$1 {
             'marginMode': marginMode,
             'marginRatio': undefined,
             'percentage': this.safeNumber(position, 'unrealisedPnlPcnt'),
-        };
+        });
     }
     convertValue(value, market = undefined) {
         if ((value === undefined) || (market === undefined)) {
@@ -2782,9 +2774,10 @@ class bitmex extends bitmex$1 {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
             };
-            expires = this.sum(this.seconds(), expires).toString();
-            auth += expires;
-            headers['api-expires'] = expires;
+            expires = this.sum(this.seconds(), expires);
+            const stringExpires = expires.toString();
+            auth += stringExpires;
+            headers['api-expires'] = stringExpires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 if (Object.keys(params).length) {
                     body = this.json(params);

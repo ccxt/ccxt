@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class yobit extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1068,7 +1067,7 @@ export default class yobit extends Exchange {
             'pair': market['id'],
         };
         if (limit !== undefined) {
-            request['count'] = parseInt(limit);
+            request['count'] = limit;
         }
         if (since !== undefined) {
             request['since'] = this.parseToInt(since / 1000);

@@ -6,7 +6,6 @@ var Cache = require('../base/ws/Cache.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class kucoinfutures extends kucoinfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {

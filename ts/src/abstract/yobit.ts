@@ -8,17 +8,20 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetDepthPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetInfo (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickerPair (params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradesPair (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostActiveOrders (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetDepositAddress (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostGetInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrderInfo (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTrade (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostTradeHistory (params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWithdrawCoinsToAddress (params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetDepthPair (params?: {}): Promise<implicitReturnType>;
+    publicGetInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetTickerPair (params?: {}): Promise<implicitReturnType>;
+    publicGetTradesPair (params?: {}): Promise<implicitReturnType>;
+    privatePostActiveOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostGetDepositAddress (params?: {}): Promise<implicitReturnType>;
+    privatePostGetInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostTrade (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeHistory (params?: {}): Promise<implicitReturnType>;
+    privatePostWithdrawCoinsToAddress (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

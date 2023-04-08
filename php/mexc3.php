@@ -457,6 +457,7 @@ class mexc3 extends Exchange {
                     '30005' => '\\ccxt\\InvalidOrder',
                     '2003' => '\\ccxt\\InvalidOrder',
                     '2005' => '\\ccxt\\InsufficientFunds',
+                    '400' => '\\ccxt\\BadRequest', // array("msg":"The start time cannot be earlier than 90 days","code":400)
                     '600' => '\\ccxt\\BadRequest',
                     '70011' => '\\ccxt\\PermissionDenied', // array("code":70011,"msg":"Pair user ban trade apikey.")
                     '88004' => '\\ccxt\\InsufficientFunds', // array("msg":"超出最大可借，最大可借币为:18.09833211","code":88004)
@@ -467,7 +468,7 @@ class mexc3 extends Exchange {
                     '26' => '\\ccxt\\ExchangeError', // operation not allowed
                     '602' => '\\ccxt\\AuthenticationError', // Signature verification failed
                     '10001' => '\\ccxt\\AuthenticationError', // user does not exist
-                    '10007' => '\\ccxt\\BadRequest', // bad symbol
+                    '10007' => '\\ccxt\\BadSymbol', // array("code":10007,"msg":"bad symbol")
                     '10015' => '\\ccxt\\BadRequest', // user id cannot be null
                     '10072' => '\\ccxt\\BadRequest', // invalid access key
                     '10073' => '\\ccxt\\BadRequest', // invalid Request-Time
@@ -3872,9 +3873,6 @@ class mexc3 extends Exchange {
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
-        }
         $this->load_markets();
         $request = array(
             // 'coin' => $currency['id'] . network example => USDT-TRX,
@@ -3884,15 +3882,17 @@ class mexc3 extends Exchange {
             // 'limit' => $limit, // default 1000, maximum 1000
         );
         $currency = null;
-        $rawNetwork = $this->safe_string($params, 'network');
-        $params = $this->omit($params, 'network');
-        if ($rawNetwork === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a network parameter when the $currency is specified');
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+            // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
+            // due to that I'm applying the network parameter directly so the user can control it on its side
+            $rawNetwork = $this->safe_string($params, 'network');
+            if ($rawNetwork !== null) {
+                $params = $this->omit($params, 'network');
+                $request['coin'] .= '-' . $rawNetwork;
+            }
         }
-        // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
-        // due to that I'm applying the network parameter directly so the user can control it on its side
-        $currency = $this->currency($code);
-        $request['coin'] = $currency['id'] . '-' . $rawNetwork;
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -3911,11 +3911,11 @@ class mexc3 extends Exchange {
         //         network => 'TRX',
         //         status => '5',
         //         address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //         addressTag => null,
         //         txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         //         insertTime => '1664805021000',
         //         unlockConfirm => '200',
-        //         confirmTimes => '203'
+        //         confirmTimes => '203',
+        //         memo => 'xxyy1122'
         //     }
         // )
         //
@@ -3932,9 +3932,6 @@ class mexc3 extends Exchange {
          * @param {array} $params extra parameters specific to the mexc3 api endpoint
          * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
-        }
         $this->load_markets();
         $request = array(
             // 'coin' => $currency['id'],
@@ -3943,8 +3940,11 @@ class mexc3 extends Exchange {
             // 'endTime' => $this->milliseconds(),
             // 'limit' => $limit, // default 1000, maximum 1000
         );
-        $currency = $this->currency($code);
-        $request['coin'] = $currency['id'];
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -3969,7 +3969,8 @@ class mexc3 extends Exchange {
         //       transactionFee => '1',
         //       confirmNo => null,
         //       applyTime => '1664882739000',
-        //       remark => ''
+        //       remark => '',
+        //       memo => null
         //     }
         // )
         //
@@ -3986,11 +3987,11 @@ class mexc3 extends Exchange {
         //     $network => 'TRX',
         //     $status => '5',
         //     $address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //     addressTag => null,
         //     txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
         //     insertTime => '1664805021000',
         //     unlockConfirm => '200',
-        //     confirmTimes => '203'
+        //     confirmTimes => '203',
+        //     memo => 'xxyy1122'
         // }
         //
         // fetchWithdrawals
@@ -4007,22 +4008,31 @@ class mexc3 extends Exchange {
         //     transactionFee => '1',
         //     confirmNo => null,
         //     applyTime => '1664882739000',
-        //     remark => ''
+        //     remark => '',
+        //     memo => null
         //   }
         //
         // withdraw
         //
         //     {
-        //         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
         $type = ($id === null) ? 'deposit' : 'withdrawal';
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
-        $currencyId = $this->safe_string($transaction, 'currency');
-        $network = $this->safe_string($transaction, 'network');
+        $currencyId = null;
+        $currencyWithNetwork = $this->safe_string($transaction, 'coin');
+        if ($currencyWithNetwork !== null) {
+            $currencyId = explode('-', $currencyWithNetwork)[0];
+        }
+        $network = null;
+        $rawNetwork = $this->safe_string($transaction, 'network');
+        if ($rawNetwork !== null) {
+            $network = $this->safe_network($rawNetwork);
+        }
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'txId');
@@ -4060,12 +4070,31 @@ class mexc3 extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
-        $statuses = array(
-            'WAIT' => 'pending',
-            'WAIT_PACKAGING' => 'pending',
-            'SUCCESS' => 'ok',
+    public function parse_transaction_status_by_type($status, $type = null) {
+        $statusesByType = array(
+            'deposit' => array(
+                '1' => 'failed', // SMALL
+                '2' => 'pending', // TIME_DELAY
+                '3' => 'pending', // LARGE_DELAY
+                '4' => 'pending', // PENDING
+                '5' => 'ok', // SUCCESS
+                '6' => 'pending', // AUDITING
+                '7' => 'failed', // REJECTED
+            ),
+            'withdrawal' => array(
+                '1' => 'pending', // APPLY
+                '2' => 'pending', // AUDITING
+                '3' => 'pending', // WAIT
+                '4' => 'pending', // PROCESSING
+                '5' => 'pending', // WAIT_PACKAGING
+                '6' => 'pending', // WAIT_CONFIRM
+                '7' => 'ok', // SUCCESS
+                '8' => 'failed', // FAILED
+                '9' => 'canceled', // CANCEL
+                '10' => 'pending', // MANUAL
+            ),
         );
+        $statuses = $this->safe_value($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 

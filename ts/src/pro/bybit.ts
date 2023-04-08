@@ -5,10 +5,11 @@ import bybitRest from '../bybit.js';
 import { AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bybit extends bybitRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -161,7 +162,7 @@ export default class bybit extends bybitRest {
         return params;
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bybit#watchTicker
@@ -187,7 +188,7 @@ export default class bybit extends bybitRest {
         return await this.watchTopics (url, messageHash, topics, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         // linear
         //     {
@@ -317,7 +318,7 @@ export default class bybit extends bybitRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOHLCV
@@ -347,7 +348,7 @@ export default class bybit extends bybitRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         "topic": "kline.5.BTCUSDT",
@@ -424,7 +425,7 @@ export default class bybit extends bybitRest {
         ];
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrderBook
@@ -460,7 +461,7 @@ export default class bybit extends bybitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         "topic": "orderbook.50.BTCUSDT",
@@ -534,7 +535,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchTrades
@@ -560,7 +561,7 @@ export default class bybit extends bybitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         "topic": "publicTrade.BTCUSDT",
@@ -684,7 +685,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchMyTrades
@@ -719,7 +720,7 @@ export default class bybit extends bybitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         // spot
         //    {
@@ -812,7 +813,7 @@ export default class bybit extends bybitRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrders
@@ -846,7 +847,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client, message, subscription = undefined) {
+    handleOrder (client: Client, message, subscription = undefined) {
         //
         //     spot
         //     {
@@ -1110,7 +1111,7 @@ export default class bybit extends bybitRest {
         return await this.watchTopics (url, messageHash, topics, params);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         // spot
         //    {
@@ -1380,7 +1381,7 @@ export default class bybit extends bybitRest {
         return future;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         //   {
         //       success: false,
@@ -1438,7 +1439,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1509,7 +1510,7 @@ export default class bybit extends bybitRest {
         };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         //
         //   {
         //       success: true,
@@ -1524,7 +1525,7 @@ export default class bybit extends bybitRest {
         return message;
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         //    {
         //        success: true,
@@ -1547,7 +1548,7 @@ export default class bybit extends bybitRest {
         return message;
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //    {
         //        topic: 'kline',

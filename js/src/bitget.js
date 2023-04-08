@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitget extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -58,7 +57,7 @@ export default class bitget extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': undefined,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -135,6 +134,7 @@ export default class bitget extends Exchange {
                             'market/ticker': 1,
                             'market/tickers': 1,
                             'market/fills': 1,
+                            'market/fills-history': 2,
                             'market/candles': 1,
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
@@ -156,6 +156,8 @@ export default class bitget extends Exchange {
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
                             'market/contract-vip-level': 2,
+                            'market/fills-history': 2,
+                            'market/queryPositionLever': 1,
                         },
                     },
                 },
@@ -177,13 +179,19 @@ export default class bitget extends Exchange {
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
                             'trade/cancel-batch-orders': 4,
+                            'trade/cancel-batch-orders-v2': 4,
                             'trade/orderInfo': 1,
                             'trade/open-orders': 1,
                             'trade/history': 1,
                             'trade/fills': 1,
+                            'trade/cancel-order-v2': 2,
+                            'trade/cancel-symbol-order': 2,
                             'wallet/transfer': 4,
                             'wallet/withdrawal': 4,
                             'wallet/subTransfer': 10,
+                            'wallet/transfer-v2': 4,
+                            'wallet/withdrawal-v2': 4,
+                            'wallet/withdrawal-inner-v2': 4,
                             'plan/placePlan': 1,
                             'plan/modifyPlan': 1,
                             'plan/cancelPlan': 1,
@@ -217,6 +225,8 @@ export default class bitget extends Exchange {
                             'trade/profitDateList': 2,
                             'trace/waitProfitDateList': 2,
                             'trace/traderSymbols': 2,
+                            'trace/traderList': 2,
+                            'trace/queryTraceConfig': 2,
                             'order/marginCoinCurrent': 2,
                         },
                         'post': {
@@ -229,6 +239,7 @@ export default class bitget extends Exchange {
                             'order/cancel-order': 2,
                             'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
+                            'order/cancel-symbol-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -238,8 +249,13 @@ export default class bitget extends Exchange {
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
                             'plan/cancelAllPlan': 2,
+                            'plan/cancelSymbolPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
+                            'trace/followerSetBatchTraceConfig': 2,
+                            'trace/followerCloseByTrackingNo': 2,
+                            'trace/followerCloseByAll': 2,
+                            'trace/followerSetTpsl': 2,
                         },
                     },
                 },
@@ -1227,6 +1243,74 @@ export default class bitget extends Exchange {
         }
         return result;
     }
+    async fetchMarketLeverageTiers(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchMarketLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        let market = undefined;
+        market = this.market(symbol);
+        if (market['spot']) {
+            throw new BadRequest(this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
+        }
+        request['symbol'] = market['id'];
+        request['productType'] = 'UMCBL';
+        const response = await this.publicMixGetMarketQueryPositionLever(this.extend(request, params));
+        //
+        //     {
+        //         "code":"00000",
+        //         "data":[
+        //             {
+        //                 "level": 1,
+        //                 "startUnit": 0,
+        //                 "endUnit": 150000,
+        //                 "leverage": 125,
+        //                 "keepMarginRate": "0.004"
+        //             }
+        //         ],
+        //         "msg":"success",
+        //         "requestTime":1627292076687
+        //     }
+        //
+        const result = this.safeValue(response, 'data');
+        return this.parseMarketLeverageTiers(result, market);
+    }
+    parseMarketLeverageTiers(info, market = undefined) {
+        //
+        //     [
+        //         {
+        //             "level": 1,
+        //             "startUnit": 0,
+        //             "endUnit": 150000,
+        //             "leverage": 125,
+        //             "keepMarginRate": "0.004"
+        //         }
+        //     ],
+        //
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const minNotional = this.safeNumber(item, 'startUnit');
+            const maxNotional = this.safeNumber(item, 'endUnit');
+            tiers.push({
+                'tier': this.sum(i, 1),
+                'currency': market['base'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': this.safeNumber(item, 'keepMarginRate'),
+                'maxLeverage': this.safeNumber(item, 'leverage'),
+                'info': item,
+            });
+        }
+        return tiers;
+    }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2184,6 +2268,7 @@ export default class bitget extends Exchange {
             'new': 'open',
             'init': 'open',
             'not_trigger': 'open',
+            'partial_fill': 'open',
             'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
@@ -2341,8 +2426,9 @@ export default class bitget extends Exchange {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
         });
-        const exchangeSpecificParam = this.safeString2(params, 'force', 'timeInForceValue');
-        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam === 'post_only', params);
+        const exchangeSpecificTifParam = this.safeStringN(params, ['force', 'timeInForceValue', 'timeInForce']);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
         if (marketType === 'spot') {
             if (isStopLossOrTakeProfit) {
                 throw new InvalidOrder(this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
@@ -2607,19 +2693,14 @@ export default class bitget extends Exchange {
         this.checkRequiredSymbol('cancelOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        const type = this.safeString(params, 'type', market['type']);
-        if (type === undefined) {
-            throw new ArgumentsRequired(this.id + " cancelOrders() requires a type parameter (one of 'spot', 'swap').");
-        }
-        params = this.omit(params, 'type');
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('cancelOrders', market, params);
         const request = {};
         let method = undefined;
         if (type === 'spot') {
-            method = 'apiPostOrderOrdersBatchcancel';
-            request['method'] = 'batchcancel';
-            const jsonIds = this.json(ids);
-            const parts = jsonIds.split('"');
-            request['order_ids'] = parts.join('');
+            method = 'privateSpotPostTradeCancelBatchOrdersV2';
+            request['symbol'] = market['id'];
+            request['orderIds'] = ids;
         }
         else if (type === 'swap') {
             method = 'privateMixPostOrderCancelBatchOrders';
@@ -2632,18 +2713,17 @@ export default class bitget extends Exchange {
         //     spot
         //
         //     {
-        //         "status": "ok",
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": "1680008815965",
         //         "data": {
-        //             "success": [
-        //                 "673451224205135872",
-        //             ],
-        //             "failed": [
+        //             "resultList": [
         //                 {
-        //                 "err-msg": "invalid record",
-        //                 "order-id": "673451224205135873",
-        //                 "err-code": "base record invalid"
-        //                 }
-        //             ]
+        //                     "orderId": "1024598257429823488",
+        //                     "clientOrderId": "876493ce-c287-4bfc-9f4a-8b1905881313"
+        //                 },
+        //             ],
+        //             "failed": []
         //         }
         //     }
         //
@@ -2852,7 +2932,7 @@ export default class bitget extends Exchange {
             }
             query = this.omit(query, 'stop');
         }
-        const response = await this[method](this.extend(request, query));
+        let response = await this[method](this.extend(request, query));
         //
         //  spot
         //     {
@@ -2956,6 +3036,9 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            response = JSON.parse(response);
+        }
         let data = this.safeValue(response, 'data', []);
         if (!Array.isArray(data)) {
             data = this.safeValue(data, 'orderList', []);
@@ -3553,7 +3636,7 @@ export default class bitget extends Exchange {
         const maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
         const marginRatio = Precise.stringDiv(maintenanceMargin, collateral);
         const percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMargin, 4), '100');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3566,10 +3649,12 @@ export default class bitget extends Exchange {
             'contracts': contracts,
             'contractSize': contractSizeNumber,
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': this.parseNumber(maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
             'collateral': this.parseNumber(collateral),
@@ -3577,7 +3662,7 @@ export default class bitget extends Exchange {
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverage),
             'marginRatio': this.parseNumber(marginRatio),
-        };
+        });
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
