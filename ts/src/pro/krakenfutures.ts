@@ -1075,8 +1075,6 @@ export default class krakenfutures extends krakenfuturesRest {
 
     handleMyTrades (client: Client, message) {
         //
-        // snapshot
-        //
         //    {
         //        "feed": "fills_snapshot",
         //        "account": "DemoUser",
@@ -1089,6 +1087,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //                "buy": true,
         //                "qty": 5000.0,
         //                "order_id": "9e30258b-5a98-4002-968a-5b0e149bcfbf",
+        //                "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d", // only on update, not on snapshot
         //                "fill_id": "cad76f07-814e-4dc6-8478-7867407b6bff",
         //                "fill_type": "maker",
         //                "fee_paid": -0.00009142857,
@@ -1100,40 +1099,13 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        // update
-        //
-        //    {
-        //        "feed": "fills",
-        //        "username": "DemoUser",
-        //        "fills": [
-        //            {
-        //                "instrument": "PI_XBTUSD",
-        //                "time": 1600256966528,
-        //                "price": 364.65,
-        //                "seq": 100,
-        //                "buy": true,
-        //                "qty": 5000.0,
-        //                "order_id": "3696d19b-3226-46bd-993d-a9a7aacc8fbc",
-        //                "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d",
-        //                "fill_id": "c14ee7cb-ae25-4601-853a-d0205e576099",
-        //                "fill_type": "taker",
-        //                "fee_paid": 0.00685588921,
-        //                "fee_currency": "ETH",
-        //                "taker_order_type": "liquidation",
-        //                "order_type": "limit"
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        const rawTrades = this.safeValue (message, 'data', []);
-        if (rawTrades.length === 0) {
-            return;
-        }
-        const reset = this.safeValue (message, 'reset', false);
+        const rawTrades = this.safeValue (message, 'fills', []);
+        // if (rawTrades.length === 0) {
+        //     return;
+        // }
         const messageHash = 'myTrades';
         let stored = this.myTrades;
-        if ((stored === undefined) || reset) {
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCacheBySymbolById (limit);
             this.myTrades = stored;
@@ -1152,6 +1124,51 @@ export default class krakenfutures extends krakenfuturesRest {
             client.resolve (stored, symbolSpecificMessageHash);
         }
         client.resolve (stored, messageHash);
+    }
+
+    parseWsMyTrade (trade, market = undefined) {
+        //
+        //    {
+        //        "instrument": "FI_XBTUSD_200925",
+        //        "time": 1600256910739,
+        //        "price": 10937.5,
+        //        "seq": 36,
+        //        "buy": true,
+        //        "qty": 5000.0,
+        //        "order_id": "9e30258b-5a98-4002-968a-5b0e149bcfbf",
+        //        "cli_ord_id": "8b58d9da-fcaf-4f60-91bc-9973a3eba48d", // only on update, not on snapshot
+        //        "fill_id": "cad76f07-814e-4dc6-8478-7867407b6bff",
+        //        "fill_type": "maker",
+        //        "fee_paid": -0.00009142857,
+        //        "fee_currency": "BTC",
+        //        "taker_order_type": "ioc",
+        //        "order_type": "limit"
+        //    }
+        //
+        const timestamp = this.safeInteger (trade, 'time');
+        const marketId = this.safeStringLower (trade, 'instrument');
+        market = this.safeMarket (marketId, market);
+        const isBuy = this.safeValue (trade, 'buy');
+        const feeCurrencyId = this.safeString (trade, 'fee_currency');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'fill_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': this.safeString (trade, 'order_id'),
+            'type': this.safeString (trade, 'type'),
+            'side': isBuy ? 'buy' : 'sell',
+            'takerOrMaker': this.safeString (trade, 'fill_type'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'qty'),
+            'cost': undefined,
+            'fee': {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'cost': this.safeString (trade, 'fee_paid'),
+                'rate': undefined,
+            },
+        });
     }
 
     handleMessage (client, message) {
