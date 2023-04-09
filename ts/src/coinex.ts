@@ -1786,12 +1786,12 @@ export default class coinex extends Exchange {
                 }
             } else {
                 method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
-                side = (side === 'buy') ? 2 : 1;
+                const requestSide = (side === 'buy') ? 2 : 1;
                 if (stopPrice !== undefined) {
                     request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
                     request['stop_type'] = this.safeInteger (params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price;
                     request['amount'] = this.amountToPrecision (symbol, amount);
-                    request['side'] = side;
+                    request['side'] = requestSide;
                     if (type === 'limit') {
                         method = 'perpetualPrivatePostOrderPutStopLimit';
                         request['price'] = this.priceToPrecision (symbol, price);
@@ -1820,7 +1820,7 @@ export default class coinex extends Exchange {
                         method = 'perpetualPrivatePostOrderCloseLimit';
                         request['position_id'] = positionId;
                     } else {
-                        request['side'] = side;
+                        request['side'] = requestSide;
                     }
                     request['price'] = this.priceToPrecision (symbol, price);
                     request['amount'] = this.amountToPrecision (symbol, amount);
@@ -1829,7 +1829,7 @@ export default class coinex extends Exchange {
                         method = 'perpetualPrivatePostOrderCloseMarket';
                         request['position_id'] = positionId;
                     } else {
-                        request['side'] = side;
+                        request['side'] = requestSide;
                         request['amount'] = this.amountToPrecision (symbol, amount);
                     }
                 }
