@@ -10,17 +10,25 @@ set (THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
 ####################### Boost ##########################
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_STATIC_RUNTIME ON)
+if (WIN32)
+    set(Boost_USE_MULTITHREADED ON)
+    set(Boost_USE_STATIC_LIBS ON)
+    set(Boost_USE_STATIC_RUNTIME ON)
+endif (WIN32)
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system coroutine filesystem) 
 IF(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 ENDIF(Boost_FOUND)
-# ignore BOOST deprecated headers until we can update boost
-add_definitions("-DBOOST_ALLOW_DEPRECATED_HEADERS")
-add_definitions("-DBOOST_BIND_GLOBAL_PLACEHOLDERS")
+# ignore BOOST deprecated headers until we can update boost on Ubuntu 22.04
+if (UNIX)
+    add_definitions("-DBOOST_ALLOW_DEPRECATED_HEADERS")
+    add_definitions("-DBOOST_BIND_GLOBAL_PLACEHOLDERS")
+endif(UNIX)
 ########################################################
+
+include_directories(${_INCLUDE_DIRS})
+
 
 set(CCXT_HEADERS_DIR "${CMAKE_CURRENT_LIST_DIR}/cpp")
 file(GLOB CCXT_TOP_HEADERS "${CCXT_HEADERS_DIR}/*.h")
@@ -37,11 +45,8 @@ set(CCXT_SRCS
     httpsClass.cpp
     binance.cpp)
 
-if(BUILD_SHARED_LIBS)
-    add_library(ccxt SHARED ${CCXT_SRCS} ${CCXT_ALL_HEADERS})
-else()
-    add_library(ccxt STATIC ${CCXT_SRCS} ${CCXT_ALL_HEADERS})
-endif()
+add_library(ccxt ${CCXT_SRCS} ${CCXT_ALL_HEADERS})
+target_link_libraries(ccxt PRIVATE fmt::fmt nlohmann_json::nlohmann_json)
 
 target_include_directories(ccxt PUBLIC 
     "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp>"

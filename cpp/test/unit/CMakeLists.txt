@@ -21,8 +21,9 @@ if(ENABLE_TESTS)
 
     add_executable(tests ${TESTS_SRCS})    
 
+    link_directories(${Boost_LIBRARY_DIRS})
     target_link_libraries(tests PRIVATE ccxt doctest::doctest fmt::fmt nlohmann_json::nlohmann_json 
-                                        boost_system boost_coroutine OpenSSL::SSL OpenSSL::Crypto Threads::Threads)
+                                             ${Boost_LIBRARIES} OpenSSL::SSL OpenSSL::Crypto Threads::Threads)
     target_include_directories(tests PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp>")
     target_include_directories(tests PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp/test>")
 endif()

@@ -1,7 +1,6 @@
 #include <ccxt/base/exchange.h>
 #include <fmt/format.h>
 #include <algorithm>
-#include <bits/stdc++.h>
 #include <ccxt/base/functions/string.h>
 #include <ccxt/base/functions/type.h>
 #include <ccxt/base/functions/time.h>
