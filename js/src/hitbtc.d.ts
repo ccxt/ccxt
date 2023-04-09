@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class hitbtc extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;
@@ -81,7 +81,7 @@ export default class hitbtc extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
