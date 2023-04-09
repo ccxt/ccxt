@@ -2968,14 +2968,15 @@ export default class xt extends Exchange {
          * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {string} params.network required network id
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const currency = this.currency (code);
-        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeString2 (networkIdsByCodes, networkCode, code, code);
+        const networkId = this.networkCodeToId (networkCode, code);
+        this.checkRequiredArgument ('fetchDepositAddress', networkId, 'network');
         const request = {
             'currency': currency['id'],
             'chain': networkId,
