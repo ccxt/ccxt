@@ -4,23 +4,14 @@
 #include <ccxt/base/functions/string.h>
 #include <ccxt/base/functions/type.h>
 #include <ccxt/base/functions/time.h>
-#include <plog/Log.h>
-#include <plog/Init.h>
-#include <plog/Formatters/TxtFormatter.h>
-#include <plog/Appenders/ColorConsoleAppender.h>
 #include <httpsClass.h>
+#include <spdlog/spdlog.h>
 
 namespace ccxt
 {
 
     Exchange::Exchange()
-    {
-        if (_verbose)
-        {
-            static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-            plog::init(plog::debug, &consoleAppender);
-        }
-
+    {        
         // options = getDefaultOptions(); // exchange-specific options, if any
 
         // Inherited classes set the member variables.
@@ -60,6 +51,11 @@ namespace ccxt
           _urls{urls}, _commonCurrencies{commonCurrencies},
           _precisionMode{precisionMode}, _verbose{verbose}
     {
+        if (_verbose)
+        {
+            spdlog::info("set spdlog level to debug");
+            spdlog::set_level(spdlog::level::debug);
+        }
     }
 
     bool Exchange::checkRequiredVersion(const std::string requiredVersion, bool error)
@@ -355,7 +351,7 @@ namespace ccxt
         }
         std::map<MarketType, std::map<std::string, Currency>> currencies;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions
-        if (_has.fetchCurrencies == ExchangeAPIOrEmulated::TRUE)
+        if (_has.fetchCurrencies == ExchangeAPIOrEmulated::TRUE_)
         {
             currencies = fetchCurrencies();
         }

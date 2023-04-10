@@ -1,4 +1,4 @@
-#pragma one
+#pragma once
 
 #include <string>
 #include <limits>
@@ -24,6 +24,7 @@ namespace ccxt
 
     int safeInteger2(const nlohmann::json &j, const std::string &k1, const std::string &k2, int defaultValue = std::numeric_limits<int>::min());
     long safeLong2(const nlohmann::json &j, const std::string &k1, const std::string &k2, long defaultValue = std::numeric_limits<long>::min());
+    uint64_t safeuint64_t2(const nlohmann::json& j, const std::string& k1, const std::string& k2, uint64_t defaultValue = std::numeric_limits<uint64_t>::min());
     double safeValue2(double k1, double k2, double defaultValue = std::numeric_limits<double>::quiet_NaN());
     std::string safeString2(const std::string &k1, const std::string &k2, const std::string &defaultValue = "");
     std::string safeString2(int k1, const std::string &k2, const std::string &defaultValue = "");

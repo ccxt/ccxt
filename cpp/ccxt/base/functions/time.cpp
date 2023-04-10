@@ -10,8 +10,11 @@ namespace ccxt
         return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     }
 
-    std::string yymmdd(int timestamp, std::string infix)
+    std::string yymmdd(uint64_t timestamp, std::string infix)
     {
+        if (timestamp == std::numeric_limits<uint64_t>::min()) {
+            return "";
+        }
         std::time_t t = timestamp / 1000;
         std::tm tm = *std::gmtime(&t);
         char buf[32];
@@ -20,8 +23,11 @@ namespace ccxt
         return std::string(buf);
     }
 
-    std::string iso8601(int timestamp)
+    std::string iso8601(uint64_t timestamp)
     {
+        if (timestamp == std::numeric_limits<uint64_t>::min()) {
+            return "";
+        }
         std::time_t t = timestamp / 1000;
         std::tm tm = *std::gmtime(&t);
         char buf[32];

@@ -6,7 +6,7 @@ namespace ccxt {
 class binance : public Exchange 
 {
 public:
-    binance();
+    binance(bool verbose = false);
     virtual ~binance() {};
         
     // fetches the current timestamp in milliseconds from the exchange server

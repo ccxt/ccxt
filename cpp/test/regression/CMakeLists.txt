@@ -21,6 +21,9 @@ if(ENABLE_TESTS)
 
     target_link_libraries(regression-tests PRIVATE ccxt doctest::doctest fmt::fmt nlohmann_json::nlohmann_json
                                                         Boost::coroutine Boost::filesystem OpenSSL::SSL OpenSSL::Crypto Threads::Threads)
+    if (WIN32)
+        target_link_options(regression-tests INTERFACE "/debug:fastlink")
+    endif(WIN32)
     target_include_directories(regression-tests PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp>")
     target_include_directories(regression-tests PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/cpp/test>")
 endif()

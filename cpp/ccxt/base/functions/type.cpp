@@ -104,6 +104,16 @@ namespace ccxt
             return defaultValue;
     }
 
+    uint64_t safeuint64_t2(const nlohmann::json& j, const std::string& k1, const std::string& k2, uint64_t defaultValue)
+    {
+        if (j.contains(k1))
+            return j[k1].get<uint64_t >();
+        else if (j.contains(k2))
+            return j[k2].get<uint64_t >();
+        else
+            return defaultValue;
+    }
+
     double safeValue2(double k1, double k2, double defaultValue)
     {
         if (k1 != 0)

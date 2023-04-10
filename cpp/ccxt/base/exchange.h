@@ -128,7 +128,7 @@ namespace ccxt
 
     enum class ExchangeAPIOrEmulated
     {
-        TRUE,
+        TRUE_,
         EMULATED
     }; // exchange API provides endpoint (true) or emulated versions
 
@@ -289,8 +289,8 @@ namespace ccxt
         std::string feeside;
         bool tierBased;
         bool percentage{true};
-        bool taker;
-        bool maker;
+        double taker;
+        double maker;
         FeesTiers tiers;
     };
 

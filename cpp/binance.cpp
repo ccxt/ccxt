@@ -1,7 +1,5 @@
 #include <binance.h>
 #include <chrono>
-#include <iostream>
-#include <ostream>
 #include <type_traits>
 #include <date/date.h>
 #include <fmt/format.h>
@@ -9,12 +7,12 @@
 #include <ccxt/base/functions/type.h>
 #include <ccxt/base/functions/generic.h>
 #include <ccxt/base/functions/time.h>
-#include <plog/Log.h>
 #include <boost/asio.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/beast.hpp>
 #include <boost/beast/ssl.hpp>
 #include <httpsClass.h>
+#include <spdlog/spdlog.h>
 
 template <>
 struct fmt::formatter<ccxt::MarketType> : formatter<string_view>
@@ -61,7 +59,7 @@ using json = nlohmann::json;
 
 namespace ccxt
 {
-    binance::binance()
+    binance::binance(bool verbose)
         : Exchange(
               "binance",    // id
               "Binance",    // name
@@ -88,7 +86,7 @@ namespace ccxt
                .createStopOrder = true,
                .createStopLimitOrder = true,
                .createStopMarketOrder = false,
-               .editOrder = ExchangeAPIOrEmulated::TRUE,
+               .editOrder = ExchangeAPIOrEmulated::TRUE_,
                .fetchAccounts = false,
                .fetchBalance = true,
                .fetchBidsAsks = true,
@@ -101,7 +99,7 @@ namespace ccxt
                .fetchCanceledOrders = false,
                .fetchClosedOrder = false,
                .fetchClosedOrders = ExchangeAPIOrEmulated::EMULATED,
-               .fetchCurrencies = ExchangeAPIOrEmulated::TRUE,
+               .fetchCurrencies = ExchangeAPIOrEmulated::TRUE_,
                .fetchDeposit = false,
                .fetchDepositAddress = true,
                .fetchDepositAddresses = false,
@@ -138,7 +136,7 @@ namespace ccxt
                .fetchPositionsRisk = true,
                .fetchPremiumIndexOHLCV = false,
                .fetchSettlementHistory = true,
-               .fetchStatus = ExchangeAPIOrEmulated::TRUE,
+               .fetchStatus = ExchangeAPIOrEmulated::TRUE_,
                .fetchTicker = true,
                .fetchTickers = true,
                .fetchTime = true,
@@ -204,7 +202,7 @@ namespace ccxt
               // precisionMode
               DigitsCountingMode::DECIMAL_PLACES,
               // verbose
-              _verbose){};
+              verbose){};
 
     void binance::initFees()
     {
@@ -331,8 +329,7 @@ namespace ccxt
         }
         catch (const std::exception &e)
         {
-            std::cout << "ERROR:" << e.what() << std::endl;
-            PLOGE << e.what();
+            spdlog::error("fetchTime: {}", e.what());
             return std::numeric_limits<long>::min();
         }
     }
@@ -665,8 +662,7 @@ namespace ccxt
         }
         catch (const std::exception &e)
         {
-            std::cout << "ERROR:" << e.what() << std::endl;
-            PLOGE << e.what();
+            spdlog::error("fetchMarket: {}", e.what());
             return j;
         }
 
@@ -687,7 +683,7 @@ namespace ccxt
     {
         Market res;
 
-        // std::cout << market.dump(4) << std::endl;
+        spdlog::debug("Parsing message : {}", market.dump(4));
 
         bool swap = false;
         bool future = false;
@@ -707,7 +703,7 @@ namespace ccxt
         auto quote = safeCurrencyCode(quoteId, type);
         auto contractType = safeString(market, "contractType");
         bool contract = market.contains("contractType");
-        auto expiry = safeInteger2(market, "deliveryDate", "expiryDate");
+        uint64_t expiry = safeuint64_t2(market, "deliveryDate", "expiryDate");
         auto settleId = safeString(market, "marginAsset");
         if ((contractType == "PERPETUAL") || (expiry == 4133404800000))
         { // some swap markets do not have contract type, eg: BTCST
@@ -729,10 +725,10 @@ namespace ccxt
         auto filter = (market.contains("filters")) ? market["filters"] : json::array();
         auto filtersByType = indexBy(market, "filterType");
         auto status = safeString2(market, "status", "contractStatus");
-        long contractSize;
+        long contractSize = 0;
         auto fees = _fees;
-        bool linear;
-        bool inverse;
+        bool linear{ false };
+        bool inverse{ false };
         auto strike = safeInteger(market, "strikePrice");
         auto symbol = base + '/' + quote;
         if (contract)
@@ -885,9 +881,11 @@ namespace ccxt
 
     long binance::convertExpireDate(const std::string &d) const
     {
+        using namespace date;
+
         std::chrono::system_clock::time_point tp;
-        std::istringstream ss{d};
-        ss >> date::parse("%F", tp);
+        std::istringstream ss{d};        
+        ss >> parse("%F", tp);
         long ts = (std::chrono::time_point_cast<std::chrono::milliseconds>(tp)
                        .time_since_epoch() /
                    std::chrono::milliseconds(1));
