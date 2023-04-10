@@ -4042,21 +4042,34 @@ export default class bybit extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision(symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision(symbol, takeProfitPrice);
+        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
+        const stopLoss = this.safeNumber(params, 'stopLoss');
+        const takeProfit = this.safeNumber(params, 'takeProfit');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
+        if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        params = this.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+            }
+            if (isTakeProfit) {
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+            }
+        }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        params = this.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostV5OrderAmend(this.extend(request, params));
         //
         //     {
@@ -4128,26 +4141,34 @@ export default class bybit extends Exchange {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
-        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision(symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision(symbol, takeProfitPrice);
+        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
+        const stopLoss = this.safeNumber(params, 'stopLoss');
+        const takeProfit = this.safeNumber(params, 'takeProfit');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
+        if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
-            request['triggerBy'] = 'LastPrice';
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+        }
+        if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+            }
+            if (isTakeProfit) {
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+            }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostUnifiedV3PrivateOrderReplace(this.extend(request, params));
         //
         //     {
@@ -4169,25 +4190,45 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
             'orderId': id,
             'qty': this.amountToPrecision(symbol, amount),
+            // 'orderLinkId': '', // User customised order id. Either orderId or orderLinkId is required
+            // 'triggerPrice': '', // Trigger price. Don't pass it if not modify the qty
+            // 'takeProfit': '', // Take profit price after modification. Don't pass it if not modify the take profit
+            // 'stopLoss': '', // Stop loss price after modification. Don't pass it if not modify the Stop loss
+            // 'tpTriggerBy': '', // The price type to trigger take profit. When set a take profit, this param is required if no initial value for the order
+            // 'slTriggerBy': '', // The price type to trigger stop loss. When set a stop loss, this param is required if no initial value for the order
+            // 'triggerBy': '', // Trigger price type. LastPrice, IndexPrice, MarkPrice, LastPrice
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision(symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision(symbol, takeProfitPrice);
+        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
+        const stopLoss = this.safeNumber(params, 'stopLoss');
+        const takeProfit = this.safeNumber(params, 'takeProfit');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
+        if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        params = this.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+            }
+            if (isTakeProfit) {
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+            }
+        }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        params = this.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit']);
         const response = await this.privatePostContractV3PrivateOrderReplace(this.extend(request, params));
         //
         // contract v3
