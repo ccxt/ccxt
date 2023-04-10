@@ -32,7 +32,7 @@ jobs:
       run: |
         sudo apt update
         ${{matrix.install}}
-        sudo apt install -y cmake ninja-build libfmt-dev libhowardhinnant-date-dev nlohmann-json3-dev libboost-all-dev libssl-dev
+        sudo apt install -y cmake ninja-build libspdlog-dev libfmt-dev libhowardhinnant-date-dev nlohmann-json3-dev libboost-all-dev libssl-dev
         cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure
