@@ -3215,7 +3215,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        return $this->safe_value($data, 'orderList', $data);
+        return $this->safe_value($data, 'orderList', array());
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {

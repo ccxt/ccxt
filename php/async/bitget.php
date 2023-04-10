@@ -3277,7 +3277,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data');
-            return $this->safe_value($data, 'orderList', $data);
+            return $this->safe_value($data, 'orderList', array());
         }) ();
     }
 
