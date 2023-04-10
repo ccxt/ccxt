@@ -119,7 +119,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 import re
 
 
-def method_namer_in_test(methodName):
+def get_test_name(methodName):
     snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()
     snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
     full_name = 'test_' + snake_cased
@@ -236,7 +236,7 @@ class testMainClass(baseMainTestClass):
         add_proxy_agent(exchange, exchangeSettings)
 
     def test_method(self, methodName, exchange, args, isPublic):
-        methodNameInTest = method_namer_in_test(methodName)
+        methodNameInTest = get_test_name(methodName)
         # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in exchange)
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
             return

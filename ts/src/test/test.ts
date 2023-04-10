@@ -40,7 +40,7 @@ const exchange = new (ccxt)[exchangeId] ({
     timeout,
 });
 //-----------------------------------------------------------------------------
-const method_namer_in_test = (str) => str;
+const get_test_name = (str) => str;
 const testFiles = {};
 const properties = Object.keys (exchange.has);
 properties.push ('loadMarkets');
@@ -180,7 +180,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testMethod (methodName, exchange, args, isPublic) {
-        const methodNameInTest = method_namer_in_test (methodName);
+        const methodNameInTest = get_test_name (methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
             return;

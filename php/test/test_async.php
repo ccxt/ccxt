@@ -64,7 +64,7 @@ var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange->id, 'symbol'=> $e
 function snake_case ($methodName) {
     return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
 }
-function method_namer_in_test($methodName) {
+function get_test_name($methodName) {
     $snake_cased = snake_case($methodName);
     $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
     return 'test_' . $snake_cased;
@@ -194,7 +194,7 @@ class testMainClass extends baseMainTestClass {
             if ($isRequired && get_exchange_prop($exchange, $credential) === null) {
                 $fullKey = $exchangeId . '_' . $credential;
                 $credentialEnvName = strtoupper($fullKey); // example => KRAKEN_APIKEY
-                $credentialValue = envVars[$credentialEnvName];
+                $credentialValue = (is_array(envVars) && array_key_exists($credentialEnvName, envVars)) ? envVars[$credentialEnvName] : null;
                 if ($credentialValue) {
                     set_exchange_prop ($exchange, $credential, $credentialValue);
                 }
@@ -221,25 +221,25 @@ class testMainClass extends baseMainTestClass {
 
     public function test_method($methodName, $exchange, $args, $isPublic) {
         return Async\async(function () use ($methodName, $exchange, $args, $isPublic) {
-            $methodNameInTest = method_namer_in_test ($methodName);
+            $methodNameInTest = get_test_name ($methodName);
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in $exchange)
             if (!$isPublic && (is_array($this->checkedPublicTests) && array_key_exists($methodNameInTest, $this->checkedPublicTests)) && ($methodName !== 'fetchCurrencies')) {
                 return;
             }
             $skipMessage = null;
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
-                $skipMessage = 'UNSUPPORTED';
+                $skipMessage = '[UNSUPPORTED]  '; // keep it aligned with the longest message
             } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
-                $skipMessage = 'TEMPORARY';
+                $skipMessage = '[SKIPPED]      ';
             } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
-                $skipMessage = 'MISSING';
+                $skipMessage = '[UNIMPLEMENTED]';
             }
             if ($skipMessage) {
-                dump ('[SKIPPED-' . $skipMessage +']', $exchange->id, $methodNameInTest);
+                dump ($skipMessage, $exchange->id, $methodNameInTest);
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
-            dump ('[TESTING]', $exchange->id, $methodNameInTest, $argsStringified);
+            dump ('[TESTING]      ', $exchange->id, $methodNameInTest, $argsStringified);
             $result = null;
             try {
                 $result = Async\await(call_method ($methodNameInTest, $exchange, $args));
@@ -252,10 +252,6 @@ class testMainClass extends baseMainTestClass {
                     dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;
                 }
-                //  else {
-                //     dump ('[Skipped private]', $exchange->id, $methodNameInTest, ' - method req' . 'uires authentication, skipped from public tests');
-                //     // do not throw exception from here,'s public test and exception is destined to be thrown from private
-                // }
             }
             return $result;
         }) ();
