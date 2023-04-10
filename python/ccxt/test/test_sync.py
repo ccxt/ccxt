@@ -11,18 +11,11 @@ from traceback import format_tb
 # ------------------------------------------------------------------------------
 # logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
-
-root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.append(root)
 
-# ------------------------------------------------------------------------------
-
 import ccxt  # noqa: E402
-from test_trade import test_trade  # noqa: E402
-from test_order import test_order  # noqa: E402
-from test_ohlcv import test_ohlcv  # noqa: E402
-from test_position import test_position  # noqa: E402
-from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -33,6 +26,7 @@ class Argv(object):
     privateOnly = False
     private = False
     verbose = False
+    warnings = False
     nonce = None
     exchange = None
     symbol = None
@@ -40,63 +34,59 @@ class Argv(object):
 
 
 argv = Argv()
-
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
+parser.add_argument('--warnings', action='store_true', help='enable warnings')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
-
 parser.parse_args(namespace=argv)
 
-exchanges = {}
+sandbox = argv.sandbox
+privateOnly = argv.privateOnly
+privateTest = argv.private
+verbose = argv.verbose
+nonce = argv.nonce
+exchangeName = argv.exchange
+exchangeSymbol = argv.symbol
+
+print('\nTESTING (PY)', {'exchange': exchangeName, 'symbol': exchangeSymbol or 'all'}, '\n')
+
+exchange = getattr(ccxt, exchangeName)({'verbose': verbose})
 
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
-print(os.getcwd(), path)
-print(sys.argv)
 if 'site-packages' in os.path.dirname(ccxt.__file__):
     raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
 
 # ------------------------------------------------------------------------------
-# string coloring functions
 
+# this logic is being transpiled from async->sync python, so the below variable tells runtime whether or sync tests are being run
+# to trick transpiler regexes, we have to: A) divide "token" and "bucket"; B)dont use word "a s y n c" together in the code
+is_asynchronous = ('token_' + 'bucket') in locals()
 
-def style(s, style):
-    return str(s)  # style + str (s) + '\033[0m'
+skip_tests = ['test_throttle']
 
-
-def green(s):
-    return style(s, '\033[92m')
-
-
-def blue(s):
-    return style(s, '\033[94m')
-
-
-def yellow(s):
-    return style(s, '\033[93m')
-
-
-def red(s):
-    return style(s, '\033[91m')
-
-
-def pink(s):
-    return style(s, '\033[95m')
-
-
-def bold(s):
-    return style(s, '\033[1m')
-
-
-def underline(s):
-    return style(s, '\033[4m')
+import importlib  # noqa: E402
+import glob  # noqa: E402
+testFiles = {}
+if is_asynchronous:
+    for file_path in glob.glob(current_dir + '/async/test_*.py'):
+        name = os.path.basename(file_path)[:-3]
+        if not (name in skip_tests):
+            imp = importlib.import_module('ccxt.test.async.' + name)
+            testFiles[name] = imp  # getattr(imp, finalName)
+else:
+    for file_path in glob.glob(current_dir + '/sync/test_*.py'):
+        name = os.path.basename(file_path)[:-3]
+        if not (name in skip_tests):
+            imp = importlib.import_module('ccxt.test.sync.' + name)
+            testFiles[name] = imp  # getattr(imp, finalName)
 
 
 # print a colored string
@@ -112,11 +102,12 @@ def dump_error(*args):
     sys.stderr.flush()
 
 
+Error = Exception
 # ------------------------------------------------------------------------------
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
+    dump_error((type), (value), '\n\n' + ('\n'.join(format_tb(traceback))))
     exit(1)  # unrecoverable crash
 
 
@@ -124,547 +115,498 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # ------------------------------------------------------------------------------
 
+# non-transpiled commons
+import re
 
-def test_order_book(exchange, symbol):
-    method = 'fetchOrderBook'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching order book...')
-        orderbook = getattr(exchange, method)(symbol)
-        dump(
-            green(exchange.id),
-            green(symbol),
-            'order book',
-            orderbook['datetime'],
-            'bid: ' + str(orderbook['bids'][0][0] if len(orderbook['bids']) else 'N/A'),
-            'bidVolume: ' + str(orderbook['bids'][0][1] if len(orderbook['bids']) else 'N/A'),
-            'ask: ' + str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
-            'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
+
+def method_namer_in_test(methodName):
+    snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()
+    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
+    full_name = 'test_' + snake_cased
+    return full_name
+
+
+rootDir = current_dir + '/../../'
+envVars = {}
+
+
+class baseMainTestClass():
+    pass
+
+
+def io_file_exists(path):
+    return os.path.isfile(path)
+
+
+def io_file_read(path, decode=True):
+    fs = open(path, "r")
+    content = fs.read()
+    if decode:
+        return json.loads(content)
     else:
-        dump(yellow(exchange.id), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
+        return content
 
 
-def test_ohlcvs(exchange, symbol):
-    method = 'fetchOHLCV'
-    ignored_exchanges = [
-        'cex',  # CEX can return historical candles for a certain date only
-        'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
-        'okcoinusd',  # okex base class
-    ]
-    if exchange.id in ignored_exchanges:
-        return
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
-        exchange_has_one_minute_timeframe = '1m' in timeframes
-        timeframe = '1m' if exchange_has_one_minute_timeframe else list(timeframes.keys())[0]
-        limit = 10
-        duration = exchange.parse_timeframe(timeframe)
-        since = exchange.milliseconds() - duration * limit * 1000 - 1000
-        ohlcvs = getattr(exchange, method)(symbol, timeframe, since, limit)
-        for ohlcv in ohlcvs:
-            test_ohlcv(exchange, ohlcv, symbol, int(time.time() * 1000))
-        dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
-    else:
-        dump(yellow(exchange.id), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
+def exception_message(exc):
+    return '[' + type(exc).__name__ + '] ' + str(exc)[0:200]
 
 
-def test_tickers(exchange, symbol):
-    method = 'fetchTickers'
-    ignored_exchanges = [
-        'digifinex',  # requires apiKey to call v2 tickers
-    ]
-    if exchange.id in ignored_exchanges:
-        return
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        tickers = None
+def call_method(methodName, exchange, args):
+    return getattr(testFiles[methodName], methodName)(exchange, *args)
+
+
+def add_proxy_agent(exchange, settings):
+    pass
+
+
+def exit_script():
+    exit()
+
+
+def get_exchange_prop(exchange, prop, defaultValue=None):
+    return getattr(exchange, prop) if hasattr(exchange, prop) else defaultValue
+
+
+def set_exchange_prop(exchange, prop, value):
+    setattr(exchange, prop, value)
+
+
+def test_throttle():
+    importlib.import_module(current_dir + '/test_throttle.py')
+# *********************************
+# ***** AUTO-TRANSPILER-START *****
+# -*- coding: utf-8 -*-
+
+# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
+# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
+
+
+from ccxt.base.errors import AuthenticationError
+
+
+class testMainClass(baseMainTestClass):
+
+    def init(self, exchange, symbol):
+        self.expand_settings(exchange, symbol)
+        self.start_test(exchange, symbol)
+
+    def expand_settings(self, exchange, symbol):
+        exchangeId = exchange.id
+        keysGlobal = rootDir + 'keys.json'
+        keysLocal = rootDir + 'keys.local.json'
+        keysGlobalExists = io_file_exists(keysGlobal)
+        keysLocalExists = io_file_exists(keysLocal)
+        globalSettings = io_file_read(keysGlobal) if keysGlobalExists else {}
+        localSettings = io_file_read(keysLocal) if keysLocalExists else {}
+        allSettings = exchange.deep_extend(globalSettings, localSettings)
+        exchangeSettings = exchange.safe_value(allSettings, exchangeId, {})
+        if exchangeSettings:
+            settingKeys = list(exchangeSettings.keys())
+            for i in range(0, len(settingKeys)):
+                key = settingKeys[i]
+                if exchangeSettings[key]:
+                    existing = get_exchange_prop(exchange, key, {})
+                    set_exchange_prop(exchange, key, exchange.deep_extend(existing, exchangeSettings[key]))
+        # credentials
+        reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        objkeys = list(reqCreds.keys())
+        for i in range(0, len(objkeys)):
+            credential = objkeys[i]
+            isRequired = reqCreds[credential]
+            if isRequired and get_exchange_prop(exchange, credential) is None:
+                fullKey = exchangeId + '_' + credential
+                credentialEnvName = fullKey.upper()  # example: KRAKEN_APIKEY
+                credentialValue = envVars[credentialEnvName]
+                if credentialValue:
+                    set_exchange_prop(exchange, credential, credentialValue)
+        # skipped tests
+        skippedFile = rootDir + 'skip-tests.json'
+        skippedSettings = io_file_read(skippedFile)
+        skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
+        # others
+        if exchange.safe_value(skippedSettingsForExchange, 'skip'):
+            dump('[SKIPPED_EXCHANGE]', 'exchange', exchangeId, 'symbol', symbol)
+            exit_script()
+        if exchange.alias:
+            dump('[SKIPPED_EXCHANGE] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
+            exit_script()
+        #
+        self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
+        self.checkedPublicTests = {}
+        add_proxy_agent(exchange, exchangeSettings)
+
+    def test_method(self, methodName, exchange, args, isPublic):
+        methodNameInTest = method_namer_in_test(methodName)
+        # if self is a private test, and the implementation was already tested in public, then no need to re-test it in private test(exception is fetchCurrencies, because our approach in exchange)
+        if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
+            return
+        skipMessage = None
+        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
+            skipMessage = '[UNSUPPORTED]  '  # keep it aligned with the longest message
+        elif methodName in self.skippedMethods:
+            skipMessage = '[SKIPPED]      '
+        elif not (methodNameInTest in testFiles):
+            skipMessage = '[UNIMPLEMENTED]'
+        if skipMessage:
+            dump(skipMessage, exchange.id, methodNameInTest)
+            return
+        argsStringified = '(' + ','.join(args) + ')'
+        dump('[TESTING]      ', exchange.id, methodNameInTest, argsStringified)
+        result = None
         try:
-            # dump(green(exchange.id), 'fetching all tickers at once...')
-            tickers = getattr(exchange, method)()
-            dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
+            result = call_method(methodNameInTest, exchange, args)
+            if isPublic:
+                self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
-            dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = exchange.fetch_tickers([symbol])
-            dump(green(exchange.id), 'fetched', green(len(list(tickers.keys()))), 'tickers')
+            isAuthError = (isinstance(e, AuthenticationError))
+            if not (isPublic and isAuthError):
+                dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
+                raise e
+        return result
 
-
-# ------------------------------------------------------------------------------
-
-def get_active_symbols(exchange):
-    return [symbol for symbol in exchange.symbols if is_active_symbol(exchange, symbol)]
-
-
-def is_active_symbol(exchange, symbol):
-    return ('.' not in symbol) and (('active' not in exchange.markets[symbol]) or (exchange.markets[symbol]['active']))
-
-
-# ------------------------------------------------------------------------------
-
-
-def test_ticker(exchange, symbol):
-    method = 'fetchTicker'
-    ignored_exchanges = [
-        'digifinex',  # requires apiKey to call v2 tickers
-    ]
-    if exchange.id in ignored_exchanges:
-        return
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        ticker = getattr(exchange, method)(symbol)
-        dump(
-            green(exchange.id),
-            green(symbol),
-            'ticker',
-            ticker['datetime'],
-            'high: ' + str(ticker['high']),
-            'low: ' + str(ticker['low']),
-            'bid: ' + str(ticker['bid']),
-            'ask: ' + str(ticker['ask']),
-            'volume: ' + str(ticker['quoteVolume']))
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-def test_trades(exchange, symbol):
-    method = 'fetchTrades'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching trades...')
-        trades = getattr(exchange, method)(symbol)
-        if trades:
-            test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(trades)), 'trades')
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-def test_orders(exchange, symbol):
-    method = 'fetchOrders'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching orders...')
+    def test_safe(self, methodName, exchange, args, isPublic):
         try:
-            orders = exchange.fetch_orders(symbol)
-            for order in orders:
-                test_order(exchange, order, symbol, int(time.time() * 1000))
-            dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+            self.test_method(methodName, exchange, args, isPublic)
+            return True
         except Exception as e:
-            dump_error(green(exchange.id), green(symbol), method + '() failed with:', str(e))
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
+            return False
 
-# ------------------------------------------------------------------------------
+    def run_public_tests(self, exchange, symbol):
+        tests = {
+            'loadMarkets': [],
+            'fetchCurrencies': [],
+            'fetchTicker': [symbol],
+            'fetchTickers': [symbol],
+            'fetchOHLCV': [symbol],
+            'fetchTrades': [symbol],
+            'fetchOrderBook': [symbol],
+            'fetchL2OrderBook': [symbol],
+            'fetchOrderBooks': [],
+            'fetchBidsAsks': [],
+            'fetchStatus': [],
+            'fetchTime': [],
+        }
+        market = exchange.market(symbol)
+        isSpot = market['spot']
+        if isSpot:
+            tests['fetchCurrencies'] = []
+        else:
+            tests['fetchFundingRates'] = [symbol]
+            tests['fetchFundingRate'] = [symbol]
+            tests['fetchFundingRateHistory'] = [symbol]
+            tests['fetchIndexOHLCV'] = [symbol]
+            tests['fetchMarkOHLCV'] = [symbol]
+            tests['fetchPremiumIndexOHLCV'] = [symbol]
+        self.publicTests = tests
+        testNames = list(tests.keys())
+        promises = []
+        for i in range(0, len(testNames)):
+            testName = testNames[i]
+            testArgs = tests[testName]
+            promises.append(self.test_safe(testName, exchange, testArgs, True))
+        # todo - not yet ready in other langs too
+        # promises.append(test_throttle())
+        (promises)
 
-
-def test_positions(exchange, symbol):
-    method = 'fetchPositions'
-    if exchange.has[method]:
-        skipped_exchanges = [
+    def load_exchange(self, exchange):
+        markets = exchange.load_markets()
+        assert isinstance(exchange.markets, dict), '.markets is not an object'
+        assert isinstance(exchange.symbols, list), '.symbols is not an array'
+        symbolsLength = len(exchange.symbols)
+        marketKeys = list(exchange.markets.keys())
+        marketKeysLength = len(marketKeys)
+        assert symbolsLength > 0, '.symbols count <= 0(less than or equal to zero)'
+        assert marketKeysLength > 0, '.markets objects keys length <= 0(less than or equal to zero)'
+        assert symbolsLength == marketKeysLength, 'number of .symbols is not equal to the number of .markets'
+        symbols = [
+            'BTC/CNY',
+            'BTC/USD',
+            'BTC/USDT',
+            'BTC/EUR',
+            'BTC/ETH',
+            'ETH/BTC',
+            'BTC/JPY',
+            'ETH/EUR',
+            'ETH/JPY',
+            'ETH/CNY',
+            'ETH/USD',
+            'LTC/CNY',
+            'DASH/BTC',
+            'DOGE/BTC',
+            'BTC/AUD',
+            'BTC/PLN',
+            'USD/SLL',
+            'BTC/RUB',
+            'BTC/UAH',
+            'LTC/BTC',
+            'EUR/USD',
         ]
-        if exchange.id in skipped_exchanges:
-            dump(green(exchange.id), green(symbol), method + '() skipped')
-            return
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        # without symbol
-        dump(green(exchange.id), 'fetching positions...')
-        positions = getattr(exchange, method)()
-        for position in positions:
-            test_position(exchange, position, None, int(time.time() * 1000))
-        dump(green(exchange.id), 'fetched', green(len(positions)), 'positions')
+        resultSymbols = []
+        exchangeSpecificSymbols = exchange.symbols
+        for i in range(0, len(exchangeSpecificSymbols)):
+            symbol = exchangeSpecificSymbols[i]
+            if exchange.inArray(symbol, symbols):
+                resultSymbols.append(symbol)
+        resultMsg = ''
+        resultLength = len(resultSymbols)
+        exchangeSymbolsLength = len(exchange.symbols)
+        if resultLength > 0:
+            if exchangeSymbolsLength > resultLength:
+                resultMsg = ', '.join(resultSymbols) + ' + more...'
+            else:
+                resultMsg = ', '.join(resultSymbols)
+        dump('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg)
 
-        # with symbol
-        dump(green(exchange.id), green(symbol), 'fetching positions...')
-        positions = getattr(exchange, method)([symbol])
-        for position in positions:
-            test_position(exchange, position, symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(positions)), 'positions')
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
+    def get_test_symbol(self, exchange, isSpot, symbols):
+        symbol = None
+        for i in range(0, len(symbols)):
+            s = symbols[i]
+            market = exchange.safe_value(exchange.markets, s)
+            if market is not None:
+                active = exchange.safe_value(market, 'active')
+                if active or (active is None):
+                    symbol = s
+                    break
+        return symbol
 
-# ------------------------------------------------------------------------------
+    def get_exchange_code(self, exchange, codes=None):
+        if codes is None:
+            codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+        code = codes[0]
+        for i in range(0, len(codes)):
+            if codes[i] in exchange.currencies:
+                return codes[i]
+        return code
 
+    def get_markets_from_exchange(self, exchange, spot=True):
+        res = {}
+        markets = exchange.markets
+        keys = list(markets.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = markets[key]
+            if spot and market['spot']:
+                res[market['symbol']] = market
+            elif not spot and not market['spot']:
+                res[market['symbol']] = market
+        return res
 
-def test_closed_orders(exchange, symbol):
-    method = 'fetchClosedOrders'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = getattr(exchange, method)(symbol)
-        for order in orders:
-            test_order(exchange, order, symbol, int(time.time() * 1000))
-            assert order['status'] == 'closed' or order['status'] == 'canceled'
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'closed orders')
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-def test_open_orders(exchange, symbol):
-    method = 'fetchOpenOrders'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = getattr(exchange, method)(symbol)
-        for order in orders:
-            test_order(exchange, order, symbol, int(time.time() * 1000))
-            assert order['status'] == 'open'
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'open orders')
-    else:
-        dump(green(exchange.id), green(symbol), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-def test_transactions(exchange, code):
-    method = 'fetchTransactions'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-
-        transactions = getattr(exchange, method)(code)
-        for transaction in transactions:
-            test_transaction(exchange, transaction, code, int(time.time() * 1000))
-        dump(green(exchange.id), green(code), 'fetched', green(len(transactions)), 'transactions')
-    else:
-        dump(green(exchange.id), green(code), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-def test_balance(exchange):
-    method = 'fetchBalance'
-    if exchange.has[method]:
-        delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
-
-        getattr(exchange, method)()
-        dump(green(exchange.id), 'fetched balance')
-    else:
-        dump(green(exchange.id), method + '() is not supported')
-
-# ------------------------------------------------------------------------------
-
-
-def test_symbol(exchange, symbol, code):
-    if not argv.privateOnly:
-        run_public_tests(exchange, symbol, code)
-
-    if argv.privateOnly or argv.private:
-        if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
-            dump(yellow(exchange.id), 'keys not found, skipping private API tests')
-            return
-        run_private_tests(exchange, symbol, code)
-
-# ------------------------------------------------------------------------------
-
-
-def run_public_tests(exchange, symbol, code):
-    dump(green('SYMBOL: ' + symbol))
-    dump(green('CODE: ' + code))
-    dump('Testing fetch_ticker:' + symbol)
-    test_ticker(exchange, symbol)
-    dump('Testing fetch_tickers:' + symbol)
-    test_tickers(exchange, symbol)
-    dump('Testing fetch_ohlcv:' + symbol)
-    test_ohlcvs(exchange, symbol)
-    dump('Testing fetch_order_book:' + symbol)
-    test_order_book(exchange, symbol)
-    dump('Testing fetch_trades:' + symbol)
-    test_trades(exchange, symbol)
-
-# ------------------------------------------------------------------------------
-
-
-def run_private_tests(exchange, symbol, code):
-    method = 'signIn'
-    if exchange.has[method]:
-        dump('Testing ' + method + '()')
-        getattr(exchange, method)()
-    dump('Testing fetch_orders:' + symbol)
-    test_orders(exchange, symbol)
-    dump('Testing fetch_open_orders:' + symbol)
-    test_open_orders(exchange, symbol)
-    dump('Testing fetch_closed_orders:' + symbol)
-    test_closed_orders(exchange, symbol)
-    dump('Testing fetch_transactions:' + code)
-    test_transactions(exchange, code)
-    dump('Testing fetch_balance')
-    test_balance(exchange)
-    dump('Testing fetch_positions:' + symbol)
-    test_positions(exchange, symbol)
-
-# ------------------------------------------------------------------------------
-
-
-def load_exchange(exchange):
-    exchange.load_markets()
-
-
-def get_test_symbol(exchange, symbols):
-    symbol = None
-    for s in symbols:
-        market = exchange.safe_value(exchange.markets, s)
-        if market is not None:
-            active = exchange.safe_value(market, 'active')
-            if active or (active is None):
-                symbol = s
-                break
-    return symbol
-
-
-def get_exchange_code(exchange, codes=None):
-    if codes is None:
-        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
-    code = codes[0]
-    for i in range(0, len(codes)):
-        if codes[i] in exchange.currencies:
-            code = codes[i]
-    return code
-
-
-def test_exchange(exchange, symbol=None):
-
-    dump(green('EXCHANGE: ' + exchange.id))
-    # delay = 2
-
-    # ..........................................................................
-    # public API
-    codes = [
-        'BTC',
-        'ETH',
-        'XRP',
-        'LTC',
-        'BCH',
-        'EOS',
-        'BNB',
-        'BSV',
-        'USDT',
-        'ATOM',
-        'BAT',
-        'BTG',
-        'DASH',
-        'DOGE',
-        'ETC',
-        'IOTA',
-        'LSK',
-        'MKR',
-        'NEO',
-        'PAX',
-        'QTUM',
-        'TRX',
-        'TUSD',
-        'USD',
-        'USDC',
-        'WAVES',
-        'XEM',
-        'XMR',
-        'ZEC',
-        'ZRX',
-    ]
-
-    code = get_exchange_code(exchange, codes)
-
-    if not symbol:
-        symbol = get_test_symbol(exchange, [
+    def get_valid_symbol(self, exchange, spot=True):
+        currentTypeMarkets = self.get_markets_from_exchange(exchange, spot)
+        codes = [
+            'BTC',
+            'ETH',
+            'XRP',
+            'LTC',
+            'BCH',
+            'EOS',
+            'BNB',
+            'BSV',
+            'USDT',
+            'ATOM',
+            'BAT',
+            'BTG',
+            'DASH',
+            'DOGE',
+            'ETC',
+            'IOTA',
+            'LSK',
+            'MKR',
+            'NEO',
+            'PAX',
+            'QTUM',
+            'TRX',
+            'TUSD',
+            'USD',
+            'USDC',
+            'WAVES',
+            'XEM',
+            'XMR',
+            'ZEC',
+            'ZRX',
+        ]
+        spotSymbols = [
             'BTC/USD',
             'BTC/USDT',
             'BTC/CNY',
             'BTC/EUR',
             'BTC/ETH',
             'ETH/BTC',
+            'ETH/USD',
             'ETH/USDT',
             'BTC/JPY',
             'LTC/BTC',
-            'USD/SLL',
+            'ZRX/WETH',
             'EUR/USD',
-        ])
-
+        ]
+        swapSymbols = [
+            'BTC/USDT:USDT',
+            'BTC/USD:USD',
+            'ETH/USDT:USDT',
+            'ETH/USD:USD',
+            'LTC/USDT:USDT',
+            'DOGE/USDT:USDT',
+            'ADA/USDT:USDT',
+            'BTC/USD:BTC',
+            'ETH/USD:ETH',
+        ]
+        targetSymbols = spotSymbols if spot else swapSymbols
+        symbol = self.get_test_symbol(exchange, spot, targetSymbols)
+        # if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if symbol is None:
-            for code in codes:
-                markets = list(exchange.markets.values())
-                activeMarkets = [market for market in markets if market['base'] == code]
-                if len(activeMarkets):
-                    activeSymbols = [market['symbol'] for market in activeMarkets]
-                    symbol = get_test_symbol(exchange, activeSymbols)
+            for i in range(0, len(codes)):
+                currentCode = codes[i]
+                marketsArrayForCurrentCode = exchange.filter_by(currentTypeMarkets, 'base', currentCode)
+                indexedMkts = exchange.index_by(marketsArrayForCurrentCode, 'symbol')
+                symbolsArrayForCurrentCode = list(indexedMkts.keys())
+                if len(symbolsArrayForCurrentCode):
+                    symbol = self.get_test_symbol(exchange, spot, symbolsArrayForCurrentCode)
                     break
-
+        # if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if symbol is None:
-            markets = list(exchange.markets.values())
-            activeMarkets = [market for market in markets if market['base'] in codes]
-            activeSymbols = [market['symbol'] for market in activeMarkets]
-            symbol = get_test_symbol(exchange, activeSymbols)
-
+            activeMarkets = exchange.filter_by(currentTypeMarkets, 'active', True)
+            activeSymbols = list(activeMarkets.keys())
+            symbol = self.get_test_symbol(exchange, spot, activeSymbols)
         if symbol is None:
-            markets = list(exchange.markets.values())
-            activeMarkets = [market for market in markets if not exchange.safe_value(market, 'active', False)]
-            activeSymbols = [market['symbol'] for market in activeMarkets]
-            symbol = get_test_symbol(exchange, activeSymbols)
+            values = list(currentTypeMarkets.values())
+            first = values[0]
+            if first is not None:
+                symbol = first['symbol']
+        return symbol
 
-        if symbol is None:
-            symbol = get_test_symbol(exchange, exchange.symbols)
-
-        if symbol is None:
-            symbol = exchange.symbols[0]
-
-    if symbol.find('.d') < 0:
-        test_symbol(exchange, symbol, code)
-
-    # ..........................................................................
-    # private API
-
-    # move to testnet/sandbox if possible before accessing the balance if possible
-    # if 'test' in exchange.urls:
-    #     exchange.urls['api'] = exchange.urls['test']
-
-    # time.sleep(exchange.rateLimit / 1000)
-
-    # time.sleep(delay)
-
-    # amount = 1
-    # price = 0.0161
-
-    # marketBuy = exchange.create_market_buy_order(symbol, amount)
-    # print(marketBuy)
-    # time.sleep(delay)
-
-    # marketSell = exchange.create_market_sell_order(symbol, amount)
-    # print(marketSell)
-    # time.sleep(delay)
-
-    # limitBuy = exchange.create_limit_buy_order(symbol, amount, price)
-    # print(limitBuy)
-    # time.sleep(delay)
-
-    # limitSell = exchange.create_limit_sell_order(symbol, amount, price)
-    # print(limitSell)
-    # time.sleep(delay)
-
-# ------------------------------------------------------------------------------
-
-
-def try_all_proxies(exchange, proxies=['']):
-    current_proxy = 0
-    max_retries = len(proxies)
-    if exchange.proxy in proxies:
-        current_proxy = proxies.index(exchange.proxy)
-    for num_retries in range(0, max_retries):
-        try:
-            # do not use cors proxy when using a http proxy
-            if not hasattr(exchange, "httpProxy"):
-                exchange.proxy = proxies[current_proxy]
-                dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
-                current_proxy = (current_proxy + 1) % len(proxies)
-            load_exchange(exchange)
-            test_exchange(exchange)
-        except (ccxt.RequestTimeout, ccxt.AuthenticationError, ccxt.NotSupported, ccxt.DDoSProtection, ccxt.ExchangeNotAvailable, ccxt.ExchangeError) as e:
-            print({'type': type(e).__name__, 'num_retries': num_retries, 'max_retries': max_retries}, str(e)[0:200])
-            if (num_retries + 1) == max_retries:
-                dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
-        else:
-            # no exception
-            return True
-    # exception
-    return False
-
-
-# ------------------------------------------------------------------------------
-
-def read_credentials_from_env(exchange):
-    requiredCredentials = exchange.requiredCredentials
-    for credential, isRequired in requiredCredentials.items():
-        if isRequired and credential and not getattr(exchange, credential, None):
-            credentialEnvName = (exchange.id + '_' + credential).upper()  # example: KRAKEN_APIKEY
-            if credentialEnvName in os.environ:
-                credentialValue = os.environ[credentialEnvName]
-                setattr(exchange, credential, credentialValue)
-
-
-# ------------------------------------------------------------------------------
-
-proxies = [
-    '',
-    'https://cors-anywhere.herokuapp.com/',
-]
-
-# prefer local testing keys to global keys
-keys_folder = os.path.dirname(root)
-keys_global = os.path.join(keys_folder, 'keys.json')
-keys_local = os.path.join(keys_folder, 'keys.local.json')
-keys_file = keys_local if os.path.exists(keys_local) else keys_global
-
-# load the api keys from config
-with open(keys_file, encoding='utf8') as file:
-    config = json.load(file)
-
-# instantiate all exchanges
-for id in ccxt.exchanges:
-    exchange = getattr(ccxt, id)
-    exchange_config = {'verbose': argv.verbose}
-    if sys.version_info[0] < 3:
-        exchange_config.update()
-    if id in config:
-        exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
-    exchanges[id] = exchange(exchange_config)
-
-    # check auth keys in env var
-    read_credentials_from_env(exchanges[id])
-
-# ------------------------------------------------------------------------------
-
-
-def main():
-
-    if argv.exchange:
-
-        exchange = exchanges[argv.exchange]
-        symbol = argv.symbol
-        if hasattr(exchange, 'skip') and exchange.skip:
-            dump(green(exchange.id), 'skipped')
-        elif hasattr(exchange, 'alias') and exchange.alias:
-            dump(green(exchange.id), 'Skipped alias')
-        else:
-            # add http proxy if any
-            if hasattr(exchange, 'httpProxy'):
-                exchange.aiohttp_proxy = exchange.httpProxy
-
-            if argv.sandbox or getattr(exchange, 'sandbox', None):
-                exchange.set_sandbox_mode(True)
-
-            if symbol:
-                code = get_exchange_code(exchange)
-                load_exchange(exchange)
-                test_symbol(exchange, symbol, code)
+    def test_exchange(self, exchange, providedSymbol=None):
+        spotSymbol = None
+        swapSymbol = None
+        if providedSymbol is not None:
+            market = exchange.market(providedSymbol)
+            if market['spot']:
+                spotSymbol = providedSymbol
             else:
-                try_all_proxies(exchange, proxies)
+                swapSymbol = providedSymbol
+        else:
+            if exchange.has['spot']:
+                spotSymbol = self.get_valid_symbol(exchange, True)
+            if exchange.has['swap']:
+                swapSymbol = self.get_valid_symbol(exchange, False)
+        if spotSymbol is not None:
+            dump('Selected SPOT SYMBOL:', spotSymbol)
+        if swapSymbol is not None:
+            dump('Selected SWAP SYMBOL:', swapSymbol)
+        if not privateOnly:
+            if exchange.has['spot'] and spotSymbol is not None:
+                exchange.options['type'] = 'spot'
+                self.run_public_tests(exchange, spotSymbol)
+            if exchange.has['swap'] and swapSymbol is not None:
+                exchange.options['type'] = 'swap'
+                self.run_public_tests(exchange, swapSymbol)
+        if privateTest or privateOnly:
+            if exchange.has['spot'] and spotSymbol is not None:
+                exchange.options['defaultType'] = 'spot'
+                self.run_private_tests(exchange, spotSymbol)
+            if exchange.has['swap'] and swapSymbol is not None:
+                exchange.options['defaultType'] = 'swap'
+                self.run_private_tests(exchange, swapSymbol)
 
-    else:
-        for exchange in sorted(exchanges.values(), key=lambda x: x.id):
-            if hasattr(exchange, 'skip') and exchange.skip:
-                dump(green(exchange.id), 'skipped')
-            else:
-                try_all_proxies(exchange, proxies)
+    def run_private_tests(self, exchange, symbol):
+        if not exchange.check_required_credentials(False):
+            dump('[Skipping private tests]', 'Keys not found')
+            return
+        code = self.get_exchange_code(exchange)
+        # if exchange.extendedTest:
+        #     test('InvalidNonce', exchange, symbol)
+        #     test('OrderNotFound', exchange, symbol)
+        #     test('InvalidOrder', exchange, symbol)
+        #     test('InsufficientFunds', exchange, symbol, balance)  # danger zone - won't execute with non-empty balance
+        # }
+        tests = {
+            'signIn': [exchange],
+            'fetchBalance': [exchange],
+            'fetchAccounts': [exchange],
+            'fetchTransactionFees': [exchange],
+            'fetchTradingFees': [exchange],
+            'fetchStatus': [exchange],
+            'fetchOrders': [exchange, symbol],
+            'fetchOpenOrders': [exchange, symbol],
+            'fetchClosedOrders': [exchange, symbol],
+            'fetchMyTrades': [exchange, symbol],
+            'fetchLeverageTiers': [exchange, symbol],
+            'fetchLedger': [exchange, code],
+            'fetchTransactions': [exchange, code],
+            'fetchDeposits': [exchange, code],
+            'fetchWithdrawals': [exchange, code],
+            'fetchBorrowRates': [exchange, code],
+            'fetchBorrowRate': [exchange, code],
+            'fetchBorrowInterest': [exchange, code, symbol],
+            'addMargin': [exchange, symbol],
+            'reduceMargin': [exchange, symbol],
+            'setMargin': [exchange, symbol],
+            'setMarginMode': [exchange, symbol],
+            'setLeverage': [exchange, symbol],
+            'cancelAllOrders': [exchange, symbol],
+            'cancelOrder': [exchange, symbol],
+            'cancelOrders': [exchange, symbol],
+            'fetchCanceledOrders': [exchange, symbol],
+            'fetchClosedOrder': [exchange, symbol],
+            'fetchOpenOrder': [exchange, symbol],
+            'fetchOrder': [exchange, symbol],
+            'fetchOrderTrades': [exchange, symbol],
+            'fetchPosition': [exchange, symbol],
+            'fetchDeposit': [exchange, code],
+            'createDepositAddress': [exchange, code],
+            'fetchDepositAddress': [exchange, code],
+            'fetchDepositAddresses': [exchange, code],
+            'fetchDepositAddressesByNetwork': [exchange, code],
+            'editOrder': [exchange, symbol],
+            'fetchBorrowRateHistory': [exchange, symbol],
+            'fetchBorrowRatesPerSymbol': [exchange, symbol],
+            'fetchLedgerEntry': [exchange, code],
+            'fetchWithdrawal': [exchange, code],
+            'transfer': [exchange, code],
+            'withdraw': [exchange, code],
+        }
+        market = exchange.market(symbol)
+        isSpot = market['spot']
+        if isSpot:
+            tests['fetchCurrencies'] = [exchange, symbol]
+        else:
+            # derivatives only
+            tests['fetchPositions'] = [exchange, [symbol]]
+            tests['fetchPosition'] = [exchange, symbol]
+            tests['fetchPositionRisk'] = [exchange, symbol]
+            tests['setPositionMode'] = [exchange, symbol]
+            tests['setMarginMode'] = [exchange, symbol]
+            tests['fetchOpenInterestHistory'] = [exchange, symbol]
+            tests['fetchFundingRateHistory'] = [exchange, symbol]
+            tests['fetchFundingHistory'] = [exchange, symbol]
+        combinedPublicPrivateTests = exchange.deep_extend(self.publicTests, tests)
+        testNames = list(combinedPublicPrivateTests.keys())
+        promises = []
+        for i in range(0, len(testNames)):
+            testName = testNames[i]
+            testArgs = combinedPublicPrivateTests[testName]
+            promises.append(self.test_safe(testName, exchange, testArgs, False))
+        results = (promises)
+        errors = []
+        for i in range(0, len(testNames)):
+            testName = testNames[i]
+            success = results[i]
+            if not success:
+                errors.append(testName)
+        if len(errors) > 0:
+            raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
 
-# ------------------------------------------------------------------------------
+    def start_test(self, exchange, symbol):
+        # we don't need to test aliases
+        if exchange.alias:
+            return
+        if sandbox or get_exchange_prop(exchange, 'sandbox'):
+            exchange.set_sandbox_mode(True)
+        self.load_exchange(exchange)
+        self.test_exchange(exchange, symbol)
+
+# ***** AUTO-TRANSPILER-END *****
+# *******************************
 
 
 if __name__ == '__main__':
-    main()
+    (testMainClass().init(exchange, exchangeSymbol))
