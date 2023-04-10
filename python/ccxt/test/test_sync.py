@@ -127,7 +127,7 @@ def method_namer_in_test(methodName):
 
 
 rootDir = current_dir + '/../../'
-envVars = {}
+envVars = os.environ
 
 
 class baseMainTestClass():
@@ -216,7 +216,7 @@ class testMainClass(baseMainTestClass):
             if isRequired and get_exchange_prop(exchange, credential) is None:
                 fullKey = exchangeId + '_' + credential
                 credentialEnvName = fullKey.upper()  # example: KRAKEN_APIKEY
-                credentialValue = envVars[credentialEnvName]
+                credentialValue = envVars[credentialEnvName] if (credentialEnvName in envVars) else None
                 if credentialValue:
                     set_exchange_prop(exchange, credential, credentialValue)
         # skipped tests

@@ -9,6 +9,8 @@ import ccxt from '../../ccxt.js';
 import HttpsProxyAgent from 'https-proxy-agent'
 import { fileURLToPath, pathToFileURL } from 'url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url)); // new URL('.', import.meta.url).pathname;
+
+
 // ----------------------------------------------------------------------------
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose') || false;
@@ -16,9 +18,11 @@ const debug = process.argv.includes ('--debug') || false;
 const sandbox = process.argv.includes ('--sandbox') || false;
 const privateTest = process.argv.includes ('--private') || false;
 const privateOnly = process.argv.includes ('--privateOnly') || false;
+
 // ----------------------------------------------------------------------------
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
 process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) });
+
 // ----------------------------------------------------------------------------
 console.log ('\nTESTING (JS)', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n');
 //-----------------------------------------------------------------------------
@@ -26,6 +30,7 @@ const enableRateLimit = true;
 const httpsAgent = new Agent ({
     'ecdhCurve': 'auto',
 });
+
 const timeout = 20000;
 const exchange = new (ccxt)[exchangeId] ({
     httpsAgent,
@@ -149,7 +154,7 @@ export default class testMainClass extends baseMainTestClass {
             if (isRequired && getExchangeProp(exchange, credential) === undefined) {
                 const fullKey = exchangeId + '_' + credential;
                 const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
-                const credentialValue = envVars[credentialEnvName];
+                const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
                 if (credentialValue) {
                     setExchangeProp (exchange, credential, credentialValue);
                 }
