@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinsph.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class coinsph extends Exchange {
     describe(): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;
@@ -24,7 +24,7 @@ export default class coinsph extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseBalance(response: any): import("./base/types.js").Balances;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

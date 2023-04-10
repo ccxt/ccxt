@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import AccountSuspended
@@ -747,7 +748,7 @@ class poloniexfutures(Exchange):
         #
         return self.parse_balance(response)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         see https://futures-docs.poloniex.com/#place-an-order

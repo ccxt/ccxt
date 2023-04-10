@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitso.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class bitso extends Exchange {
     describe(): any;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -33,7 +33,7 @@ export default class bitso extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any[]>;

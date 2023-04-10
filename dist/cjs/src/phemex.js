@@ -2158,13 +2158,13 @@ class phemex extends phemex$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        side = this.capitalize(side);
+        const requestSide = this.capitalize(side);
         type = this.capitalize(type);
         const reduceOnly = this.safeValue(params, 'reduceOnly');
         const request = {
             // common
             'symbol': market['id'],
-            'side': side,
+            'side': requestSide,
             'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             // 'stopPxEp': this.toEp (stopPx, market), // for conditional orders
             // 'priceEp': this.toEp (price, market), // required for limit orders

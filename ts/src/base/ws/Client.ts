@@ -278,7 +278,7 @@ export default class Client {
             if (typeof message === 'string') {
                 arrayBuffer = utf8.decode (message)
             } else {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset))
+                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
             }
             if (this.gunzip) {
                 arrayBuffer = gunzipSync (arrayBuffer)

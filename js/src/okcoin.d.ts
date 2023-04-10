@@ -1,5 +1,5 @@
 import Exchange from './abstract/okcoin.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class okcoin extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -22,7 +22,7 @@ export default class okcoin extends Exchange {
     parseSwapBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseBalanceByType(type: any, response: any): import("./base/types.js").Balances;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrderSide(side: any): string;

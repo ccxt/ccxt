@@ -3495,7 +3495,7 @@ export default class mexc extends Exchange {
             }
             else {
                 request['openType'] = openType;
-                request['symbol'] = market['symbol'];
+                request['symbol'] = market['id'];
                 request['positionType'] = positionType;
             }
         }

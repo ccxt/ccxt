@@ -825,7 +825,7 @@ class bigone extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -838,11 +838,11 @@ class bigone extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $side = ($side === 'buy') ? 'BID' : 'ASK';
+        $requestSide = ($side === 'buy') ? 'BID' : 'ASK';
         $uppercaseType = strtoupper($type);
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
-            'side' => $side, // $order $side one of "ASK"/"BID", required
+            'side' => $requestSide, // $order $side one of "ASK"/"BID", required
             'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
             // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
             'type' => $uppercaseType,
