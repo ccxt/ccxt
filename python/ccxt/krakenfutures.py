@@ -1878,7 +1878,10 @@ class krakenfutures(Exchange):
             query += '?' + postData
         url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':
-            auth = postData + '/api/' + (api == endpoint if 'private' else api + '/' + endpoint)  # 1
+            auth = postData + '/api/'
+            if api != 'private':
+                auth += api + '/'
+            auth += endpoint  # 1
             hash = self.hash(self.encode(auth), 'sha256', 'binary')  # 2
             secret = self.base64_to_binary(self.secret)  # 3
             signature = self.hmac(hash, secret, hashlib.sha512, 'base64')  # 4-5
