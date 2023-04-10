@@ -80,9 +80,6 @@ foreach ($config as $id => $params) {
             if (property_exists($exchanges[$id], $key)) {
                 $exchanges[$id]->$key = is_array($exchanges[$id]->$key) ? array_replace_recursive($exchanges[$id]->$key, $value) : $value;
             }
-            if ($key === 'httpProxy') {
-                $exchanges[$id]->http_proxy = $value;
-            }
         }
     }
 }
