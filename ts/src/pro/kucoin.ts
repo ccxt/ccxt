@@ -486,7 +486,6 @@ export default class kucoin extends kucoinRest {
         const id = this.safeString (message, 'id');
         const subscriptionHash = this.safeString (client.subscriptions, id);
         const subscription = this.safeValue (client.subscriptions, subscriptionHash);
-        delete client.subscriptions[id];
         const method = this.safeValue (subscription, 'method');
         if (method !== undefined) {
             method.call (this, client, message, subscription);
