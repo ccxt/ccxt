@@ -8,9 +8,9 @@ async function testFetchTickers (exchange, symbol) {
     let tickers = undefined;
     let checkedSymbol = undefined;
     try {
-        tickers = await exchange[method] ();
+        tickers = await exchange.fetchTickers ();
     } catch (e) {
-        tickers = await exchange[method] ([ symbol ]);
+        tickers = await exchange.fetchTickers ([ symbol ]);
         checkedSymbol = symbol;
     }
     assert (typeof tickers === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json (tickers));
