@@ -91,11 +91,9 @@ async function callMethod (methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
-function addProxyAgent (exchange, settings) {
-    if (settings && settings.httpProxy) {
-        const agent = new HttpsProxyAgent (settings.httpProxy)
-        exchange.agent = agent;
-    }
+function addProxyOrAgent(exchange, httpProxy) {
+    // add real proxy agent
+    exchange.agent = new HttpsProxyAgent(httpProxy);
 }
 
 function exitScript () {
@@ -144,6 +142,10 @@ export default class testMainClass extends baseMainTestClass {
                     setExchangeProp (exchange, key, exchange.deepExtend (existing, exchangeSettings[key]));
                 }
             }
+            // support simple proxy
+            if (exchangeSettings.httpProxy) {
+                addProxyOrAgent(exchange, exchangeSettings.httpProxy);
+            }
         }
         // credentials
         const reqCreds = getExchangeProp (exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
@@ -176,7 +178,6 @@ export default class testMainClass extends baseMainTestClass {
         //
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
-        addProxyAgent (exchange, exchangeSettings);
     }
 
     async testMethod (methodName, exchange, args, isPublic) {
