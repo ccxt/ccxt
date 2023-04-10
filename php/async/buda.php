@@ -766,7 +766,7 @@ class buda extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -779,12 +779,12 @@ class buda extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
-            $side = ($side === 'buy') ? 'Bid' : 'Ask';
+            $requestSide = ($side === 'buy') ? 'Bid' : 'Ask';
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
                 'price_type' => $type,
-                'type' => $side,
+                'type' => $requestSide,
                 'amount' => $this->amount_to_precision($symbol, $amount),
             );
             if ($type === 'limit') {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class phemex extends Exchange {
     describe(): any;
     parseSafeNumber(value?: any): any;
@@ -142,7 +142,7 @@ export default class phemex extends Exchange {
     parseOrderSide(side: any): string;
     parseSwapOrder(order: any, market?: any): any;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: string, symbol: any, type?: any, side?: any, amount?: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;

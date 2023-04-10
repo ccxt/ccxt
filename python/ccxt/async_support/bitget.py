@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 import json
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2325,7 +2326,7 @@ class bitget(Exchange):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

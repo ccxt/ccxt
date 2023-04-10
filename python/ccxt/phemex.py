@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import numbers
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2085,7 +2086,7 @@ class phemex(Exchange):
             return self.parse_swap_order(order, market)
         return self.parse_spot_order(order, market)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
@@ -2099,13 +2100,13 @@ class phemex(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        side = self.capitalize(side)
+        requestSide = self.capitalize(side)
         type = self.capitalize(type)
         reduceOnly = self.safe_value(params, 'reduceOnly')
         request = {
             # common
             'symbol': market['id'],
-            'side': side,  # Sell, Buy
+            'side': requestSide,  # Sell, Buy
             'ordType': type,  # Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched(additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             # 'stopPxEp': self.to_ep(stopPx, market),  # for conditional orders
             # 'priceEp': self.to_ep(price, market),  # required for limit orders

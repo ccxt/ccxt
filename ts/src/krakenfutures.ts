@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, Dup
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -786,7 +786,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#createOrder
@@ -1990,7 +1990,11 @@ export default class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
-            const auth = postData + '/api/' + (api === 'private' ? endpoint : api + '/' + endpoint); // 1
+            let auth = postData + '/api/';
+            if (api !== 'private') {
+                auth += api + '/';
+            }
+            auth += endpoint; // 1
             const hash = this.hash (this.encode (auth), sha256, 'binary'); // 2
             const secret = this.base64ToBinary (this.secret); // 3
             const signature = this.hmac (hash, secret, sha512, 'base64'); // 4-5

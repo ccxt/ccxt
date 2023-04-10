@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class kraken extends Exchange {
     describe(): any;
     feeToPrecision(symbol: any, fee: any): any;
@@ -58,7 +58,7 @@ export default class kraken extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     findMarketByAltnameOrId(id: any): any;
     getDelistedMarketById(id: any): any;
     parseOrderStatus(status: any): string;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/huobi.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class huobi extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{
@@ -79,7 +79,7 @@ export default class huobi extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
         info: any;
         id: string;

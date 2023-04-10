@@ -3490,7 +3490,7 @@ class mexc extends mexc$1 {
             }
             else {
                 request['openType'] = openType;
-                request['symbol'] = market['symbol'];
+                request['symbol'] = market['id'];
                 request['positionType'] = positionType;
             }
         }

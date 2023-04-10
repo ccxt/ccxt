@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniexfutures.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class poloniexfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -14,7 +14,7 @@ export default class poloniexfutures extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
         id: string;
         clientOrderId: any;
         timestamp: any;

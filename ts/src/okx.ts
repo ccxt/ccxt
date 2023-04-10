@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2097,7 +2097,7 @@ export default class okx extends Exchange {
         return this.parseBalanceByType (marketType, response);
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#createOrder
@@ -3874,8 +3874,8 @@ export default class okx extends Exchange {
             'amt': this.numberToString (amount),
         };
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit (params, 'network');

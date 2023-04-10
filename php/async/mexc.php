@@ -1763,7 +1763,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -3521,7 +3521,7 @@ class mexc extends Exchange {
                     throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter or a $symbol argument with $openType and $positionType parameters, use $openType 1 or 2 for isolated or cross margin respectively, use $positionType 1 or 2 for long or short positions');
                 } else {
                     $request['openType'] = $openType;
-                    $request['symbol'] = $market['symbol'];
+                    $request['symbol'] = $market['id'];
                     $request['positionType'] = $positionType;
                 }
             } else {

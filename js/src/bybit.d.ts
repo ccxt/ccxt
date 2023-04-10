@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class bybit extends Exchange {
     describe(): any;
     nonce(): number;
@@ -50,7 +50,7 @@ export default class bybit extends Exchange {
     parseContractOrder(order: any, market?: any): any;
     parseSpotOrder(order: any, market?: any): any;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     createUnifiedAccountOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     createUnifiedMarginOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -798,7 +799,7 @@ class bigone(Exchange):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -811,11 +812,11 @@ class bigone(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        side = 'BID' if (side == 'buy') else 'ASK'
+        requestSide = 'BID' if (side == 'buy') else 'ASK'
         uppercaseType = type.upper()
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
-            'side': side,  # order side one of "ASK"/"BID", required
+            'side': requestSide,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
             # 'price': self.price_to_precision(symbol, price),  # order price, string, required
             'type': uppercaseType,

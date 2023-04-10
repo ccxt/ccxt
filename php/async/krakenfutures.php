@@ -795,7 +795,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -2008,7 +2008,11 @@ class krakenfutures extends Exchange {
         }
         $url = $this->urls['api'][$api] . $query;
         if ($api === 'private' || $access === 'private') {
-            $auth = $postData . '/api/' . ($api === 'private' ? $endpoint : $api . '/' . $endpoint); // 1
+            $auth = $postData . '/api/';
+            if ($api !== 'private') {
+                $auth .= $api . '/';
+            }
+            $auth .= $endpoint; // 1
             $hash = $this->hash($this->encode($auth), 'sha256', 'binary'); // 2
             $secret = base64_decode($this->secret); // 3
             $signature = $this->hmac($hash, $secret, 'sha512', 'base64'); // 4-5

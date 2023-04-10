@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1752,7 +1752,7 @@ export default class mexc extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#createOrder
@@ -3499,7 +3499,7 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             } else {
                 request['openType'] = openType;
-                request['symbol'] = market['symbol'];
+                request['symbol'] = market['id'];
                 request['positionType'] = positionType;
             }
         } else {
