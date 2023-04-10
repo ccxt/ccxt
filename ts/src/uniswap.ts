@@ -1,14 +1,20 @@
 
 //  ---------------------------------------------------------------------------
 
+import { Chain, Common, Hardfork } from '@ethereumjs/common';
+import { Transaction } from '@ethereumjs/tx';
+import { ethers } from 'ethers';
 import Exchange from './abstract/uniswap.js';
 import { NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
+import { stringToBinary, numberToHex } from './base/functions/encode.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class uniswap extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -113,13 +119,16 @@ export default class uniswap extends Exchange {
                 'withdraw': undefined,
             },
             'timeframes': {},
+            'chain': 'goerli',
             'urls': {
                 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Uniswap_Logo.svg/1026px-Uniswap_Logo.svg.png',
                 'test': {
+                    'provider': 'https://goerli.infura.io/v3',
                     'uniswap': 'https://api.thegraph.com/subgraphs/name/uniswap',
-                    'ianlapham': 'https://api.thegraph.com/subgraphs/name/ianlapham',
+                    'ianlapham': 'https://api.thegraph.com/subgraphs/name/liqwiz/uniswap-v3-goerli',
                 },
                 'api': {
+                    'provider': 'https://{chain}.infura.io/v3',
                     'uniswap': 'https://api.thegraph.com/subgraphs/name/uniswap',
                     'ianlapham': 'https://api.thegraph.com/subgraphs/name/ianlapham',
                 },
@@ -142,14 +151,34 @@ export default class uniswap extends Exchange {
                         'uniswap': 1,
                     },
                 },
+                'provider': {
+                    'post': {
+                        'sendTransaction': 1,
+                    },
+                },
             },
             'precisionMode': DECIMAL_PLACES,
             // exchange-specific options
             'options': {
+                'gasLimit': 500000,
+                'createOrder': {
+                    'interface': 'swapExactInputSingle',
+                },
+                'v3Router': '0xE592427A0AEce92De3Edee1F18E0157C05861564',
                 'sandboxMode': false,
                 'fetchCurrencies': true,
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'commands': {
+                    'V3_SWAP_EXACT_IN': '00',
+                    'V3_SWAP_EXACT_OUT': '01',
+                },
+            },
+            'requiredCredentials': {
+                'walletAddress': true, // wallet address
+                'privateKey': true, // wallet private key
+                'apiKey': true, // provider api key
+                'secret': false,
             },
             'exceptions': {
             },
@@ -259,8 +288,8 @@ export default class uniswap extends Exchange {
     async fetchMarkets (params = {}) {
         /**
          * @method
-         * @name binance#fetchMarkets
-         * @description retrieves data on all markets for binance
+         * @name uniswap#fetchMarkets
+         * @description retrieves data on all markets for uniswap
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -421,6 +450,7 @@ export default class uniswap extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': undefined,
+            'feeTier': feeTier,
             'type': undefined,
             'spot': undefined,
             'margin': undefined,
@@ -465,6 +495,216 @@ export default class uniswap extends Exchange {
             'info': market,
         };
         return entry;
+    }
+
+    universalCommand (revert: boolean, command: string, r: string = '00') {
+        /**
+         * @ignore
+         * @method
+         * @name uniswap#universalCommand
+         * @description build command byte for universal router
+         * @param {boolean} f whether or not the command should be allowed to revert without the whole transaction failing.
+         * @param {int} r 2 unused bytes, reserved for future use.
+         * @param {command} command extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
+         */
+        const f = revert ? '1' : '0';
+        return stringToBinary (f + r + command);
+    }
+
+    async fetchTransactionCount (address:string = this.walletAddress, block: string = 'latest') {
+        /**
+         * @ignore
+         * @method
+         * @name uniswap#createOrder
+         * @description create a trade order
+         */
+        const rpcRequest = {
+            'jsonrpc': '2.0',
+            'method': 'eth_getTransactionCount',
+            'params': [ address, block ],
+            'id': this.requestId (),
+        };
+        const response = await this.providerPostSendTransaction (rpcRequest);
+        //
+        //   {
+        //       "jsonrpc": "2.0",
+        //       "id": 1,
+        //       "result": "0x1a"
+        //   }
+        //
+        return this.safeString (response, 'result');
+    }
+
+    async fetchGasPrice () {
+        /**
+         * @ignore
+         * @method
+         * @name uniswap#fetchGasPrice
+         * @description Returns the current gas price in wei.
+         */
+        const rpcRequest = {
+            'jsonrpc': '2.0',
+            'method': 'eth_gasPrice',
+            'params': [],
+            'id': this.requestId (),
+        };
+        const response = await this.providerPostSendTransaction (rpcRequest);
+        //
+        //    {
+        //        "jsonrpc": "2.0",
+        //        "id": 1,
+        //        "result": "0x12a05f200"
+        //    }
+        //
+        return this.safeString (response, 'result');
+    }
+
+    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name uniswap#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the uniswap api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const functionSignature = [ {
+            'inputs': [ {
+                'components': [ {
+                    'internalType': 'address',
+                    'name': 'tokenIn',
+                    'type': 'address',
+                }, {
+                    'internalType': 'address',
+                    'name': 'tokenOut',
+                    'type': 'address',
+                }, {
+                    'internalType': 'uint24',
+                    'name': 'fee',
+                    'type': 'uint24',
+                }, {
+                    'internalType': 'address',
+                    'name': 'recipient',
+                    'type': 'address',
+                }, {
+                    'internalType': 'uint256',
+                    'name': 'deadline',
+                    'type': 'uint256',
+                }, {
+                    'internalType': 'uint256',
+                    'name': 'amountIn',
+                    'type': 'uint256',
+                }, {
+                    'internalType': 'uint256',
+                    'name': 'amountOutMinimum',
+                    'type': 'uint256',
+                }, {
+                    'internalType': 'uint160',
+                    'name': 'sqrtPriceLimitX96',
+                    'type': 'uint160',
+                } ],
+                'internalType': 'struct ISwapRouter.ExactInputSingleParams',
+                'name': 'params',
+                'type': 'tuple',
+            } ],
+            'name': 'exactInputSingle',
+            'outputs': [ {
+                'internalType': 'uint256',
+                'name': 'amountOut',
+                'type': 'uint256',
+            } ],
+            'stateMutability': 'payable',
+            'type': 'function',
+        },
+        ];
+        const inputValues = {
+            'tokenIn': market['baseId'], // TokenIn address
+            'tokenOut': market['quoteId'], // TokenOut address
+            'recipient': this.walletAddress,
+            'fee': parseInt (market['feeTier']), // Fee, e.g., 3000 for 0.3% fee tier
+            'amountIn': 1, // AmountIn in wei (1 ether)
+            'amountOutMinimum': 0, // Set to 0 to ignore slippage protection
+            'sqrtPriceLimitX96': 0, // SqrtPriceLimitX96, use '0' for no limit
+            'deadline': Math.floor (Date.now () / 1000) + 60 * 20, // Deadline in seconds (e.g., 20 minutes from now)
+        };
+        // TODO replace ethers abi code for a static dependency
+        const uniswapV3Router = new ethers.Interface (functionSignature);
+        const encodedData = uniswapV3Router.encodeFunctionData ('exactInputSingle', [ [
+            inputValues.tokenIn,
+            inputValues.tokenOut,
+            inputValues.fee,
+            inputValues.recipient,
+            inputValues.deadline,
+            inputValues.amountIn,
+            inputValues.amountOutMinimum,
+            inputValues.sqrtPriceLimitX96,
+        ] ]);
+        const nonce = await this.fetchTransactionCount ();
+        const gasLimit = this.safeNumber (this.options, 'gasLimit', 21000);
+        const gasPrice = await this.fetchGasPrice ();
+        // TODO check EIP1559
+        const txData = {
+            'from': this.walletAddress,
+            'gasLimit': numberToHex (gasLimit),
+            'gasPrice': gasPrice,
+            // 'maxFeePerGas': numberToHex (100000000),
+            // 'maxPriorityFeePerGas': numberToHex (maxPriorityFeePerGas),
+            'nonce': nonce,
+            'to': this.options['v3Router'],
+            'data': encodedData,
+            'value': '0x0',
+        };
+        // test with existing functions
+        const byteArray = [
+            this.base16ToBinary (this.remove0xPrefix (txData.nonce)),
+            this.base16ToBinary (this.remove0xPrefix (txData.gasPrice)),
+            this.base16ToBinary (this.remove0xPrefix (txData.gasLimit)),
+            this.base16ToBinary (this.remove0xPrefix (txData.to)),
+            this.base16ToBinary (this.remove0xPrefix (txData.value)),
+            this.base16ToBinary (this.remove0xPrefix (txData.data)),
+        ];
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, keccak, 'hex');
+        const { r, s, v } = this.signMessage (hash, this.privateKey);
+        const signedByteArray = [
+            this.base16ToBinary (this.remove0xPrefix (txData.nonce)),
+            this.base16ToBinary (this.remove0xPrefix (txData.gasPrice)),
+            this.base16ToBinary (this.remove0xPrefix (txData.gasLimit)),
+            this.base16ToBinary (this.remove0xPrefix (txData.to)),
+            this.base16ToBinary (this.remove0xPrefix (txData.value)),
+            this.base16ToBinary (this.remove0xPrefix (txData.data)),
+            this.binaryToBase16 (this.numberToBE (v, 1)),
+            this.base16ToBinary (this.remove0xPrefix (r)),
+            this.base16ToBinary (this.remove0xPrefix (s)),
+        ];
+        const signedBinary = this.binaryConcatArray (signedByteArray);
+        const signedHash = this.hash (signedBinary, keccak, 'hex');
+        const serializedTx = '0x' + signedHash;
+        // Below code works using ethereumjs-tx library, looking to substitute for kecack signing
+        // const common = new Common ({ 'chain': Chain.Goerli, 'hardfork': Hardfork.London });
+        // const tx = Transaction.fromTxData (txData, { common });
+        // const privateKey = Buffer.from (
+        //     this.privateKey,
+        //     'hex'
+        // );
+        // const signedTx = tx.sign (privateKey);
+        // const serializedTx = '0x' + signedTx.serialize ().toString ('hex');
+        const rpcRequest = { 'jsonrpc': '2.0', 'method': 'eth_sendRawTransaction', 'params': [ serializedTx ], 'id': this.requestId () };
+        return await this.providerPostSendTransaction (rpcRequest);
+    }
+
+    requestId () {
+        const previousValue = this.safeInteger (this.options, 'requestId', 0);
+        const newValue = this.sum (previousValue, 1);
+        this.options['requestId'] = newValue;
+        return newValue;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -783,11 +1023,49 @@ export default class uniswap extends Exchange {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
         let url = this.urls['api'][api];
-        url += '/' + path;
-        body = this.json (params);
         headers = {
             'Content-Type': 'application/json',
         };
+        if (api === 'provider') {
+            this.checkRequiredCredentials ();
+            url = this.implodeParams (url, { 'chain': this.chain });
+            url += '/' + this.apiKey;
+            body = this.json (params);
+        } else {
+            url += '/' + path;
+            body = this.json (params);
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    remove0xPrefix (hexData) {
+        return (hexData.slice (0, 2) === '0x') ? hexData.slice (2) : hexData;
+    }
+
+    hashMessage (message) {
+        // takes a hex encoded message
+        const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message));
+        const prefix = this.encode ('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength);
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': 27 + signature['v'],
+        };
+    }
+
+    signMessage (message, privateKey) {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    signMessageString (message, privateKey) {
+        // still takes the input as a hex string
+        // same as above but returns a string instead of an object
+        const signature = this.signMessage (message, privateKey);
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v'], 1));
     }
 }

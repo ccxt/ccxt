@@ -2,8 +2,7 @@
 /*  ------------------------------------------------------------------------ */
 
 import { base16, base58, base64, utf8 } from "../../static_dependencies/scure-base/index.js";
-import { numberToBytesBE, numberToBytesLE, concatBytes } from '../../static_dependencies/noble-curves/abstract/utils.js';
-
+import { numberToBytesBE, numberToBytesLE, concatBytes, numberToHexUnpadded } from '../../static_dependencies/noble-curves/abstract/utils.js';
 import qs from '../../static_dependencies/qs/index.cjs'
 
 /*  ------------------------------------------------------------------------ */
@@ -44,6 +43,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
 
     , numberToBE = (n: number, padding: number) => numberToBytesBE (BigInt (n), padding)
 
+    , numberToHex = (n: number) => numberToHexUnpadded (BigInt (n))
 
 export {
     json
@@ -67,6 +67,7 @@ export {
     , urlencodeBase64
     , numberToLE
     , numberToBE
+    , numberToHex
     , base58ToBinary
     , binaryToBase58
     , urlencodeNested
