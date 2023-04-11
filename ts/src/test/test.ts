@@ -63,7 +63,7 @@ Object.keys (errorsHierarchy)
         }
     });
 
-const AuthenticationError = errorsHierarchy.AuthenticationError;
+const AuthenticationError = ccxt.AuthenticationError;
 
 // non-transpiled commons
 const rootDir = __dirname + '/../../../';
