@@ -38,6 +38,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 'requestLimit': 100, // per second
                 'watchTickerMethod': 'ticker', // or ticker_lite
                 'watchTickersMethod': 'ticker', // or ticker_lite
+                'fetchBalance': {
+                    'type': undefined,
+                },
             },
         });
     }
@@ -256,6 +259,11 @@ export default class krakenfutures extends krakenfuturesRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
+        // const type = this.safeString2 (params, 'type', 'account');
+        // params = this.omit (params, [ 'type', 'account' ]);
+        // if (type !== undefined) {
+        //     this.options['fetchBalance']['type'] = type;
+        // }
         const name = 'balances';
         return await this.subscribePrivate (name, params);
     }
@@ -1043,46 +1051,63 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "seq": 2
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const holding = this.safeValue (message, 'holding', {});
+        const futures = this.safeValue (message, 'futures', {});
+        const flexFutures = this.safeValue (message, 'flex_futures', {});
+        const flexFutureCurrencies = this.safeValue (flexFutures, 'currencies', {});
         const messageHash = 'balances';
-        this.balance = this.parseWsBalance (data);
-        client.resolve (this.balance, messageHash);
-    }
-
-    parseWsBalance (response) {
-        //
-        //    [
-        //        {
-        //            "changeTime": 1657312008411,
-        //            "accountId": "1234",
-        //            "accountType": "SPOT",
-        //            "eventType": "place_order",
-        //            "available": "9999999983.668",
-        //            "currency": "BTC",
-        //            "id": 60018450912695040,
-        //            "userId": 12345,
-        //            "hold": "16.332",
-        //            "ts": 1657312008443
-        //        }
-        //    ]
-        //
-        const firstBalance = this.safeValue (response, 0, {});
-        const timestamp = this.safeInteger (firstBalance, 'ts');
-        const result = {
-            'info': response,
+        const timestamp = this.safeInteger (message, 'timestamp');
+        const holdingKeys = Object.keys (holding);                  // cashAccount
+        const futuresKeys = Object.keys (futures);                  // marginAccount
+        const flexFuturesKeys = Object.keys (flexFutureCurrencies); // multi-collateral margin account
+        // holding
+        const holdingResult = {
+            'info': message,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeValue (response, i);
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+        for (let i = 0; i < holdingKeys.length; i++) {
+            const key = holdingKeys[i];
+            const code = this.safeCurrencyCode (key);
             const newAccount = this.account ();
-            newAccount['free'] = this.safeString (balance, 'available');
-            newAccount['used'] = this.safeString (balance, 'hold');
-            result[code] = newAccount;
+            const amount = this.safeString (holding, key);
+            newAccount['free'] = amount;
+            newAccount['total'] = amount;
+            newAccount['used'] = '0';
+            holdingResult[code] = newAccount;
         }
-        return this.safeBalance (result);
+        const futuresResult = {
+            'info': message,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        for (let i = 0; i < futuresKeys.length; i++) {
+            const key = futuresKeys[i];
+            const code = this.safeCurrencyCode (key);
+            const newAccount = this.account ();
+            const future = this.safeValue (futures, key);
+            newAccount['free'] = this.safeString (future, 'available');
+            newAccount['total'] = this.safeString (future, 'quantity');
+            futuresResult[code] = newAccount;
+        }
+        const flexFuturesResult = {
+            'info': message,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        for (let i = 0; i < flexFuturesKeys.length; i++) {
+            const key = flexFuturesKeys[i];
+            const flexFuture = this.safeValue (flexFutures, key);
+            const code = this.safeCurrencyCode (key);
+            const newAccount = this.account ();
+            newAccount['free'] = this.safeString (flexFuture, 'available');
+            newAccount['total'] = this.safeString (flexFuture, 'balance');
+            flexFuturesResult[code] = newAccount;
+        }
+        this.balance['cash'] = holdingResult;
+        this.balance['flex'] = flexFuturesResult;
+        this.balance['margin'] = futuresResult;
+        client.resolve (this.balance, messageHash);
     }
 
     handleMyTrades (client: Client, message) {
