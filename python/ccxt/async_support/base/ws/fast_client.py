@@ -3,6 +3,8 @@
 import asyncio
 import socket
 import collections
+
+import ccxt
 from ccxt import NetworkError
 from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
 
@@ -23,7 +25,10 @@ class FastClient(AiohttpClient):
                 self.callback_scheduled = False
                 return
             message = self.stack.popleft()
-            self.handle_message(message)
+            try:
+                self.handle_message(message)
+            except Exception as error:
+                self.reject(error)
             self.asyncio_loop.call_soon(handler)
 
         def feed_data(message, size):
