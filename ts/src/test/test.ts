@@ -18,6 +18,7 @@ const debug = process.argv.includes ('--debug') || false;
 const sandbox = process.argv.includes ('--sandbox') || false;
 const privateTest = process.argv.includes ('--private') || false;
 const privateOnly = process.argv.includes ('--privateOnly') || false;
+const info = process.argv.includes ('--info') || false;
 
 // ----------------------------------------------------------------------------
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
@@ -166,17 +167,29 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
         if (exchange.safeValue (skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED_EXCHANGE]', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol);
             exitScript();
         }
         if (exchange.alias) {
-            dump ('[SKIPPED_EXCHANGE] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
             exitScript();
         }
         //
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
         addProxyAgent (exchange, exchangeSettings);
+    }
+
+    padEnd (message, size) {
+        // has to be transpilable
+        let res = '';
+        const missingSpace = size - message.length;
+        if (missingSpace > 0) {
+            for (let i = 0; i < missingSpace; i++) {
+                res += ' ';
+            }
+        }
+        return message + res;
     }
 
     async testMethod (methodName, exchange, args, isPublic) {
@@ -187,18 +200,20 @@ export default class testMainClass extends baseMainTestClass {
         }
         let skipMessage = undefined;
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
-            skipMessage = '[UNSUPPORTED]  '; // keep it aligned with the longest message
+            skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if (methodName in this.skippedMethods) {
-            skipMessage = '[SKIPPED]      ';
+            skipMessage = '[INFO:SKIPPED_TEST]';
         } else if (!(methodNameInTest in testFiles)) {
-            skipMessage = '[UNIMPLEMENTED]';
+            skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
-        if (skipMessage) {
-            dump (skipMessage, exchange.id, methodNameInTest);
+        if (skipMessage && info) {
+            dump (this.padEnd(skipMessage, 25), exchange.id, methodNameInTest);
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
-        dump ('[TESTING]      ', exchange.id, methodNameInTest, argsStringified);
+        if (info) {
+            dump (this.padEnd('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+        }
         let result = null;
         try {
             result = await callMethod (methodNameInTest, exchange, args);
@@ -208,7 +223,7 @@ export default class testMainClass extends baseMainTestClass {
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
             if (!(isPublic && isAuthError)) {
-                dump (exceptionMessage(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
+                dump ('ERROR:', exceptionMessage(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;
             }
         }
