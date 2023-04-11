@@ -3,8 +3,6 @@
 import asyncio
 import socket
 import collections
-
-import ccxt
 from ccxt import NetworkError
 from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
 
