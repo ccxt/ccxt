@@ -2898,12 +2898,16 @@ class bybit(Exchange):
                 # use self endpoint only we have no other choice
                 # because it requires transfer permission
                 method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery'
+                request['accountType'] = unifiedType
             else:
                 if enableUnifiedAccount:
                     method = 'privateGetV5AccountWalletBalance'
+                    request['accountType'] = unifiedType
+                elif enableUnifiedMargin:
+                    method = 'privateGetUnifiedV3PrivateAccountWalletBalance'
                 else:
                     method = 'privateGetContractV3PrivateAccountWalletBalance'
-            request['accountType'] = unifiedType
+                    request['accountType'] = unifiedType
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot wallet

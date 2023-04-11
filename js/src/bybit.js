@@ -3011,16 +3011,21 @@ export default class bybit extends Exchange {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
                 method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+                request['accountType'] = unifiedType;
             }
             else {
                 if (enableUnifiedAccount) {
                     method = 'privateGetV5AccountWalletBalance';
+                    request['accountType'] = unifiedType;
+                }
+                else if (enableUnifiedMargin) {
+                    method = 'privateGetUnifiedV3PrivateAccountWalletBalance';
                 }
                 else {
                     method = 'privateGetContractV3PrivateAccountWalletBalance';
+                    request['accountType'] = unifiedType;
                 }
             }
-            request['accountType'] = unifiedType;
         }
         const response = await this[method](this.extend(request, params));
         //
