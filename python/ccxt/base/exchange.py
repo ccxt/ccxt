@@ -688,7 +688,7 @@ class Exchange(object):
 
     @staticmethod
     def key_exists(dictionary, key):
-        if hasattr(dictionary, '__getitem__'):
+        if hasattr(dictionary, '__getitem__') and not isinstance(dictionary, str):
             if isinstance(dictionary, list) and type(key) is not int:
                 return False
             try:
