@@ -441,7 +441,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'timestamp');
+        const timestamp = this.safeInteger (data, 'Timestamp');
         return this.parseToInt (timestamp / 1000000);
     }
 

@@ -16,7 +16,7 @@ async function testFetchLedger (exchange, code) {
     const itemMethod = 'fetchLedgerItem'; // todo: create separate testfile
     if (exchange.has[itemMethod]) {
         if (items.length >= 1) {
-            const item = await exchange[itemMethod] (items[0].id);
+            const item = await exchange.fetchLedgerItem (items[0].id);
             testLedgerItem (exchange, itemMethod, item, code, now);
         }
     }
