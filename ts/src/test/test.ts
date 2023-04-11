@@ -113,6 +113,7 @@ async function testThrottle () {
     // todo: exists in py/php not in js
 }
 
+const publicTests = {};
 var exports = {};
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
@@ -208,8 +209,10 @@ export default class testMainClass extends baseMainTestClass {
         } else if (!(methodNameInTest in testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
-        if (skipMessage && info) {
-            dump (this.padEnd(skipMessage, 25), exchange.id, methodNameInTest);
+        if (skipMessage) {
+            if (info) {
+                dump (this.padEnd(skipMessage, 25), exchange.id, methodNameInTest);
+            }
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
@@ -268,7 +271,7 @@ export default class testMainClass extends baseMainTestClass {
             tests['fetchMarkOHLCV'] = [symbol];
             tests['fetchPremiumIndexOHLCV'] = [symbol];
         }
-        this.publicTests = tests;
+        publicTests = tests;
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {

@@ -101,11 +101,11 @@ foreach ($allfuncs as $fName) {
 define('testFiles', $testFuncs);
 define('envVars', []);
 
-
 // non-transpiled commons
 class baseMainTestClass {
     public $skippedMethods = [];
     public $checkedPublicTests = [];
+    public $publicTests = [];
 }
 
 function io_file_exists($path) {
