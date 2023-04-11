@@ -692,7 +692,7 @@ class Exchange(object):
             try:
                 value = dictionary.__getitem__(key)
                 return value is not None and value != ''
-            except LookupError:
+            except:
                 return False
         return False
 
