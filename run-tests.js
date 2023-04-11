@@ -27,15 +27,17 @@ const keys = {
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
     '--python-async': false, // run Python 3 async tests only
-    '--php-async': false,    // run php async tests only
+    '--php-async': false,    // run php async tests only,
+    '--warnings': false,
+    '--info': false,
 }
 
 const exchangeSpecificFlags = {
     '--sandbox': false,
     '--verbose': false,
-    '--warnings': false,
     '--private': false,
     '--privateOnly': false,
+    '--info': false,
 }
 
 let exchanges = []
@@ -105,12 +107,23 @@ const exec = (bin, ...args) =>
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
 
+            const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
             const regex = /\[[a-z]+?\]/gmi
 
             let match = undefined
             const warnings = []
+            const info = []
+
+            let outputInfo = '';
 
             match = regex.exec (output)
+            let matchInfo = infoRegex.exec (output)
+
+            // detect error
+            let hasFailed = false;
+            if (output.indexOf('ERROR:') > -1) {
+                hasFailed = true;
+            }
 
             if (match) {
                 warnings.push (match[0])
@@ -120,12 +133,26 @@ const exec = (bin, ...args) =>
                     }
                 } while (match);
             }
+            if (matchInfo) {
+                info.push ('[' + matchInfo[1] + ']')
+                outputInfo += matchInfo[0]
+                do {
+                    if (matchInfo = infoRegex.exec (output)) {
+                        info.push ('[' + matchInfo[1] + ']')
+                        outputInfo += matchInfo[0]
+                    }
+                } while (matchInfo);
+                output = output.replace (infoRegex, '')
+            }
             return_ ({
-                failed: code !== 0,
+                failed: hasFailed || code !== 0,
                 output,
+                outputInfo,
                 hasOutput: output.length > 0,
                 hasWarnings: hasWarnings || warnings.length > 0,
                 warnings: warnings,
+                infos: info,
+                hasInfo: info.length > 0,
             })
         })
 
@@ -184,9 +211,15 @@ const testExchange = async (exchange) => {
         , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.hasWarnings)
+        , hasInfo        = completeTests.find (test => test.hasInfo)
         , warnings       = completeTests.reduce (
             (total, { warnings }) => {
                 return total.concat (warnings)
+            }, []
+        )
+        , infos       = completeTests.reduce (
+            (total, { infos }) => {
+                return total.concat (infos)
             }, []
         )
 
@@ -196,24 +229,22 @@ const testExchange = async (exchange) => {
 
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
     let logMessage = '';
+
     if (failed) {
-        logMessage = 'FAIL'.red;
-    } else if (hasWarnings) { 
-        if (warnings.length) {
-            const warningMsg = warnings.filter( (x)=>!x.includes('[TESTING]')).map((x)=> x.includes('[SKIPPED_EXCHANGE]')? x.yellow : x.magenta).join (' ')
-            if (warningMsg.includes ('[SKIPPED_EXCHANGE]')) {
-                logMessage = warningMsg;
-            } else {
-                logMessage = 'OK'.yellow;
-                if (exchangeSpecificFlags['--warnings']) {
-                    logMessage +=  ' | ' + warningMsg;
-                }
-            }
-        } else {
-            logMessage = 'OK'.cyan;
-        }
+        logMessage+= 'FAIL'.red;
+    } else if (hasWarnings) {
+        logMessage = (warnings.length ? warnings.join (' ') : 'WARN').yellow;
     } else {
         logMessage = 'OK'.green;
+    }
+
+    // info messages
+    if (hasInfo) {
+        if (exchangeSpecificFlags['--info']) {
+            logMessage += ' ' + 'INFO'.blue + ' ';
+            const infoMessages = infos.join(' ');
+            logMessage += infoMessages.blue;
+        }
     }
     log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, logMessage)
 
@@ -224,8 +255,9 @@ const testExchange = async (exchange) => {
         exchange,
         failed,
         hasWarnings,
+        hasInfo: hasInfo && exchangeSpecificFlags['--info'],
         explain () {
-            for (const { language, failed, output, hasWarnings } of completeTests) {
+            for (let { language, failed, output, hasWarnings, hasInfo, outputInfo } of completeTests) {
                 if (failed || hasWarnings) {
                     const fullSkip = output.indexOf('[SKIPPED]') >= 0;
                     if (!failed && fullSkip)
@@ -235,6 +267,10 @@ const testExchange = async (exchange) => {
                     else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + '):\n') }
 
                     log.indent (1) (output)
+                }
+                if (hasInfo) {
+                    log.bright ('\nINFO'.blue.inverse,':\n')
+                    log.indent (1) (outputInfo)
                 }
             }
         }

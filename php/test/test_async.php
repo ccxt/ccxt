@@ -39,6 +39,7 @@ define ('exchangeSymbol', $nonPrefixedArgs[3] ?? null);
 define ('sandbox', in_array('--sandbox', $args));
 define ('privateTest', in_array('--private', $args));
 define ('privateOnly', in_array('--privateOnly', $args));
+define ('info', in_array('--info', $args));
 
 define ('is_sync', stripos(__FILE__, '_async') === false);
 
@@ -206,17 +207,29 @@ class testMainClass extends baseMainTestClass {
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
         if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED_EXCHANGE]', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED]', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         if ($exchange->alias) {
-            dump ('[SKIPPED_EXCHANGE] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         //
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
         $this->checkedPublicTests = array();
         add_proxy_agent ($exchange, $exchangeSettings);
+    }
+
+    public function pad_end($message, $size) {
+        // has to be transpilable
+        $res = '';
+        $missingSpace = $size - count($message);
+        if ($missingSpace > 0) {
+            for ($i = 0; $i < $missingSpace; $i++) {
+                $res .= ' ';
+            }
+        }
+        return $message . $res;
     }
 
     public function test_method($methodName, $exchange, $args, $isPublic) {
@@ -228,18 +241,20 @@ class testMainClass extends baseMainTestClass {
             }
             $skipMessage = null;
             if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
-                $skipMessage = '[UNSUPPORTED]  '; // keep it aligned with the longest message
+                $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
             } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
-                $skipMessage = '[SKIPPED]      ';
+                $skipMessage = '[INFO:SKIPPED_TEST]';
             } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
-                $skipMessage = '[UNIMPLEMENTED]';
+                $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
             }
-            if ($skipMessage) {
-                dump ($skipMessage, $exchange->id, $methodNameInTest);
+            if ($skipMessage && info) {
+                dump (str_pad(this, $skipMessage, 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest);
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
-            dump ('[TESTING]      ', $exchange->id, $methodNameInTest, $argsStringified);
+            if (info) {
+                dump (str_pad(this, '[INFO:TESTING]', 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest, $argsStringified);
+            }
             $result = null;
             try {
                 $result = Async\await(call_method ($methodNameInTest, $exchange, $args));
@@ -249,7 +264,7 @@ class testMainClass extends baseMainTestClass {
             } catch (Exception $e) {
                 $isAuthError = ($e instanceof AuthenticationError);
                 if (!($isPublic && $isAuthError)) {
-                    dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
+                    dump ('ERROR:', exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;
                 }
             }

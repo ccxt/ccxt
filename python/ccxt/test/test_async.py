@@ -26,10 +26,10 @@ class Argv(object):
     privateOnly = False
     private = False
     verbose = False
-    warnings = False
     nonce = None
     exchange = None
     symbol = None
+    info = False
     pass
 
 
@@ -40,7 +40,7 @@ parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode'
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
-parser.add_argument('--warnings', action='store_true', help='enable warnings')
+parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -53,6 +53,7 @@ verbose = argv.verbose
 nonce = argv.nonce
 exchangeName = argv.exchange
 exchangeSymbol = argv.symbol
+info = argv.info
 
 print('\nTESTING (PY)', {'exchange': exchangeName, 'symbol': exchangeSymbol or 'all'}, '\n')
 
@@ -107,7 +108,7 @@ Error = Exception
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump_error((type), (value), '\n\n' + ('\n'.join(format_tb(traceback))))
+    dump((type), (value), '\n\n' + ('\n'.join(format_tb(traceback))))
     exit(1)  # unrecoverable crash
 
 
@@ -226,15 +227,24 @@ class testMainClass(baseMainTestClass):
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
         if exchange.safe_value(skippedSettingsForExchange, 'skip'):
-            dump('[SKIPPED_EXCHANGE]', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         if exchange.alias:
-            dump('[SKIPPED_EXCHANGE] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         #
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
         add_proxy_agent(exchange, exchangeSettings)
+
+    def pad_end(self, message, size):
+        # has to be transpilable
+        res = ''
+        missingSpace = size - len(message)
+        if missingSpace > 0:
+            for i in range(0, missingSpace):
+                res += ' '
+        return message + res
 
     async def test_method(self, methodName, exchange, args, isPublic):
         methodNameInTest = get_test_name(methodName)
@@ -243,16 +253,17 @@ class testMainClass(baseMainTestClass):
             return
         skipMessage = None
         if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
-            skipMessage = '[UNSUPPORTED]  '  # keep it aligned with the longest message
+            skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
         elif methodName in self.skippedMethods:
-            skipMessage = '[SKIPPED]      '
+            skipMessage = '[INFO:SKIPPED_TEST]'
         elif not (methodNameInTest in testFiles):
-            skipMessage = '[UNIMPLEMENTED]'
-        if skipMessage:
-            dump(skipMessage, exchange.id, methodNameInTest)
+            skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
+        if skipMessage and info:
+            dump(self.pad_end(skipMessage, 25), exchange.id, methodNameInTest)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        dump('[TESTING]      ', exchange.id, methodNameInTest, argsStringified)
+        if info:
+            dump(self.pad_end('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
             result = await call_method(methodNameInTest, exchange, args)
@@ -261,7 +272,7 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             isAuthError = (isinstance(e, AuthenticationError))
             if not (isPublic and isAuthError):
-                dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
+                dump('ERROR:', exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
                 raise e
         return result
 
