@@ -63,7 +63,7 @@ class deribit extends deribit$1 {
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        await this.authenticate(params);
+        this.authenticate(params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
         const currencies = this.safeValue(this.options, 'currencies', []);
@@ -154,7 +154,7 @@ class deribit extends deribit$1 {
         params = this.omit(params, 'interval');
         await this.loadMarkets();
         if (interval === 'raw') {
-            await this.authenticate();
+            this.authenticate();
         }
         const channel = 'ticker.' + market['id'] + '.' + interval;
         const message = {
@@ -227,7 +227,7 @@ class deribit extends deribit$1 {
         params = this.omit(params, 'interval');
         const channel = 'trades.' + market['id'] + '.' + interval;
         if (interval === 'raw') {
-            await this.authenticate();
+            this.authenticate();
         }
         const message = {
             'jsonrpc': '2.0',
@@ -297,7 +297,7 @@ class deribit extends deribit$1 {
          * @param {str|undefined} params.interval specify aggregation and frequency of notifications. Possible values: 100ms, raw
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
-        await this.authenticate(params);
+        this.authenticate(params);
         if (symbol !== undefined) {
             await this.loadMarkets();
             symbol = this.symbol(symbol);
@@ -385,7 +385,7 @@ class deribit extends deribit$1 {
         const interval = this.safeString(params, 'interval', '100ms');
         params = this.omit(params, 'interval');
         if (interval === 'raw') {
-            await this.authenticate();
+            this.authenticate();
         }
         const channel = 'book.' + market['id'] + '.' + interval;
         const subscribe = {
@@ -510,7 +510,7 @@ class deribit extends deribit$1 {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
-        await this.authenticate(params);
+        this.authenticate(params);
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
         }
@@ -781,22 +781,19 @@ class deribit extends deribit$1 {
         //         testnet: false
         //     }
         //
-        const future = this.safeValue(client.futures, 'authenticated');
-        if (future !== undefined) {
-            future.resolve(true);
-        }
+        const messageHash = 'authenticated';
+        client.resolve(message, messageHash);
         return message;
     }
-    async authenticate(params = {}) {
+    authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const time = this.milliseconds();
         const timeString = this.numberToString(time);
         const nonce = timeString;
         const messageHash = 'authenticated';
-        const future = client.future('authenticated');
-        const authenticated = this.safeValue(client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        let future = this.safeValue(client.subscriptions, messageHash);
+        if (future === undefined) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
             const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), sha256.sha256);
@@ -813,9 +810,9 @@ class deribit extends deribit$1 {
                     'data': '',
                 },
             };
-            this.spawn(this.watch, url, messageHash, this.extend(request, params), messageHash);
+            future = this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
-        return await future;
+        return future;
     }
 }
 
