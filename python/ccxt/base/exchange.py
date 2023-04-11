@@ -689,10 +689,12 @@ class Exchange(object):
     @staticmethod
     def key_exists(dictionary, key):
         if hasattr(dictionary, '__getitem__'):
+            if isinstance(dictionary, list) and type(key) is not int:
+                return False
             try:
-                value = dictionary.__getitem__(key)
+                value = dictionary[key]
                 return value is not None and value != ''
-            except:
+            except LookupError:
                 return False
         return False
 
