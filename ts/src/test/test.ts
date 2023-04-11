@@ -143,8 +143,9 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
             // support simple proxy
-            if (exchangeSettings.httpProxy) {
-                addProxyOrAgent(exchange, exchangeSettings.httpProxy);
+            const proxy = getExchangeProp (exchange, 'httpProxy');
+            if (proxy) {
+                addProxyOrAgent(exchange, proxy);
             }
         }
         // credentials

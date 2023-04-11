@@ -185,9 +185,10 @@ class testMainClass extends baseMainTestClass {
                     set_exchange_prop ($exchange, $key, $exchange->deep_extend($existing, $exchangeSettings[$key]));
                 }
             }
-            // support simple proxy
-            if ($exchangeSettings->httpProxy) {
-                addProxyOrAgent($exchange, $exchangeSettings->httpProxy);
+            // support simple $proxy
+            $proxy = get_exchange_prop ($exchange, 'httpProxy');
+            if ($proxy) {
+                addProxyOrAgent($exchange, $proxy);
             }
         }
         // credentials
