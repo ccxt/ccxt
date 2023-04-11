@@ -127,7 +127,7 @@ def get_test_name(methodName):
     return full_name
 
 
-rootDir = current_dir + '/../../'
+rootDir = current_dir + '/../../../'
 envVars = os.environ
 
 
@@ -171,6 +171,7 @@ def get_exchange_prop(exchange, prop, defaultValue=None):
         if res is not None and res != '':
             return res
     return defaultValue
+
 
 def set_exchange_prop(exchange, prop, value):
     setattr(exchange, prop, value)
