@@ -5,6 +5,7 @@ import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -50,7 +51,6 @@ export default class krakenfutures extends krakenfuturesRest {
          * @ignore
          * @method
          * @description authenticates the user to access private web socket channels
-         * @see https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-sign-challenge-challenge
          * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
          * @returns {object} response from exchange
          */
@@ -66,7 +66,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (future === undefined) {
             const request = {
                 'event': 'challenge',
-                'apiKey': this.apiKey,
+                'api_key': this.apiKey,
             };
             const message = this.extend (request, params);
             future = await this.watch (url, messageHash, message);
@@ -124,7 +124,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const subscribe = {
             'event': 'subscribe',
             'feed': name,
-            'apiKey': this.apiKey,
+            'api_key': this.apiKey,
             'original_challenge': this.options.challenge,
             'signed_challenge': this.options.signedChallenge,
         };
@@ -214,7 +214,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const name = 'orders';
+        const name = 'open_orders';
         const orders = await this.subscribePrivate (name, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -1238,6 +1238,11 @@ export default class krakenfutures extends krakenfuturesRest {
     }
 
     handleAuthenticate (client: Client, message) {
+        /**
+         * @ignore
+         * @method
+         * @see https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-sign-challenge-challenge
+         */
         //
         //    {
         //        "event": "challenge",
@@ -1248,7 +1253,9 @@ export default class krakenfutures extends krakenfuturesRest {
         const messageHash = 'challenge';
         if (event !== 'error') {
             const challenge = this.safeValue (message, 'message');
-            const signature = this.hmac (this.encode (challenge), this.encode (this.secret), sha256, 'base64');
+            const hashedChallenge = this.hash (this.encode (challenge), sha256);
+            const base64Secret = this.base64ToBinary (this.secret);
+            const signature = this.binaryToBase64 (this.encode (this.hmac (hashedChallenge, base64Secret, sha512, 'base64')));
             this.options.challenge = challenge;
             this.options.signedChallenge = signature;
             client.resolve (message, messageHash);
