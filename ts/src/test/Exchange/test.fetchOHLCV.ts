@@ -6,7 +6,8 @@ async function testFetchOHLCV (exchange, symbol) {
     const method = 'fetchOHLCV';
     const timeframes = Object.keys (exchange.timeframes);
     assert (timeframes.length > 0, exchange.id + ' ' + method + ' - no timeframes found');
-    const timeframe = timeframes[0];
+    // prefer 1m timeframe if available, otherwise return the first one
+    const timeframe = exchange.safeString (exchange.timeframes, '1m', timeframes[0]);
     const limit = 10;
     const duration = exchange.parseTimeframe (timeframe);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
