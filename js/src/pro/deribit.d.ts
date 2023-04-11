@@ -23,5 +23,5 @@ export default class deribit extends deribitRest {
     handleOHLCV(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): any;
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: {}): any;
 }
