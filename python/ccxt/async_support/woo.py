@@ -152,6 +152,8 @@ class woo(Exchange):
                             'funding_rate_history': 1,
                             'futures': 1,
                             'futures/{symbol}': 1,
+                            'orderbook/{symbol}': 1,
+                            'kline': 1,
                         },
                     },
                     'private': {
@@ -160,8 +162,6 @@ class woo(Exchange):
                             'order/{oid}': 1,
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
@@ -1093,7 +1093,7 @@ class woo(Exchange):
         if limit is not None:
             limit = min(limit, 1000)
             request['max_level'] = limit
-        response = await self.v1PrivateGetOrderbookSymbol(self.extend(request, params))
+        response = await self.v1PublicGetOrderbookSymbol(self.extend(request, params))
         #
         # {
         #   success: True,
@@ -1131,7 +1131,7 @@ class woo(Exchange):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        response = await self.v1PrivateGetKline(self.extend(request, params))
+        response = await self.v1PublicGetKline(self.extend(request, params))
         # {
         #     success: True,
         #     rows: [
