@@ -214,7 +214,6 @@ export default class krakenfutures extends krakenfuturesRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate ();
         const name = 'orders';
         const orders = await this.subscribePrivate (name, params);
         if (this.newUpdates) {
@@ -236,7 +235,6 @@ export default class krakenfutures extends krakenfuturesRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate ();
         const name = 'orders';
         const orders = await this.subscribePrivate (name, params);
         if (this.newUpdates) {
@@ -258,7 +256,6 @@ export default class krakenfutures extends krakenfuturesRest {
          * @returns {[object]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate ();
         // const type = this.safeString2 (params, 'type', 'account');
         // params = this.omit (params, [ 'type', 'account' ]);
         // if (type !== undefined) {
