@@ -1,11 +1,11 @@
 /*  ---------------------------------------------------------------------------
 
-    A tests launcher. Runs tests for all languages and all exchanges, in
-    parallel, with a humanized error reporting.
+A tests launcher. Runs tests for all languages and all exchanges, in
+parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
+Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
 
-    --------------------------------------------------------------------------- */
+--------------------------------------------------------------------------- */
 
 import fs from 'fs'
 import ansi from 'ansicolor'
@@ -23,6 +23,7 @@ const [,, ...args] = process.argv
 
 const keys = {
 
+    '--ts': false,      // run TypeScript tests only
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
@@ -198,16 +199,18 @@ const testExchange = async (exchange) => {
         args.push(symbol);
     }
     args = args.concat(exchangeOptions)
-    const allTests = [
-
+    const allTestsWithoutTs = [
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
             { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
             { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
             { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
             { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
         ]
+        , allTests = allTestsWithoutTs.concat([
+            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },  
+        ])
         , selectedTests  = allTests.filter (t => keys[t.key])
-        , scheduledTests = selectedTests.length ? selectedTests : allTests
+        , scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
         , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.hasWarnings)
@@ -354,8 +357,8 @@ async function testAllExchanges () {
     log.newline ()
 
     log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
-                              succeeded.length && (succeeded.length + ' succeeded').green,
-                              warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
+                                succeeded.length && (succeeded.length + ' succeeded').green,
+                                warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
 
     if (failed.length) {
 
@@ -369,3 +372,4 @@ async function testAllExchanges () {
 }) ();
 
 /*  ------------------------------------------------------------------------ */
+    
