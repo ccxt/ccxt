@@ -178,7 +178,7 @@ public partial class Exchange
         public string? symbol;
         public string? type;
         public string? side;
-        public string? price;
+        public float? price;
         public float? cost;
         public float? average;
         public float? amount;
@@ -199,7 +199,7 @@ public partial class Exchange
             symbol = SafeString(order, "symbol");
             type = SafeString(order, "type");
             side = SafeString(order, "side");
-            price = SafeString(order, "price");
+            price = SafeFloat(order, "price");
             cost = SafeFloat(order, "cost");
             average = SafeFloat(order, "average");
             amount = SafeFloat(order, "amount");

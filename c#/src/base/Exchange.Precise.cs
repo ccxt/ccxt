@@ -35,7 +35,7 @@ namespace Main
                 this.decimals = newDecimals;
                 var integerString = number.Replace(".", "");
                 this.integer = BigInteger.Parse(integerString);
-                this.decimals = (int)this.decimals - modified;
+                this.decimals = Convert.ToInt32(this.decimals) - modified;
             }
             else
             {
@@ -47,7 +47,7 @@ namespace Main
         public Precise mul(Precise other)
         {
             var integer = (long)this.integer * (long)other.integer;
-            var decimals = (int)this.decimals + (int)other.decimals;
+            var decimals = Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
             return new Precise(integer.ToString(), decimals);
         }
 
@@ -55,7 +55,7 @@ namespace Main
         {
             precision2 = precision2 ?? 18;
             var precision = (int)precision2;
-            var distance = precision - (int)this.decimals + (int)other.decimals;
+            var distance = precision - Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
             BigInteger numerator = 0;
             if (distance == 0)
             {
@@ -80,13 +80,13 @@ namespace Main
             if (this.decimals == other.decimals)
             {
                 var integerResult = (long)this.integer + (long)other.integer;
-                return new Precise(integerResult.ToString(), (int)this.decimals);
+                return new Precise(integerResult.ToString(), Convert.ToInt32(this.decimals));
             }
             else
             {
                 Precise smaller = null;
                 Precise bigger = null;
-                if ((int)this.decimals < (int)other.decimals)
+                if (Convert.ToInt32(this.decimals) < Convert.ToInt32(other.decimals))
                 {
                     smaller = this;
                     bigger = other;
@@ -105,23 +105,23 @@ namespace Main
 
         public Precise mod(Precise other)
         {
-            var rationizerNumerator = Math.Max(-(int)this.decimals + (int)other.decimals, 0);
+            var rationizerNumerator = Math.Max(-Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals), 0);
             var numerator = this.integer * BigInteger.Pow(this.baseNumber, rationizerNumerator);
-            var rationizerDenominator = Math.Max(-(int)other.decimals + (int)this.decimals, 0);
+            var rationizerDenominator = Math.Max(-Convert.ToInt32(other.decimals) + Convert.ToInt32(this.decimals), 0);
             var denominator = other.integer * BigInteger.Pow(this.baseNumber, rationizerDenominator);
             var result = BigInteger.Remainder(numerator, denominator);
-            return new Precise(result.ToString(), rationizerDenominator + (int)other.decimals);
+            return new Precise(result.ToString(), rationizerDenominator + Convert.ToInt32(other.decimals));
         }
 
         public Precise sub(Precise other)
         {
-            var negative = new Precise((-other.integer).ToString(), (int)other.decimals);
+            var negative = new Precise((-other.integer).ToString(), Convert.ToInt32(other.decimals));
             return this.add(negative);
         }
 
         public Precise neg()
         {
-            return new Precise((-this.integer).ToString(), (int)this.decimals);
+            return new Precise((-this.integer).ToString(), Convert.ToInt32(this.decimals));
         }
 
         public Precise min(Precise other)
@@ -159,7 +159,7 @@ namespace Main
         public Precise abs()
         {
             var result = this.integer < 0 ? this.integer * -1 : this.integer;
-            return new Precise(result.ToString(), (int)this.decimals);
+            return new Precise(result.ToString(), Convert.ToInt32(this.decimals));
         }
 
         public Precise reduce()
@@ -189,7 +189,7 @@ namespace Main
             {
                 return this;
             }
-            this.decimals = (int)this.decimals - difference;
+            this.decimals = Convert.ToInt32(this.decimals) - difference;
             this.integer = BigInteger.Parse((str.Substring(0, i + 1)));
             return this;
         }
@@ -198,17 +198,17 @@ namespace Main
         {
             this.reduce();
             other.reduce();
-            return this.integer == other.integer && (int)this.decimals == (int)other.decimals;
+            return this.integer == other.integer && Convert.ToInt32(this.decimals) == Convert.ToInt32(other.decimals);
         }
 
-        public string ToStringReduced()
-        {
-            return this.reduce().ToString();
-        }
+        // public string ToString()
+        // {
+        //     return this.reduce().ToString();
+        // }
 
-        public new string ToString()
+        public override string ToString()
         {
-            // this.reduce();
+            this.reduce();
             var sign = "";
             BigInteger abs = 0;
             if (this.integer < 0)
@@ -223,19 +223,19 @@ namespace Main
             // var decimalValue = Convert.ToDecimal(abs, CultureInfo.InvariantCulture);
             // var absParsed = decimalValue.ToString(CultureInfo.InvariantCulture);
             var absParsed = abs.ToString();
-            var padSize = ((int)this.decimals > 0) ? (int)this.decimals : 0;
+            var padSize = (Convert.ToInt32(this.decimals) > 0) ? Convert.ToInt32(this.decimals) : 0;
             var integerArray = absParsed.PadLeft(padSize, '0').ToString().ToList().Select(x => x.ToString()).ToList();
-            var index = integerArray.Count - (int)this.decimals;
+            var index = integerArray.Count - Convert.ToInt32(this.decimals);
             var item = "";
             if (index == 0)
             {
                 item = "0.";
             }
-            else if ((int)this.decimals < 0)
+            else if (Convert.ToInt32(this.decimals) < 0)
             {
-                item = string.Concat(Enumerable.Repeat("0", -(int)this.decimals));
+                item = string.Concat(Enumerable.Repeat("0", -Convert.ToInt32(this.decimals)));
             }
-            else if ((int)this.decimals == 0)
+            else if (Convert.ToInt32(this.decimals) == 0)
             {
                 item = "";
             }
@@ -253,7 +253,7 @@ namespace Main
         {
             if (string1 == null || string2 == null)
                 return null;
-            return (new Precise(string1.ToString()).mul(new Precise(string2.ToString()))).ToStringReduced();
+            return (new Precise(string1.ToString()).mul(new Precise(string2.ToString()))).ToString();
         }
 
         static public string stringDiv(object string1, object string2, object precision = null)
@@ -267,14 +267,14 @@ namespace Main
                 return null;
             }
             var stringDiv = (new Precise(string1.ToString())).div(string2Precise, precision);
-            return stringDiv.ToStringReduced();
+            return stringDiv.ToString();
         }
 
         static public string stringSub(object string1, object string2)
         {
             if (string1 == null || string2 == null)
                 return null;
-            return (new Precise(string1.ToString()).sub(new Precise(string2.ToString()))).ToStringReduced();
+            return (new Precise(string1.ToString()).sub(new Precise(string2.ToString()))).ToString();
         }
         static public string stringAdd(object string1, object string2)
         {
@@ -285,7 +285,7 @@ namespace Main
             if (string2 == null)
                 return string1.ToString();
 
-            return (new Precise(string1.ToString()).add(new Precise(string2.ToString()))).ToStringReduced();
+            return (new Precise(string1.ToString()).add(new Precise(string2.ToString()))).ToString();
         }
 
         static public bool stringGt(object a, object b)
@@ -306,7 +306,7 @@ namespace Main
         {
             if (a == null || b == null)
                 return null;
-            return (new Precise(a)).max(new Precise(b)).ToStringReduced();
+            return (new Precise(a)).max(new Precise(b)).ToString();
         }
 
         static public bool stringEquals(object a, object b)
@@ -320,7 +320,7 @@ namespace Main
         {
             if (string1 == null || string2 == null)
                 return null;
-            return (new Precise(string1.ToString()).min(new Precise(string2.ToString()))).ToStringReduced();
+            return (new Precise(string1.ToString()).min(new Precise(string2.ToString()))).ToString();
         }
 
         static public bool stringLt(object a, object b)
@@ -362,7 +362,7 @@ namespace Main
         {
             if (a == null || b == null)
                 return null;
-            return (new Precise(a)).mod(new Precise(b)).ToStringReduced();
+            return (new Precise(a)).mod(new Precise(b)).ToString();
         }
 
     }

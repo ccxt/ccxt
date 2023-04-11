@@ -466,7 +466,7 @@ public partial class Exchange
 
     public virtual object parseNumber(object value, object number = null, object defaultValue = null)
     {
-        if (value == null)
+        if (value == null || (value.GetType() == typeof(string) && value.ToString().Trim() == ""))
             return defaultValue;
 
 
