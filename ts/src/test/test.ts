@@ -92,7 +92,7 @@ async function callMethod (methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
-function add_proxy(exchange, httpProxy) {
+function add_proxy (exchange, httpProxy) {
     // add real proxy agent
     exchange.agent = new HttpsProxyAgent(httpProxy);
 }

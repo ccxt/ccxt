@@ -125,7 +125,7 @@ function exception_message ($exc) {
     return '[' . get_class($exc) . '] ' . substr($exc->getMessage(), 0, 200);
 }
 
-function add_proxy_or_agent ($exchange, $http_proxy) {
+function add_proxy ($exchange, $http_proxy) {
     // just add a simple redirect through proxy
     $exchange->proxy = $http_proxy;
 }
@@ -189,7 +189,7 @@ class testMainClass extends baseMainTestClass {
             // support simple $proxy
             $proxy = get_exchange_prop ($exchange, 'httpProxy');
             if ($proxy) {
-                addProxyOrAgent($exchange, $proxy);
+                add_proxy($exchange, $proxy);
             }
         }
         // credentials
@@ -252,8 +252,10 @@ class testMainClass extends baseMainTestClass {
             } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
                 $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
             }
-            if ($skipMessage && info) {
-                dump (str_pad(this, $skipMessage, 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest);
+            if ($skipMessage) {
+                if (info) {
+                    dump (str_pad(this, $skipMessage, 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest);
+                }
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';

@@ -156,7 +156,7 @@ async def call_method(methodName, exchange, args):
     return await getattr(testFiles[methodName], methodName)(exchange, *args)
 
 
-def add_proxy_or_agent(exchange, http_proxy):
+def add_proxy(exchange, http_proxy):
     # just add a simple redirect through proxy
     exchange.proxy = http_proxy
 
