@@ -1,6 +1,7 @@
 namespace Main;
 
 using System.Globalization;
+using System.Reflection;
 using System.Text.Json;
 using dict = Dictionary<string, object>;
 
@@ -545,7 +546,8 @@ public partial class Exchange
     }
 
     // generic getValue to replace elementAccesses
-    public object getValue(object value2, object key)
+    public object getValue(object a, object b) => GetValue(a, b);
+    public static object GetValue(object value2, object key)
     {
         if (value2 == null || key == null)
         {
@@ -658,4 +660,9 @@ public partial class Exchange
         return Math.Round((double)number, (int)decimals);
     }
 
+    public static object callDynamically(object obj, object methodName, object[] args = null)
+    {
+        args ??= new object[] { };
+        return obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+    }
 }

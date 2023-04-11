@@ -270,8 +270,8 @@ public partial class Exchange
         this.markets = ((object)this.indexBy(values, "symbol"));
         object marketsSortedBySymbol = this.keysort(this.markets);
         object marketsSortedById = this.keysort(this.markets_by_id);
-        this.symbols = new List<string>(((Dictionary<string,object>)marketsSortedBySymbol).Keys);
-        this.ids = new List<string>(((Dictionary<string,object>)marketsSortedById).Keys);
+        this.symbols = new List<object>(((Dictionary<string,object>)marketsSortedBySymbol).Keys);
+        this.ids = new List<object>(((Dictionary<string,object>)marketsSortedById).Keys);
         if (isTrue(!isEqual(currencies, null)))
         {
             this.currencies = this.deepExtend(this.currencies, currencies);
@@ -313,7 +313,7 @@ public partial class Exchange
             this.quoteCurrencies = this.indexBy(quoteCurrencies, "code");
             object allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
             object groupedCurrencies = this.groupBy(allCurrencies, "code");
-            object codes = new List<string>(((Dictionary<string,object>)groupedCurrencies).Keys);
+            object codes = new List<object>(((Dictionary<string,object>)groupedCurrencies).Keys);
             object resultingCurrencies = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
             {
@@ -338,14 +338,14 @@ public partial class Exchange
         }
         this.currencies_by_id = this.indexBy(this.currencies, "id");
         object currenciesSortedByCode = this.keysort(this.currencies);
-        this.codes = new List<string>(((Dictionary<string,object>)currenciesSortedByCode).Keys);
+        this.codes = new List<object>(((Dictionary<string,object>)currenciesSortedByCode).Keys);
         return this.markets;
     }
 
     public virtual object safeBalance(object balance)
     {
         object balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"});
-        object codes = new List<string>(((Dictionary<string,object>)balances).Keys);
+        object codes = new List<object>(((Dictionary<string,object>)balances).Keys);
         ((Dictionary<string, object>)balance)["free"] = new Dictionary<string, object>() {};
         ((Dictionary<string, object>)balance)["used"] = new Dictionary<string, object>() {};
         ((Dictionary<string, object>)balance)["total"] = new Dictionary<string, object>() {};
@@ -381,7 +381,7 @@ public partial class Exchange
                 ((Dictionary<string, object>)debtBalance)[(string)code] = getValue(getValue(balance, code), "debt");
             }
         }
-        object debtBalanceArray = new List<string>(((Dictionary<string,object>)debtBalance).Keys);
+        object debtBalanceArray = new List<object>(((Dictionary<string,object>)debtBalance).Keys);
         object length = getArrayLength(debtBalanceArray);
         if (isTrue(length))
         {
@@ -718,7 +718,7 @@ public partial class Exchange
             }
         } else
         {
-            object ids = new List<string>(((Dictionary<string,object>)orders).Keys);
+            object ids = new List<object>(((Dictionary<string,object>)orders).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
                 object id = getValue(ids, i);
@@ -1272,7 +1272,7 @@ public partial class Exchange
                 {
                     // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
                     object replacementObject = getValue(defaultNetworkCodeReplacements, currencyCode); // i.e. { 'ERC20': 'ETH' }
-                    object keys = new List<string>(((Dictionary<string,object>)replacementObject).Keys);
+                    object keys = new List<object>(((Dictionary<string,object>)replacementObject).Keys);
                     for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                     {
                         object key = getValue(keys, i);
@@ -1390,7 +1390,7 @@ public partial class Exchange
         // this method is used against raw & unparse network entries, which are just indexed by network id
         isIndexedByUnifiedNetworkCode ??= false;
         object chosenNetworkId = null;
-        object availableNetworkIds = new List<string>(((Dictionary<string,object>)indexedNetworkEntries).Keys);
+        object availableNetworkIds = new List<object>(((Dictionary<string,object>)indexedNetworkEntries).Keys);
         object responseNetworksLength = getArrayLength(availableNetworkIds);
         if (isTrue(!isEqual(networkCode, null)))
         {
@@ -1923,7 +1923,7 @@ public partial class Exchange
     public virtual object checkRequiredCredentials(object error = null)
     {
         error ??= true;
-        object keys = new List<string>(((Dictionary<string,object>)this.requiredCredentials).Keys);
+        object keys = new List<object>(((Dictionary<string,object>)this.requiredCredentials).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -2216,7 +2216,7 @@ public partial class Exchange
     public virtual object findBroadlyMatchedKey(object broad, object str)
     {
         // a helper for matching error strings exactly vs broadly
-        object keys = new List<string>(((Dictionary<string,object>)broad).Keys);
+        object keys = new List<object>(((Dictionary<string,object>)broad).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -2294,6 +2294,8 @@ public partial class Exchange
 
     public async virtual Task<object> fetchOrderStatus(object id, object symbol = null, object parameters = null)
     {
+        // TODO: TypeScript: change method signature by replacing
+        // Promise<string> with Promise<Order['status']>.
         parameters ??= new Dictionary<string, object>();
         object order = await this.fetchOrder(id, symbol, parameters);
         return getValue(order, "status");
@@ -2777,7 +2779,7 @@ public partial class Exchange
             }
         } else
         {
-            object marketIds = new List<string>(((Dictionary<string,object>)pricesData).Keys);
+            object marketIds = new List<object>(((Dictionary<string,object>)pricesData).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
                 object marketId = getValue(marketIds, i);
@@ -2824,7 +2826,7 @@ public partial class Exchange
             }
         } else
         {
-            object marketIds = new List<string>(((Dictionary<string,object>)tickers).Keys);
+            object marketIds = new List<object>(((Dictionary<string,object>)tickers).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
                 object marketId = getValue(marketIds, i);
@@ -3252,7 +3254,7 @@ public partial class Exchange
         object responseKeys = response;
         if (!isTrue(isArray))
         {
-            responseKeys = new List<string>(((Dictionary<string,object>)response).Keys);
+            responseKeys = new List<object>(((Dictionary<string,object>)response).Keys);
         }
         for (object i = 0; isLessThan(i, getArrayLength(responseKeys)); postFixIncrement(ref i))
         {
@@ -3300,7 +3302,7 @@ public partial class Exchange
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        object networkKeys = new List<string>(((Dictionary<string,object>)getValue(fee, "networks")).Keys);
+        object networkKeys = new List<object>(((Dictionary<string,object>)getValue(fee, "networks")).Keys);
         object numNetworks = getArrayLength(networkKeys);
         if (isTrue(isEqual(numNetworks, 1)))
         {

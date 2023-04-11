@@ -36,11 +36,11 @@ public partial class Exchange
 
     public dict markets_by_id { get; set; } = null;
 
-    public List<string> symbols { get; set; } = new List<string>();
+    public List<object> symbols { get; set; } = new List<object>();
 
-    public List<string> codes { get; set; } = new List<string>();
+    public List<object> codes { get; set; } = new List<object>();
 
-    public List<string> ids { get; set; } = new List<string>();
+    public List<object> ids { get; set; } = new List<object>();
 
     public bool substituteCommonCurrencyCodes { get; set; } = false;
 
@@ -64,7 +64,7 @@ public partial class Exchange
     public object has { get; set; } = new dict();
     public object options { get; set; } = new dict();
     public object markets { get; set; } = null;
-    public object currencies { get; set; } = new dict();
+    public object currencies { get; set; } = null;
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
     public object timeframes { get; set; } = new dict();

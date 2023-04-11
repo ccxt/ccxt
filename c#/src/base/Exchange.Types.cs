@@ -383,7 +383,10 @@ public partial class Exchange
             this.balances = new Dictionary<string, Balance>();
             foreach (var balance in balances)
             {
-                this.balances.Add(balance.Key, new Balance(balance.Value));
+                if (balance.Key != "info" && balance.Key != "free" && balance.Key != "used" && balance.Key != "total")
+                {
+                    this.balances.Add(balance.Key, new Balance(balance.Value));
+                }
             }
             info = (Dictionary<string, object>)balances["info"];
         }

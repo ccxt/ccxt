@@ -206,7 +206,7 @@ namespace Main
             return this.reduce().ToString();
         }
 
-        public string ToString()
+        public new string ToString()
         {
             // this.reduce();
             var sign = "";
