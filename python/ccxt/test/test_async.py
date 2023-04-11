@@ -156,8 +156,9 @@ async def call_method(methodName, exchange, args):
     return await getattr(testFiles[methodName], methodName)(exchange, *args)
 
 
-def add_proxy_agent(exchange, settings):
-    pass
+def add_proxy_or_agent(exchange, http_proxy):
+    # just add a simple redirect through proxy
+    exchange.proxy = http_proxy
 
 
 def exit_script():
@@ -209,6 +210,10 @@ class testMainClass(baseMainTestClass):
                 if exchangeSettings[key]:
                     existing = get_exchange_prop(exchange, key, {})
                     set_exchange_prop(exchange, key, exchange.deep_extend(existing, exchangeSettings[key]))
+            # support simple proxy
+            proxy = get_exchange_prop(exchange, 'httpProxy')
+            if proxy:
+                addProxyOrAgent(exchange, proxy)
         # credentials
         reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         objkeys = list(reqCreds.keys())
@@ -235,7 +240,6 @@ class testMainClass(baseMainTestClass):
         #
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
-        add_proxy_agent(exchange, exchangeSettings)
 
     def pad_end(self, message, size):
         # has to be transpilable
