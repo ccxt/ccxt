@@ -82,6 +82,9 @@ abstract class mexc3 extends \ccxt\mexc {
     public function spot_private_get_capital_transfer($params = array()) {
         return $this->request('capital/transfer', array('spot', 'private'), 'GET', $params);
     }
+    public function spot_private_get_capital_transfer_tranid($params = array()) {
+        return $this->request('capital/transfer/tranId', array('spot', 'private'), 'GET', $params);
+    }
     public function spot_private_get_capital_sub_account_universaltransfer($params = array()) {
         return $this->request('capital/sub-account/universalTransfer', array('spot', 'private'), 'GET', $params);
     }
@@ -549,6 +552,9 @@ abstract class mexc3 extends \ccxt\mexc {
     }
     public function spotPrivateGetCapitalTransfer($params = array()) {
         return $this->request('capital/transfer', array('spot', 'private'), 'GET', $params);
+    }
+    public function spotPrivateGetCapitalTransferTranId($params = array()) {
+        return $this->request('capital/transfer/tranId', array('spot', 'private'), 'GET', $params);
     }
     public function spotPrivateGetCapitalSubAccountUniversalTransfer($params = array()) {
         return $this->request('capital/sub-account/universalTransfer', array('spot', 'private'), 'GET', $params);

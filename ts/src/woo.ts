@@ -143,6 +143,8 @@ export default class woo extends Exchange {
                             'funding_rate_history': 1,
                             'futures': 1,
                             'futures/{symbol}': 1,
+                            'orderbook/{symbol}': 1,
+                            'kline': 1,
                         },
                     },
                     'private': {
@@ -151,8 +153,6 @@ export default class woo extends Exchange {
                             'order/{oid}': 1,
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
@@ -1156,7 +1156,7 @@ export default class woo extends Exchange {
             limit = Math.min (limit, 1000);
             request['max_level'] = limit;
         }
-        const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
+        const response = await this.v1PublicGetOrderbookSymbol (this.extend (request, params));
         //
         // {
         //   success: true,
@@ -1198,7 +1198,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        const response = await this.v1PrivateGetKline (this.extend (request, params));
+        const response = await this.v1PublicGetKline (this.extend (request, params));
         // {
         //     success: true,
         //     rows: [
