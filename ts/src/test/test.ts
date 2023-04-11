@@ -10,7 +10,6 @@ import HttpsProxyAgent from 'https-proxy-agent'
 import { fileURLToPath, pathToFileURL } from 'url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url)); // new URL('.', import.meta.url).pathname;
 
-
 // ----------------------------------------------------------------------------
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose') || false;
@@ -113,8 +112,6 @@ async function testThrottle () {
     // todo: exists in py/php not in js
 }
 
-const publicTests = {};
-var exports = {};
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 
