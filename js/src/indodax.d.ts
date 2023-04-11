@@ -1,5 +1,5 @@
 import Exchange from './abstract/indodax.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class indodax extends Exchange {
     describe(): any;
     nonce(): number;
@@ -18,7 +18,7 @@ export default class indodax extends Exchange {
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
         info: any;

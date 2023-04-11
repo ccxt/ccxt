@@ -4,7 +4,7 @@
 import Exchange from './abstract/ripio.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -701,7 +701,7 @@ export default class ripio extends Exchange {
         return this.parseBalance (response);
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name ripio#createOrder

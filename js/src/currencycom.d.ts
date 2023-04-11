@@ -1,5 +1,5 @@
 import Exchange from './abstract/currencycom.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class currencycom extends Exchange {
     describe(): any;
     nonce(): number;
@@ -23,7 +23,7 @@ export default class currencycom extends Exchange {
     parseOrderType(status: any): string;
     parseOrderTimeInForce(status: any): string;
     parseOrderSide(status: any): string;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

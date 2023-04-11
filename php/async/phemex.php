@@ -2171,7 +2171,7 @@ class phemex extends Exchange {
         return $this->parse_spot_order($order, $market);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2186,13 +2186,13 @@ class phemex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $side = $this->capitalize($side);
+            $requestSide = $this->capitalize($side);
             $type = $this->capitalize($type);
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
             $request = array(
                 // common
                 'symbol' => $market['id'],
-                'side' => $side, // Sell, Buy
+                'side' => $requestSide, // Sell, Buy
                 'ordType' => $type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets => MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
                 // 'stopPxEp' => $this->to_ep(stopPx, $market), // for conditional orders
                 // 'priceEp' => $this->to_ep($price, $market), // required for limit orders

@@ -2977,14 +2977,18 @@ class bybit extends Exchange {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
                 $method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+                $request['accountType'] = $unifiedType;
             } else {
                 if ($enableUnifiedAccount) {
                     $method = 'privateGetV5AccountWalletBalance';
+                    $request['accountType'] = $unifiedType;
+                } elseif ($enableUnifiedMargin) {
+                    $method = 'privateGetUnifiedV3PrivateAccountWalletBalance';
                 } else {
                     $method = 'privateGetContractV3PrivateAccountWalletBalance';
+                    $request['accountType'] = $unifiedType;
                 }
             }
-            $request['accountType'] = $unifiedType;
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -3376,7 +3380,7 @@ class bybit extends Exchange {
         }
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://bybit-exchange.github.io/docs/v5/order/create-order
@@ -3977,21 +3981,34 @@ class bybit extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $isStopLossOrder = $stopLossPrice !== null;
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfitOrder = $takeProfitPrice !== null;
-        if ($isStopLossOrder) {
-            $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossPrice);
-        }
-        if ($isTakeProfitOrder) {
-            $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_number($params, 'stopLoss');
+        $takeProfit = $this->safe_number($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
         }
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+            }
+            if ($isTakeProfit) {
+                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['orderLinkId'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostV5OrderAmend (array_merge($request, $params));
         //
         //     {
@@ -4060,26 +4077,34 @@ class bybit extends Exchange {
         } elseif ($timeInForce === 'ioc') {
             $request['timeInForce'] = 'ImmediateOrCancel';
         }
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $isStopLossOrder = $stopLossPrice !== null;
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfitOrder = $takeProfitPrice !== null;
-        if ($isStopLossOrder) {
-            $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossPrice);
-        }
-        if ($isTakeProfitOrder) {
-            $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_number($params, 'stopLoss');
+        $takeProfit = $this->safe_number($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
         }
         if ($triggerPrice !== null) {
-            $request['triggerBy'] = 'LastPrice';
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
+        if ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+            }
+            if ($isTakeProfit) {
+                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+            }
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['orderLinkId'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostUnifiedV3PrivateOrderReplace (array_merge($request, $params));
         //
         //     {
@@ -4102,25 +4127,45 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
             'orderId' => $id,
             'qty' => $this->amount_to_precision($symbol, $amount),
+            // 'orderLinkId' => '', // User customised order $id-> Either orderId or orderLinkId is required
+            // 'triggerPrice' => '', // Trigger $price-> Don't pass it if not modify the qty
+            // 'takeProfit' => '', // Take profit $price after modification. Don't pass it if not modify the take profit
+            // 'stopLoss' => '', // Stop loss $price after modification. Don't pass it if not modify the Stop loss
+            // 'tpTriggerBy' => '', // The $price $type to trigger take profit. When set a take profit, this param is required if no initial value for the order
+            // 'slTriggerBy' => '', // The $price $type to trigger stop loss. When set a stop loss, this param is required if no initial value for the order
+            // 'triggerBy' => '', // Trigger $price $type-> LastPrice, IndexPrice, MarkPrice, LastPrice
         );
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $isStopLossOrder = $stopLossPrice !== null;
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfitOrder = $takeProfitPrice !== null;
-        if ($isStopLossOrder) {
-            $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossPrice);
-        }
-        if ($isTakeProfitOrder) {
-            $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_number($params, 'stopLoss');
+        $takeProfit = $this->safe_number($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
         }
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+            }
+            if ($isTakeProfit) {
+                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['orderLinkId'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostContractV3PrivateOrderReplace (array_merge($request, $params));
         //
         // contract v3

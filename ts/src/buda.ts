@@ -6,7 +6,7 @@ import { AddressPending, AuthenticationError, ExchangeError, NotSupported, Permi
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -759,7 +759,7 @@ export default class buda extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name buda#createOrder
@@ -773,12 +773,12 @@ export default class buda extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        side = (side === 'buy') ? 'Bid' : 'Ask';
+        const requestSide = (side === 'buy') ? 'Bid' : 'Ask';
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
             'price_type': type,
-            'type': side,
+            'type': requestSide,
             'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/btctradeua.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class btctradeua extends Exchange {
     describe(): any;
     signIn(params?: {}): Promise<any>;
@@ -12,7 +12,7 @@ export default class btctradeua extends Exchange {
     parseExchangeSpecificDatetime(cyrillic: any): number;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): any;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

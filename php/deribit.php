@@ -1602,7 +1602,7 @@ class deribit extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://docs.deribit.com/#private-buy

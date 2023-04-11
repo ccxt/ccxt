@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import { Market, Int } from './base/types.js';
+import { Market, Int, OrderSide } from './base/types.js';
 export default class binance extends Exchange {
     describe(): any;
     isInverse(type: any, subType?: any): boolean;
@@ -122,7 +122,7 @@ export default class binance extends Exchange {
     editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

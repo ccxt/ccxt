@@ -1,5 +1,5 @@
 import Exchange from './abstract/luno.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class luno extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -26,7 +26,7 @@ export default class luno extends Exchange {
         maker: number;
         taker: number;
     }>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchLedgerByEntries(code?: string, entry?: number, limit?: number, params?: {}): Promise<any>;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

@@ -256,8 +256,11 @@ class Client {
             }
             // reset with a json encoding error?
         }
-        $on_message_callback = $this->on_message_callback;
-        $on_message_callback($this, $message);
+        try {
+            call_user_func(array($this, 'on_message_callback'), $message);
+        } catch (Exception $error) {
+            $this->reject($error);
+        }
     }
 
     public function reset($error) {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/buda.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class buda extends Exchange {
     describe(): any;
     fetchCurrencyInfo(currency: any, currencies?: any): Promise<any>;
@@ -28,7 +28,7 @@ export default class buda extends Exchange {
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
