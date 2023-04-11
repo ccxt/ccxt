@@ -2217,12 +2217,15 @@ class bybit extends Exchange {
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
+        if ($limit === null) {
+            $limit = 200;
+        }
         $request = array(
             // 'category' => '', // Product type. linear,inverse
             // 'symbol' => '', // Symbol name
             // 'startTime' => 0, // The start $timestamp (ms)
             // 'endTime' => 0, // The end $timestamp (ms)
-            // 'limit' => 0, // Limit for data size per page. [1, 200]. Default => 200
+            'limit' => $limit, // Limit for data size per page. [1, 200]. Default => 200
         );
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
@@ -2242,9 +2245,12 @@ class bybit extends Exchange {
         $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
+        } else {
+            if ($since !== null) {
+                // end time is required when $since is not empty
+                $fundingInterval = 60 * 60 * 8 * 1000;
+                $request['endTime'] = $since . $limit * $fundingInterval;
+            }
         }
         $response = $this->publicGetV5MarketFundingHistory (array_merge($request, $params));
         //
@@ -3370,7 +3376,7 @@ class bybit extends Exchange {
         }
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://bybit-exchange.github.io/docs/v5/order/create-order
@@ -3520,7 +3526,7 @@ class bybit extends Exchange {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostV5OrderCreate (array_merge($request, $params));
         //
         //     {
@@ -3708,7 +3714,7 @@ class bybit extends Exchange {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostUnifiedV3PrivateOrderCreate (array_merge($request, $params));
         //
         //     {
@@ -3911,7 +3917,7 @@ class bybit extends Exchange {
             // mandatory field for options
             $request['orderLinkId'] = $this->uuid16();
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $method = $market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
         $response = $this->$method (array_merge($request, $params));
         //
@@ -3971,21 +3977,34 @@ class bybit extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $isStopLossOrder = $stopLossPrice !== null;
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfitOrder = $takeProfitPrice !== null;
-        if ($isStopLossOrder) {
-            $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossPrice);
-        }
-        if ($isTakeProfitOrder) {
-            $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_number($params, 'stopLoss');
+        $takeProfit = $this->safe_number($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
         }
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+            }
+            if ($isTakeProfit) {
+                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['orderLinkId'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostV5OrderAmend (array_merge($request, $params));
         //
         //     {
@@ -4054,26 +4073,34 @@ class bybit extends Exchange {
         } elseif ($timeInForce === 'ioc') {
             $request['timeInForce'] = 'ImmediateOrCancel';
         }
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $isStopLossOrder = $stopLossPrice !== null;
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfitOrder = $takeProfitPrice !== null;
-        if ($isStopLossOrder) {
-            $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossPrice);
-        }
-        if ($isTakeProfitOrder) {
-            $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_number($params, 'stopLoss');
+        $takeProfit = $this->safe_number($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
         }
         if ($triggerPrice !== null) {
-            $request['triggerBy'] = 'LastPrice';
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
+        if ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+            }
+            if ($isTakeProfit) {
+                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+            }
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['orderLinkId'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostUnifiedV3PrivateOrderReplace (array_merge($request, $params));
         //
         //     {
@@ -4096,25 +4123,45 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
             'orderId' => $id,
             'qty' => $this->amount_to_precision($symbol, $amount),
+            // 'orderLinkId' => '', // User customised order $id-> Either orderId or orderLinkId is required
+            // 'triggerPrice' => '', // Trigger $price-> Don't pass it if not modify the qty
+            // 'takeProfit' => '', // Take profit $price after modification. Don't pass it if not modify the take profit
+            // 'stopLoss' => '', // Stop loss $price after modification. Don't pass it if not modify the Stop loss
+            // 'tpTriggerBy' => '', // The $price $type to trigger take profit. When set a take profit, this param is required if no initial value for the order
+            // 'slTriggerBy' => '', // The $price $type to trigger stop loss. When set a stop loss, this param is required if no initial value for the order
+            // 'triggerBy' => '', // Trigger $price $type-> LastPrice, IndexPrice, MarkPrice, LastPrice
         );
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $isStopLossOrder = $stopLossPrice !== null;
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfitOrder = $takeProfitPrice !== null;
-        if ($isStopLossOrder) {
-            $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossPrice);
-        }
-        if ($isTakeProfitOrder) {
-            $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitPrice);
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_number($params, 'stopLoss');
+        $takeProfit = $this->safe_number($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        if ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
         }
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+            }
+            if ($isTakeProfit) {
+                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['orderLinkId'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ));
         $response = $this->privatePostContractV3PrivateOrderReplace (array_merge($request, $params));
         //
         // contract v3
@@ -4662,6 +4709,8 @@ class bybit extends Exchange {
             // 'orderFilter', Conditional order or active order
             // 'limit' => number, Data quantity per page => Max $data value per page is 50, and default value at 20.
             // 'cursor', API pass-through. accountType . category . cursor +. If inconsistent, the following should be returned => The account $type does not match the service inquiry.
+            // 'startTime' => 0, // The start timestamp (ms) Support UTA only temporarily startTime and $endTime must be passed together If not passed, query the past 7 days $data by default
+            // 'endTime' => 0, // The end timestamp (ms)
         );
         $market = null;
         if ($symbol === null) {
@@ -4698,6 +4747,19 @@ class bybit extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
+        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+        if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+        } else {
+            if ($since !== null) {
+                throw new BadRequest($this->id . ' fetchOrders() requires until/endTime when $since is provided.');
+            }
         }
         $response = $this->privateGetV5OrderHistory (array_merge($request, $params));
         //

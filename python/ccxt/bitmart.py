@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1738,7 +1739,7 @@ class bitmart(Exchange):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://developer-pro.bitmart.com/en/spot/#place-spot-order
@@ -1758,8 +1759,11 @@ class bitmart(Exchange):
         timeInForce = self.safe_string(params, 'timeInForce')
         if timeInForce == 'FOK':
             raise InvalidOrder(self.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO')
+        mode = self.safe_integer(params, 'mode')  # only for swap
         isMarketOrder = type == 'market'
-        postOnly = self.is_post_only(isMarketOrder, type == 'limit_maker', params)
+        postOnly = None
+        isExchangeSpecificPo = (type == 'limit_maker') or (mode == 4)
+        postOnly, params = self.handle_post_only(isMarketOrder, isExchangeSpecificPo, params)
         params = self.omit(params, ['timeInForce', 'postOnly'])
         ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
         isLimitOrder = (type == 'limit') or postOnly or ioc

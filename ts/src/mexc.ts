@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -33,8 +33,6 @@ export default class mexc extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
-                'createLimitOrder': undefined,
-                'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
@@ -167,6 +165,7 @@ export default class mexc extends Exchange {
                             'capital/withdraw/history': 1,
                             'capital/deposit/address': 1,
                             'capital/transfer': 1,
+                            'capital/transfer/tranId': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'capital/convert': 1,
                             'capital/convert/list': 1,
@@ -1754,7 +1753,7 @@ export default class mexc extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#createOrder
@@ -1819,6 +1818,11 @@ export default class mexc extends Exchange {
             }
             method = 'spotPrivatePostMarginOrder';
         }
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
+        if (postOnly) {
+            request['type'] = 'LIMIT_MAKER';
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -1870,7 +1874,8 @@ export default class mexc extends Exchange {
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 2, params);
         if (postOnly) {
             type = 2;
         } else if (type === 'limit') {
@@ -3495,7 +3500,7 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             } else {
                 request['openType'] = openType;
-                request['symbol'] = market['symbol'];
+                request['symbol'] = market['id'];
                 request['positionType'] = positionType;
             }
         } else {

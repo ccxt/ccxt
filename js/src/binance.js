@@ -1594,6 +1594,9 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -1617,6 +1620,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1793,6 +1797,10 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchMarkets
          * @description retrieves data on all markets for binance
+         * @see https://binance-docs.github.io/apidocs/spot/en/#exchange-information         // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#exchange-information      // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#exchange-information     // future
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#exchange-information     // option
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -2315,6 +2323,14 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data                  // spot
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-cross-margin-account-details-user_data   // cross margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-account-info-user_data   // isolated margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#lending-account-user_data                      // lending
+         * @see https://binance-docs.github.io/apidocs/spot/en/#funding-wallet-user_data                       // funding
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              // future
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           // option
          * @param {object} params extra parameters specific to the binance api endpoint
          * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
@@ -2604,6 +2620,10 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#order-book      // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#order-book   // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#order-book  // future
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#order-book  // option
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the binance api endpoint
@@ -2793,6 +2813,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchStatus
          * @description the latest known information on the availability of the exchange API
+         * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
@@ -2817,6 +2838,9 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2845,6 +2869,9 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker        // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#symbol-order-book-ticker     // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2878,6 +2905,9 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchLastPrices
          * @description fetches the last price for multiple markets
+         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
+         * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the last prices
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2978,6 +3008,9 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -3382,10 +3415,28 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * Default fetchTradesMethod
+         * @see https://binance-docs.github.io/apidocs/spot/en/#compressed-aggregate-trades-list        // publicGetAggTrades (spot)
+         * @see https://binance-docs.github.io/apidocs/futures/en/#compressed-aggregate-trades-list     // fapiPublicGetAggTrades (swap)
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#compressed-aggregate-trades-list    // dapiPublicGetAggTrades (future)
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#recent-trades-list                  // eapiPublicGetTrades (option)
+         * Other fetchTradesMethod
+         * @see https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list                      // publicGetTrades (spot)
+         * @see https://binance-docs.github.io/apidocs/futures/en/#recent-trades-list                   // fapiPublicGetTrades (swap)
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#recent-trades-list                  // dapiPublicGetTrades (future)
+         * @see https://binance-docs.github.io/apidocs/spot/en/#old-trade-lookup-market_data            // publicGetHistoricalTrades (spot)
+         * @see https://binance-docs.github.io/apidocs/future/en/#old-trade-lookup-market_data          // fapiPublicGetHistoricalTrades (swap)
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#old-trade-lookup-market_data        // dapiPublicGetHistoricalTrades (future)
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#old-trade-lookup-market_data        // eapiPublicGetHistoricalTrades (option)
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} since only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+         * @param {int|undefined} limit default 500, max 1000
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {int|undefined} params.until only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+         * @param {int|undefined} params.fetchTradesMethod 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int|undefined} params.fromId trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
@@ -3398,6 +3449,7 @@ export default class binance extends Exchange {
             // 'limit': 500,     // default = 500, maximum = 1000
         };
         let method = this.safeString(this.options, 'fetchTradesMethod');
+        method = this.safeString2(params, 'fetchTradesMethod', 'method', method);
         if (method === undefined) {
             if (market['option']) {
                 method = 'eapiPublicGetTrades';
@@ -3419,10 +3471,15 @@ export default class binance extends Exchange {
                 // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = this.sum(since, 3600000);
             }
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
         }
+        params = this.omit(params, ['until', 'fetchTradesMethod']);
         //
         // Caveats:
         // - default limit (500) applies only if no other parameters set, trades up

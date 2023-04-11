@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -854,7 +854,7 @@ export default class kucoin extends Exchange {
         const networkCode = this.safeStringUpper (params, 'network');
         const network = this.networkCodeToId (networkCode, code);
         if (network !== undefined) {
-            request['chain'] = network;
+            request['chain'] = network.toLowerCase ();
             params = this.omit (params, [ 'network' ]);
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
@@ -1431,7 +1431,7 @@ export default class kucoin extends Exchange {
         return orderbook;
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#createOrder
@@ -1521,6 +1521,11 @@ export default class kucoin extends Exchange {
             if (marginMode === 'isolated') {
                 request['marginModel'] = 'isolated';
             }
+        }
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
         }
         const response = await this[method] (this.extend (request, params));
         //

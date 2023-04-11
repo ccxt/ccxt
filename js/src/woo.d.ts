@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class woo extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -8,7 +8,7 @@ export default class woo extends Exchange {
     parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;

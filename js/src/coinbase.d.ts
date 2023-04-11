@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class coinbase extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -56,9 +56,9 @@ export default class coinbase extends Exchange {
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTickersV2(symbols?: string[], params?: {}): Promise<any>;
     fetchTickersV3(symbols?: string[], params?: {}): Promise<any>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<any>;
     fetchTickerV2(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV3(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    fetchTickerV3(symbol: string, params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseBalance(response: any, params?: {}): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
@@ -89,7 +89,7 @@ export default class coinbase extends Exchange {
     prepareAccountRequestWithCurrencyCode(code?: string, limit?: Int, params?: {}): Promise<{
         account_id: string;
     }>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     parseOrder(order: any, market?: any): any;
     parseOrderStatus(status: any): string;
     parseOrderType(type: any): string;

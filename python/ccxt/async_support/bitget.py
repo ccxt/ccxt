@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
 import json
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -79,7 +80,7 @@ class bitget(Exchange):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': None,
-                'fetchMarketLeverageTiers': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -156,6 +157,7 @@ class bitget(Exchange):
                             'market/ticker': 1,
                             'market/tickers': 1,
                             'market/fills': 1,
+                            'market/fills-history': 2,
                             'market/candles': 1,
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
@@ -177,6 +179,8 @@ class bitget(Exchange):
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
                             'market/contract-vip-level': 2,
+                            'market/fills-history': 2,
+                            'market/queryPositionLever': 1,
                         },
                     },
                 },
@@ -203,9 +207,14 @@ class bitget(Exchange):
                             'trade/open-orders': 1,
                             'trade/history': 1,
                             'trade/fills': 1,
+                            'trade/cancel-order-v2': 2,
+                            'trade/cancel-symbol-order': 2,
                             'wallet/transfer': 4,
                             'wallet/withdrawal': 4,
                             'wallet/subTransfer': 10,
+                            'wallet/transfer-v2': 4,
+                            'wallet/withdrawal-v2': 4,
+                            'wallet/withdrawal-inner-v2': 4,
                             'plan/placePlan': 1,
                             'plan/modifyPlan': 1,
                             'plan/cancelPlan': 1,
@@ -239,6 +248,8 @@ class bitget(Exchange):
                             'trade/profitDateList': 2,
                             'trace/waitProfitDateList': 2,
                             'trace/traderSymbols': 2,
+                            'trace/traderList': 2,
+                            'trace/queryTraceConfig': 2,
                             'order/marginCoinCurrent': 2,
                         },
                         'post': {
@@ -251,6 +262,7 @@ class bitget(Exchange):
                             'order/cancel-order': 2,
                             'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
+                            'order/cancel-symbol-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -260,8 +272,13 @@ class bitget(Exchange):
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
                             'plan/cancelAllPlan': 2,
+                            'plan/cancelSymbolPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
+                            'trace/followerSetBatchTraceConfig': 2,
+                            'trace/followerCloseByTrackingNo': 2,
+                            'trace/followerCloseByAll': 2,
+                            'trace/followerSetTpsl': 2,
                         },
                     },
                 },
@@ -1225,6 +1242,70 @@ class bitget(Exchange):
                 },
             }
         return result
+
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        market = None
+        market = self.market(symbol)
+        if market['spot']:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol)
+        request['symbol'] = market['id']
+        request['productType'] = 'UMCBL'
+        response = await self.publicMixGetMarketQueryPositionLever(self.extend(request, params))
+        #
+        #     {
+        #         "code":"00000",
+        #         "data":[
+        #             {
+        #                 "level": 1,
+        #                 "startUnit": 0,
+        #                 "endUnit": 150000,
+        #                 "leverage": 125,
+        #                 "keepMarginRate": "0.004"
+        #             }
+        #         ],
+        #         "msg":"success",
+        #         "requestTime":1627292076687
+        #     }
+        #
+        result = self.safe_value(response, 'data')
+        return self.parse_market_leverage_tiers(result, market)
+
+    def parse_market_leverage_tiers(self, info, market=None):
+        #
+        #     [
+        #         {
+        #             "level": 1,
+        #             "startUnit": 0,
+        #             "endUnit": 150000,
+        #             "leverage": 125,
+        #             "keepMarginRate": "0.004"
+        #         }
+        #     ],
+        #
+        tiers = []
+        for i in range(0, len(info)):
+            item = info[i]
+            minNotional = self.safe_number(item, 'startUnit')
+            maxNotional = self.safe_number(item, 'endUnit')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['base'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': self.safe_number(item, 'keepMarginRate'),
+                'maxLeverage': self.safe_number(item, 'leverage'),
+                'info': item,
+            })
+        return tiers
 
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -2245,7 +2326,7 @@ class bitget(Exchange):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -2280,8 +2361,9 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
         })
-        exchangeSpecificParam = self.safe_string_2(params, 'force', 'timeInForceValue')
-        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam == 'post_only', params)
+        exchangeSpecificTifParam = self.safe_string_n(params, ['force', 'timeInForceValue', 'timeInForce'])
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
         if marketType == 'spot':
             if isStopLossOrTakeProfit:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
@@ -3020,7 +3102,7 @@ class bitget(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        return self.safe_value(data, 'orderList', data)
+        return self.safe_value(data, 'orderList', [])
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

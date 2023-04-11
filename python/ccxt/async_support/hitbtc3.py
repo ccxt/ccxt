@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1672,7 +1673,7 @@ class hitbtc3(Exchange):
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
-    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -3891,7 +3892,7 @@ class huobi(Exchange):
             'trades': trades,
         }, market)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -3954,7 +3955,8 @@ class huobi(Exchange):
                 orderType = 'stop-' + orderType
             elif (orderType != 'stop-limit') and (orderType != 'stop-limit-fok'):
                 raise NotSupported(self.id + ' createOrder() does not support ' + type + ' orders')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = None
+        postOnly, params = self.handle_post_only(orderType == 'market', orderType == 'limit-maker', params)
         if postOnly:
             orderType = 'limit-maker'
         request['type'] = side + '-' + orderType
@@ -4091,7 +4093,8 @@ class huobi(Exchange):
         if isStopOrder and not isOpenOrder:
             raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
         params = self.omit(params, ['sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price'])
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', type == 'post_only', params)
         if postOnly:
             type = 'post_only'
         if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':

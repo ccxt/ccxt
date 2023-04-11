@@ -2157,7 +2157,8 @@ class okx extends okx$1 {
             request['tdMode'] = marginMode;
         }
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly(isMarketOrder, type === 'post_only', params);
+        let postOnly = false;
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, type === 'post_only', params);
         params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
@@ -3862,8 +3863,8 @@ class okx extends okx$1 {
             'amt': this.numberToString(amount),
         };
         const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ETH>ERC20 alias
+        let network = this.safeString(params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit(params, 'network');

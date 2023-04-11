@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class bitfinex2 extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;
@@ -54,7 +54,7 @@ export default class bitfinex2 extends Exchange {
     parseOrderFlags(flags: any): any;
     parseTimeInForce(orderType: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrder(id: string, symbol?: string, params?: {}): Promise<any>;

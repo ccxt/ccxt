@@ -1590,6 +1590,9 @@ class binance extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -1611,6 +1614,7 @@ class binance extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -1786,6 +1790,10 @@ class binance extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for binance
+         * @see https://binance-docs.github.io/apidocs/spot/en/#exchange-information         // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#exchange-information      // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#exchange-information     // future
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#exchange-information     // option
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
@@ -2295,6 +2303,14 @@ class binance extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data                  // spot
+         * @see https://binance-docs.github.io/apidocs/spot/en/#$query-cross-margin-account-details-user_data   // cross margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#$query-isolated-margin-account-info-user_data   // isolated margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#lending-account-user_data                      // lending
+         * @see https://binance-docs.github.io/apidocs/spot/en/#funding-wallet-user_data                       // funding
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              // future
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           // option
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @param {string|null} $params->type 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|null} $params->marginMode 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
@@ -2577,6 +2593,10 @@ class binance extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#order-book      // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#order-book   // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#order-book  // future
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#order-book  // option
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the binance api endpoint
@@ -2763,6 +2783,7 @@ class binance extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
+         * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
          */
@@ -2786,6 +2807,9 @@ class binance extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -2812,6 +2836,9 @@ class binance extends Exchange {
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
+         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker        // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#symbol-order-book-ticker     // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2842,6 +2869,9 @@ class binance extends Exchange {
     public function fetch_last_prices(?array $symbols = null, $params = array ()) {
         /**
          * fetches the last price for multiple markets
+         * @see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         // spot
+         * @see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the last prices
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2939,6 +2969,9 @@ class binance extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the binance api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -3332,10 +3365,28 @@ class binance extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
+         * Default fetchTradesMethod
+         * @see https://binance-docs.github.io/apidocs/spot/en/#compressed-aggregate-trades-list        // publicGetAggTrades (spot)
+         * @see https://binance-docs.github.io/apidocs/futures/en/#compressed-aggregate-trades-list     // fapiPublicGetAggTrades (swap)
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#compressed-aggregate-trades-list    // dapiPublicGetAggTrades (future)
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#recent-trades-list                  // eapiPublicGetTrades (option)
+         * Other fetchTradesMethod
+         * @see https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list                      // publicGetTrades (spot)
+         * @see https://binance-docs.github.io/apidocs/futures/en/#recent-trades-list                   // fapiPublicGetTrades (swap)
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#recent-trades-list                  // dapiPublicGetTrades (future)
+         * @see https://binance-docs.github.io/apidocs/spot/en/#old-trade-lookup-market_data            // publicGetHistoricalTrades (spot)
+         * @see https://binance-docs.github.io/apidocs/future/en/#old-trade-lookup-market_data          // fapiPublicGetHistoricalTrades (swap)
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#old-trade-lookup-market_data        // dapiPublicGetHistoricalTrades (future)
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#old-trade-lookup-market_data        // eapiPublicGetHistoricalTrades (option)
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {int|null} $since only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+         * @param {int|null} $limit default 500, max 1000
          * @param {array} $params extra parameters specific to the binance api endpoint
+         * @param {int|null} $params->until only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+         * @param {int|null} $params->fetchTradesMethod 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int|null} $params->fromId trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
@@ -3344,10 +3395,11 @@ class binance extends Exchange {
             'symbol' => $market['id'],
             // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            // 'endTime' => 789,   // Timestamp in ms to get aggregate trades $until INCLUSIVE.
             // 'limit' => 500,     // default = 500, maximum = 1000
         );
         $method = $this->safe_string($this->options, 'fetchTradesMethod');
+        $method = $this->safe_string_2($params, 'fetchTradesMethod', 'method', $method);
         if ($method === null) {
             if ($market['option']) {
                 $method = 'eapiPublicGetTrades';
@@ -3366,10 +3418,15 @@ class binance extends Exchange {
                 // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 $request['endTime'] = $this->sum($since, 3600000);
             }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            }
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 500, maximum = 1000
         }
+        $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
         //
         // Caveats:
         // - default $limit (500) applies only if no other parameters set, trades up
@@ -3834,7 +3891,7 @@ class binance extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in

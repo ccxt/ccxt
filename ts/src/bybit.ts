@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2235,12 +2235,15 @@ export default class bybit extends Exchange {
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 200;
+        }
         const request = {
             // 'category': '', // Product type. linear,inverse
             // 'symbol': '', // Symbol name
             // 'startTime': 0, // The start timestamp (ms)
             // 'endTime': 0, // The end timestamp (ms)
-            // 'limit': 0, // Limit for data size per page. [1, 200]. Default: 200
+            'limit': limit, // Limit for data size per page. [1, 200]. Default: 200
         };
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -2260,9 +2263,12 @@ export default class bybit extends Exchange {
         params = this.omit (params, [ 'endTime', 'till', 'until' ]);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        } else {
+            if (since !== undefined) {
+                // end time is required when since is not empty
+                const fundingInterval = 60 * 60 * 8 * 1000;
+                request['endTime'] = since + limit * fundingInterval;
+            }
         }
         const response = await this.publicGetV5MarketFundingHistory (this.extend (request, params));
         //
@@ -2995,14 +3001,18 @@ export default class bybit extends Exchange {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
                 method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+                request['accountType'] = unifiedType;
             } else {
                 if (enableUnifiedAccount) {
                     method = 'privateGetV5AccountWalletBalance';
+                    request['accountType'] = unifiedType;
+                } else if (enableUnifiedMargin) {
+                    method = 'privateGetUnifiedV3PrivateAccountWalletBalance';
                 } else {
                     method = 'privateGetContractV3PrivateAccountWalletBalance';
+                    request['accountType'] = unifiedType;
                 }
             }
-            request['accountType'] = unifiedType;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -3396,7 +3406,7 @@ export default class bybit extends Exchange {
         }
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bybit#createOrder
@@ -3548,7 +3558,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16 ();
         }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
         const response = await this.privatePostV5OrderCreate (this.extend (request, params));
         //
         //     {
@@ -3736,7 +3746,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16 ();
         }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
         const response = await this.privatePostUnifiedV3PrivateOrderCreate (this.extend (request, params));
         //
         //     {
@@ -3939,7 +3949,7 @@ export default class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16 ();
         }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
         const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
         const response = await this[method] (this.extend (request, params));
         //
@@ -3999,21 +4009,34 @@ export default class bybit extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
+        let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
+        const stopLoss = this.safeNumber (params, 'stopLoss');
+        const takeProfit = this.safeNumber (params, 'takeProfit');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
+        if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLoss);
+            }
+            if (isTakeProfit) {
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfit);
+            }
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
         const response = await this.privatePostV5OrderAmend (this.extend (request, params));
         //
         //     {
@@ -4082,26 +4105,34 @@ export default class bybit extends Exchange {
         } else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
-        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
+        let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
+        const stopLoss = this.safeNumber (params, 'stopLoss');
+        const takeProfit = this.safeNumber (params, 'takeProfit');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
+        if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
-            request['triggerBy'] = 'LastPrice';
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLoss);
+            }
+            if (isTakeProfit) {
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfit);
+            }
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
         const response = await this.privatePostUnifiedV3PrivateOrderReplace (this.extend (request, params));
         //
         //     {
@@ -4124,25 +4155,45 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
             'orderId': id,
             'qty': this.amountToPrecision (symbol, amount),
+            // 'orderLinkId': '', // User customised order id. Either orderId or orderLinkId is required
+            // 'triggerPrice': '', // Trigger price. Don't pass it if not modify the qty
+            // 'takeProfit': '', // Take profit price after modification. Don't pass it if not modify the take profit
+            // 'stopLoss': '', // Stop loss price after modification. Don't pass it if not modify the Stop loss
+            // 'tpTriggerBy': '', // The price type to trigger take profit. When set a take profit, this param is required if no initial value for the order
+            // 'slTriggerBy': '', // The price type to trigger stop loss. When set a stop loss, this param is required if no initial value for the order
+            // 'triggerBy': '', // Trigger price type. LastPrice, IndexPrice, MarkPrice, LastPrice
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
+        let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
+        const stopLoss = this.safeNumber (params, 'stopLoss');
+        const takeProfit = this.safeNumber (params, 'takeProfit');
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
+        if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+            triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLoss);
+            }
+            if (isTakeProfit) {
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfit);
+            }
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit' ]);
         const response = await this.privatePostContractV3PrivateOrderReplace (this.extend (request, params));
         //
         // contract v3
@@ -4694,6 +4745,8 @@ export default class bybit extends Exchange {
             // 'orderFilter', Conditional order or active order
             // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
             // 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'startTime': 0, // The start timestamp (ms) Support UTA only temporarily startTime and endTime must be passed together If not passed, query the past 7 days data by default
+            // 'endTime': 0, // The end timestamp (ms)
         };
         let market = undefined;
         if (symbol === undefined) {
@@ -4730,6 +4783,19 @@ export default class bybit extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
+        if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        } else {
+            if (since !== undefined) {
+                throw new BadRequest (this.id + ' fetchOrders() requires until/endTime when since is provided.');
+            }
         }
         const response = await this.privateGetV5OrderHistory (this.extend (request, params));
         //

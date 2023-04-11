@@ -1,5 +1,5 @@
 import Exchange from './abstract/ndax.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class ndax extends Exchange {
     describe(): any;
     signIn(params?: {}): Promise<any>;
@@ -37,7 +37,7 @@ export default class ndax extends Exchange {
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;

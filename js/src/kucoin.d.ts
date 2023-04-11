@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class kucoin extends Exchange {
     describe(): any;
     nonce(): number;
@@ -51,7 +51,7 @@ export default class kucoin extends Exchange {
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<any[]>;
     parseDepositAddressesByNetwork(depositAddresses: any, currency?: any): any[];
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

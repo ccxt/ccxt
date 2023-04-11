@@ -205,9 +205,9 @@ class woo extends woo$1 {
                         },
                         'put': {
                             'order/{oid}': 2,
-                            'order/client/{oid}': 2,
+                            'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
-                            'algo/order/client/{oid}': 2,
+                            'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
                             'algo/order/{oid}': 1,
@@ -821,9 +821,8 @@ class woo extends woo$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'oid': id,
-            // 'quantity': this.amountToPrecision (symbol, amount),
-            // 'price': this.priceToPrecision (symbol, price),
+        // 'quantity': this.amountToPrecision (symbol, amount),
+        // 'price': this.priceToPrecision (symbol, price),
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -831,7 +830,20 @@ class woo extends woo$1 {
         if (amount !== undefined) {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
-        const response = await this.v3PrivatePutOrderOid(this.extend(request, params));
+        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let method = undefined;
+        if (isByClientOrder) {
+            method = 'v3PrivatePutOrderClientClientOrderId';
+            request['client_order_id'] = clientOrderIdExchangeSpecific;
+            params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+        }
+        else {
+            method = 'v3PrivatePutOrderOid';
+            request['oid'] = id;
+        }
+        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -863,13 +875,16 @@ class woo extends woo$1 {
         await this.loadMarkets();
         const request = {};
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString2(params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let method = undefined;
         if (isByClientOrder) {
+            method = 'v1PrivateDeleteClientOrder';
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         }
         else {
+            method = 'v1PrivateDeleteOrder';
             request['order_id'] = id;
         }
         let market = undefined;
@@ -877,7 +892,7 @@ class woo extends woo$1 {
             market = this.market(symbol);
         }
         request['symbol'] = market['id'];
-        const response = await this.v1PrivateDeleteOrder(this.extend(request, params));
+        const response = await this[method](this.extend(request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //

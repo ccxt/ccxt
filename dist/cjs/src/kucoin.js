@@ -844,7 +844,7 @@ class kucoin extends kucoin$1 {
         const networkCode = this.safeStringUpper(params, 'network');
         const network = this.networkCodeToId(networkCode, code);
         if (network !== undefined) {
-            request['chain'] = network;
+            request['chain'] = network.toLowerCase();
             params = this.omit(params, ['network']);
         }
         const response = await this.privateGetWithdrawalsQuotas(this.extend(request, params));
@@ -1504,6 +1504,11 @@ class kucoin extends kucoin$1 {
             if (marginMode === 'isolated') {
                 request['marginModel'] = 'isolated';
             }
+        }
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
         }
         const response = await this[method](this.extend(request, params));
         //

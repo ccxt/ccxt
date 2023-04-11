@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class gemini extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any>;
@@ -70,7 +70,7 @@ export default class gemini extends Exchange {
     parseOrder(order: any, market?: any): any;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{

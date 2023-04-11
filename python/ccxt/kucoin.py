@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 import math
 import json
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -845,7 +846,7 @@ class kucoin(Exchange):
         networkCode = self.safe_string_upper(params, 'network')
         network = self.network_code_to_id(networkCode, code)
         if network is not None:
-            request['chain'] = network
+            request['chain'] = network.lower()
             params = self.omit(params, ['network'])
         response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
         #
@@ -1376,7 +1377,7 @@ class kucoin(Exchange):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
@@ -1459,6 +1460,10 @@ class kucoin(Exchange):
             method = 'privatePostMarginOrder'
             if marginMode == 'isolated':
                 request['marginModel'] = 'isolated'
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', False, params)
+        if postOnly:
+            request['postOnly'] = True
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {

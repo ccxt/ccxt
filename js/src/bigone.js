@@ -855,11 +855,11 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        side = (side === 'buy') ? 'BID' : 'ASK';
+        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
         const uppercaseType = type.toUpperCase();
         const request = {
             'asset_pair_name': market['id'],
-            'side': side,
+            'side': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
             // 'price': this.priceToPrecision (symbol, price), // order price, string, required
             'type': uppercaseType,

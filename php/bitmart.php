@@ -1785,7 +1785,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-$order
@@ -1806,8 +1806,11 @@ class bitmart extends Exchange {
         if ($timeInForce === 'FOK') {
             throw new InvalidOrder($this->id . ' createOrder() only accepts $timeInForce parameter values of IOC or PO');
         }
+        $mode = $this->safe_integer($params, 'mode'); // only for swap
         $isMarketOrder = $type === 'market';
-        $postOnly = $this->is_post_only($isMarketOrder, $type === 'limit_maker', $params);
+        $postOnly = null;
+        $isExchangeSpecificPo = ($type === 'limit_maker') || ($mode === 4);
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $isExchangeSpecificPo, $params);
         $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
         $ioc = (($timeInForce === 'IOC') || ($type === 'ioc'));
         $isLimitOrder = ($type === 'limit') || $postOnly || $ioc;

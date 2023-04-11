@@ -32,8 +32,6 @@ class mexc extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => null,
                 'createDepositAddress' => null,
-                'createLimitOrder' => null,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
@@ -1733,7 +1731,7 @@ class mexc extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1796,6 +1794,11 @@ class mexc extends Exchange {
             }
             $method = 'spotPrivatePostMarginOrder';
         }
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $params);
+        if ($postOnly) {
+            $request['type'] = 'LIMIT_MAKER';
+        }
         $response = $this->$method (array_merge($request, $params));
         //
         // spot
@@ -1847,7 +1850,8 @@ class mexc extends Exchange {
         if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
             throw new InvalidOrder($this->id . ' createSwapOrder() order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
         }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 2, $params);
         if ($postOnly) {
             $type = 2;
         } elseif ($type === 'limit') {
@@ -3440,7 +3444,7 @@ class mexc extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter or a $symbol argument with $openType and $positionType parameters, use $openType 1 or 2 for isolated or cross margin respectively, use $positionType 1 or 2 for long or short positions');
             } else {
                 $request['openType'] = $openType;
-                $request['symbol'] = $market['symbol'];
+                $request['symbol'] = $market['id'];
                 $request['positionType'] = $positionType;
             }
         } else {

@@ -2109,7 +2109,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -2183,7 +2183,8 @@ class okx extends Exchange {
                 $request['tdMode'] = $marginMode;
             }
             $isMarketOrder = $type === 'market';
-            $postOnly = $this->is_post_only($isMarketOrder, $type === 'post_only', $params);
+            $postOnly = false;
+            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $type === 'post_only', $params);
             $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ));
             $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
             $fok = ($timeInForce === 'FOK') || ($type === 'fok');
@@ -3882,8 +3883,8 @@ class okx extends Exchange {
                 'amt' => $this->number_to_string($amount),
             );
             $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ETH>ERC20 alias
+            $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
             if ($network !== null) {
                 $request['chain'] = $currency['id'] . '-' . $network;
                 $params = $this->omit($params, 'network');
