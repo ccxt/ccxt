@@ -271,7 +271,7 @@ export default class testMainClass extends baseMainTestClass {
             tests['fetchMarkOHLCV'] = [symbol];
             tests['fetchPremiumIndexOHLCV'] = [symbol];
         }
-        publicTests = tests;
+        this.publicTests = tests;
         const testNames = Object.keys (tests);
         const promises = [];
         for (let i = 0; i < testNames.length; i++) {
