@@ -18,7 +18,7 @@ const sandbox = process.argv.includes ('--sandbox') || false;
 const privateTest = process.argv.includes ('--private') || false;
 const privateOnly = process.argv.includes ('--privateOnly') || false;
 const info = process.argv.includes ('--info') || false;
-
+const ext = import.meta.url.split('.')[1];
 // ----------------------------------------------------------------------------
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
 process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) });
@@ -46,19 +46,19 @@ const properties = Object.keys (exchange.has);
 properties.push ('loadMarkets');
 for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
-    const filePath = __dirname + '/Exchange/test.' + property + '.js';
-    if (fs.existsSync (filePath)) {
+    const filePath = __dirname + '/Exchange/test.' + property ;
+    if (fs.existsSync (filePath + '.' + ext)) {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[property] = (await import (pathToFileURL (filePath)) as any)['default'];
+        testFiles[property] = (await import (pathToFileURL (filePath + '.js')) as any)['default'];
     }
 }
 import errorsHierarchy from '../base/errorHierarchy.js';
 Object.keys (errorsHierarchy)
     .forEach (async (error) => {
-        const filePath = __dirname + '/errors/test.' + error + '.js';
-        if (fs.existsSync (filePath)) {
+        const filePath = __dirname + '/errors/test.' + error;
+        if (fs.existsSync (filePath + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            testFiles[error] = (await import (pathToFileURL (filePath)) as any)['default'];
+            testFiles[error] = (await import (pathToFileURL (filePath + '.js')) as any)['default'];
         }
     });
 
@@ -279,6 +279,9 @@ export default class testMainClass extends baseMainTestClass {
         // todo - not yet ready in other langs too
         // promises.push(testThrottle());
         await Promise.all (promises);
+        if (info) {
+            dump (this.padEnd('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
+        }
     }
 
     async loadExchange (exchange) {
