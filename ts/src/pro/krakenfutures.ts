@@ -846,7 +846,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const marketId = this.safeString (message, 'product_id');
+        const marketId = this.safeStringLower (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + marketId;
@@ -871,6 +871,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['symbol'] = symbol;
         client.resolve (orderbook, messageHash);
     }
 
@@ -886,7 +887,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "timestamp": 1612269953629
         //    }
         //
-        const marketId = this.safeString (message, 'product_id');
+        const marketId = this.safeStringLower (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + marketId;
@@ -1213,7 +1214,7 @@ export default class krakenfutures extends krakenfuturesRest {
             this.handleAuthenticate (client, message);
         } else if (event === 'pong') {
             return this.handlePong (client, message);
-        } else {
+        } else if (event === undefined) {
             const feed = this.safeString (message, 'feed');
             const methods = {
                 'ticker': this.handleTicker,
