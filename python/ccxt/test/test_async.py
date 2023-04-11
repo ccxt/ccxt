@@ -166,8 +166,11 @@ def exit_script():
 
 
 def get_exchange_prop(exchange, prop, defaultValue=None):
-    return getattr(exchange, prop) if hasattr(exchange, prop) else defaultValue
-
+    if hasattr(exchange, prop):
+        res = getattr(exchange, prop)
+        if res is not None and res != '':
+            return res
+    return defaultValue
 
 def set_exchange_prop(exchange, prop, value):
     setattr(exchange, prop, value)
@@ -213,7 +216,7 @@ class testMainClass(baseMainTestClass):
             # support simple proxy
             proxy = get_exchange_prop(exchange, 'httpProxy')
             if proxy:
-                addProxyOrAgent(exchange, proxy)
+                add_proxy(exchange, proxy)
         # credentials
         reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         objkeys = list(reqCreds.keys())
@@ -262,8 +265,9 @@ class testMainClass(baseMainTestClass):
             skipMessage = '[INFO:SKIPPED_TEST]'
         elif not (methodNameInTest in testFiles):
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
-        if skipMessage and info:
-            dump(self.pad_end(skipMessage, 25), exchange.id, methodNameInTest)
+        if skipMessage:
+            if info:
+                dump(self.pad_end(skipMessage, 25), exchange.id, methodNameInTest)
             return
         argsStringified = '(' + ','.join(args) + ')'
         if info:
