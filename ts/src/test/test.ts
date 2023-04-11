@@ -611,6 +611,10 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (errors.length > 0) {
             throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
+        } else {
+            if (info) {
+                dump (this.padEnd('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
+            }
         }
     }
 
