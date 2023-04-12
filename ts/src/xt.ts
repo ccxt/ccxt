@@ -2165,9 +2165,13 @@ export default class xt extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://doc.xt.com/#orderorderGet
          * @see https://doc.xt.com/#futures_ordergetById
+         * @see https://doc.xt.com/#futures_entrustgetPlanById
+         * @see https://doc.xt.com/#futures_entrustgetProfitById
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
+         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2175,15 +2179,36 @@ export default class xt extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
-            'orderId': id,
-        };
+        const request = {};
         let type = undefined;
         let subType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
-        if (subType === 'inverse') {
+        const stop = this.safeValue (params, 'stop');
+        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        if (stop) {
+            request['entrustId'] = id;
+        } else if (stopLossTakeProfit) {
+            request['profitId'] = id;
+        } else {
+            request['orderId'] = id;
+        }
+        if (stop) {
+            params = this.omit (params, 'stop');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail (this.extend (request, params));
+            } else {
+                response = await this.privateLinearGetFutureTradeV1EntrustPlanDetail (this.extend (request, params));
+            }
+        } else if (stopLossTakeProfit) {
+            params = this.omit (params, 'stopLossTakeProfit');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustProfitDetail (this.extend (request, params));
+            } else {
+                response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail (this.extend (request, params));
+            }
+        } else if (subType === 'inverse') {
             response = await this.privateInverseGetFutureTradeV1OrderDetail (this.extend (request, params));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
             response = await this.privateLinearGetFutureTradeV1OrderDetail (this.extend (request, params));
@@ -2253,6 +2278,57 @@ export default class xt extends Exchange {
         //             "state": "NEW",
         //             "createdTime": 1680116055693,
         //             "updatedTime": 1680116055693
+        //         }
+        //     }
+        //
+        // trigger
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "entrustId": "216300248132756992",
+        //             "symbol": "btc_usdt",
+        //             "entrustType": "STOP",
+        //             "orderSide": "SELL",
+        //             "positionSide": "SHORT",
+        //             "timeInForce": "GTC",
+        //             "closePosition": null,
+        //             "price": "20000",
+        //             "origQty": "1",
+        //             "stopPrice": "19000",
+        //             "triggerPriceType": "LATEST_PRICE",
+        //             "state": "NOT_TRIGGERED",
+        //             "marketOrderLevel": null,
+        //             "createdTime": 1681271998064,
+        //             "updatedTime": 1681271998064,
+        //             "ordinary": false
+        //         }
+        //     }
+        //
+        // stop-loss and take-profit
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "profitId": "216306213226230400",
+        //             "symbol": "btc_usdt",
+        //             "positionSide": "LONG",
+        //             "origQty": "1",
+        //             "triggerPriceType": "LATEST_PRICE",
+        //             "triggerProfitPrice": null,
+        //             "triggerStopPrice": "20000",
+        //             "entryPrice": null,
+        //             "positionSize": null,
+        //             "isolatedMargin": null,
+        //             "executedQty": null,
+        //             "avgPrice": null,
+        //             "positionType": "ISOLATED",
+        //             "state": "NOT_TRIGGERED",
+        //             "createdTime": 1681273420039
         //         }
         //     }
         //
@@ -2835,8 +2911,49 @@ export default class xt extends Exchange {
         //         "updatedTime": 1679180096172
         //     }
         //
+        // trigger: fetchOrder
+        //
+        //     {
+        //         "entrustId": "216300248132756992",
+        //         "symbol": "btc_usdt",
+        //         "entrustType": "STOP",
+        //         "orderSide": "SELL",
+        //         "positionSide": "SHORT",
+        //         "timeInForce": "GTC",
+        //         "closePosition": null,
+        //         "price": "20000",
+        //         "origQty": "1",
+        //         "stopPrice": "19000",
+        //         "triggerPriceType": "LATEST_PRICE",
+        //         "state": "NOT_TRIGGERED",
+        //         "marketOrderLevel": null,
+        //         "createdTime": 1681271998064,
+        //         "updatedTime": 1681271998064,
+        //         "ordinary": false
+        //     }
+        //
+        // stop-loss and take-profit: fetchOrder
+        //
+        //     {
+        //         "profitId": "216306213226230400",
+        //         "symbol": "btc_usdt",
+        //         "positionSide": "LONG",
+        //         "origQty": "1",
+        //         "triggerPriceType": "LATEST_PRICE",
+        //         "triggerProfitPrice": null,
+        //         "triggerStopPrice": "20000",
+        //         "entryPrice": null,
+        //         "positionSize": null,
+        //         "isolatedMargin": null,
+        //         "executedQty": null,
+        //         "avgPrice": null,
+        //         "positionType": "ISOLATED",
+        //         "state": "NOT_TRIGGERED",
+        //         "createdTime": 1681273420039
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
-        const marketType = ('result' in order) || ('closePosition' in order) ? 'contract' : 'spot';
+        const marketType = ('result' in order) || ('positionSide' in order) ? 'contract' : 'spot';
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2 (order, 'time', 'createdTime');
@@ -2844,12 +2961,9 @@ export default class xt extends Exchange {
         const amount = (marketType === 'spot') ? quantity : Precise.stringMul (this.numberToString (quantity), this.numberToString (market['contractSize']));
         const filledQuantity = this.safeNumber (order, 'executedQty');
         const filled = (marketType === 'spot') ? filledQuantity : Precise.stringMul (this.numberToString (filledQuantity), this.numberToString (market['contractSize']));
-        const triggerStopPrice = this.safeNumber (order, 'triggerStopPrice');
-        const triggerProfitPrice = this.safeNumber (order, 'triggerProfitPrice');
-        const triggerPrice = (triggerStopPrice !== 0) ? triggerStopPrice : triggerProfitPrice;
         return this.safeOrder ({
             'info': order,
-            'id': this.safeStringN (order, [ 'orderId', 'result', 'cancelId' ]),
+            'id': this.safeStringN (order, [ 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' ]),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2860,7 +2974,9 @@ export default class xt extends Exchange {
             'postOnly': undefined,
             'side': this.safeStringLower2 (order, 'side', 'orderSide'),
             'price': this.safeNumber (order, 'price'),
-            'triggerPrice': (triggerPrice !== 0) ? triggerPrice : undefined,
+            'stopPrice': this.safeNumber (order, 'stopPrice'),
+            'stopLoss': this.safeNumber (order, 'triggerStopPrice'),
+            'takeProfit': this.safeNumber (order, 'triggerProfitPrice'),
             'amount': amount,
             'filled': filled,
             'remaining': this.safeNumber (order, 'leavingQty'),
@@ -2883,6 +2999,13 @@ export default class xt extends Exchange {
             'CANCELED': 'canceled',
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
+            'UNFINISHED': 'open',
+            'NOT_TRIGGERED': 'open',
+            'TRIGGERING': 'open',
+            'TRIGGERED': 'closed',
+            'USER_REVOCATION': 'canceled',
+            'PLATFORM_REVOCATION': 'rejected',
+            'HISTORY': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
