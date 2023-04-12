@@ -2699,7 +2699,7 @@ export default class xt extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'orderId': id,
+            'orderId': this.convertToBigInt (id),
         };
         let type = undefined;
         let subType = undefined;

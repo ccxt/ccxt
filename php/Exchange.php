@@ -440,6 +440,7 @@ class Exchange {
         'wazirx',
         'whitebit',
         'woo',
+        'xt',
         'yobit',
         'zaif',
         'zb',
@@ -2127,6 +2128,10 @@ class Exchange {
             }
         }
         return null;
+    }
+
+    function parse_to_big_int($value) {
+        return intval($value);
     }
 
     // ########################################################################
