@@ -125,7 +125,8 @@
 	"bithumb": {
 		"skipMethods": {
 			"fetchCurrencies": "info key missing",
-			"fetchTickers": "quoteVolume >= baseVolume * low is failing"
+			"fetchTickers": "quoteVolume >= baseVolume * low is failing",
+			"fetchTicker": "same"
 		}
 	},
 	"bitmart": {
@@ -284,7 +285,9 @@
 			"fetchTickers": "close might be 0",
 			"fetchTicker": "same",
 			"fetchTrades": "datetime is not same as timestamp"
-		}
+		},
+		"skip": true,
+		"//": "private endpoints"
 	},
 	"coinbasepro": {
 		"skipWs": true
@@ -376,7 +379,8 @@
 		"skipMethods": {
 			"fetchTickers": "open might be set to 0",
 			"fetchTicker": "same",
-			"fetchTrades": "timestamp is more than current utc timestamp"
+			"fetchTrades": "timestamp is more than current utc timestamp",
+			"fetchOHLCV": "same"
 		}
 	},
 	"fmfwio": {
@@ -681,6 +685,8 @@
 		}
 	},
 	"wazirx": {
+		"skip":true,
+		"//": "ratelimit exceeded",
 		"skipWs": true
 	},
 	"zaif": {

@@ -158,7 +158,7 @@ async def call_method(methodName, exchange, args):
 
 def add_proxy(exchange, http_proxy):
     # just add a simple redirect through proxy
-    exchange.proxy = http_proxy
+    exchange.aiohttp_proxy = http_proxy
 
 
 def exit_script():
