@@ -227,7 +227,9 @@
 		"skipMethods": {
 			"fetchTickers": "bid might be set to 0",
 			"fetchTicker": "same"
-		}
+		},
+		"skip": true,
+		"//": "seems unavailable"
 	},
 	"btcbox": {
 		"skipMethods": {
@@ -531,7 +533,9 @@
 			"fetchCurrencies": "info key is missing",
 			"fetchTickers": "quoteVolume >= baseVolume * low is failing",
 			"fetchTicker": "same"
-		}
+		},
+		"skip": true,
+		"//": "seems unavailable"
 	},
 	"lbank2": {
 		"skipMethods": {
@@ -678,6 +682,7 @@
 	},
 	"wavesexchange": {
 		"skipMethods": {
+			"loadMarkets": "missing key",
 			"fetchCurrencies": "info key is missing",
 			"fetchTickers": "open might be set to 0",
 			"fetchTicker": "same",
