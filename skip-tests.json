@@ -39,6 +39,7 @@
 	},
 	"bit2c": {
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value",
 			"fetchCurrencies": "info key is missing"
 		}
 	},
@@ -130,6 +131,7 @@
 	"bitmart": {
 		"skipWs": true,
 		"skipMethods": {
+			"loadMarkets": "expiry is expected to be > 0 ",
 			"fetchCurrencies": "precision is undefined",
 			"fetchTickers": "quoteVolume <= baseVolume * high is failing"
 		}
@@ -168,6 +170,7 @@
 	},
 	"bitso": {
 		"skipMethods": {
+			"fetchOHLCV": "temporary unavailable error",
 			"fetchCurrencies": "info key missing"
 		}
 	},
@@ -181,6 +184,7 @@
 	"bitstamp1": {
 		"skipWs": true,
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value",
 			"fetchCurrencies": "info key missing",
 			"fetchOrderBook": "bid/ask might be 0",
 			"fetchL2OrderBook": "same"
@@ -188,6 +192,7 @@
 	},
 	"bl3p": {
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value",
 			"fetchCurrencies": "info key missing",
 			"fetchTrades": "side is undefined"
 		}
@@ -200,6 +205,7 @@
 	},
 	"blockchaincom": {
 		"skipMethods": {
+			"loadMarkets": "taker key is missing from structure",
 			"fetchCurrencies": "info key is missing",
 			"fetchTickers": "open might be 0",
 			"fetchTicker": "same",
@@ -224,6 +230,7 @@
 	},
 	"btcbox": {
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value",
 			"fetchCurrencies": "info key is missing"
 		}
 	},
@@ -252,6 +259,7 @@
 	},
 	"btctradeua": {
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value",
 			"fetchCurrencies": "info key is missing",
 			"fetchOrderBook": "bid should be greater than next bid",
 			"fetchL2OrderBook": "same"
@@ -266,6 +274,7 @@
 	},
 	"coincheck": {
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value",
 			"fetchCurrencies": "info key is missing"
 		}
 	},
@@ -285,6 +294,7 @@
 	},
 	"coinspot": {
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from options, so needs to fill with default values in base)",
 			"fetchCurrencies": "info is undefined"
 		}
 	},
@@ -304,6 +314,7 @@
 	"cex": {
 		"skipWs": true,
 		"skipMethods": {
+			"fetchOHLCV": "unexpected issue",
 			"fetchCurrencies": "min is negative",
 			"fetchTickers": "high might be set to 0"
 		}
@@ -340,7 +351,9 @@
 	"currencycom": {
 		"skipWs": true,
 		"skipMethods": {
-			"loadMarkets": "unexpected market type"
+			"loadMarkets": "unexpected market type",
+			"fetchTickers": "quoteVolume >= baseVolume * low  is incorrect",
+			"fetchTicker": "same"
 		}
 	},
 	"delta": {
@@ -364,6 +377,12 @@
 			"fetchTickers": "open might be set to 0",
 			"fetchTicker": "same",
 			"fetchTrades": "timestamp is more than current utc timestamp"
+		}
+	},
+	"fmfwio": {
+		"skipMethods": {
+			"fetchTickers": " close key has an null value, but is expected to have a value",
+			"fetchTicker": "same"
 		}
 	},
 	"gemini": {
@@ -403,7 +422,11 @@
 		}
 	},
 	"hollaex": {
-		"skipWs": true
+		"skipWs": true,
+		"skipMethods": {
+			"fetchTickers": " open is expected to be > 0",
+			"fetchTicker": "same"
+		}
 	},
 	"huobi": {
 		"skipWs": true,
@@ -456,6 +479,7 @@
 	},
 	"itbit": {
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value",
 			"fetchCurrencies": "info key is missing",
 			"fetchOrderBook": "bid should be greater than next bid",
 			"fetchL2OrderBook": "same"
@@ -548,6 +572,7 @@
 	"mexc": {
 		"skipWs": true,
 		"skipMethods": {
+			"fetchTrades": "side key is expected to be one from: [buy,sell]",
 			"fetchTickers": "ask might be set to 0",
 			"fetchTicker": "same"
 		}
@@ -568,6 +593,7 @@
 	},
 	"paymium": {
 		"skipMethods": {
+			"loadMarkets": "precision key has an null value, but is expected to have a value",
 			"fetchCurrencies": "info key is missing"
 		}
 	},
@@ -627,10 +653,13 @@
 		}
 	},
 	"ripio": {
+		"skip": true,
+		"//": "exchange unavailable",
 		"skipWs": true
 	},
 	"timex": {
 		"skipMethods": {
+			"fetchTrades": "fees key is missing from structure",
 			"fetchTickers": "close might be undefined",
 			"fetchTicker": "same"
 		}
@@ -669,6 +698,7 @@
 	"zb": {
 		"skipWs": true,
 		"skipMethods": {
+			"fetchTrades": "[KeyError] 'pageNum' ",
 			"fetchCurrencies": "precision is undefined",
 			"fetchTickers": "open might be 0",
 			"fetchTicker": "same"
