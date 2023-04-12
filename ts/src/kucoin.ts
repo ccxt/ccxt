@@ -188,6 +188,13 @@ export default class kucoin extends Exchange {
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
                         'trade-fees': 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
+                        'hf/accounts/ledgers': 3.33,
+                        'hf/orders/active': 1, // 30 times/3s
+                        'hf/orders/active/symbols': 1, // 3 times/3s
+                        'hf/orders/done': 1, // 30 times/3s
+                        'hf/orders/{orderId}': 1, // didn't find rate limit
+                        'hf/orders/client-order/{clientOid}': 1, // 30 times/3s
+                        'hf/fills': 1, // 9 times/3s
                     },
                     'post': {
                         'accounts': 1,
@@ -211,6 +218,11 @@ export default class kucoin extends Exchange {
                         'sub/user': 1,
                         'sub/api-key': 1,
                         'sub/api-key/update': 1,
+                        'hf/orders': 1, // 150 times/3s
+                        'hf/orders/sync': 1, // 45 times/3s
+                        'hf/orders/multi': 1, // 3 times/3s
+                        'hf/orders/multi/sync': 1, // 3 times/3s
+                        'hf/orders/alter': 1, // 60 times/3s
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -222,6 +234,12 @@ export default class kucoin extends Exchange {
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
                         'sub/api-key': 1,
+                        'hf/orders/{orderId}': 1, // 150 times/3s
+                        'hf/orders/sync/{orderId}': 1, //  150 times/3s
+                        'hf/orders/client-order/{clientOid}': 1, //  150 times/3s
+                        'hf/orders/sync/client-order/{clientOid}': 1, //  150 times/3s
+                        'hf/orders/cancel/{orderId}': 1, //  60 times/3s
+                        'hf/orders': 1, // 3 times/3s
                     },
                 },
                 'futuresPublic': {
@@ -439,11 +457,31 @@ export default class kucoin extends Exchange {
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
                             'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
+                            'hf/accounts/ledgers': 'v1',
+                            'hf/orders/active': 'v1',
+                            'hf/orders/active/symbols': 'v1',
+                            'hf/orders/done': 'v1',
+                            'hf/orders/{orderId}': 'v1',
+                            'hf/orders/client-order/{clientOid}': 'v1',
+                            'hf/fills': 'v1',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
                             'accounts': 'v1',
+                            'hf/orders': 'v1',
+                            'hf/orders/sync': 'v1',
+                            'hf/orders/multi': 'v1',
+                            'hf/orders/multi/sync': 'v1',
+                            'hf/orders/alter': 'v1',
+                        },
+                        'DELETE': {
+                            'hf/orders/{orderId}': 'v1',
+                            'hf/orders/sync/{orderId}': 'v1',
+                            'hf/orders/client-order/{clientOid}': 'v1',
+                            'hf/orders/sync/client-order/{clientOid}': 'v1',
+                            'hf/orders/cancel/{orderId}': 'v1',
+                            'hf/orders': 'v1',
                         },
                     },
                     'futuresPrivate': {
@@ -485,6 +523,7 @@ export default class kucoin extends Exchange {
                     'future': 'contract',
                     'swap': 'contract',
                     'mining': 'pool',
+                    'hf': 'trade_hf',
                 },
                 'networks': {
                     'Native': 'bech32',
