@@ -2,7 +2,7 @@ import Transpiler from "ast-transpiler";
 import ts from "typescript";
 
 import errors from "../js/src/base/errors.js"
-import { basename, join } from 'path'
+import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
 import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
 import { platform } from 'process'
@@ -13,6 +13,7 @@ import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler} from "./transpile.js";
 import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
+import Piscina from 'piscina';
 
 const promisedWriteFile = promisify (fs.writeFile);
 
@@ -76,15 +77,20 @@ class NewTranspiler {
     }
 
 
-    setupTranspiler() {
-        this.transpiler = new Transpiler ({
+    getTranspilerConfig() {
+        return {
+            "verbose": false,
             "csharp": {
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")"
                 }
             },
-        })
+        }
+    }
+
+    setupTranspiler() {
+        this.transpiler = new Transpiler (this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
     }
 
@@ -473,7 +479,7 @@ class NewTranspiler {
         }
     }
 
-    transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false) {
 
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             , csharpFolder = './c#/src/exchanges/'
@@ -486,7 +492,7 @@ class NewTranspiler {
 
         const options = { csharpFolder, exchanges }
 
-        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        const classes = await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
@@ -507,7 +513,28 @@ class NewTranspiler {
         log.bright.green ('Transpiled successfully.')
     }
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false) {
+    async webworkerTranspile (allFiles , parserConfig) {
+
+        // create worker
+        const piscina = new Piscina({
+            filename: resolve(__dirname, 'csharp-worker.js')
+        });
+
+        const chunkSize = 20;
+        const promises: any = [];
+        const now = Date.now();
+        for (let i = 0; i < allFiles.length; i += chunkSize) {
+            const chunk = allFiles.slice(i, i + chunkSize);
+            promises.push(piscina.run({transpilerConfig:parserConfig, files:chunk}));
+        }
+        const workerResult = await Promise.all(promises);
+        const elapsed = Date.now() - now;
+        log.green ('[ast-transpiler] Transpiled', allFiles.length, 'exchanges in', elapsed, 'ms');
+        const flatResult = workerResult.flat();
+        return flatResult;
+    }
+
+    async transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -526,16 +553,18 @@ class NewTranspiler {
         } else {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
         }
-        const classNames = exchanges.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
+
+        // transpile using webworker
+        const allFilesPath = exchanges.map (file => jsFolder + file );
+        const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
+        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force))
 
         const classes = {}
 
         return classes
     }
 
-    createCSharpClass(path) {
-        this.transpiler.set
-        const csharpVersion = this.transpiler.transpileCSharpByPath(path);
+    createCSharpClass(csharpVersion) {
         const csharpImports = this.getCsharpImports(csharpVersion).join("\n") + "\n\n";
         let content = csharpVersion.content;
         content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "partial class $1 : $2");
@@ -543,53 +572,32 @@ class NewTranspiler {
         return csharpImports + content;
     }
 
-    transpileClass(path) {
+    transpileClass(csharpResult) {
 
-        // handle imports
-        // handle exports
-        // handle generated header
-        // const pythonVersion = this.createPythonClass(path)
-        const pythonVersion = {}
-
-        // const phpVersion = this.createPHPClass(path);
-        const phpVersion = {}
-        const csharpVersion = this.createCSharpClass(path);
+        const csharpVersion = this.createCSharpClass(csharpResult);
 
         return {
-            python2: pythonVersion,
-            python3: pythonVersion,
-            php: phpVersion,
-            phpAsync: phpVersion,
             csharp: csharpVersion
         }
 
     }
 
-    transpileDerivedExchangeFile (tsFolder, filename, options, force = false) {
-        console.log("Transpiling", tsFolder, filename);
+    transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false) {
 
         const tsPath = tsFolder + filename
 
-        const { python2Folder, python3Folder, phpFolder, phpAsyncFolder, csharpFolder } = options
+        const { csharpFolder } = options
 
-        const pythonFilename = filename.replace ('.ts', '.py')
-        const phpFilename = filename.replace ('.ts', '.php')
         const csharpFilename = filename.replace ('.ts', '.cs')
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const { python2, python3, php, phpAsync, csharp } = this.transpileClass (tsPath)
+        const { csharp } = this.transpileClass (csharpResult)
 
-        ;[
-            [ csharpFolder, csharpFilename, csharp ],
-        ].forEach (([ folder, filename, code ]) => {
-            if (folder) {
-                overwriteFile (folder + filename, code)
-                fs.utimesSync (folder + filename, new Date (), new Date (tsMtime))
-            }
-        })
-
-        return []
+        if (csharpFolder) {
+            overwriteFile (csharpFolder + csharpFilename, csharp)
+            fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -768,7 +776,7 @@ const url = pathToFileURL(process.argv[1]);
 if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `node module`
 
     const transpiler = new NewTranspiler ()
-    transpiler.transpileEverything ();
+    await transpiler.transpileEverything ();
 
 } else { // if required as a module
 
