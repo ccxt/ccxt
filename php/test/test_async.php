@@ -122,7 +122,7 @@ function call_method($methodName, $exchange, $args) {
 }
 
 function exception_message ($exc) {
-    return '[' . get_class($exc) . '] ' . substr($exc->getMessage(), 0, 200);
+    return '[' . get_class($exc) . '] ' . substr($exc->getMessage(), 0, 500);
 }
 
 function add_proxy ($exchange, $http_proxy) {
@@ -245,7 +245,8 @@ class testMainClass extends baseMainTestClass {
                 return;
             }
             $skipMessage = null;
-            if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
+            $isFetchOhlcvEmulated = ($methodName === 'fetchOHLCV' && $exchange->has['fetchOHLCV'] === 'emulated'); // todo => remove emulation from base
+            if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
                 $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
             } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
                 $skipMessage = '[INFO:SKIPPED_TEST]';
@@ -329,6 +330,9 @@ class testMainClass extends baseMainTestClass {
             // todo - not yet ready in other langs too
             // $promises[] = test_throttle();
             Async\await(Promise\all($promises));
+            if (info) {
+                dump (str_pad(this, '[INFO:PUBLIC_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+            }
         }) ();
     }
 
@@ -664,6 +668,10 @@ class testMainClass extends baseMainTestClass {
             }
             if (strlen($errors) > 0) {
                 throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
+            } else {
+                if (info) {
+                    dump (str_pad(this, '[INFO:PRIVATE_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+                }
             }
         }) ();
     }

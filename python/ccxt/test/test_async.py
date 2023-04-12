@@ -140,7 +140,7 @@ def io_file_exists(path):
 
 
 def io_file_read(path, decode=True):
-    fs = open(path, "r")
+    fs = open(path, "r", encoding="utf-8")
     content = fs.read()
     if decode:
         return json.loads(content)
@@ -149,7 +149,7 @@ def io_file_read(path, decode=True):
 
 
 def exception_message(exc):
-    return '[' + type(exc).__name__ + '] ' + str(exc)[0:200]
+    return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
 
 
 async def call_method(methodName, exchange, args):
@@ -260,7 +260,8 @@ class testMainClass(baseMainTestClass):
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
             return
         skipMessage = None
-        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
+        isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
+        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
             skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
         elif methodName in self.skippedMethods:
             skipMessage = '[INFO:SKIPPED_TEST]'
@@ -328,6 +329,8 @@ class testMainClass(baseMainTestClass):
         # todo - not yet ready in other langs too
         # promises.append(test_throttle())
         await asyncio.gather(*promises)
+        if info:
+            dump(self.pad_end('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
 
     async def load_exchange(self, exchange):
         markets = await exchange.load_markets()
@@ -615,6 +618,9 @@ class testMainClass(baseMainTestClass):
                 errors.append(testName)
         if len(errors) > 0:
             raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
+        else:
+            if info:
+                dump(self.pad_end('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
     async def start_test(self, exchange, symbol):
         # we don't need to test aliases

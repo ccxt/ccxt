@@ -84,7 +84,7 @@ function ioFileRead (path, decode = true) {
 }
 
 function exceptionMessage (exc) {
-    return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
+    return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 500);
 }
 
 async function callMethod (methodName, exchange, args) {
@@ -199,7 +199,8 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         let skipMessage = undefined;
-        if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName])) {
+        const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
+        if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if (methodName in this.skippedMethods) {
             skipMessage = '[INFO:SKIPPED_TEST]';
