@@ -54,8 +54,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             //    }
             //
             const data = this.safeValue (response, 'data');
-            return data;
-            // this.options['publicToken'] = this.safeString (data, 'token');
+            this.options['publicToken'] = this.safeString (data, 'token');
         }
         return this.options['publicToken'];
     }
@@ -152,6 +151,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          */
         await this.loadMarkets ();
         const name = '/contractMarket/execution';
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe (name, false, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -447,7 +447,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @ignore
          * @method
          * @param {string} status "match", "open", "done"
-         * @param {string} type "open", "match", "filled", "canceled", "update" 
+         * @param {string} type "open", "match", "filled", "canceled", "update"
          * @returns {string}
          */
         if (type === 'canceled') {
@@ -524,7 +524,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         });
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        "subject": "ticker",
@@ -557,7 +557,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        data: {
@@ -630,7 +630,56 @@ export default class poloniexfutures extends poloniexfuturesRest {
         client.resolve (orderBook, messageHash);
     }
 
-    handleBalance (client, message) {
+    handleLevel2OrderBook (client: Client, message: any) {
+        //
+        //    {
+        //        "id": 1545910660740,
+        //        "type": "subscribe",
+        //        "topic": "/contractMarket/level2:BTCUSDTPERP",
+        //        "response": true
+        //    }
+        //
+        //    {
+        //        "subject": "level2",
+        //        "topic": "/contractMarket/level2:BTCUSDTPERP",
+        //        "type": "message",
+        //        "data": {
+        //            "sequence": 18,                   // Sequence number which is used to judge the continuity of pushed messages
+        //            "change": "5000.0,sell,83"        // Price, side, quantity
+        //            "timestamp": 1551770400000
+        //        }
+        //    }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const messageHash = this.safeString (data, 'topic');
+        const splitTopic = messageHash.split (':');
+        const marketId = this.safeString (splitTopic, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (data, 'timestamp');
+        const change = this.safeString (data, 'change');
+        const splitChange = change.split (',');
+        const price = this.safeString (splitChange, 0);
+        const side = this.safeString (splitChange, 1);
+        const size = this.safeString (splitChange, 2);
+        const subscription = this.safeValue (client.subscriptions, messageHash, {});
+        const limit = this.safeInteger (subscription, 'limit');
+        // const update = type === 'done';
+        const orderBook = this.safeValue (this.orderbooks, symbol);
+        if (orderBook === undefined) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        }
+        if (side === 'buy') {  // Only happens if subject is open
+            orderBook['bids'].store (price, size);
+        } else if (side === 'sell') {
+            orderBook['asks'].store (price, size);
+        }
+        orderBook['timestamp'] = timestamp;
+        orderBook['datetime'] = this.iso8601 (timestamp);
+        client.resolve (orderBook, messageHash);
+    }
+
+    handleBalance (client: Client, message: any) {
         //
         //    {
         //        data: {
@@ -677,7 +726,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    parseWsBalance (response) {
+    parseWsBalance (response: any) {
         //
         //    {
         //        currency: 'USDT',
@@ -711,6 +760,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'received': this.handleOrderBook,
             'open': this.handleOrderBook,
             'done': this.handleOrderBook,
+            'level2': this.handleLevel2OrderBook,
             'ticker': this.handleTicker,
             // 'trades': this.handleTrade,
             'match': this.handleTrade,
