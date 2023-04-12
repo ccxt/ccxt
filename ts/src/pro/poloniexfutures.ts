@@ -6,6 +6,8 @@ import poloniexfuturesRest from '../poloniexfutures.js';
 import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -52,10 +54,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
             //    }
             //
             const data = this.safeValue (response, 'data');
-            this.options['publicToken'] = this.safeString (data, 'token');
+            return data;
+            // this.options['publicToken'] = this.safeString (data, 'token');
         }
         return this.options['publicToken'];
-        // TODO: deal with expired token?
     }
 
     async getPrivateToken (params = {}) {
@@ -122,7 +124,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.watch (url, messageHash, request, name);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name poloniexfutures#watchTicker
@@ -137,7 +139,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.subscribe (name, false, symbol, params);
     }
 
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#watchTrades
@@ -151,7 +153,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
          */
         await this.loadMarkets ();
         const name = '/contractMarket/execution';
-        // const name = ' /contractMarket/level3v2'; // ? or
         const trades = await this.subscribe (name, false, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -159,7 +160,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#watchOrderBook
@@ -176,7 +177,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#watchOrders
@@ -198,7 +199,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchBalance (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchBalance (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#watchOrders
@@ -216,7 +217,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.subscribe (name, true, undefined, params);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //    {
         //        data: {
@@ -255,7 +256,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade: any, market: any = undefined) {
         //
         // handleTrade
         //
@@ -294,7 +295,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }, market);
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade: any, market: any = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -334,7 +335,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'order': this.safeString (trade, 'orderId'),
             'type': this.safeStringLower (trade, 'type'),
             'side': this.safeString (trade, 'side'),
-            'takerOrMaker': this.safeString (trade, 'matchRole'),
+            'takerOrMaker': this.safeStringLower (trade, 'matchRole'),
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'tradeAmount'), // ? tradeQty?
             'cost': undefined,
@@ -346,7 +347,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }, market);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //    {
         //        data: {
@@ -373,7 +374,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        userId: '1139790'
         //    }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeValue (message, 'data', {});
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
@@ -442,7 +443,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order: any, market: any = undefined) {
         //
         //    {
         //        symbol: 'ADAUSDTPERP',
@@ -465,7 +466,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOid');
         const marketId = this.safeString (order, 'symbol');
-        const timestamp = this.safeInteger (order, 'ts') / 1000000;
+        const timestamp = this.safeIntegerProduct (order, 'ts', 0.000001);
         const filledAmount = this.safeString (order, 'filledSize');
         let trades = undefined;
         if (!Precise.stringEq (filledAmount, '0')) {
