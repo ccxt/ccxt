@@ -69,7 +69,7 @@ class deribit(ccxt.async_support.deribit):
         :param dict params: extra parameters specific to the deribit api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
-        self.authenticate(params)
+        await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
         currencies = self.safe_value(self.options, 'currencies', [])
@@ -151,13 +151,14 @@ class deribit(ccxt.async_support.deribit):
         :param str|None params['interval']: specify aggregation and frequency of notifications. Possible values: 100ms, raw
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         interval = self.safe_string(params, 'interval', '100ms')
         params = self.omit(params, 'interval')
         await self.load_markets()
         if interval == 'raw':
-            self.authenticate()
+            await self.authenticate()
         channel = 'ticker.' + market['id'] + '.' + interval
         message = {
             'jsonrpc': '2.0',
@@ -227,7 +228,7 @@ class deribit(ccxt.async_support.deribit):
         params = self.omit(params, 'interval')
         channel = 'trades.' + market['id'] + '.' + interval
         if interval == 'raw':
-            self.authenticate()
+            await self.authenticate()
         message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
@@ -292,7 +293,7 @@ class deribit(ccxt.async_support.deribit):
         :param str|None params['interval']: specify aggregation and frequency of notifications. Possible values: 100ms, raw
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
-        self.authenticate(params)
+        await self.authenticate(params)
         if symbol is not None:
             await self.load_markets()
             symbol = self.symbol(symbol)
@@ -377,7 +378,7 @@ class deribit(ccxt.async_support.deribit):
         interval = self.safe_string(params, 'interval', '100ms')
         params = self.omit(params, 'interval')
         if interval == 'raw':
-            self.authenticate()
+            await self.authenticate()
         channel = 'book.' + market['id'] + '.' + interval
         subscribe = {
             'jsonrpc': '2.0',
@@ -493,7 +494,7 @@ class deribit(ccxt.async_support.deribit):
         :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
-        self.authenticate(params)
+        await self.authenticate(params)
         if symbol is not None:
             symbol = self.symbol(symbol)
         url = self.urls['api']['ws']
@@ -778,5 +779,6 @@ class deribit(ccxt.async_support.deribit):
                     'data': '',
                 },
             }
-            future = self.watch(url, messageHash, self.extend(request, params), messageHash)
+            future = self.watch(url, messageHash, self.extend(request, params))
+            client.subscriptions[messageHash] = future
         return future
