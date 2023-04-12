@@ -1318,6 +1318,10 @@ export default class Exchange {
         return -1;
     }
 
+    convertToBigInt(value: string) {
+        return BigInt(value); // used on XT
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
