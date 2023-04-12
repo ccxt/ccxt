@@ -97,7 +97,7 @@ function add_proxy (exchange, httpProxy) {
 }
 
 function exitScript () {
-    process.exit();
+    process.exit(0);
 }
 
 function getExchangeProp (exchange, prop, defaultValue = undefined) {

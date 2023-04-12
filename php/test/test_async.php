@@ -131,7 +131,7 @@ function add_proxy ($exchange, $http_proxy) {
 }
 
 function exit_script() {
-    exit();
+    exit(0);
 }
 
 function reqCredentials ($exchange) {

@@ -162,7 +162,7 @@ def add_proxy(exchange, http_proxy):
 
 
 def exit_script():
-    exit()
+    exit(0)
 
 
 def get_exchange_prop(exchange, prop, defaultValue=None):
