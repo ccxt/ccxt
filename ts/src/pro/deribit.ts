@@ -836,7 +836,8 @@ export default class deribit extends deribitRest {
                     'data': '',
                 },
             };
-            future = this.watch (url, messageHash, this.extend (request, params), messageHash);
+            future = this.watch (url, messageHash, this.extend (request, params));
+            client.subscriptions[messageHash] = future;
         }
         return future;
     }
