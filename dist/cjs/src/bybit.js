@@ -3510,6 +3510,9 @@ class bybit extends bybit$1 {
                     request['qty'] = this.costToPrecision(symbol, amount);
                 }
             }
+            else {
+                request['qty'] = this.costToPrecision(symbol, amount);
+            }
         }
         else {
             request['qty'] = this.amountToPrecision(symbol, amount);
@@ -3620,6 +3623,9 @@ class bybit extends bybit$1 {
                     amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
                     request['orderQty'] = this.costToPrecision(symbol, amount);
                 }
+            }
+            else {
+                request['orderQty'] = this.costToPrecision(symbol, amount);
             }
         }
         else {
