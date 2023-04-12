@@ -2188,11 +2188,11 @@ export default class xt extends Exchange {
         const stop = this.safeValue (params, 'stop');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (stop) {
-            request['entrustId'] = id;
+            request['entrustId'] = this.convertToBigInt (id);
         } else if (stopLossTakeProfit) {
-            request['profitId'] = id;
+            request['profitId'] = this.convertToBigInt (id);
         } else {
-            request['orderId'] = id;
+            request['orderId'] = this.convertToBigInt (id);
         }
         if (stop) {
             params = this.omit (params, 'stop');
