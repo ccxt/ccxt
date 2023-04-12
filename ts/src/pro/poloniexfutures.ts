@@ -84,7 +84,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
             this.options['privateToken'] = this.safeString (data, 'token');
         }
         return this.options['privateToken'];
-        // TODO: deal with expired token?
     }
 
     async subscribe (name, isPrivate, symbol = undefined, params = {}) {
@@ -443,6 +442,25 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
+    parseStatus (status: string, type: string) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} status "match", "open", "done"
+         * @param {string} type "open", "match", "filled", "canceled", "update" 
+         * @returns {string}
+         */
+        if (type === 'canceled') {
+            return 'cancelled';
+        }
+        const statuses = {
+            'open': 'open',
+            'match': 'closed',
+            'done': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseWsOrder (order: any, market: any = undefined) {
         //
         //    {
@@ -474,6 +492,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
             const trade = this.parseWsOrderTrade (order);
             trades.push (trade);
         }
+        const status = this.safeString (order, 'status');
+        const type = this.safeString (order, 'type');
         return this.safeOrder ({
             'info': order,
             'symbol': this.safeSymbol (marketId, market),
@@ -494,7 +514,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'average': undefined,
             'filled': filledAmount,
             'remaining': this.safeString (order, 'remainSize'),
-            'status': this.safeString (order, 'status'), // ? type
+            'status': this.parseStatus (status, type),
             'fee': {
                 'rate': undefined,
                 'cost': this.safeString (order, 'tradeFee'),
@@ -586,25 +606,25 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         // const orderId = this.safeString (data, 'orderId');
-        const timestamp = this.safeInteger (data, 'ts') / 1000;
+        const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
         const messageHash = this.safeString (data, 'topic');
         const side = this.safeString (data, 'side');
         const size = this.safeString (data, 'size');
         const price = this.safeString (data, 'price');
+        const orderId = this.safeString (data, 'orderId');
         const symbol = this.safeString (market, 'symbol');
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         // const update = type === 'done';
         const orderBook = this.safeValue (this.orderbooks, symbol);
         if (orderBook === undefined) {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
         }
         if (side === 'buy') {  // Only happens if subject is open
-            orderBook['bids'].store (price, size);
+            orderBook['bids'].store (price, size, orderId);
         } else if (side === 'sell') {
-            orderBook['asks'].store (price, size);
+            orderBook['asks'].store (price, size, orderId);
         }
-        // TODO: How to remove is subject is done? Is only possible with orderId
         orderBook['timestamp'] = timestamp;
         orderBook['datetime'] = this.iso8601 (timestamp);
         client.resolve (orderBook, messageHash);
@@ -646,9 +666,14 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const currency = this.currency (currencyId);
         const code = currency['code'];
         const balance = this.safeValue (this.balance, code, {});
-        this.balance[code] = this.deepExtend (balance, this.parseWsBalance (data));
+        const newBalance = this.parseWsBalance (data);
+        if (balance['timestamp'] === newBalance['timestamp']) {
+            newBalance['info'] = this.merge (balance['info'], newBalance['info']);
+            this.balance[code] = this.merge (balance, newBalance);
+        } else {
+            this.balance[code] = newBalance;
+        }
         client.resolve (this.balance[code], messageHash);
-        // TODO: free and used are returned as separate objects
         return message;
     }
 
@@ -680,7 +705,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         // const type = this.safeString (message, 'type');
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
-            return this.handlePong (client, message);
+            return client.onPong (message);
         }
         const methods = {
             'received': this.handleOrderBook,
@@ -732,10 +757,5 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'type': 'ping',
             'id': this.milliseconds (),
         };
-    }
-
-    handlePong (client, message) {
-        client.lastPong = this.milliseconds ();
-        return message;
     }
 }
