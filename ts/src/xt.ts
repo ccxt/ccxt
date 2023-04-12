@@ -244,6 +244,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/entrust/cancel-all-profit-stop': 1,
                             'future/trade/v1/entrust/cancel-plan': 1,
                             'future/trade/v1/entrust/cancel-profit-stop': 1,
+                            'future/trade/v1/entrust/create-plan': 1,
                             'future/trade/v1/entrust/create-profit': 1,
                             'future/trade/v1/entrust/update-profit-stop': 1,
                             'future/trade/v1/order/cancel': 1,
@@ -285,6 +286,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/entrust/cancel-all-profit-stop': 1,
                             'future/trade/v1/entrust/cancel-plan': 1,
                             'future/trade/v1/entrust/cancel-profit-stop': 1,
+                            'future/trade/v1/entrust/create-plan': 1,
                             'future/trade/v1/entrust/create-profit': 1,
                             'future/trade/v1/entrust/update-profit-stop': 1,
                             'future/trade/v1/order/cancel': 1,
@@ -2000,6 +2002,8 @@ export default class xt extends Exchange {
          * @description create a trade order
          * @see https://doc.xt.com/#orderorderPost
          * @see https://doc.xt.com/#futures_ordercreate
+         * @see https://doc.xt.com/#futures_entrustcreatePlan
+         * @see https://doc.xt.com/#futures_entrustcreateProfit
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2007,6 +2011,11 @@ export default class xt extends Exchange {
          * @param {float|undefined} price the price to fulfill the order, in units of the quote currency, can be ignored in market orders
          * @param {object} params extra parameters specific to the xt api endpoint
          * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK' or 'GTX'
+         * @param {string|undefined} params.entrustType 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
+         * @param {string|undefined} params.triggerPriceType 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
+         * @param {float|undefined} params.stopPrice price to trigger a stop order
+         * @param {float|undefined} params.stopLoss price to set a stop-loss on an open position
+         * @param {float|undefined} params.takeProfit price to set a take-profit on an open position
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2078,13 +2087,8 @@ export default class xt extends Exchange {
         const convertContractsToAmount = Precise.stringDiv (this.numberToString (amount), this.numberToString (market['contractSize']));
         const request = {
             'symbol': market['id'],
-            'orderSide': side.toUpperCase (),
-            'orderType': type.toUpperCase (),
             'origQty': this.amountToPrecision (symbol, this.parseNumber (convertContractsToAmount)),
         };
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
@@ -2098,10 +2102,50 @@ export default class xt extends Exchange {
             request['positionSide'] = requestType;
         }
         let response = undefined;
-        if (market['linear']) {
-            response = await this.privateLinearPostFutureTradeV1OrderCreate (this.extend (request, params));
-        } else if (market['inverse']) {
-            response = await this.privateInversePostFutureTradeV1OrderCreate (this.extend (request, params));
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
+        const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
+        const isTrigger = (triggerPrice !== undefined);
+        const isStopLoss = (stopLoss !== undefined);
+        const isTakeProfit = (takeProfit !== undefined);
+        if (price !== undefined) {
+            if (!(isStopLoss) && !(isTakeProfit)) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (isTrigger) {
+            request['timeInForce'] = this.safeStringUpper (params, 'timeInForce', 'GTC');
+            request['triggerPriceType'] = this.safeString (params, 'triggerPriceType', 'LATEST_PRICE');
+            request['orderSide'] = side.toUpperCase ();
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            const entrustType = (type === 'market') ? 'STOP_MARKET' : 'STOP';
+            request['entrustType'] = entrustType;
+            params = this.omit (params, 'triggerPrice');
+            if (market['linear']) {
+                response = await this.privateLinearPostFutureTradeV1EntrustCreatePlan (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.privateInversePostFutureTradeV1EntrustCreatePlan (this.extend (request, params));
+            }
+        } else if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLoss);
+            } else {
+                request['triggerProfitPrice'] = this.priceToPrecision (symbol, takeProfit);
+            }
+            params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
+            if (market['linear']) {
+                response = await this.privateLinearPostFutureTradeV1EntrustCreateProfit (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.privateInversePostFutureTradeV1EntrustCreateProfit (this.extend (request, params));
+            }
+        } else {
+            request['orderSide'] = side.toUpperCase ();
+            request['orderType'] = type.toUpperCase ();
+            if (market['linear']) {
+                response = await this.privateLinearPostFutureTradeV1OrderCreate (this.extend (request, params));
+            } else if (market['inverse']) {
+                response = await this.privateInversePostFutureTradeV1OrderCreate (this.extend (request, params));
+            }
         }
         //
         //     {
@@ -4048,7 +4092,7 @@ export default class xt extends Exchange {
             const recvWindow = this.safeString (params, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString (this.nonce ());
             body = params;
-            if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create')) {
+            if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 body['clientMedia'] = 'CCXT';
             }
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
