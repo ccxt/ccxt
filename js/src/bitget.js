@@ -3250,7 +3250,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        return this.safeValue(data, 'orderList', data);
+        return this.safeValue(data, 'orderList', []);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

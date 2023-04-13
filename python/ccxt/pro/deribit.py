@@ -151,6 +151,7 @@ class deribit(ccxt.async_support.deribit):
         :param str|None params['interval']: specify aggregation and frequency of notifications. Possible values: 100ms, raw
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         interval = self.safe_string(params, 'interval', '100ms')
@@ -749,21 +750,19 @@ class deribit(ccxt.async_support.deribit):
         #         testnet: False
         #     }
         #
-        future = self.safe_value(client.futures, 'authenticated')
-        if future is not None:
-            future.resolve(True)
+        messageHash = 'authenticated'
+        client.resolve(message, messageHash)
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         time = self.milliseconds()
         timeString = self.number_to_string(time)
         nonce = timeString
         messageHash = 'authenticated'
-        future = client.future('authenticated')
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
             self.check_required_credentials()
             requestId = self.request_id()
             signature = self.hmac(self.encode(timeString + '\n' + nonce + '\n'), self.encode(self.secret), hashlib.sha256)
@@ -780,5 +779,6 @@ class deribit(ccxt.async_support.deribit):
                     'data': '',
                 },
             }
-            self.spawn(self.watch, url, messageHash, self.extend(request, params), messageHash)
-        return await future
+            future = self.watch(url, messageHash, self.extend(request, params))
+            client.subscriptions[messageHash] = future
+        return future

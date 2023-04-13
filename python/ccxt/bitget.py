@@ -3101,7 +3101,7 @@ class bitget(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        return self.safe_value(data, 'orderList', data)
+        return self.safe_value(data, 'orderList', [])
 
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

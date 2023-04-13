@@ -14,12 +14,12 @@ interface Exchange {
     v1PublicGetFundingRateHistory(params?: {}): Promise<implicitReturnType>;
     v1PublicGetFutures(params?: {}): Promise<implicitReturnType>;
     v1PublicGetFuturesSymbol(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetOrderbookSymbol(params?: {}): Promise<implicitReturnType>;
+    v1PublicGetKline(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetClientToken(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetOrderOid(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetClientOrderClientOrderId(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetOrders(params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetOrderbookSymbol(params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetKline(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetClientTradeTid(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetOrderOidTrades(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetClientTrades(params?: {}): Promise<implicitReturnType>;
