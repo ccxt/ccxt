@@ -3513,6 +3513,9 @@ export default class bybit extends Exchange {
                     request['qty'] = this.costToPrecision(symbol, amount);
                 }
             }
+            else {
+                request['qty'] = this.costToPrecision(symbol, amount);
+            }
         }
         else {
             request['qty'] = this.amountToPrecision(symbol, amount);
@@ -3623,6 +3626,9 @@ export default class bybit extends Exchange {
                     amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
                     request['orderQty'] = this.costToPrecision(symbol, amount);
                 }
+            }
+            else {
+                request['orderQty'] = this.costToPrecision(symbol, amount);
             }
         }
         else {

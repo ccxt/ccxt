@@ -1678,7 +1678,7 @@ class poloniex extends Exchange {
         $this->load_markets();
         $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
         $now = $this->seconds();
-        $start = ($since !== null) ? intval(($since / (string) 1000)) : $now - 10 * $year;
+        $start = ($since !== null) ? $this->parse_to_int($since / 1000) : $now - 10 * $year;
         $request = array(
             'start' => $start, // UNIX timestamp, required
             'end' => $now, // UNIX timestamp, required

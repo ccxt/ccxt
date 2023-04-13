@@ -63,7 +63,7 @@ class deribit extends deribit$1 {
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        this.authenticate(params);
+        await this.authenticate(params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
         const currencies = this.safeValue(this.options, 'currencies', []);
@@ -148,13 +148,14 @@ class deribit extends deribit$1 {
          * @param {str|undefined} params.interval specify aggregation and frequency of notifications. Possible values: 100ms, raw
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        await this.loadMarkets();
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
         params = this.omit(params, 'interval');
         await this.loadMarkets();
         if (interval === 'raw') {
-            this.authenticate();
+            await this.authenticate();
         }
         const channel = 'ticker.' + market['id'] + '.' + interval;
         const message = {
@@ -227,7 +228,7 @@ class deribit extends deribit$1 {
         params = this.omit(params, 'interval');
         const channel = 'trades.' + market['id'] + '.' + interval;
         if (interval === 'raw') {
-            this.authenticate();
+            await this.authenticate();
         }
         const message = {
             'jsonrpc': '2.0',
@@ -297,7 +298,7 @@ class deribit extends deribit$1 {
          * @param {str|undefined} params.interval specify aggregation and frequency of notifications. Possible values: 100ms, raw
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
-        this.authenticate(params);
+        await this.authenticate(params);
         if (symbol !== undefined) {
             await this.loadMarkets();
             symbol = this.symbol(symbol);
@@ -385,7 +386,7 @@ class deribit extends deribit$1 {
         const interval = this.safeString(params, 'interval', '100ms');
         params = this.omit(params, 'interval');
         if (interval === 'raw') {
-            this.authenticate();
+            await this.authenticate();
         }
         const channel = 'book.' + market['id'] + '.' + interval;
         const subscribe = {
@@ -510,7 +511,7 @@ class deribit extends deribit$1 {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
-        this.authenticate(params);
+        await this.authenticate(params);
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
         }
@@ -810,7 +811,8 @@ class deribit extends deribit$1 {
                     'data': '',
                 },
             };
-            future = this.watch(url, messageHash, this.extend(request, params), messageHash);
+            future = this.watch(url, messageHash, this.extend(request, params));
+            client.subscriptions[messageHash] = future;
         }
         return future;
     }
