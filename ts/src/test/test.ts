@@ -5,10 +5,11 @@
 import fs from 'fs';
 import assert from 'assert';
 import { Agent } from 'https';
-import ccxt from '../../ccxt.js';
 import HttpsProxyAgent from 'https-proxy-agent'
 import { fileURLToPath, pathToFileURL } from 'url';
-const __dirname = fileURLToPath (new URL ('.', import.meta.url)); // new URL('.', import.meta.url).pathname;
+import ccxt from '../../ccxt.js';
+//
+const __dirname = fileURLToPath (new URL ('.', import.meta.url));
 
 // ----------------------------------------------------------------------------
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
@@ -18,7 +19,7 @@ const sandbox = process.argv.includes ('--sandbox') || false;
 const privateTest = process.argv.includes ('--private') || false;
 const privateOnly = process.argv.includes ('--privateOnly') || false;
 const info = process.argv.includes ('--info') || false;
-const ext = import.meta.url.split('.')[1];
+const ext = import.meta.url.split ('.')[1];
 // ----------------------------------------------------------------------------
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
 process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) });
