@@ -1210,7 +1210,7 @@ export default class krakenfutures extends krakenfuturesRest {
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
         } else if (event === 'pong') {
-            return this.handlePong (client, message);
+            return client.onPong (message);
         } else if (event === undefined) {
             const feed = this.safeString (message, 'feed');
             const methods = {
@@ -1273,10 +1273,5 @@ export default class krakenfutures extends krakenfuturesRest {
         return {
             'event': 'ping',
         };
-    }
-
-    handlePong (client: Client, message) {
-        client.lastPong = this.milliseconds ();
-        return message;
     }
 }
