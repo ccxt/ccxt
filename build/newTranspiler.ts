@@ -568,18 +568,9 @@ class NewTranspiler {
         const csharpImports = this.getCsharpImports(csharpVersion).join("\n") + "\n\n";
         let content = csharpVersion.content;
         content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "partial class $1 : $2");
+        content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
-    }
-
-    transpileClass(csharpResult) {
-
-        const csharpVersion = this.createCSharpClass(csharpResult);
-
-        return {
-            csharp: csharpVersion
-        }
-
     }
 
     transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false) {
@@ -592,7 +583,7 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const { csharp } = this.transpileClass (csharpResult)
+        const csharp  = this.createCSharpClass (csharpResult)
 
         if (csharpFolder) {
             overwriteFile (csharpFolder + csharpFilename, csharp)

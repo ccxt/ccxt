@@ -1367,7 +1367,7 @@ export default class Exchange {
         return {};
     }
 
-    async fetchAccounts (params = {}): Promise<any> {
+    async fetchAccounts (params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchAccounts() is not supported yet');
     }
 
@@ -1379,7 +1379,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
+    async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
     }
 
@@ -1395,7 +1395,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
 
-    async fetchTradingLimits (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchTradingLimits (symbols: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
@@ -1431,7 +1431,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
-    async fetchBorrowRates (params = {}): Promise<any> {
+    async fetchBorrowRates (params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchBorrowRates() is not supported yet');
     }
 
@@ -1439,7 +1439,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
@@ -1455,15 +1455,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<any> {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<any> {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
@@ -1471,7 +1471,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}): Promise<any> {
+    async setLeverage (leverage, symbol: string = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
@@ -2788,23 +2788,23 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
-    async fetchPermissions (params = {}): Promise<any> {
+    async fetchPermissions (params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
-    async fetchPosition (symbol: string, params = {}): Promise<any> {
+    async fetchPosition (symbol: string, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
-    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
 
@@ -2999,15 +2999,15 @@ export default class Exchange {
         return await this.fetchTransactionFees ([ code ], params);
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}): Promise<any> {
+    async fetchTransactionFees (codes: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}): Promise<any> {
+    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
 
-    async fetchDepositWithdrawFee (code: string, params = {}): Promise<any> {
+    async fetchDepositWithdrawFee (code: string, params = {}): Promise<{}> {
         if (!this.has['fetchDepositWithdrawFees']) {
             throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
@@ -3204,11 +3204,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}): Promise<any> {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}): Promise<any> {
+    async cancelAllOrders (symbol: string = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' cancelAllOrders() is not supported yet');
     }
 
@@ -3244,15 +3244,15 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyTrades() is not supported yet');
     }
 
-    async fetchTransactions (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async fetchTransactions (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
     }
 
-    async fetchDeposits (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async fetchDeposits (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
     }
 
-    async fetchWithdrawals (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async fetchWithdrawals (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
@@ -3718,15 +3718,15 @@ export default class Exchange {
         return [ false, params ];
     }
 
-    async fetchLastPrices (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchLastPrices (symbols: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 
-    async fetchTradingFees (params = {}): Promise<any> {
+    async fetchTradingFees (params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet');
     }
 
-    async fetchTradingFee (symbol: string, params = {}): Promise<any> {
+    async fetchTradingFee (symbol: string, params = {}): Promise<{}> {
         if (!this.has['fetchTradingFees']) {
             throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
         }
