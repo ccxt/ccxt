@@ -8,7 +8,6 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { base64, utf8 } from "../static_dependencies/scure-base/index.js";
 
 //  ---------------------------------------------------------------------------
 
@@ -1255,7 +1254,6 @@ export default class krakenfutures extends krakenfuturesRest {
         if (event !== 'error') {
             const challenge = this.safeValue (message, 'message');
             const hashedChallenge = this.hash (this.encode (challenge), sha256, 'binary');
-            // const hashedChallenge = sha256 (utf8.decode (challenge));
             const base64Secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (hashedChallenge, base64Secret, sha512, 'base64');
             this.options.challenge = challenge;
