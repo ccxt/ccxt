@@ -529,7 +529,7 @@
             "fetchCurrencies": "info key is missing",
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
             "fetchTicker": "same"
-        },
+        }
     },
     "lbank2": {
         "skipMethods": {
