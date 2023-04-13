@@ -2835,9 +2835,13 @@ export default class xt extends Exchange {
          * @description cancels an open order
          * @see https://doc.xt.com/#orderorderDel
          * @see https://doc.xt.com/#futures_ordercancel
+         * @see https://doc.xt.com/#futures_entrustcancelPlan
+         * @see https://doc.xt.com/#futures_entrustcancelProfit
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
+         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2845,15 +2849,36 @@ export default class xt extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
-            'orderId': this.convertToBigInt (id),
-        };
+        const request = {};
         let type = undefined;
         let subType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
-        if (subType === 'inverse') {
+        const stop = this.safeValue (params, 'stop');
+        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        if (stop) {
+            request['entrustId'] = this.convertToBigInt (id);
+        } else if (stopLossTakeProfit) {
+            request['profitId'] = this.convertToBigInt (id);
+        } else {
+            request['orderId'] = this.convertToBigInt (id);
+        }
+        if (stop) {
+            params = this.omit (params, 'stop');
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1EntrustCancelPlan (this.extend (request, params));
+            } else {
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelPlan (this.extend (request, params));
+            }
+        } else if (stopLossTakeProfit) {
+            params = this.omit (params, 'stopLossTakeProfit');
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1EntrustCancelProfitStop (this.extend (request, params));
+            } else {
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop (this.extend (request, params));
+            }
+        } else if (subType === 'inverse') {
             response = await this.privateInversePostFutureTradeV1OrderCancel (this.extend (request, params));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
             response = await this.privateLinearPostFutureTradeV1OrderCancel (this.extend (request, params));
@@ -2893,8 +2918,12 @@ export default class xt extends Exchange {
          * @description cancel all open orders in a market
          * @see https://doc.xt.com/#orderopenOrderDel
          * @see https://doc.xt.com/#futures_ordercancelBatch
+         * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
+         * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
          * @param {string|undefined} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
+         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2909,7 +2938,23 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
-        if (subType === 'inverse') {
+        const stop = this.safeValue (params, 'stop');
+        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
+        if (stop) {
+            params = this.omit (params, 'stop');
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1EntrustCancelAllPlan (this.extend (request, params));
+            } else {
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllPlan (this.extend (request, params));
+            }
+        } else if (stopLossTakeProfit) {
+            params = this.omit (params, 'stopLossTakeProfit');
+            if (subType === 'inverse') {
+                response = await this.privateInversePostFutureTradeV1EntrustCancelAllProfitStop (this.extend (request, params));
+            } else {
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop (this.extend (request, params));
+            }
+        } else if (subType === 'inverse') {
             response = await this.privateInversePostFutureTradeV1OrderCancelAll (this.extend (request, params));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
             response = await this.privateLinearPostFutureTradeV1OrderCancelAll (this.extend (request, params));
