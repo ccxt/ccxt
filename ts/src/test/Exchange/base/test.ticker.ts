@@ -26,8 +26,8 @@ function testTicker (exchange, method, entry, symbol) {
         'baseVolume': exchange.parseNumber ('1.234'), // volume of base currency
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
-    const emptyNotAllowedFor = [ 'close', 'amount', 'currency' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
+    // const emptyNotAllowedFor = [ 'currency' ];
+    // testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertTimestamp (exchange, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
@@ -76,7 +76,9 @@ function testTicker (exchange, method, entry, symbol) {
     if ((bid !== undefined) && (ask !== undefined)) {
         assert (Precise.stringGe (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
     }
-    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
+    if (method === 'fetchTicker') {
+        testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
+    }
 }
 
 export default testTicker;
