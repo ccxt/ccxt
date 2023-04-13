@@ -1847,7 +1847,16 @@ export default class xt extends Exchange {
         }
         const timestamp = this.safeIntegerN (trade, [ 't', 'time', 'timestamp' ]);
         const quantity = this.safeString2 (trade, 'q', 'quantity');
-        const amount = (marketType === 'spot') ? quantity : Precise.stringMul (quantity, this.numberToString (market['contractSize']));
+        let amount = undefined;
+        if (marketType === 'spot') {
+            amount = quantity;
+        } else {
+            if (quantity === undefined) {
+                amount = Precise.stringMul (this.safeString (trade, 'a'), this.numberToString (market['contractSize']));
+            } else {
+                amount = Precise.stringMul (quantity, this.numberToString (market['contractSize']));
+            }
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeStringN (trade, [ 'i', 'tradeId', 'execId' ]),
