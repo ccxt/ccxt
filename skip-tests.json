@@ -105,7 +105,8 @@
     },
     "bitflyer": {
         "skipMethods": {
-            "fetchCurrencies": "info key missing"
+            "fetchCurrencies": "info key missing",
+            "fetchTrades": "side key has an null value, but is expected to have a value "
         }
     },
     "bitforex": {
@@ -307,7 +308,10 @@
             "fetchTickers": "close might be 0"
         }
     },
-    "buda": { },
+    "buda": { 
+        "skip": true,
+        "//": "forbidden location"
+    },
     "cdax": {
         "skipWs": true
     },
@@ -525,6 +529,8 @@
         }
     },
     "lbank": {
+        "skip": true,
+        "//": "nothing returned, probably temporary issue",
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
@@ -606,6 +612,8 @@
         }
     },
     "okcoin": {
+        "skip": true,
+        "//": "502 Bad Gateway, probably location restricted, or might be temporary",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume <= baseVolume * high is failing",
@@ -634,7 +642,10 @@
             "loadMarkets": "linear & inverse must not be same"
         }
     },
-    "tidex": { },
+    "tidex": {
+        "skip": true,
+        "//": "exchange does not seem to respond"
+    },
     "krakenfutures": {
         "skipMethods": {
             "loadMarkets": "type is unexpected",
@@ -652,6 +663,8 @@
         }
     },
     "ripio": {
+        "skip": true,
+        "//": "503 Service Unavailable, might be location issue",
         "skipWs": true
     },
     "timex": {

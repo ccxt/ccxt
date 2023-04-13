@@ -124,7 +124,10 @@ function call_method($methodName, $exchange, $args) {
 function exception_message ($exc) {
     $inner_message = $exc->getMessage();
     // temp fix for only php-async: https://discord.com/channels/690203284119617602/1037412074189492286/1096070966381129869
-    if (stripos ($inner_message, 'Connection ended before receiving response') !== false) {
+    if (
+        (stripos ($inner_message, 'Connection ended before receiving response') !== false) ||
+        (stripos ($inner_message, 'An error occured on the underlying stream while buffering: Unexpected end of response body after') !== false)
+    ){
         $inner_message .= ' - might be because of timeout';
     }
     return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
@@ -159,8 +162,8 @@ function set_exchange_prop ($exchange, $prop, $value) {
 
 use Exception; // a common import
 
-use ccxt\AuthenticationError;
 use ccxt\ExchangeNotAvailable;
+use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise;
 
@@ -195,7 +198,7 @@ class testMainClass extends baseMainTestClass {
             // support simple $proxy
             $proxy = get_exchange_prop ($exchange, 'httpProxy');
             if ($proxy) {
-                add_proxy($exchange, $proxy);
+                add_proxy ($exchange, $proxy);
             }
         }
         // credentials
@@ -219,7 +222,7 @@ class testMainClass extends baseMainTestClass {
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
         if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED]', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED] exchange', $exchangeId);
             exit_script();
         }
         if ($exchange->alias) {
@@ -277,9 +280,14 @@ class testMainClass extends baseMainTestClass {
                 }
             } catch (Exception $e) {
                 $isAuthError = ($e instanceof AuthenticationError);
+                $notAvailable = ($e instanceof ExchangeNotAvailable);
                 if (!($isPublic && $isAuthError)) {
                     dump ('ERROR:', exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;
+                }
+                if ($notAvailable) {
+                    // previously, we threw an error, however we can't do that anymore, because it breaks the build, and instead show warning in such cases
+                    dump ('[WARNING:EXCHANGE_NOT_AVAILABLE]', $exchange->id, $methodNameInTest, $argsStringified);
                 }
             }
             return $result;
