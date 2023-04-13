@@ -122,7 +122,12 @@ function call_method($methodName, $exchange, $args) {
 }
 
 function exception_message ($exc) {
-    return '[' . get_class($exc) . '] ' . substr($exc->getMessage(), 0, 500);
+    $inner_message = $exc->getMessage();
+    // temp fix for only php-async: https://discord.com/channels/690203284119617602/1037412074189492286/1096070966381129869
+    if (stripos ($inner_message, 'Connection ended before receiving response') !== false) {
+        $inner_message .= ' - might be because of timeout';
+    }
+    return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
 }
 
 function add_proxy ($exchange, $http_proxy) {

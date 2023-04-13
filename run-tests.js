@@ -88,7 +88,7 @@ const exec = (bin, ...args) =>
     stderr,  not separating them into distinct buffers — so that we can show
     the same output as if it were running in a terminal.                        */
 
-    timeout (120, new Promise (return_ => {
+    timeout (180, new Promise (return_ => {
 
         const psSpawn = ps.spawn (bin, args)
 

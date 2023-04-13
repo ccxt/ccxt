@@ -292,14 +292,10 @@
 		"//": "private endpoints"
 	},
 	"coinbasepro": {
-		"skipWs": true,
-		"skip": true,
-		"//": "temp skip needed for php"
+		"skipWs": true
 	},
 	"coinbaseprime": {
-		"skipWs": true,
-		"skip": true,
-		"//": "temp skip needed for php"
+		"skipWs": true
 	},
 	"coinspot": {
 		"skipMethods": {
@@ -441,8 +437,6 @@
 	},
 	"huobi": {
 		"skipWs": true,
-		"skip": true,
-		"//": "temp skip needed for php",
 		"skipMethods": {
 			"fetchCurrencies": "precision is undefined",
 			"fetchTickers": "open might be set to 0 (i.e. f1f2x8z9 symbol), also quoteVolume >= baseVolume * low is failing",
