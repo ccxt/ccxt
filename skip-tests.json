@@ -612,6 +612,8 @@
 		}
 	},
 	"okcoin": {
+		"skip": true,
+		"//": "temporary unavailable",
 		"skipWs": true,
 		"skipMethods": {
 			"fetchTickers": "quoteVolume <= baseVolume * high is failing",
