@@ -2343,10 +2343,12 @@ export default class xt extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @see https://doc.xt.com/#orderhistoryOrderGet
          * @see https://doc.xt.com/#futures_ordergetHistory
+         * @see https://doc.xt.com/#futures_entrustgetPlanHistory
          * @param {string|undefined} symbol unified market symbol of the market the orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2367,7 +2369,15 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
-        if (subType === 'inverse') {
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            params = this.omit (params, 'stop');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustPlanListHistory (this.extend (request, params));
+            } else {
+                response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory (this.extend (request, params));
+            }
+        } else if (subType === 'inverse') {
             response = await this.privateInverseGetFutureTradeV1OrderListHistory (this.extend (request, params));
         } else if ((subType === 'linear') || (type === 'swap') || (type === 'future')) {
             response = await this.privateLinearGetFutureTradeV1OrderListHistory (this.extend (request, params));
@@ -2456,6 +2466,38 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
+        // stop
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "hasPrev": false,
+        //             "hasNext": false,
+        //             "items": [
+        //                 {
+        //                     "entrustId": "216300248132756992",
+        //                     "symbol": "btc_usdt",
+        //                     "entrustType": "STOP",
+        //                     "orderSide": "SELL",
+        //                     "positionSide": "SHORT",
+        //                     "timeInForce": "GTC",
+        //                     "closePosition": null,
+        //                     "price": "20000",
+        //                     "origQty": "1",
+        //                     "stopPrice": "19000",
+        //                     "triggerPriceType": "LATEST_PRICE",
+        //                     "state": "USER_REVOCATION",
+        //                     "marketOrderLevel": null,
+        //                     "createdTime": 1681271998064,
+        //                     "updatedTime": 1681273188674,
+        //                     "ordinary": false
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'result', {});
         const orders = this.safeValue (data, 'items', []);
         return this.parseOrders (orders, market, since, limit);
@@ -2474,24 +2516,52 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
+        const stop = this.safeValue (params, 'stop');
+        const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (status === 'open') {
-            if (subType !== undefined) {
+            if (stop || stopLossTakeProfit) {
+                request['state'] = 'NOT_TRIGGERED';
+            } else if (subType !== undefined) {
                 request['state'] = 'NEW';
             }
         } else if (status === 'closed') {
-            request['state'] = 'FILLED';
+            if (stop || stopLossTakeProfit) {
+                request['state'] = 'TRIGGERED';
+            } else {
+                request['state'] = 'FILLED';
+            }
         } else if (status === 'canceled') {
-            request['state'] = 'CANCELED';
+            if (stop || stopLossTakeProfit) {
+                request['state'] = 'USER_REVOCATION';
+            } else {
+                request['state'] = 'CANCELED';
+            }
         } else {
             request['state'] = status;
         }
-        if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
+        if (stop || stopLossTakeProfit || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['size'] = limit;
             }
+        }
+        if (stop) {
+            params = this.omit (params, 'stop');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustPlanList (this.extend (request, params));
+            } else {
+                response = await this.privateLinearGetFutureTradeV1EntrustPlanList (this.extend (request, params));
+            }
+        } else if (stopLossTakeProfit) {
+            params = this.omit (params, 'stopLossTakeProfit');
+            if (subType === 'inverse') {
+                response = await this.privateInverseGetFutureTradeV1EntrustProfitList (this.extend (request, params));
+            } else {
+                response = await this.privateLinearGetFutureTradeV1EntrustProfitList (this.extend (request, params));
+            }
+        } else if ((subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1OrderList (this.extend (request, params));
             } else {
@@ -2627,6 +2697,71 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
+        // stop
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "page": 1,
+        //             "ps": 3,
+        //             "total": 8,
+        //             "items": [
+        //                 {
+        //                     "entrustId": "216300248132756992",
+        //                     "symbol": "btc_usdt",
+        //                     "entrustType": "STOP",
+        //                     "orderSide": "SELL",
+        //                     "positionSide": "SHORT",
+        //                     "timeInForce": "GTC",
+        //                     "closePosition": null,
+        //                     "price": "20000",
+        //                     "origQty": "1",
+        //                     "stopPrice": "19000",
+        //                     "triggerPriceType": "LATEST_PRICE",
+        //                     "state": "USER_REVOCATION",
+        //                     "marketOrderLevel": null,
+        //                     "createdTime": 1681271998064,
+        //                     "updatedTime": 1681273188674,
+        //                     "ordinary": false
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // stop-loss and take-profit
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "page": 1,
+        //             "ps": 3,
+        //             "total": 2,
+        //             "items": [
+        //                 {
+        //                     "profitId": "216306213226230400",
+        //                     "symbol": "btc_usdt",
+        //                     "positionSide": "LONG",
+        //                     "origQty": "1",
+        //                     "triggerPriceType": "LATEST_PRICE",
+        //                     "triggerProfitPrice": null,
+        //                     "triggerStopPrice": "20000",
+        //                     "entryPrice": "0",
+        //                     "positionSize": "0",
+        //                     "isolatedMargin": "0",
+        //                     "executedQty": "0",
+        //                     "avgPrice": null,
+        //                     "positionType": "ISOLATED",
+        //                     "state": "USER_REVOCATION",
+        //                     "createdTime": 1681273420039
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
         const isSpotOpenOrders = ((status === 'open') && (subType === undefined));
         const data = this.safeValue (response, 'result', {});
         const orders = isSpotOpenOrders ? this.safeValue (response, 'result', []) : this.safeValue (data, 'items', []);
@@ -2640,10 +2775,14 @@ export default class xt extends Exchange {
          * @description fetch all unfilled currently open orders
          * @see https://doc.xt.com/#orderopenOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
+         * @see https://doc.xt.com/#futures_entrustgetPlan
+         * @see https://doc.xt.com/#futures_entrustgetProfit
          * @param {string|undefined} symbol unified market symbol of the market the orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
+         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
@@ -2656,10 +2795,14 @@ export default class xt extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @see https://doc.xt.com/#orderhistoryOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
+         * @see https://doc.xt.com/#futures_entrustgetPlan
+         * @see https://doc.xt.com/#futures_entrustgetProfit
          * @param {string|undefined} symbol unified market symbol of the market the orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
+         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
@@ -2672,10 +2815,14 @@ export default class xt extends Exchange {
          * @description fetches information on multiple canceled orders made by the user
          * @see https://doc.xt.com/#orderhistoryOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
+         * @see https://doc.xt.com/#futures_entrustgetPlan
+         * @see https://doc.xt.com/#futures_entrustgetProfit
          * @param {string|undefined} symbol unified market symbol of the market the orders were made in
          * @param {int|undefined} since timestamp in ms of the earliest order
          * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the xt api endpoint
+         * @param {bool|undefined} params.stop if the order is a stop trigger order or not
+         * @param {bool|undefined} params.stopLossTakeProfit if the order is a stop-loss or take-profit order
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
@@ -2911,7 +3058,7 @@ export default class xt extends Exchange {
         //         "updatedTime": 1679180096172
         //     }
         //
-        // trigger: fetchOrder
+        // trigger: fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus
         //
         //     {
         //         "entrustId": "216300248132756992",
@@ -2932,7 +3079,7 @@ export default class xt extends Exchange {
         //         "ordinary": false
         //     }
         //
-        // stop-loss and take-profit: fetchOrder
+        // stop-loss and take-profit: fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus
         //
         //     {
         //         "profitId": "216306213226230400",
