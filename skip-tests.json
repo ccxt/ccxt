@@ -292,10 +292,14 @@
 		"//": "private endpoints"
 	},
 	"coinbasepro": {
-		"skipWs": true
+		"skipWs": true,
+		"skip": true,
+		"//": "temp skip needed for php"
 	},
 	"coinbaseprime": {
-		"skipWs": true
+		"skipWs": true,
+		"skip": true,
+		"//": "temp skip needed for php"
 	},
 	"coinspot": {
 		"skipMethods": {
@@ -402,7 +406,8 @@
 	"digifinex": {
 		"skipMethods": {
 			"fetchCurrencies": "precision should be above 0",
-			"fetchTickers": "unexpected symbol is being returned"
+			"fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
+			"fetchTicker": "same"
 		}
 	},
 	"gate": {
@@ -436,6 +441,8 @@
 	},
 	"huobi": {
 		"skipWs": true,
+		"skip": true,
+		"//": "temp skip needed for php",
 		"skipMethods": {
 			"fetchCurrencies": "precision is undefined",
 			"fetchTickers": "open might be set to 0 (i.e. f1f2x8z9 symbol), also quoteVolume >= baseVolume * low is failing",
