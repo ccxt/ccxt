@@ -1255,7 +1255,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const challenge = this.safeValue (message, 'message');
             const hashedChallenge = this.hash (this.encode (challenge), sha256);
             const base64Secret = this.base64ToBinary (this.secret);
-            const signature = this.binaryToBase64 (this.encode (this.hmac (hashedChallenge, base64Secret, sha512, 'base64')));
+            const signature = this.hmac (hashedChallenge, base64Secret, sha512, 'base64');
             this.options.challenge = challenge;
             this.options.signedChallenge = signature;
             client.resolve (message, messageHash);
