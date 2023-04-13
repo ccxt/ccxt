@@ -228,8 +228,6 @@
 			"fetchTickers": "bid might be set to 0",
 			"fetchTicker": "same"
 		},
-		"skip": true,
-		"//": "seems unavailable"
 	},
 	"btcbox": {
 		"skipMethods": {
@@ -309,10 +307,7 @@
 			"fetchTickers": "close might be 0"
 		}
 	},
-	"buda": {
-		"skip": true,
-		"//": "exchange unavailable"
-	},
+	"buda": { },
 	"cdax": {
 		"skipWs": true
 	},
@@ -535,8 +530,6 @@
 			"fetchTickers": "quoteVolume >= baseVolume * low is failing",
 			"fetchTicker": "same"
 		},
-		"skip": true,
-		"//": "seems unavailable"
 	},
 	"lbank2": {
 		"skipMethods": {
@@ -613,8 +606,6 @@
 		}
 	},
 	"okcoin": {
-		"skip": true,
-		"//": "temporary unavailable",
 		"skipWs": true,
 		"skipMethods": {
 			"fetchTickers": "quoteVolume <= baseVolume * high is failing",
@@ -643,10 +634,7 @@
 			"loadMarkets": "linear & inverse must not be same"
 		}
 	},
-	"tidex": {
-		"skip": true,
-		"//": "exchange unavailable"
-	},
+	"tidex": { },
 	"krakenfutures": {
 		"skipMethods": {
 			"loadMarkets": "type is unexpected",
@@ -664,8 +652,6 @@
 		}
 	},
 	"ripio": {
-		"skip": true,
-		"//": "exchange unavailable",
 		"skipWs": true
 	},
 	"timex": {

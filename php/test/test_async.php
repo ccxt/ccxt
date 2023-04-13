@@ -160,6 +160,7 @@ function set_exchange_prop ($exchange, $prop, $value) {
 use Exception; // a common import
 
 use ccxt\AuthenticationError;
+use ccxt\ExchangeNotAvailable;
 use React\Async;
 use React\Promise;
 

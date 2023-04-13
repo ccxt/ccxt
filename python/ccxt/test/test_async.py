@@ -189,6 +189,7 @@ async def test_throttle():
 
 import asyncio
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class testMainClass(baseMainTestClass):

@@ -64,6 +64,7 @@ Object.keys (errorsHierarchy)
     });
 
 const AuthenticationError = ccxt.AuthenticationError;
+const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 
 // non-transpiled commons
 const rootDir = __dirname + '/../../../';
@@ -226,9 +227,14 @@ export default class testMainClass extends baseMainTestClass {
             }
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
+            const notAvailable = (e instanceof ExchangeNotAvailable);
             if (!(isPublic && isAuthError)) {
                 dump ('ERROR:', exceptionMessage(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;
+            }
+            if (notAvailable) {
+                // previously, we threw an error, however we can't do that anymore, because it breaks the build, and instead show warning in such cases
+                dump ('[WARNING:EXCHANGE_NOT_AVAILABLE]', exchange.id, methodNameInTest, argsStringified);
             }
         }
         return result;
