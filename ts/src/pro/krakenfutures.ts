@@ -207,7 +207,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @description watches information on multiple orders made by the user
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol not used by krakenfutures watchOrders
          * @param {int|undefined} since not used by krakenfutures watchOrders
          * @param {int|undefined} limit not used by krakenfutures watchOrders
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
@@ -217,7 +217,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const name = 'open_orders';
         const orders = await this.subscribePrivate (name, params);
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limit = orders.getLimit (symbol, limit); // TODO: shouldn't be restricted to 1 symbol
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
@@ -398,7 +398,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const timestamp = this.safeInteger (trade, 'tradeTime');
-        const marketId = this.safeString (trade, 'symbol');
+        const marketId = this.safeStringLower (trade, 'symbol');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
@@ -471,16 +471,16 @@ export default class krakenfutures extends krakenfuturesRest {
             this.orders = orders;
         }
         const order = this.safeValue (message, 'order');
-        const marketId = this.safeString (order, 'symbol');
+        const marketId = this.safeStringLower (order, 'instrument');
         if (marketId !== undefined) {
-            const messageHash = 'orders:' + marketId;
+            const messageHash = 'open_orders';
             const symbol = this.safeSymbol (marketId);
             const orderId = this.safeString (order, 'order_id');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             const previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
                 const parsed = this.parseWsOrder (order);
-                orders.append (parsed);
+                orders.push (parsed);
                 client.resolve (orders, messageHash);
             } else {
                 const trade = this.parseWsTrade (order);
@@ -520,7 +520,7 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
-                orders.append (this.safeOrder (previousOrder));
+                orders.push (this.safeOrder (previousOrder));
                 client.resolve (orders, messageHash);
             }
         }
@@ -576,20 +576,14 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         const orders = this.safeValue (message, 'orders', []);
-        const marketIds = {};
+        const limit = this.safeInteger (this.options, 'ordersLimit');
+        this.orders = new ArrayCacheBySymbolById (limit);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
-            const marketId = this.safeStringLower (message, 'instrument');
-            marketIds[marketId] = true;
             const parsed = this.parseWsOrder (order);
-            orders.append (parsed);
+            this.orders.push (parsed);
         }
-        const marketIdKeys = Object.keys (marketIds);
-        for (let i = 0; i < marketIdKeys.length; i++) {
-            const marketId = marketIdKeys[i];
-            const messageHash = 'orders:' + marketId;
-            client.resolve (orders, messageHash);
-        }
+        client.resolve (this.orders, 'open_orders');
     }
 
     parseWsOrder (order: any, market: any = undefined) {
@@ -640,7 +634,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 status = 'cancelled';
             }
         }
-        const marketId = this.safeString (unparsedOrder, 'instrument');
+        const marketId = this.safeStringLower (unparsedOrder, 'instrument');
         const timestamp = this.safeString (unparsedOrder, 'time');
         const direction = this.safeInteger (unparsedOrder, 'direction');
         return this.safeOrder ({
