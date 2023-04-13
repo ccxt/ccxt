@@ -34,7 +34,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'options': {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
-                'watchOrderBookMethod': '/contractMarket/level3v2', // can also be '/contractMarket/level2'
+                'watchOrderBook': {
+                    'method': '/contractMarket/level3v2', // can also be '/contractMarket/level2'
+                },
                 'publicToken': undefined,
                 'privateToken': undefined,
             },
@@ -85,7 +87,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.options['privateToken'];
     }
 
-    async subscribe (name, isPrivate, symbol = undefined, params = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbol: string = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -170,8 +172,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        let name = this.safeString (this.options, 'watchOrderBookMethod', '/contractMarket/level3v2'); // can also be /contractMarket/level2
-        [ name, params ] = this.handleOptionAndParams (params, 'watchOrderBookMethod', 'name', name);
+        const options = this.safeValue (this.options, 'watchOrderBook');
+        let name = this.safeString (options, 'method', '/contractMarket/level3v2'); // can also be /contractMarket/level2
+        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         const orderbook = await this.subscribe (name, false, symbol, params);
         return orderbook.limit ();
     }
@@ -607,18 +610,19 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const market = this.safeMarket (marketId);
         // const orderId = this.safeString (data, 'orderId');
         const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
-        const messageHash = this.safeString (data, 'topic');
+        const messageHash = this.safeString (message, 'topic');
         const side = this.safeString (data, 'side');
-        const size = this.safeString (data, 'size');
-        const price = this.safeString (data, 'price');
+        const size = this.safeNumber (data, 'size');
+        const price = this.safeNumber (data, 'price');
         const orderId = this.safeString (data, 'orderId');
         const symbol = this.safeString (market, 'symbol');
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         // const update = type === 'done';
-        const orderBook = this.safeValue (this.orderbooks, symbol);
+        let orderBook = this.safeValue (this.orderbooks, symbol);
         if (orderBook === undefined) {
             this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
+            orderBook = this.orderbooks[symbol];
         }
         if (side === 'buy') {  // Only happens if subject is open
             orderBook['bids'].store (price, size, orderId);
@@ -627,6 +631,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }
         orderBook['timestamp'] = timestamp;
         orderBook['datetime'] = this.iso8601 (timestamp);
+        orderBook['symbol'] = symbol;
         client.resolve (orderBook, messageHash);
     }
 
@@ -651,7 +656,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //    }
         //
         const data = this.safeValue (message, 'data', {});
-        const messageHash = this.safeString (data, 'topic');
+        const messageHash = this.safeString (message, 'topic', '');
         const splitTopic = messageHash.split (':');
         const marketId = this.safeString (splitTopic, 1);
         const market = this.safeMarket (marketId);
@@ -659,15 +664,16 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const timestamp = this.safeInteger (data, 'timestamp');
         const change = this.safeString (data, 'change');
         const splitChange = change.split (',');
-        const price = this.safeString (splitChange, 0);
+        const price = this.safeNumber (splitChange, 0);
         const side = this.safeString (splitChange, 1);
-        const size = this.safeString (splitChange, 2);
+        const size = this.safeNumber (splitChange, 2);
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         // const update = type === 'done';
-        const orderBook = this.safeValue (this.orderbooks, symbol);
+        let orderBook = this.safeValue (this.orderbooks, symbol);
         if (orderBook === undefined) {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
+            orderBook = this.orderbooks[symbol];
         }
         if (side === 'buy') {  // Only happens if subject is open
             orderBook['bids'].store (price, size);
@@ -676,6 +682,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }
         orderBook['timestamp'] = timestamp;
         orderBook['datetime'] = this.iso8601 (timestamp);
+        orderBook['symbol'] = symbol;
         client.resolve (orderBook, messageHash);
     }
 
