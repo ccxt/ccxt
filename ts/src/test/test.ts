@@ -8,7 +8,7 @@ import { Agent } from 'https';
 import ccxt from '../../ccxt.js';
 import HttpsProxyAgent from 'https-proxy-agent'
 import { fileURLToPath, pathToFileURL } from 'url';
-const __dirname = fileURLToPath(new URL('.', import.meta.url)); // new URL('.', import.meta.url).pathname;
+const __dirname = fileURLToPath (new URL ('.', import.meta.url)); // new URL('.', import.meta.url).pathname;
 
 // ----------------------------------------------------------------------------
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
@@ -75,12 +75,12 @@ function dump (...args) {
 }
 
 function ioFileExists (path) {
-    return fs.existsSync(path);
+    return fs.existsSync (path);
 }
 
 function ioFileRead (path, decode = true) {
-    const content = fs.readFileSync(path, 'utf8');
-    return decode ? JSON.parse(content) : content;
+    const content = fs.readFileSync (path, 'utf8');
+    return decode ? JSON.parse (content) : content;
 }
 
 function exceptionMessage (exc) {
@@ -91,13 +91,13 @@ async function callMethod (methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
-function add_proxy (exchange, httpProxy) {
+function addProxy (exchange, httpProxy) {
     // add real proxy agent
-    exchange.agent = new HttpsProxyAgent(httpProxy);
+    exchange.agent = new HttpsProxyAgent (httpProxy);
 }
 
 function exitScript () {
-    process.exit(0);
+    process.exit (0);
 }
 
 function getExchangeProp (exchange, prop, defaultValue = undefined) {
@@ -144,7 +144,7 @@ export default class testMainClass extends baseMainTestClass {
             // support simple proxy
             const proxy = getExchangeProp (exchange, 'httpProxy');
             if (proxy) {
-                add_proxy(exchange, proxy);
+                addProxy (exchange, proxy);
             }
         }
         // credentials
