@@ -265,7 +265,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.subscribePrivate (name, params);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         // snapshot
         //
@@ -330,7 +330,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade: any, market: any = undefined) {
         //
         //    {
         //        "feed": "trade",
@@ -368,7 +368,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }, market);
     }
 
-    parseWsOrderTrade (trade, market = undefined) {
+    parseWsOrderTrade (trade: any, market: any = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -420,7 +420,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }, market);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //  update (verbose)
         //
@@ -527,7 +527,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return message;
     }
 
-    handleOrderSnapshot (client: Client, message) {
+    handleOrderSnapshot (client: Client, message: any) {
         //
         // verbose
         //
@@ -592,7 +592,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order: any, market: any = undefined) {
         //
         // update
         //
@@ -673,7 +673,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        time: 1680811086487,
@@ -735,7 +735,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return message;
     }
 
-    parseWsTicker (ticker, market = undefined) {
+    parseWsTicker (ticker: any, market: any = undefined) {
         //
         //    {
         //        time: 1680811086487,
@@ -813,7 +813,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleOrderBookSnapshot (client: Client, message) {
+    handleOrderBookSnapshot (client: Client, message: any) {
         //
         //    {
         //        "feed": "book_snapshot",
@@ -872,7 +872,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "feed": "book",
@@ -903,7 +903,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // snapshot
         //
@@ -1108,7 +1108,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //    {
         //        "feed": "fills_snapshot",
@@ -1160,7 +1160,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (stored, 'myTrades');
     }
 
-    parseWsMyTrade (trade, market = undefined) {
+    parseWsMyTrade (trade: any, market: any = undefined) {
         //
         //    {
         //        "instrument": "FI_XBTUSD_200925",
@@ -1237,7 +1237,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         /**
          * @ignore
          * @method
