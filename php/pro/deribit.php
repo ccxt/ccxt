@@ -157,6 +157,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {str|null} $params->interval specify aggregation and frequency of notifications. Possible values => 100ms, raw
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $interval = $this->safe_string($params, 'interval', '100ms');
@@ -807,43 +808,39 @@ class deribit extends \ccxt\async\deribit {
         //         testnet => false
         //     }
         //
-        $future = $this->safe_value($client->futures, 'authenticated');
-        if ($future !== null) {
-            $future->resolve (true);
-        }
+        $messageHash = 'authenticated';
+        $client->resolve ($message, $messageHash);
         return $message;
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $time = $this->milliseconds();
-            $timeString = $this->number_to_string($time);
-            $nonce = $timeString;
-            $messageHash = 'authenticated';
-            $future = $client->future ('authenticated');
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $this->check_required_credentials();
-                $requestId = $this->request_id();
-                $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'jsonrpc' => '2.0',
-                    'id' => $requestId,
-                    'method' => 'public/auth',
-                    'params' => array(
-                        'grant_type' => 'client_signature',
-                        'client_id' => $this->apiKey,
-                        'timestamp' => $time,
-                        'signature' => $signature,
-                        'nonce' => $nonce,
-                        'data' => '',
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
-            }
-            return Async\await($future);
-        }) ();
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $time = $this->milliseconds();
+        $timeString = $this->number_to_string($time);
+        $nonce = $timeString;
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $this->check_required_credentials();
+            $requestId = $this->request_id();
+            $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
+            $request = array(
+                'jsonrpc' => '2.0',
+                'id' => $requestId,
+                'method' => 'public/auth',
+                'params' => array(
+                    'grant_type' => 'client_signature',
+                    'client_id' => $this->apiKey,
+                    'timestamp' => $time,
+                    'signature' => $signature,
+                    'nonce' => $nonce,
+                    'data' => '',
+                ),
+            );
+            $future = $this->watch($url, $messageHash, array_merge($request, $params));
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 }

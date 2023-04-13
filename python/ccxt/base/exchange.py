@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.60'
+__version__ = '3.0.62'
 
 # -----------------------------------------------------------------------------
 
@@ -688,9 +688,11 @@ class Exchange(object):
 
     @staticmethod
     def key_exists(dictionary, key):
-        if hasattr(dictionary, '__getitem__'):
+        if hasattr(dictionary, '__getitem__') and not isinstance(dictionary, str):
+            if isinstance(dictionary, list) and type(key) is not int:
+                return False
             try:
-                value = dictionary.__getitem__(key)
+                value = dictionary[key]
                 return value is not None and value != ''
             except LookupError:
                 return False

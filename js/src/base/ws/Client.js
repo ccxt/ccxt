@@ -264,6 +264,11 @@ export default class Client {
             this.log(new Date(), 'onMessage JSON.parse', e);
             // reset with a json encoding error ?
         }
-        this.onMessageCallback(this, message);
+        try {
+            this.onMessageCallback(this, message);
+        }
+        catch (error) {
+            this.reject(error);
+        }
     }
 }

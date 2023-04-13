@@ -2899,12 +2899,16 @@ class bybit(Exchange):
                 # use self endpoint only we have no other choice
                 # because it requires transfer permission
                 method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery'
+                request['accountType'] = unifiedType
             else:
                 if enableUnifiedAccount:
                     method = 'privateGetV5AccountWalletBalance'
+                    request['accountType'] = unifiedType
+                elif enableUnifiedMargin:
+                    method = 'privateGetUnifiedV3PrivateAccountWalletBalance'
                 else:
                     method = 'privateGetContractV3PrivateAccountWalletBalance'
-            request['accountType'] = unifiedType
+                    request['accountType'] = unifiedType
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot wallet
@@ -3359,6 +3363,8 @@ class bybit(Exchange):
                     quoteAmount = Precise.string_mul(amountString, priceString)
                     amount = cost if (cost is not None) else self.parse_number(quoteAmount)
                     request['qty'] = self.cost_to_precision(symbol, amount)
+            else:
+                request['qty'] = self.cost_to_precision(symbol, amount)
         else:
             request['qty'] = self.amount_to_precision(symbol, amount)
         isMarket = lowerCaseType == 'market'
@@ -3451,6 +3457,8 @@ class bybit(Exchange):
                     quoteAmount = Precise.string_mul(amountString, priceString)
                     amount = cost if (cost is not None) else self.parse_number(quoteAmount)
                     request['orderQty'] = self.cost_to_precision(symbol, amount)
+            else:
+                request['orderQty'] = self.cost_to_precision(symbol, amount)
         else:
             request['orderQty'] = self.amount_to_precision(symbol, amount)
         if (upperCaseType == 'LIMIT') or (upperCaseType == 'LIMIT_MAKER'):

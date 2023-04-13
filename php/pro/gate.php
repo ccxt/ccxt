@@ -905,7 +905,9 @@ class gate extends \ccxt\async\gate {
             $method = $methods[$channel];
             $method($client, $message, $subscription);
         }
-        unset($client->subscriptions[$id]);
+        if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+            unset($client->subscriptions[$id]);
+        }
     }
 
     public function handle_message(Client $client, $message) {

@@ -3017,14 +3017,18 @@ class bybit extends Exchange {
                     // use this endpoint only we have no other choice
                     // because it requires transfer permission
                     $method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery';
+                    $request['accountType'] = $unifiedType;
                 } else {
                     if ($enableUnifiedAccount) {
                         $method = 'privateGetV5AccountWalletBalance';
+                        $request['accountType'] = $unifiedType;
+                    } elseif ($enableUnifiedMargin) {
+                        $method = 'privateGetUnifiedV3PrivateAccountWalletBalance';
                     } else {
                         $method = 'privateGetContractV3PrivateAccountWalletBalance';
+                        $request['accountType'] = $unifiedType;
                     }
                 }
-                $request['accountType'] = $unifiedType;
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -3511,6 +3515,8 @@ class bybit extends Exchange {
                         $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
                         $request['qty'] = $this->cost_to_precision($symbol, $amount);
                     }
+                } else {
+                    $request['qty'] = $this->cost_to_precision($symbol, $amount);
                 }
             } else {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
@@ -3617,6 +3623,8 @@ class bybit extends Exchange {
                         $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
                         $request['orderQty'] = $this->cost_to_precision($symbol, $amount);
                     }
+                } else {
+                    $request['orderQty'] = $this->cost_to_precision($symbol, $amount);
                 }
             } else {
                 $request['orderQty'] = $this->amount_to_precision($symbol, $amount);
