@@ -2151,11 +2151,11 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
-        const until = this.safeInteger2 (query, 'until', 'till');
+        const until = this.safeInteger2 (params, 'until', 'till');
         if (limit === undefined) {
             limit = 100;
         }
+        const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe (timeframe);
@@ -2186,7 +2186,7 @@ export default class bitget extends Exchange {
                 }
             }
         }
-        const ommitted = this.omit (query, [ 'until', 'till' ]);
+        const ommitted = this.omit (params, [ 'until', 'till' ]);
         const extended = this.extend (request, ommitted);
         let response = undefined;
         if (market['spot']) {
