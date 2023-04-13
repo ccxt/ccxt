@@ -168,7 +168,7 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
         if (exchange.safeValue (skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol);
+            dump ('[SKIPPED] exchange', exchangeId);
             exitScript();
         }
         if (exchange.alias) {
