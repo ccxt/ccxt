@@ -161,6 +161,12 @@ public partial class Exchange
 
         if (method == "GET")
         {
+            // if (contentType != "")
+            // {
+            //     this.client.DefaultRequestHeaders
+            //     .Accept
+            //     .Add(new MediaTypeWithQualityHeaderValue(contentType));
+            // }
             response = await this.client.GetAsync(url);
             result = await response.Content.ReadAsStringAsync();
         }
@@ -173,6 +179,8 @@ public partial class Exchange
             response = await this.client.PostAsync(url, stringContent);
             result = await response.Content.ReadAsStringAsync();
         }
+
+        this.client.DefaultRequestHeaders.Clear();
 
         var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
         var httpStatusCode = (int)response?.StatusCode;
@@ -318,12 +326,6 @@ public partial class Exchange
         }
 
         return marketsLoading;
-    }
-
-    public async virtual Task loadTimeDifference()
-    {
-        // var response = await this.fetch2("", "", "", new dict(), new dict(), new dict(), new dict());
-        // this.options["timeDifference"] = this.milliseconds() - this.parse8601(response["iso8601"] as String);
     }
 
     public virtual async Task<object> fetchMarkets(object parameters = null)

@@ -7,31 +7,6 @@ using dict = Dictionary<string, object>;
 public partial class Exchange
 {
 
-    public static class JsonHelper
-    {
-        public static object Deserialize(string json)
-        {
-            return ToObject(JToken.Parse(json));
-        }
-
-        public static object ToObject(JToken token)
-        {
-            switch (token.Type)
-            {
-                case JTokenType.Object:
-                    return token.Children<JProperty>()
-                                .ToDictionary(prop => prop.Name,
-                                              prop => ToObject(prop.Value));
-
-                case JTokenType.Array:
-                    return token.Select(ToObject).ToList();
-
-                default:
-                    return ((JValue)token).Value;
-            }
-        }
-    }
-
     public string stringifyObject(object d2)
     {
         var output = "";
@@ -64,5 +39,30 @@ public partial class Exchange
             return output;
         }
         return (string)output;
+    }
+}
+
+public static class JsonHelper
+{
+    public static object Deserialize(string json)
+    {
+        return ToObject(JToken.Parse(json));
+    }
+
+    public static object ToObject(JToken token)
+    {
+        switch (token.Type)
+        {
+            case JTokenType.Object:
+                return token.Children<JProperty>()
+                            .ToDictionary(prop => prop.Name,
+                                          prop => ToObject(prop.Value));
+
+            case JTokenType.Array:
+                return token.Select(ToObject).ToList();
+
+            default:
+                return ((JValue)token).Value;
+        }
     }
 }

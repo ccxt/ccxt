@@ -7,9 +7,19 @@ public partial class Exchange
 
     public long milliseconds()
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        long unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
-        return unixTimeMilliseconds;
+        // DateTimeOffset now = DateTimeOffset.UtcNow;
+        // long unixTimeMilliseconds = now.ToUnixTimeMilliseconds();
+        // return unixTimeMilliseconds;
+        // DateTime unixEpoch = new DateTime(1970, 1, 1);
+
+        // DateTime currentTime = DateTime.UtcNow;
+        // TimeSpan elapsedTime = unixEpoch.Subtract(currentTime);
+
+        // long unixTimstamp = (long)elapsedTime.TotalMilliseconds;
+        // return unixTimstamp;
+        DateTimeOffset now = (DateTimeOffset)DateTime.UtcNow;
+        var res = now.ToUnixTimeMilliseconds();
+        return res;
     }
 
     public long microseconds()
