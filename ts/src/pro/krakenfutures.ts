@@ -235,7 +235,7 @@ export default class krakenfutures extends krakenfuturesRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const name = 'orders';
+        const name = 'fills';
         const orders = await this.subscribePrivate (name, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -1143,15 +1143,15 @@ export default class krakenfutures extends krakenfuturesRest {
             const trade = trades[i];
             const parsedTrade = this.parseWsMyTrade (trade);
             tradeSymbols[parsedTrade['symbol']] = true;
-            stored.append (trade);
+            stored.append (parsedTrade);
         }
         const tradeSymbolKeys = Object.keys (tradeSymbols);
         for (let i = 0; i < tradeSymbolKeys.length; i++) {
             const symbol = tradeSymbolKeys[i];
-            const messageHash = 'myTrades:' + symbol;
+            const messageHash = 'fills:' + symbol;
             client.resolve (stored, messageHash);
         }
-        client.resolve (stored, 'myTrades');
+        client.resolve (stored, 'fills');
     }
 
     parseWsMyTrade (trade: any, market: any = undefined) {
@@ -1183,7 +1183,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'id': this.safeString (trade, 'fill_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'order': this.safeString (trade, 'order_id'),
             'type': this.safeString (trade, 'type'),
             'side': isBuy ? 'buy' : 'sell',
