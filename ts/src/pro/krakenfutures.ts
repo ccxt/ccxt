@@ -97,7 +97,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const symbol = symbols[0];
             const marketId = this.marketId (symbol);
             marketIds.push (marketId);
-            messageHash = messageHash + ':' + marketId;
+            messageHash = messageHash + ':' + symbol;
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -305,9 +305,9 @@ export default class krakenfutures extends krakenfuturesRest {
         const channel = this.safeString (message, 'feed');
         const marketId = this.safeStringLower (message, 'product_id');
         if (marketId !== undefined) {
-            const messageHash = 'trade:' + marketId;
             const market = this.market (marketId);
             const symbol = market['symbol'];
+            const messageHash = 'trade:' + symbol;
             let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -722,7 +722,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const ticker = this.parseWsTicker (message);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const messageHash = feed + ':' + marketId;
+            const messageHash = feed + ':' + symbol;
             client.resolve (ticker, messageHash);
         }
         client.resolve (this.tickers, feed);
@@ -840,7 +840,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const marketId = this.safeStringLower (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const messageHash = 'book:' + marketId;
+        const messageHash = 'book:' + symbol;
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         const timestamp = this.safeInteger (message, 'timestamp');
@@ -881,7 +881,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const marketId = this.safeStringLower (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const messageHash = 'book:' + marketId;
+        const messageHash = 'book:' + symbol;
         const orderbook = this.orderbooks[symbol];
         const side = this.safeString (message, 'side');
         const price = this.safeNumber (message, 'price');
