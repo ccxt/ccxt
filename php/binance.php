@@ -2198,9 +2198,10 @@ class binance extends Exchange {
                 'max' => $this->safe_number($filter, 'maxQty'),
             );
         }
-        if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
-            $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
+        if ((is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) || (is_array($filtersByType) && array_key_exists('NOTIONAL', $filtersByType))) { // notional added in 12/04/23 to $spot testnet
+            $filter = $this->safe_value_2($filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', array());
             $entry['limits']['cost']['min'] = $this->safe_number_2($filter, 'minNotional', 'notional');
+            $entry['limits']['cost']['max'] = $this->safe_number($filter, 'maxNotional');
         }
         return $entry;
     }

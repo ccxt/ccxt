@@ -2206,9 +2206,10 @@ export default class binance extends Exchange {
                 'max': this.safeNumber (filter, 'maxQty'),
             };
         }
-        if ('MIN_NOTIONAL' in filtersByType) {
-            const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
+        if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) { // notional added in 12/04/23 to spot testnet
+            const filter = this.safeValue2 (filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
             entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
+            entry['limits']['cost']['max'] = this.safeNumber (filter, 'maxNotional');
         }
         return entry;
     }

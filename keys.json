@@ -24,7 +24,7 @@
     "currencycom":   { "skipWs": true },
     "cryptocom":     { "skipWs": true },
     "huobipro":      { "skipWs": true },
-    "okcoin":        { "skipWs": true },
+    "okcoin":        { "skip":true, "skipWs": true, "//": "14/04: unavailable" },
     "poloniex":      { "skipWs": true },
     "zipmex":        { "skipWs": true },
     "bequant":       { "skipWs": true },

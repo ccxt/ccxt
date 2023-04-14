@@ -1618,7 +1618,7 @@ class poloniex(Exchange):
         self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
-        start = int((since / str(1000))) if (since is not None) else now - 10 * year
+        start = self.parse_to_int(since / 1000) if (since is not None) else now - 10 * year
         request = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
