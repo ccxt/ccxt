@@ -219,7 +219,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.subscribe (name, true, undefined, params);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message) {
         //
         //    {
         //        data: {
@@ -258,7 +258,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    parseWsTrade (trade: any, market: any = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
         // handleTrade
         //
@@ -297,7 +297,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }, market);
     }
 
-    parseWsOrderTrade (trade: any, market: any = undefined) {
+    parseWsOrderTrade (trade, market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -349,7 +349,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }, market);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message) {
         //
         //    {
         //        data: {
@@ -464,7 +464,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order: any, market: any = undefined) {
+    parseWsOrder (order, market = undefined) {
         //
         //    {
         //        symbol: 'ADAUSDTPERP',
@@ -527,7 +527,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         });
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message) {
         //
         //    {
         //        "subject": "ticker",
@@ -560,7 +560,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message) {
         //
         //    {
         //        data: {
@@ -635,7 +635,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         client.resolve (orderBook, messageHash);
     }
 
-    handleLevel2OrderBook (client: Client, message: any) {
+    handleLevel2OrderBook (client: Client, message) {
         //
         //    {
         //        "id": 1545910660740,
@@ -686,7 +686,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         client.resolve (orderBook, messageHash);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message) {
         //
         //    {
         //        data: {
@@ -733,7 +733,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    parseWsBalance (response: any) {
+    parseWsBalance (response) {
         //
         //    {
         //        currency: 'USDT',
