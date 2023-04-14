@@ -199,7 +199,7 @@ const testExchange = async (exchange) => {
     numExchangesTested++
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
 
-    if (skipSettings[exchange].skip) {
+    if (skipSettings[exchange] && skipSettings[exchange].skip) {
         log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
         return [];
     }
