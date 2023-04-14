@@ -285,7 +285,8 @@ export default class poloniex extends poloniexRest {
         await this.loadMarkets ();
         const name = 'orders';
         await this.authenticate ();
-        const orders = await this.subscribe (name, true, [ symbol ], params);
+        const symbols = (symbol === undefined) ? [] : [ symbol ];
+        const orders = await this.subscribe (name, true, symbols, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -899,7 +900,7 @@ export default class poloniex extends poloniexRest {
         const type = this.safeString (message, 'channel');
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
-            return client.handlePong (message);
+            return client.onPong (message);
         }
         const methods = {
             'candles_minute_1': this.handleOHLCV,
