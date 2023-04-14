@@ -37,8 +37,13 @@ export default class krakenfutures extends krakenfuturesRest {
                 'OHLCVLimit': 1000,
                 'connectionLimit': 100, // https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-subscriptions-limits
                 'requestLimit': 100, // per second
-                'watchTickerMethod': 'ticker', // or ticker_lite
-                'watchTickersMethod': 'ticker', // or ticker_lite
+                'keepAlive': 60000,
+                'watchTicker': {
+                    'method': 'ticker', // or ticker_lite
+                },
+                'watchTickers': {
+                    'method': 'ticker', // or ticker_lite
+                },
                 'fetchBalance': {
                     'type': undefined,
                 },
@@ -142,9 +147,10 @@ export default class krakenfutures extends krakenfuturesRest {
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const method = this.safeString (this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
-        const name = this.safeString2 (params, 'method', 'watchTickerMethod', method);
-        params = this.omit (params, [ 'watchTickerMethod', 'method' ]);
+        const options = this.safeValue (this.options, 'watchTicker');
+        const method = this.safeString (options, 'method', 'ticker'); // or ticker_lite
+        const name = this.safeString (params, 'method', method);
+        params = this.omit (params, [ 'method' ]);
         return await this.subscribePublic (name, [ symbol ], params);
     }
 
