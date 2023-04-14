@@ -1558,7 +1558,7 @@ class gemini extends gemini$1 {
             }, query);
             let payload = this.json(request);
             payload = this.stringToBase64(payload);
-            const signature = this.hmac(payload, this.encode(this.secret), sha512.sha384);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,

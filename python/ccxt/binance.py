@@ -2172,9 +2172,10 @@ class binance(Exchange):
                 'min': self.safe_number(filter, 'minQty'),
                 'max': self.safe_number(filter, 'maxQty'),
             }
-        if 'MIN_NOTIONAL' in filtersByType:
-            filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
+        if ('MIN_NOTIONAL' in filtersByType) or ('NOTIONAL' in filtersByType):  # notional added in 12/04/23 to spot testnet
+            filter = self.safe_value_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {})
             entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
+            entry['limits']['cost']['max'] = self.safe_number(filter, 'maxNotional')
         return entry
 
     def parse_balance_helper(self, entry):
