@@ -459,6 +459,19 @@ export default class poloniex extends poloniexRest {
         }, market);
     }
 
+    parseStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'filled',
+            'PENDING_CANCEL': 'open',
+            'PARTIALLY_CANCELED': 'open',
+            'CANCELED': 'canceled',
+            // FAILED
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseWsOrderTrade (trade, market = undefined) {
         //
         //    {
@@ -652,6 +665,7 @@ export default class poloniex extends poloniexRest {
         const marketId = this.safeString (order, 'symbol');
         const timestamp = this.safeString (order, 'ts');
         const filledAmount = this.safeString (order, 'filledAmount');
+        const status = this.safeString (order, 'state');
         let trades = undefined;
         if (!Precise.stringEq (filledAmount, '0')) {
             trades = [];
@@ -678,7 +692,7 @@ export default class poloniex extends poloniexRest {
             'average': undefined,
             'filled': filledAmount,
             'remaining': this.safeString (order, 'remaining_size'),
-            'status': undefined, // TODO?: eventType, state
+            'status': this.parseStatus (status),
             'fee': {
                 'rate': undefined,
                 'cost': this.safeString (order, 'tradeFee'),
