@@ -273,7 +273,6 @@
         }
     },
     "bybit": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT",
             "fetchTicker": "same"
@@ -411,7 +410,6 @@
         }
     },
     "gate": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "max should be above min",
             "fetchTrades": "timestamp is in decimal seconds like 1234567890.123",
@@ -420,7 +418,6 @@
         }
     },
     "hitbtc": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "close is undefined",
             "fetchTicker": "same"
@@ -470,7 +467,6 @@
         }
     },
     "probit": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
             "fetchTicker": "same"
@@ -594,7 +590,6 @@
         }
     },
     "mexc3": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTrades": "side is not buy/sell",
             "fetchTickers": "quoteVolume >= baseVolume * low  is incorrect"
@@ -614,7 +609,6 @@
         }
     },
     "phemex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "contractSize might be set to 0"
         }
@@ -645,7 +639,6 @@
         }
     },
     "okx": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same"
         }
