@@ -3816,10 +3816,10 @@ class okx extends Exchange {
             'dest' => '4', // 2 = OKCoin International, 3 = OKX 4 = others
             'amt' => $this->number_to_string($amount),
         );
-        $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
         if ($network !== null) {
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
             $request['chain'] = $currency['id'] . '-' . $network;
             $params = $this->omit($params, 'network');
         }

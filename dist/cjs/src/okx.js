@@ -3862,10 +3862,10 @@ class okx extends okx$1 {
             'dest': '4',
             'amt': this.numberToString(amount),
         };
-        const networks = this.safeValue(this.options, 'networks', {});
         let network = this.safeString(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
         if (network !== undefined) {
+            const networks = this.safeValue(this.options, 'networks', {});
+            network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit(params, 'network');
         }
