@@ -49,6 +49,7 @@ export default class krakenfutures extends krakenfuturesRest {
             },
             'streaming': {
                 'keepAlive': 60000,
+                'ping': this.ping,
             },
         });
     }
@@ -132,8 +133,8 @@ export default class krakenfutures extends krakenfuturesRest {
             'event': 'subscribe',
             'feed': name,
             'api_key': this.apiKey,
-            'original_challenge': this.options.challenge,
-            'signed_challenge': this.options.signedChallenge,
+            'original_challenge': this.options['challenge'],
+            'signed_challenge': this.options['signedChallenge'],
         };
         const request = this.extend (subscribe, params);
         return await this.watch (url, name, request, name);
@@ -1268,8 +1269,8 @@ export default class krakenfutures extends krakenfuturesRest {
             const hashedChallenge = this.hash (this.encode (challenge), sha256, 'binary');
             const base64Secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (hashedChallenge, base64Secret, sha512, 'base64');
-            this.options.challenge = challenge;
-            this.options.signedChallenge = signature;
+            this.options['challenge'] = challenge;
+            this.options['signedChallenge'] = signature;
             client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
