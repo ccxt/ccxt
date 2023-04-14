@@ -162,7 +162,6 @@ function set_exchange_prop ($exchange, $prop, $value) {
 
 use Exception; // a common import
 
-use ccxt\ExchangeNotAvailable;
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise;
@@ -280,14 +279,9 @@ class testMainClass extends baseMainTestClass {
                 }
             } catch (Exception $e) {
                 $isAuthError = ($e instanceof AuthenticationError);
-                $notAvailable = ($e instanceof ExchangeNotAvailable);
                 if (!($isPublic && $isAuthError)) {
                     dump ('ERROR:', exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;
-                }
-                if ($notAvailable) {
-                    // previously, we threw an error, however we can't do that anymore, because it breaks the build, and instead show warning in such cases
-                    dump ('[WARNING:EXCHANGE_NOT_AVAILABLE]', $exchange->id, $methodNameInTest, $argsStringified);
                 }
             }
             return $result;

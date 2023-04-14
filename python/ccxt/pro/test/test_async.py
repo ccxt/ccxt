@@ -39,7 +39,7 @@ parser.add_argument('--verbose', action='store_true', help='enable verbose outpu
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 
 parser.parse_args(namespace=argv)
-
+argv.exchange_id = 'alpaca'
 if not argv.exchange_id:
     print('Exchange id not specified')
     exit(1)
@@ -57,7 +57,7 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 # ------------------------------------------------------------------------------
 
 verbose_log_filename = 'py.' + argv.exchange_id + '.log'
-verbose_log_file = open(verbose_log_filename, 'w')
+verbose_log_file = open(verbose_log_filename, 'w', encoding='utf-8')
 
 
 # ------------------------------------------------------------------------------
@@ -87,12 +87,12 @@ skip_file = os.path.join(keys_folder, 'skip-tests.json')
 
 # load the api keys from config
 if os.path.exists(keys_file):
-    with open(keys_file) as file:
+    with open(keys_file, "r", encoding="utf-8") as file:
         config = json.load(file)
 
 
 if os.path.exists(skip_file):
-    with open(skip_file) as file:
+    with open(skip_file, "r", encoding="utf-8") as file:
         skip_settings = json.load(file)
 
 
