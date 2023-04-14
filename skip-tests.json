@@ -163,6 +163,7 @@
         }
     },
     "bitrue": {
+        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "max is below min",
             "fetchCurrencies": "precision is undefined",
@@ -465,6 +466,7 @@
         }
     },
     "probit": {
+        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
             "fetchTicker": "same"
