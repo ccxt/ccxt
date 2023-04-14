@@ -40,6 +40,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'publicToken': undefined,
                 'privateToken': undefined,
             },
+            'streaming': {
+                'keepAlive': 60000,
+                'ping': this.ping,
+            },
         });
     }
 
