@@ -240,7 +240,7 @@ async def test():
     }, apiKeys))
 
     exchange_skips = exchange.safe_value(skip_settings, exchange.id, {})
-    if (hasattr(exchange_skips, 'skip') and exchange_skips.skip) or (hasattr(exchange_skips, 'skipWs') and exchange_skips.skipWs):
+    if ('skip' in exchange_skips and exchange_skips['skip']) or ('skipWs' in exchange_skips and exchange_skips['skipWs']):
         sys.stdout.write(exchange.id + ' [Skipped]\n')
         sys.stdout.flush()
     elif (hasattr(exchange, 'alias') and exchange.alias):
