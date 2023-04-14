@@ -5,10 +5,12 @@ import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import { AuthenticationError } from '../base/errors.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class phemex extends phemexRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -137,7 +139,7 @@ export default class phemex extends phemexRest {
         return result;
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         spot_market24h: {
@@ -264,7 +266,7 @@ export default class phemex extends phemexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         sequence: 1795484727,
@@ -296,7 +298,7 @@ export default class phemex extends phemexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         kline: [
@@ -335,7 +337,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name phemex#watchTicker
@@ -361,7 +363,7 @@ export default class phemex extends phemexRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchTrades
@@ -395,7 +397,7 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchOrderBook
@@ -425,7 +427,7 @@ export default class phemex extends phemexRest {
         return orderbook.limit ();
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchOHLCV
@@ -472,7 +474,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         book: {
@@ -527,7 +529,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchMyTrades
@@ -558,7 +560,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client, message) {
+    handleMyTrades (client: Client, message) {
         //
         // [
         //    {
@@ -622,7 +624,7 @@ export default class phemex extends phemexRest {
         client.resolve (cachedTrades, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#watchOrders
@@ -653,7 +655,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message) {
         // spot update
         // {
         //        "closed":[
@@ -910,7 +912,7 @@ export default class phemex extends phemexRest {
         }, market);
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         // private spot update
         // {
         //     orders: { closed: [ ], fills: [ ], open: [] },
@@ -1006,25 +1008,11 @@ export default class phemex extends phemexRest {
         //       }
         //     ]
         // }
-        const id = this.safeInteger (message, 'id');
-        if (id !== undefined) {
-            // not every method stores its subscription
-            // as an object so we can't do indeById here
-            const subs = client.subscriptions;
-            const values = Object.values (subs);
-            for (let i = 0; i < values.length; i++) {
-                const subscription = values[i] as any;
-                if (subscription !== true) {
-                    const subId = this.safeInteger (subscription, 'id');
-                    if ((subId !== undefined) && (subId === id)) {
-                        const method = this.safeValue (subscription, 'method');
-                        if (method !== undefined) {
-                            method.call (this, client, message);
-                            return;
-                        }
-                    }
-                }
-            }
+        const id = this.safeString (message, 'id');
+        if (id in client.subscriptions) {
+            const method = client.subscriptions[id];
+            delete client.subscriptions[id];
+            return method.call (this, client, message);
         }
         if (('market24h' in message) || ('spot_market24h' in message)) {
             return this.handleTicker (client, message);
@@ -1046,7 +1034,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    handleAuthenticate (client, message) {
+    handleAuthenticate (client: Client, message) {
         //
         // {
         //     "error": null,
@@ -1056,9 +1044,18 @@ export default class phemex extends phemexRest {
         //     }
         // }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        return message;
+        const result = this.safeValue (message, 'result');
+        const status = this.safeString (result, 'status');
+        const messageHash = 'authenticated';
+        if (status === 'success') {
+            client.resolve (message, messageHash);
+        } else {
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, messageHash);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
+            }
+        }
     }
 
     async subscribePrivate (type, messageHash, params = {}) {
@@ -1073,37 +1070,35 @@ export default class phemex extends phemexRest {
             'params': [],
         };
         request = this.extend (request, params);
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-        };
-        return await this.watch (url, messageHash, request, channel, subscription);
+        return await this.watch (url, messageHash, request, channel);
     }
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const time = this.seconds ();
+        const requestId = this.requestId ();
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
             const expiryDelta = this.safeInteger (this.options, 'expires', 120);
             const expiration = this.seconds () + expiryDelta;
             const payload = this.apiKey + expiration.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
+            const method = 'user.auth';
             const request = {
-                'method': 'user.auth',
+                'method': method,
                 'params': [ 'API', this.apiKey, signature, expiration ],
-                'id': time,
+                'id': requestId,
             };
-            const subscription = {
-                'id': time,
-                'method': this.handleAuthenticate,
-            };
-            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+            const subscriptionHash = requestId.toString ();
+            const message = this.extend (request, params);
+            if (!(messageHash in client.subscriptions)) {
+                client.subscriptions[subscriptionHash] = this.handleAuthenticate;
+            }
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

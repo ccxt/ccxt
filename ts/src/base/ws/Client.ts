@@ -268,7 +268,7 @@ export default class Client {
         throw new NotSupported ('close() not implemented yet');
     }
 
-    onMessage (messageEvent : MessageEvent) {
+    onMessage (messageEvent : any) {
         // if we use onmessage we get MessageEvent objects
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
 
@@ -278,7 +278,7 @@ export default class Client {
             if (typeof message === 'string') {
                 arrayBuffer = utf8.decode (message)
             } else {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset))
+                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
             }
             if (this.gunzip) {
                 arrayBuffer = gunzipSync (arrayBuffer)
@@ -304,6 +304,10 @@ export default class Client {
             this.log (new Date (), 'onMessage JSON.parse', e)
             // reset with a json encoding error ?
         }
-        this.onMessageCallback (this, message)
+        try {
+            this.onMessageCallback (this, message)
+        } catch (error) {
+            this.reject (error)
+        }
     }
 }

@@ -8,7 +8,6 @@
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class hitbtc extends hitbtcRest {
     describe() {
         return this.deepExtend(super.describe(), {

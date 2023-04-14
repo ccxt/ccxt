@@ -11,7 +11,6 @@ import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../ba
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
-// @ts-expect-error
 export default class woo extends wooRest {
     describe() {
         return this.deepExtend(super.describe(), {

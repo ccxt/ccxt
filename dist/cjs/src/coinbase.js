@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// @ts-expect-error
 class coinbase extends coinbase$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1317,20 +1316,26 @@ class coinbase extends coinbase$1 {
         //     {
         //         "trades": [
         //             {
-        //                 "trade_id": "10209805",
-        //                 "product_id": "BTC-USDT",
-        //                 "price": "19381.27",
-        //                 "size": "0.1",
-        //                 "time": "2023-01-13T20:35:41.865970Z",
+        //                 "trade_id": "518078013",
+        //                 "product_id": "BTC-USD",
+        //                 "price": "28208.1",
+        //                 "size": "0.00659179",
+        //                 "time": "2023-04-04T23:05:34.492746Z",
         //                 "side": "BUY",
         //                 "bid": "",
         //                 "ask": ""
         //             }
-        //         ]
+        //         ],
+        //         "best_bid": "28208.61",
+        //         "best_ask": "28208.62"
         //     }
         //
         const data = this.safeValue(response, 'trades', []);
-        return this.parseTicker(data[0], market);
+        const ticker = this.parseTicker(data[0], market);
+        return this.extend(ticker, {
+            'bid': this.safeNumber(response, 'best_bid'),
+            'ask': this.safeNumber(response, 'best_ask'),
+        });
     }
     parseTicker(ticker, market = undefined) {
         //

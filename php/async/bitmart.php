@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\bitmart as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
@@ -582,43 +583,53 @@ class bitmart extends Exchange {
 
     public function fetch_contract_markets($params = array ()) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->publicGetContractV1Tickers ($params));
+            $response = Async\await($this->publicGetContractPublicDetails ($params));
             //
-            //    {
-            //        "message" => "OK",
-            //        "code" => 1000,
-            //        "trace" => "045d13a8-4bc7-4974-9748-97d0ea183ef0",
-            //        "data" => {
-            //            "tickers" => array(
-            //                array(
-            //                    "contract_symbol" => "RAYUSDT",
-            //                    "last_price" => "3.893",
-            //                    "index_price" => "3.90248043",
-            //                    "last_funding_rate" => "-0.00054285",
-            //                    "price_change_percent_24h" => "-6.955",
-            //                    "volume_24h" => "10450969.34602996",
-            //                    "url" => "https://futures.bitmart.com/en?$symbol=RAYUSDT",
-            //                    "high_price" => "4.299",
-            //                    "low_price" => "3.887",
-            //                    "legal_coin_price" => "3.893056"
-            //                ),
-            //                ...
-            //            )
-            //        }
-            //    }
+            //     {
+            //       "code" => 1000,
+            //       "message" => "Ok",
+            //       "trace" => "9b92a999-9463-4c96-91a4-93ad1cad0d72",
+            //       "data" => {
+            //       "symbols" => [array(
+            //             "symbol" => "BTCUSDT",
+            //             "product_type" => 1,
+            //             "open_timestamp" => 1594080000,
+            //             "expire_timestamp" => 0,
+            //             "settle_timestamp" => 0,
+            //             "base_currency" => "BTC",
+            //             "quote_currency" => "USDT",
+            //             "last_price" => "23920",
+            //             "volume_24h" => "18969368",
+            //             "turnover_24h" => "458933659.7858",
+            //             "index_price" => "23945.25191635",
+            //             "index_name" => "BTCUSDT",
+            //             "contract_size" => "0.001",
+            //             "min_leverage" => "1",
+            //             "max_leverage" => "100",
+            //             "price_precision" => "0.1",
+            //             "vol_precision" => "1",
+            //             "max_volume" => "500000",
+            //             "min_volume" => "1"
+            //           ),
+            //           ...
+            //         ]
+            //       }
+            //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $tickers = $this->safe_value($data, 'tickers', array());
+            $symbols = $this->safe_value($data, 'symbols', array());
             $result = array();
-            for ($i = 0; $i < count($tickers); $i++) {
-                $market = $tickers[$i];
-                $id = $this->safe_string($market, 'contract_symbol');
-                $baseId = mb_substr($id, 0, -4 - 0);
-                $quoteId = mb_substr($id, -4);
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $symbols[$i];
+                $id = $this->safe_string($market, 'symbol');
+                $baseId = $this->safe_string($market, 'base_currency');
+                $quoteId = $this->safe_string($market, 'quote_currency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $settle = 'USDT';
                 $symbol = $base . '/' . $quote . ':' . $settle;
+                $productType = $this->safe_number($market, 'product_type');
+                $expiry = $this->safe_integer($market, 'expire_timestamp');
                 $result[] = array(
                     'id' => $id,
                     'numericId' => null,
@@ -632,30 +643,30 @@ class bitmart extends Exchange {
                     'type' => 'swap',
                     'spot' => false,
                     'margin' => false,
-                    'swap' => true,
-                    'future' => false,
+                    'swap' => ($productType === 1),
+                    'future' => ($productType === 2),
                     'option' => false,
                     'active' => true,
                     'contract' => true,
                     'linear' => true,
                     'inverse' => false,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
+                    'contractSize' => $this->safe_number($market, 'contract_size'),
+                    'expiry' => $expiry,
+                    'expiryDatetime' => $this->iso8601($expiry),
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => null,
-                        'price' => null,
+                        'amount' => $this->safe_number($market, 'vol_precision'),
+                        'price' => $this->safe_number($market, 'price_precision'),
                     ),
                     'limits' => array(
                         'leverage' => array(
-                            'min' => null,
-                            'max' => null,
+                            'min' => $this->safe_number($market, 'min_leverage'),
+                            'max' => $this->safe_number($market, 'max_leverage'),
                         ),
                         'amount' => array(
-                            'min' => null,
-                            'max' => null,
+                            'min' => $this->safe_number($market, 'min_volume'),
+                            'max' => $this->safe_number($market, 'max_volume'),
                         ),
                         'price' => array(
                             'min' => null,
@@ -739,7 +750,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_transaction_fee($code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * *DEPRECATED* please use fetchDepositWithdrawFee instead
@@ -800,7 +811,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the fee for deposits and withdrawals
@@ -914,7 +925,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1001,7 +1012,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1036,7 +1047,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -1160,7 +1171,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -1262,7 +1273,7 @@ class bitmart extends Exchange {
         }
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1353,7 +1364,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -1414,7 +1425,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
@@ -1673,7 +1684,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_trading_fee($symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -1814,7 +1825,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1836,8 +1847,11 @@ class bitmart extends Exchange {
             if ($timeInForce === 'FOK') {
                 throw new InvalidOrder($this->id . ' createOrder() only accepts $timeInForce parameter values of IOC or PO');
             }
+            $mode = $this->safe_integer($params, 'mode'); // only for swap
             $isMarketOrder = $type === 'market';
-            $postOnly = $this->is_post_only($isMarketOrder, $type === 'limit_maker', $params);
+            $postOnly = null;
+            $isExchangeSpecificPo = ($type === 'limit_maker') || ($mode === 4);
+            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $isExchangeSpecificPo, $params);
             $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
             $ioc = (($timeInForce === 'IOC') || ($type === 'ioc'));
             $isLimitOrder = ($type === 'limit') || $postOnly || $ioc;
@@ -1910,7 +1924,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
@@ -1974,7 +1988,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -2013,7 +2027,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument');
@@ -2072,7 +2086,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -2086,7 +2100,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -2100,7 +2114,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
@@ -2114,7 +2128,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -2129,9 +2143,6 @@ class bitmart extends Exchange {
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' fetchOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
-            }
-            if (gettype($id) !== 'string') {
-                $id = (string) $id;
             }
             $request = array(
                 'symbol' => $market['id'],
@@ -2166,7 +2177,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -2230,7 +2241,7 @@ class bitmart extends Exchange {
         return $networkId;
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2286,7 +2297,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_transactions_by_type($type, $code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions_by_type($type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             Async\await($this->load_markets());
             if ($limit === null) {
@@ -2345,7 +2356,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit($id, $code = null, $params = array ()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a deposit
@@ -2387,7 +2398,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2401,7 +2412,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch $data on a currency withdrawal via the withdrawal $id
@@ -2443,7 +2454,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2542,7 +2553,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * repay borrowed margin and interest
@@ -2586,7 +2597,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
              * create a loan to borrow margin
@@ -2656,7 +2667,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_borrow_rate($code, $params = array ()) {
+    public function fetch_borrow_rate(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading
@@ -2845,7 +2856,7 @@ class bitmart extends Exchange {
         return $rates;
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account, currently only supports transfer between spot and margin
@@ -2926,7 +2937,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading

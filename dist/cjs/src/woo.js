@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class woo extends woo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -142,6 +141,8 @@ class woo extends woo$1 {
                             'funding_rate_history': 1,
                             'futures': 1,
                             'futures/{symbol}': 1,
+                            'orderbook/{symbol}': 1,
+                            'kline': 1,
                         },
                     },
                     'private': {
@@ -150,8 +151,6 @@ class woo extends woo$1 {
                             'order/{oid}': 1,
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
@@ -206,9 +205,9 @@ class woo extends woo$1 {
                         },
                         'put': {
                             'order/{oid}': 2,
-                            'order/client/{oid}': 2,
+                            'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
-                            'algo/order/client/{oid}': 2,
+                            'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
                             'algo/order/{oid}': 1,
@@ -822,9 +821,8 @@ class woo extends woo$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'oid': id,
-            // 'quantity': this.amountToPrecision (symbol, amount),
-            // 'price': this.priceToPrecision (symbol, price),
+        // 'quantity': this.amountToPrecision (symbol, amount),
+        // 'price': this.priceToPrecision (symbol, price),
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
@@ -832,7 +830,20 @@ class woo extends woo$1 {
         if (amount !== undefined) {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
-        const response = await this.v3PrivatePutOrderOid(this.extend(request, params));
+        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let method = undefined;
+        if (isByClientOrder) {
+            method = 'v3PrivatePutOrderClientClientOrderId';
+            request['client_order_id'] = clientOrderIdExchangeSpecific;
+            params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+        }
+        else {
+            method = 'v3PrivatePutOrderOid';
+            request['oid'] = id;
+        }
+        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -864,13 +875,16 @@ class woo extends woo$1 {
         await this.loadMarkets();
         const request = {};
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString2(params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let method = undefined;
         if (isByClientOrder) {
+            method = 'v1PrivateDeleteClientOrder';
             request['client_order_id'] = clientOrderIdExchangeSpecific;
             params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         }
         else {
+            method = 'v1PrivateDeleteOrder';
             request['order_id'] = id;
         }
         let market = undefined;
@@ -878,7 +892,7 @@ class woo extends woo$1 {
             market = this.market(symbol);
         }
         request['symbol'] = market['id'];
-        const response = await this.v1PrivateDeleteOrder(this.extend(request, params));
+        const response = await this[method](this.extend(request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -1132,7 +1146,7 @@ class woo extends woo$1 {
             limit = Math.min(limit, 1000);
             request['max_level'] = limit;
         }
-        const response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, params));
+        const response = await this.v1PublicGetOrderbookSymbol(this.extend(request, params));
         //
         // {
         //   success: true,
@@ -1173,7 +1187,7 @@ class woo extends woo$1 {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const response = await this.v1PrivateGetKline(this.extend(request, params));
+        const response = await this.v1PublicGetKline(this.extend(request, params));
         // {
         //     success: true,
         //     rows: [
@@ -2289,12 +2303,13 @@ class woo extends woo$1 {
         const unrealisedPnl = Precise["default"].stringMul(priceDifference, size);
         size = Precise["default"].stringAbs(size);
         const notional = Precise["default"].stringMul(size, markPrice);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
@@ -2308,12 +2323,13 @@ class woo extends woo$1 {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estLiqPrice'),
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
-        };
+        });
     }
     defaultNetworkCodeForCurrency(code) {
         const currencyItem = this.currency(code);

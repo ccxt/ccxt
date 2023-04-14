@@ -55,7 +55,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -84,7 +84,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         $event => 'ORDER_BOOK',
@@ -121,7 +121,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -143,7 +143,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         $event => 'TRADE',
@@ -182,7 +182,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve ($tradesCache, $messageHash);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -198,7 +198,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $event => 'TICKER',
@@ -280,7 +280,7 @@ class bitopro extends \ccxt\async\bitopro {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         $event => 'ACCOUNT_BALANCE',
@@ -321,7 +321,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve ($this->balance, $event);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $methods = array(
             'TRADE' => array($this, 'handle_trade'),
             'TICKER' => array($this, 'handle_ticker'),

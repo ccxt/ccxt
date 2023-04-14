@@ -10,7 +10,6 @@ import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } fro
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class kuna extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

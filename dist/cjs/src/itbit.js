@@ -9,7 +9,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class itbit extends itbit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
