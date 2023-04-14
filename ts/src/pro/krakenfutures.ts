@@ -37,7 +37,6 @@ export default class krakenfutures extends krakenfuturesRest {
                 'OHLCVLimit': 1000,
                 'connectionLimit': 100, // https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-subscriptions-limits
                 'requestLimit': 100, // per second
-                'keepAlive': 60000,
                 'watchTicker': {
                     'method': 'ticker', // or ticker_lite
                 },
@@ -47,6 +46,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 'fetchBalance': {
                     'type': undefined,
                 },
+            },
+            'streaming': {
+                'keepAlive': 60000,
             },
         });
     }
