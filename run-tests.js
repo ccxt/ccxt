@@ -41,6 +41,9 @@ const exchangeSpecificFlags = {
     '--info': false,
 }
 
+const content = fs.readFileSync ('skip-tests.json', 'utf8');
+const skipSettings = JSON.parse (content);
+
 let exchanges = []
 let symbol = 'all'
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
@@ -193,6 +196,14 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchange) => {
 
+    numExchangesTested++
+    const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
+
+    if (skipSettings[exchange].skip) {
+        log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+        return [];
+    }
+
 /*  Run tests for all/selected languages (in parallel)     */
     let args = [exchange];
     if (symbol !== undefined && symbol !== 'all') {
@@ -228,9 +239,6 @@ const testExchange = async (exchange) => {
 
 /*  Print interactive log output    */
 
-    numExchangesTested++
-
-    const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
     let logMessage = '';
 
     if (failed) {

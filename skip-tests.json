@@ -221,9 +221,13 @@
             "fetchTickers": "open might be set to 0",
             "fetchTicker": "same",
             "fetchOHLCV": "open might be greater than high"
-        }
+        },
+		"skip": true,
+		"//": "request timeout"
     },
     "bittrex": {
+		"skip": true,
+		"//": "request timeout",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "bid might be set to 0",
@@ -477,6 +481,8 @@
         }
     },
     "idex": {
+		"skip": true,
+		"//": "rate limit exceeded",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "close key is undefined",
