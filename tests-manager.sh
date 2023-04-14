@@ -50,7 +50,7 @@ fi
 now=$(date +%s)
 delta=$((now - last_run))
 six_hours=$((60 * 60 * 6))
-diff=$(git diff master --name-only)
+diff=$(git diff origin/master --name-only)
 
 # begin debug
 echo "$cached_timestamp_file"
@@ -78,7 +78,7 @@ function run_tests {
   fi
   if [ -z "$rest_pid" ]; then
     # shellcheck disable=SC2086
-    node run-tests --js --python-async --php-async $rest_args &
+    node test-commonjs.cjs && node run-tests --js --python-async --php-async $rest_args &
     local rest_pid=$!
   fi
   if [ -z "$ws_pid" ]; then
@@ -93,5 +93,5 @@ if [ "$delta" -gt $six_hours ] || grep -q -E 'Client(Trait)?\.php$|Exchange\.php
   # shellcheck disable=SC2155
   run_tests && date +%s > "$cached_timestamp_file"
 else
-  run_tests "$(sed -E -n 's:^js/([^/]+)\.js$:\1:p' <<< "$diff" | xargs)" "$(sed -E -n 's:^js/pro/([^/]+)\.js$:\1:p' <<< "$diff" | xargs)"
+  run_tests "$(sed -E -n 's:^ts/src/([^/]+)\.ts$:\1:p' <<< "$diff" | xargs)" "$(sed -E -n 's:^ts/src/pro/([^/]+)\.ts$:\1:p' <<< "$diff" | xargs)"
 fi

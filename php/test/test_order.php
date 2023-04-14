@@ -65,4 +65,3 @@ function test_order($exchange, $order, $symbol, $now) {
     assert ($order['info']);
 }
 
-

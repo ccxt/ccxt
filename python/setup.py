@@ -29,7 +29,7 @@ with open(package_json, encoding='utf-8') as f:
 
 project_urls = {
     'Homepage': 'https://ccxt.com',
-    'Documentation': 'https://docs.ccxt.com/en/latest/manual.html',
+    'Documentation': 'https://docs.ccxt.com',
     'Discord': 'https://discord.gg/ccxt',
     'Twitter': 'https://twitter.com/ccxt_official',
     'Funding': 'https://opencollective.com/ccxt',
@@ -94,13 +94,6 @@ setup(
         'qa': [
             'flake8==3.7.9',
         ],
-        'doc': [
-            'Sphinx==4.0',
-            'mistune==0.8.4',  # needed for m2r2
-            'm2r2==0.2.7',
-            'sphinx-rtd-theme==0.5.2',
-            'readthedocs-sphinx-search==0.1.0',
-        ]
     },
     project_urls=project_urls,
 )

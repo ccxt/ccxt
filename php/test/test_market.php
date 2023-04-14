@@ -56,7 +56,6 @@ function test_market($exchange, $market, $method) {
                 'max' => 1000, // order cost should be < max
             ),
         ),
-        'info' => array(), // the original unparsed $market info from the $exchange
     );
     $keys = is_array($format) ? array_keys($format) : array();
     for ($i = 0; $i < count($keys); $i++) {
@@ -96,12 +95,11 @@ function test_market($exchange, $market, $method) {
         'future' => true,
         'option' => true,
     );
-    $type = $market['type'];
     //
-    // binance has $type = 'delivery'
+    // binance has type = 'delivery'
     // https://github.com/ccxt/ccxt/issues/11121
     //
-    // assert (is_array($validTypes) && array_key_exists($type, $validTypes));
+    // assert (is_array($validTypes) && array_key_exists(type, $validTypes));
     //
     $types = is_array($validTypes) ? array_keys($validTypes) : array();
     for ($i = 0; $i < count($types); $i++) {
@@ -131,5 +129,4 @@ function test_market($exchange, $market, $method) {
     //     assert ($market['expiryDatetime'] !== null);
     // }
 }
-
 
