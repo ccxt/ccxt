@@ -574,22 +574,28 @@ export default class poloniex extends poloniexRest {
                 }
                 previousOrder['trades'].push (trade);
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = 0;
-                let totalAmount = 0;
-                const trades = previousOrder['trades'];
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    totalCost = this.sum (totalCost, trade['cost']);
-                    totalAmount = this.sum (totalAmount, trade['amount']);
+                let totalCost = '0';
+                let totalAmount = '0';
+                const previousOrderTrades = previousOrder['trades'];
+                for (let i = 0; i < previousOrderTrades.length; i++) {
+                    const previousOrderTrade = previousOrderTrades[i];
+                    const cost = this.numberToString (previousOrderTrade['cost']);
+                    const amount = this.numberToString (previousOrderTrade['amount']);
+                    totalCost = Precise.stringAdd (totalCost, cost);
+                    totalAmount = Precise.stringAdd (totalAmount, amount);
                 }
-                if (totalAmount > 0) {
-                    previousOrder['average'] = totalCost / totalAmount;
+                if (Precise.stringGt (totalAmount, '0')) {
+                    previousOrder['average'] = this.parseNumber (Precise.stringDiv (totalCost, totalAmount));
                 }
-                previousOrder['cost'] = totalCost;
+                previousOrder['cost'] = this.parseNumber (totalCost);
                 if (previousOrder['filled'] !== undefined) {
-                    previousOrder['filled'] += trade['amount'];
+                    const tradeAmount = this.numberToString (trade['amount']);
+                    let previousOrderFilled = this.numberToString (previousOrder['filled']);
+                    previousOrderFilled = Precise.stringAdd (previousOrderFilled, tradeAmount);
+                    previousOrder['filled'] = previousOrderFilled;
                     if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
+                        const previousOrderAmount = this.numberToString (previousOrder['amount']);
+                        previousOrder['remaining'] = this.parseNumber (Precise.stringDiv (previousOrderAmount, previousOrderFilled));
                     }
                 }
                 if (previousOrder['fee'] === undefined) {
