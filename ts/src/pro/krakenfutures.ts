@@ -236,11 +236,11 @@ export default class krakenfutures extends krakenfuturesRest {
          */
         await this.loadMarkets ();
         const name = 'fills';
-        const orders = await this.subscribePrivate (name, params);
+        const trades = await this.subscribePrivate (name, params);
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchBalance (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
