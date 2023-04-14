@@ -73,6 +73,10 @@ export default class poloniex extends poloniexRest {
                     '1M': 'candles_month_1',
                 },
             },
+            'streaming': {
+                'keepAlive': 30000,
+                'ping': this.ping,
+            },
         });
     }
 
@@ -497,7 +501,7 @@ export default class poloniex extends poloniexRest {
             'side': this.safeString (trade, 'side'),
             'takerOrMaker': this.safeString (trade, 'matchRole'),
             'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'tradeAmount'), // ? tradeQty?
+            'amount': this.safeString (trade, 'tradeAmount'),
             'cost': undefined,
             'fee': {
                 'rate': undefined,
@@ -582,7 +586,7 @@ export default class poloniex extends poloniexRest {
                     previousOrder['average'] = totalCost / totalAmount;
                 }
                 previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) { // ? previousOrder['filled'] = 0
+                if (previousOrder['filled'] !== undefined) {
                     previousOrder['filled'] += trade['amount'];
                     if (previousOrder['amount'] !== undefined) {
                         previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
@@ -603,21 +607,6 @@ export default class poloniex extends poloniexRest {
                 // update the newUpdates count
                 orders.append (previousOrder);
                 client.resolve (orders, messageHash);
-                // } else if ((type === 'received') || (type === 'done')) { // TODO?: delete
-                //     const info = this.extend (previousOrder['info'], data);
-                //     const order = this.parseWsOrder (info);
-                //     const keys = Object.keys (order);
-                //     // update the reference
-                //     for (let i = 0; i < keys.length; i++) {
-                //         const key = keys[i];
-                //         if (order[key] !== undefined) {
-                //             previousOrder[key] = order[key];
-                //         }
-                //     }
-                //     // update the newUpdates count
-                //     orders.append (previousOrder);
-                //     client.resolve (orders, messageHash);
-                // }
             }
         }
         return message;
@@ -656,7 +645,7 @@ export default class poloniex extends poloniexRest {
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const marketId = this.safeString (order, 'symbol');
         const timestamp = this.safeString (order, 'ts');
-        const filledAmount = this.safeString (order, 'filledAmount'); // TODO? filledQuantity
+        const filledAmount = this.safeString (order, 'filledAmount');
         let trades = undefined;
         if (!Precise.stringEq (filledAmount, '0')) {
             trades = [];
@@ -890,7 +879,7 @@ export default class poloniex extends poloniexRest {
         const type = this.safeString (message, 'channel');
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
-            return this.handlePong (client, message);
+            return client.handlePong (message);
         }
         const methods = {
             'candles_minute_1': this.handleOHLCV,
@@ -954,11 +943,6 @@ export default class poloniex extends poloniexRest {
         return {
             'event': 'ping',
         };
-    }
-
-    handlePong (client, message) {
-        client.lastPong = this.milliseconds ();
-        return message;
     }
 }
 
