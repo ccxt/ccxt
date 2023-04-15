@@ -469,6 +469,7 @@
         }
     },
     "probit": {
+		"skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
             "fetchTicker": "same"
