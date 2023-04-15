@@ -3668,10 +3668,10 @@ class okx(Exchange):
             'dest': '4',  # 2 = OKCoin International, 3 = OKX 4 = others
             'amt': self.number_to_string(amount),
         }
-        networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network.upper(), network)  # handle ETH>ERC20 alias
         if network is not None:
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string(networks, network.upper(), network)  # handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network
             params = self.omit(params, 'network')
         fee = self.safe_string(params, 'fee')
