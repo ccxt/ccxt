@@ -7884,7 +7884,7 @@ class binance extends Exchange {
         //      ...
         //  )
         //
-        return $this->parse_open_interests($response, $symbol, $since, $limit);
+        return $this->parse_open_interests($response, $market, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {

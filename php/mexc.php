@@ -1267,7 +1267,7 @@ class mexc extends Exchange {
                 $costString = $this->safe_string($trade, 'quoteQty');
                 $isBuyer = $this->safe_value($trade, 'isBuyer');
                 $isMaker = $this->safe_value($trade, 'isMaker');
-                $buyerMaker = $this->safe_string_2($trade, 'isBuyerMaker', 'm');
+                $buyerMaker = $this->safe_value_2($trade, 'isBuyerMaker', 'm');
                 if ($isMaker !== null) {
                     $takerOrMaker = $isMaker ? 'maker' : 'taker';
                 }

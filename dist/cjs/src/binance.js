@@ -8081,7 +8081,7 @@ class binance extends binance$1 {
         //      ...
         //  ]
         //
-        return this.parseOpenInterests(response, symbol, since, limit);
+        return this.parseOpenInterests(response, market, since, limit);
     }
     async fetchOpenInterest(symbol, params = {}) {
         /**

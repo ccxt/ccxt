@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.66 (2023-04-15)
+
+
+### Bug Fixes
+
+* **bybit:** createOrder v3 stopPrice ([40defcc](https://github.com/ccxt/ccxt/commit/40defccc6fed6a7aeef43c7092cd67659cde842f))
+
+### 3.0.65 (2023-04-15)
+
 ### 3.0.64 (2023-04-14)
 
 ### 3.0.63 (2023-04-14)
