@@ -293,7 +293,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchBalance (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchBalance (params = {}) {
         /**
          * @method
          * @name poloniex#watchOrders
