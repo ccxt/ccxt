@@ -222,9 +222,13 @@
             "fetchTickers": "open might be set to 0",
             "fetchTicker": "same",
             "fetchOHLCV": "open might be greater than high"
-        }
+        },
+		"skip": true,
+		"//": "request timeout"
     },
     "bittrex": {
+		"skip": true,
+		"//": "request timeout",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "bid might be set to 0",
@@ -269,7 +273,6 @@
         }
     },
     "bybit": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT",
             "fetchTicker": "same"
@@ -407,7 +410,6 @@
         }
     },
     "gate": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "max should be above min",
             "fetchTrades": "timestamp is in decimal seconds like 1234567890.123",
@@ -416,7 +418,6 @@
         }
     },
     "hitbtc": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "close is undefined",
             "fetchTicker": "same"
@@ -466,7 +467,6 @@
         }
     },
     "probit": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
             "fetchTicker": "same"
@@ -479,6 +479,8 @@
         }
     },
     "idex": {
+		"skip": true,
+		"//": "rate limit exceeded",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "close key is undefined",
@@ -588,7 +590,6 @@
         }
     },
     "mexc3": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTrades": "side is not buy/sell",
             "fetchTickers": "quoteVolume >= baseVolume * low  is incorrect"
@@ -608,7 +609,6 @@
         }
     },
     "phemex": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "contractSize might be set to 0"
         }
@@ -639,7 +639,6 @@
         }
     },
     "okx": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same"
         }
