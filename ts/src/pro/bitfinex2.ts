@@ -661,7 +661,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (book === undefined) {
             return;
         }
-        const depth = this.safeInteger (subscription, 'len');
+        const depth = 25; // covers the first 25 bids and asks
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
