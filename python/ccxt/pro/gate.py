@@ -828,7 +828,8 @@ class gate(ccxt.async_support.gate):
             subscription = self.safe_value(client.subscriptions, subscriptionHash)
             method = methods[channel]
             method(client, message, subscription)
-        del client.subscriptions[id]
+        if id in client.subscriptions:
+            del client.subscriptions[id]
 
     def handle_message(self, client: Client, message):
         #

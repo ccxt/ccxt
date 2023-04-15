@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 export default class hitbtc3 extends Exchange {
     describe () {
@@ -312,6 +312,9 @@ export default class hitbtc3 extends Exchange {
                     'spot': 'spot',
                     'funding': 'wallet',
                     'future': 'derivatives',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'commonCurrencies': {
@@ -1790,7 +1793,7 @@ export default class hitbtc3 extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc3#createOrder
@@ -2118,6 +2121,11 @@ export default class hitbtc3 extends Exchange {
                 request['currency'] = parsedNetwork;
             }
             params = this.omit (params, 'network');
+        }
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, params));
         //

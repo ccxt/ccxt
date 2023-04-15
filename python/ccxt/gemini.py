@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1158,7 +1159,7 @@ class gemini(Exchange):
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.gemini.com/rest-api/#new-order
@@ -1489,7 +1490,7 @@ class gemini(Exchange):
             }, query)
             payload = self.json(request)
             payload = self.string_to_base64(payload)
-            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,

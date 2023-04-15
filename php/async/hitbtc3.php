@@ -325,6 +325,9 @@ class hitbtc3 extends Exchange {
                     'funding' => 'wallet',
                     'future' => 'derivatives',
                 ),
+                'withdraw' => array(
+                    'includeFee' => false,
+                ),
             ),
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
@@ -1806,7 +1809,7 @@ class hitbtc3 extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2135,6 +2138,11 @@ class hitbtc3 extends Exchange {
                     $request['currency'] = $parsedNetwork;
                 }
                 $params = $this->omit($params, 'network');
+            }
+            $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+            $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+            if ($includeFee) {
+                $request['include_fee'] = true;
             }
             $response = Async\await($this->privatePostWalletCryptoWithdraw (array_merge($request, $params)));
             //

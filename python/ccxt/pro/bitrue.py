@@ -22,7 +22,7 @@ class bitrue(ccxt.async_support.bitrue):
                 'watchTrades': False,
                 'watchMyTrades': False,
                 'watchOrders': True,
-                'watchOrderBook': False,
+                'watchOrderBook': True,
                 'watchOHLCV': False,
             },
             'urls': {

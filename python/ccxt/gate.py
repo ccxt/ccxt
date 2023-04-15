@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2380,7 +2381,8 @@ class gate(Exchange):
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = self.parse_to_int(since / 1000)
-            toTimestamp = self.sum(request['from'], limit * duration - 1)
+            distance = (limit - 1) * duration
+            toTimestamp = self.sum(request['from'], distance)
             currentTimestamp = self.seconds()
             to = min(toTimestamp, currentTimestamp)
             if until is not None:
@@ -2982,7 +2984,7 @@ class gate(Exchange):
             },
         }
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol

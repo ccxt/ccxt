@@ -1194,7 +1194,7 @@ class gemini extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://docs.gemini.com/rest-api/#new-order
@@ -1553,7 +1553,7 @@ class gemini extends Exchange {
             ), $query);
             $payload = $this->json($request);
             $payload = base64_encode($payload);
-            $signature = $this->hmac($payload, $this->encode($this->secret), 'sha384');
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384');
             $headers = array(
                 'Content-Type' => 'text/plain',
                 'X-GEMINI-APIKEY' => $this->apiKey,

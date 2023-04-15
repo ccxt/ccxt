@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -46,8 +47,6 @@ class mexc(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': None,
                 'createDepositAddress': None,
-                'createLimitOrder': None,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'deposit': None,
@@ -180,6 +179,7 @@ class mexc(Exchange):
                             'capital/withdraw/history': 1,
                             'capital/deposit/address': 1,
                             'capital/transfer': 1,
+                            'capital/transfer/tranId': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'capital/convert': 1,
                             'capital/convert/list': 1,
@@ -1682,7 +1682,7 @@ class mexc(Exchange):
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1736,6 +1736,10 @@ class mexc(Exchange):
             if marginMode != 'isolated':
                 raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
             method = 'spotPrivatePostMarginOrder'
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
+        if postOnly:
+            request['type'] = 'LIMIT_MAKER'
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1782,7 +1786,8 @@ class mexc(Exchange):
             openType = self.safe_integer(params, 'openType', 2)  # defaulting to cross margin
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        postOnly = None
+        postOnly, params = self.handle_post_only(type == 'market', type == 2, params)
         if postOnly:
             type = 2
         elif type == 'limit':
@@ -3279,7 +3284,7 @@ class mexc(Exchange):
                 raise ArgumentsRequired(self.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions')
             else:
                 request['openType'] = openType
-                request['symbol'] = market['symbol']
+                request['symbol'] = market['id']
                 request['positionType'] = positionType
         else:
             request['positionId'] = positionId

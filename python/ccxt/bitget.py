@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import json
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -78,7 +79,7 @@ class bitget(Exchange):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': None,
-                'fetchMarketLeverageTiers': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -155,6 +156,7 @@ class bitget(Exchange):
                             'market/ticker': 1,
                             'market/tickers': 1,
                             'market/fills': 1,
+                            'market/fills-history': 2,
                             'market/candles': 1,
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
@@ -176,6 +178,8 @@ class bitget(Exchange):
                             'market/mark-price': 1,
                             'market/symbol-leverage': 1,
                             'market/contract-vip-level': 2,
+                            'market/fills-history': 2,
+                            'market/queryPositionLever': 1,
                         },
                     },
                 },
@@ -202,9 +206,14 @@ class bitget(Exchange):
                             'trade/open-orders': 1,
                             'trade/history': 1,
                             'trade/fills': 1,
+                            'trade/cancel-order-v2': 2,
+                            'trade/cancel-symbol-order': 2,
                             'wallet/transfer': 4,
                             'wallet/withdrawal': 4,
                             'wallet/subTransfer': 10,
+                            'wallet/transfer-v2': 4,
+                            'wallet/withdrawal-v2': 4,
+                            'wallet/withdrawal-inner-v2': 4,
                             'plan/placePlan': 1,
                             'plan/modifyPlan': 1,
                             'plan/cancelPlan': 1,
@@ -238,6 +247,8 @@ class bitget(Exchange):
                             'trade/profitDateList': 2,
                             'trace/waitProfitDateList': 2,
                             'trace/traderSymbols': 2,
+                            'trace/traderList': 2,
+                            'trace/queryTraceConfig': 2,
                             'order/marginCoinCurrent': 2,
                         },
                         'post': {
@@ -250,6 +261,7 @@ class bitget(Exchange):
                             'order/cancel-order': 2,
                             'order/cancel-all-orders': 2,
                             'order/cancel-batch-orders': 2,
+                            'order/cancel-symbol-orders': 2,
                             'plan/placePlan': 2,
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
@@ -259,8 +271,13 @@ class bitget(Exchange):
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
                             'plan/cancelAllPlan': 2,
+                            'plan/cancelSymbolPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
+                            'trace/followerSetBatchTraceConfig': 2,
+                            'trace/followerCloseByTrackingNo': 2,
+                            'trace/followerCloseByAll': 2,
+                            'trace/followerSetTpsl': 2,
                         },
                     },
                 },
@@ -1225,6 +1242,70 @@ class bitget(Exchange):
             }
         return result
 
+    def fetch_market_leverage_tiers(self, symbol: str, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
+        """
+        self.load_markets()
+        request = {}
+        market = None
+        market = self.market(symbol)
+        if market['spot']:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol)
+        request['symbol'] = market['id']
+        request['productType'] = 'UMCBL'
+        response = self.publicMixGetMarketQueryPositionLever(self.extend(request, params))
+        #
+        #     {
+        #         "code":"00000",
+        #         "data":[
+        #             {
+        #                 "level": 1,
+        #                 "startUnit": 0,
+        #                 "endUnit": 150000,
+        #                 "leverage": 125,
+        #                 "keepMarginRate": "0.004"
+        #             }
+        #         ],
+        #         "msg":"success",
+        #         "requestTime":1627292076687
+        #     }
+        #
+        result = self.safe_value(response, 'data')
+        return self.parse_market_leverage_tiers(result, market)
+
+    def parse_market_leverage_tiers(self, info, market=None):
+        #
+        #     [
+        #         {
+        #             "level": 1,
+        #             "startUnit": 0,
+        #             "endUnit": 150000,
+        #             "leverage": 125,
+        #             "keepMarginRate": "0.004"
+        #         }
+        #     ],
+        #
+        tiers = []
+        for i in range(0, len(info)):
+            item = info[i]
+            minNotional = self.safe_number(item, 'startUnit')
+            maxNotional = self.safe_number(item, 'endUnit')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['base'],
+                'minNotional': minNotional,
+                'maxNotional': maxNotional,
+                'maintenanceMarginRate': self.safe_number(item, 'keepMarginRate'),
+                'maxLeverage': self.safe_number(item, 'leverage'),
+                'info': item,
+            })
+        return tiers
+
     def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
@@ -1509,17 +1590,16 @@ class bitget(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('fetchOrderBook', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'publicSpotGetMarketDepth',
-            'swap': 'publicMixGetMarketDepth',
-        })
         request = {
             'symbol': market['id'],
         }
         if limit is not None:
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, query))
+        response = None
+        if market['spot']:
+            response = self.publicSpotGetMarketDepth(self.extend(request, params))
+        else:
+            response = self.publicMixGetMarketDepth(self.extend(request, params))
         #
         #     {
         #       code: '00000',
@@ -1622,12 +1702,12 @@ class bitget(Exchange):
         request = {
             'symbol': market['id'],
         }
-        marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'publicSpotGetMarketTicker',
-            'swap': 'publicMixGetMarketTicker',
-        })
-        response = getattr(self, method)(self.extend(request, query))
+        response = None
+        extended = self.extend(request, params)
+        if market['spot']:
+            response = self.publicSpotGetMarketTicker(extended)
+        else:
+            response = self.publicMixGetMarketTicker(extended)
         #
         #     {
         #         code: '00000',
@@ -1667,19 +1747,20 @@ class bitget(Exchange):
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        method = self.get_supported_mapping(type, {
-            'spot': 'publicSpotGetMarketTickers',
-            'swap': 'publicMixGetMarketTickers',
-        })
         request = {}
-        if method == 'publicMixGetMarketTickers':
+        if type != 'spot':
             subType = None
             subType, params = self.handle_sub_type_and_params('fetchTickers', None, params)
             productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
             if sandboxMode:
                 productType = 'S' + productType
             request['productType'] = productType
-        response = getattr(self, method)(self.extend(request, params))
+        extended = self.extend(request, params)
+        response = None
+        if type == 'spot':
+            response = self.publicSpotGetMarketTickers(extended)
+        else:
+            response = self.publicMixGetMarketTickers(extended)
         #
         # spot
         #
@@ -1836,12 +1917,12 @@ class bitget(Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        marketType, query = self.handle_market_type_and_params('fetchTrades', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'publicSpotGetMarketFills',
-            'swap': 'publicMixGetMarketFills',
-        })
-        response = getattr(self, method)(self.extend(request, query))
+        extended = self.extend(request, params)
+        response = None
+        if market['spot']:
+            response = self.publicSpotGetMarketFills(extended)
+        else:
+            response = self.publicMixGetMarketFills(extended)
         #
         #     {
         #       code: '00000',
@@ -1999,14 +2080,10 @@ class bitget(Exchange):
         request = {
             'symbol': market['id'],
         }
-        marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'publicSpotGetMarketCandles',
-            'swap': 'publicMixGetMarketCandles',
-        })
-        until = self.safe_integer_2(query, 'until', 'till')
+        until = self.safe_integer_2(params, 'until', 'till')
         if limit is None:
             limit = 100
+        marketType = 'spot' if market['spot'] else 'swap'
         timeframes = self.options['timeframes'][marketType]
         selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
         duration = self.parse_timeframe(timeframe)
@@ -2019,7 +2096,7 @@ class bitget(Exchange):
                     request['before'] = self.sum(since, limit * duration * 1000)
             if until is not None:
                 request['before'] = until
-        elif market['swap']:
+        elif market['contract']:
             request['granularity'] = selectedTimeframe
             now = self.milliseconds()
             if since is None:
@@ -2031,8 +2108,13 @@ class bitget(Exchange):
                     request['endTime'] = until
                 else:
                     request['endTime'] = self.sum(since, limit * duration * 1000)
-        ommitted = self.omit(query, ['until', 'till'])
-        response = getattr(self, method)(self.extend(request, ommitted))
+        ommitted = self.omit(params, ['until', 'till'])
+        extended = self.extend(request, ommitted)
+        response = None
+        if market['spot']:
+            response = self.publicSpotGetMarketCandles(extended)
+        else:
+            response = self.publicMixGetMarketCandles(extended)
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
@@ -2244,7 +2326,7 @@ class bitget(Exchange):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -2278,9 +2360,11 @@ class bitget(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
+            'future': 'privateMixPostOrderPlaceOrder',
         })
-        exchangeSpecificParam = self.safe_string_2(params, 'force', 'timeInForceValue')
-        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam == 'post_only', params)
+        exchangeSpecificTifParam = self.safe_string_n(params, ['force', 'timeInForceValue', 'timeInForce'])
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
         if marketType == 'spot':
             if isStopLossOrTakeProfit:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
@@ -2398,6 +2482,7 @@ class bitget(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostPlanModifyPlan',
             'swap': 'privateMixPostPlanModifyPlan',
+            'future': 'privateMixPostPlanModifyPlan',
         })
         if triggerPrice is not None:
             # default triggerType to market price for unification
@@ -2465,6 +2550,7 @@ class bitget(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeCancelOrder',
             'swap': 'privateMixPostOrderCancelOrder',
+            'future': 'privateMixPostOrderCancelOrder',
         })
         request = {
             'symbol': market['id'],
@@ -2505,7 +2591,7 @@ class bitget(Exchange):
             method = 'privateSpotPostTradeCancelBatchOrdersV2'
             request['symbol'] = market['id']
             request['orderIds'] = ids
-        elif type == 'swap':
+        else:
             method = 'privateMixPostOrderCancelBatchOrders'
             request['symbol'] = market['id']
             request['marginCoin'] = market['quote']
@@ -2625,6 +2711,7 @@ class bitget(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeOrderInfo',
             'swap': 'privateMixGetOrderDetail',
+            'future': 'privateMixGetOrderDetail',
         })
         request = {
             'symbol': market['id'],
@@ -2707,6 +2794,7 @@ class bitget(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
+            'future': 'privateMixGetOrderCurrent',
         })
         stop = self.safe_value(query, 'stop')
         if stop:
@@ -2885,6 +2973,7 @@ class bitget(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeHistory',
             'swap': 'privateMixGetOrderHistory',
+            'future': 'privateMixGetOrderHistory',
         })
         stop = self.safe_value(params, 'stop')
         if stop:
@@ -3019,7 +3108,7 @@ class bitget(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        return self.safe_value(data, 'orderList', data)
+        return self.safe_value(data, 'orderList', [])
 
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3168,6 +3257,7 @@ class bitget(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeFills',
             'swap': 'privateMixGetOrderFills',
+            'future': 'privateMixGetOrderFills',
         })
         request = {
             'symbol': market['id'],

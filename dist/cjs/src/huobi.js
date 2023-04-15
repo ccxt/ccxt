@@ -4214,7 +4214,8 @@ class huobi extends huobi$1 {
                 throw new errors.NotSupported(this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(orderType === 'market', orderType === 'limit-maker', params);
         if (postOnly) {
             orderType = 'limit-maker';
         }
@@ -4369,7 +4370,8 @@ class huobi extends huobi$1 {
             throw new errors.NotSupported(this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
         params = this.omit(params, ['sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price']);
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
         }

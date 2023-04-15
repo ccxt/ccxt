@@ -189,7 +189,7 @@ class latoken extends latoken$1 {
                     'Unable to resolve currency by tag': errors.BadSymbol,
                     "Can't find currency with tag": errors.BadSymbol,
                     'Unable to place order because pair is in inactive state': errors.BadSymbol,
-                    'API keys are not available for FROZEN user': errors.AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
+                    'API keys are not available for': errors.AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {

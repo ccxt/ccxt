@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -766,7 +767,7 @@ class krakenfutures(Exchange):
             'fee': None,
         })
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: market symbol
@@ -790,7 +791,7 @@ class krakenfutures(Exchange):
         params = self.omit(params, ['clientOrderId', 'cliOrdId'])
         if (type == 'stp' or type == 'take_profit') and stopPrice is None:
             raise ArgumentsRequired(self.id + ' createOrder requires params.stopPrice when type is ' + type)
-        if stopPrice is not None:
+        if stopPrice is not None and type != 'take_profit':
             type = 'stp'
         elif postOnly:
             type = 'postOnly'
@@ -1877,7 +1878,10 @@ class krakenfutures(Exchange):
             query += '?' + postData
         url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':
-            auth = postData + '/api/' + (api == endpoint if 'private' else api + '/' + endpoint)  # 1
+            auth = postData + '/api/'
+            if api != 'private':
+                auth += api + '/'
+            auth += endpoint  # 1
             hash = self.hash(self.encode(auth), 'sha256', 'binary')  # 2
             secret = self.base64_to_binary(self.secret)  # 3
             signature = self.hmac(hash, secret, hashlib.sha512, 'base64')  # 4-5

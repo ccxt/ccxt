@@ -699,7 +699,7 @@ class itbit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
          * @see https://api.itbit.com/docs#trading-new-order-post

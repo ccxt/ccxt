@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2181,12 +2182,14 @@ class bybit(Exchange):
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
+        if limit is None:
+            limit = 200
         request = {
             # 'category': '',  # Product type. linear,inverse
             # 'symbol': '',  # Symbol name
             # 'startTime': 0,  # The start timestamp(ms)
             # 'endTime': 0,  # The end timestamp(ms)
-            # 'limit': 0,  # Limit for data size per page. [1, 200]. Default: 200
+            'limit': limit,  # Limit for data size per page. [1, 200]. Default: 200
         }
         market = self.market(symbol)
         symbol = market['symbol']
@@ -2204,8 +2207,11 @@ class bybit(Exchange):
         params = self.omit(params, ['endTime', 'till', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
-        if limit is not None:
-            request['limit'] = limit
+        else:
+            if since is not None:
+                # end time is required when since is not empty
+                fundingInterval = 60 * 60 * 8 * 1000
+                request['endTime'] = since + limit * fundingInterval
         response = self.publicGetV5MarketFundingHistory(self.extend(request, params))
         #
         #     {
@@ -2892,12 +2898,16 @@ class bybit(Exchange):
                 # use self endpoint only we have no other choice
                 # because it requires transfer permission
                 method = 'privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery'
+                request['accountType'] = unifiedType
             else:
                 if enableUnifiedAccount:
                     method = 'privateGetV5AccountWalletBalance'
+                    request['accountType'] = unifiedType
+                elif enableUnifiedMargin:
+                    method = 'privateGetUnifiedV3PrivateAccountWalletBalance'
                 else:
                     method = 'privateGetContractV3PrivateAccountWalletBalance'
-            request['accountType'] = unifiedType
+                    request['accountType'] = unifiedType
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot wallet
@@ -3268,7 +3278,7 @@ class bybit(Exchange):
                 raise InvalidOrder(self.id + ' returned more than one order')
             return self.safe_value(result, 0)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://bybit-exchange.github.io/docs/v5/order/create-order
@@ -3352,15 +3362,17 @@ class bybit(Exchange):
                     quoteAmount = Precise.string_mul(amountString, priceString)
                     amount = cost if (cost is not None) else self.parse_number(quoteAmount)
                     request['qty'] = self.cost_to_precision(symbol, amount)
+            else:
+                request['qty'] = self.cost_to_precision(symbol, amount)
         else:
             request['qty'] = self.amount_to_precision(symbol, amount)
         isMarket = lowerCaseType == 'market'
         isLimit = lowerCaseType == 'limit'
         if isLimit:
             request['price'] = self.price_to_precision(symbol, price)
-        exchangeSpecificParam = self.safe_string(params, 'time_in_force')
-        timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3403,7 +3415,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit'])
         response = self.privatePostV5OrderCreate(self.extend(request, params))
         #
         #     {
@@ -3444,14 +3456,18 @@ class bybit(Exchange):
                     quoteAmount = Precise.string_mul(amountString, priceString)
                     amount = cost if (cost is not None) else self.parse_number(quoteAmount)
                     request['orderQty'] = self.cost_to_precision(symbol, amount)
+            else:
+                request['orderQty'] = self.cost_to_precision(symbol, amount)
         else:
             request['orderQty'] = self.amount_to_precision(symbol, amount)
         if (upperCaseType == 'LIMIT') or (upperCaseType == 'LIMIT_MAKER'):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
             request['orderPrice'] = self.price_to_precision(symbol, price)
-        isPostOnly = self.is_post_only(upperCaseType == 'MARKET', type == 'LIMIT_MAKER', params)
-        if isPostOnly:
+        isMarket = (upperCaseType == 'MARKET')
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, type == 'LIMIT_MAKER', params)
+        if postOnly:
             request['orderType'] = 'LIMIT_MAKER'
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
@@ -3532,7 +3548,8 @@ class bybit(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3571,7 +3588,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit'])
         response = self.privatePostUnifiedV3PrivateOrderCreate(self.extend(request, params))
         #
         #     {
@@ -3622,9 +3639,9 @@ class bybit(Exchange):
         isLimit = lowerCaseType == 'limit'
         if isLimit:
             request['price'] = self.price_to_precision(symbol, price)
-        exchangeSpecificParam = self.safe_string(params, 'time_in_force')
-        timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        timeInForce = self.safe_string_lower(params, 'timeInForce')  # same specific param
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3663,7 +3680,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit'])
         response = self.privatePostContractV3PrivateOrderCreate(self.extend(request, params))
         #
         #     {
@@ -3714,7 +3731,8 @@ class bybit(Exchange):
             request['orderPrice'] = self.price_to_precision(symbol, price)
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
         if postOnly:
             request['time_in_force'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3755,7 +3773,7 @@ class bybit(Exchange):
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit'])
         method = 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' if market['option'] else 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -3811,18 +3829,28 @@ class bybit(Exchange):
             request['category'] = 'option'
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder:
-            request['stopLoss'] = self.price_to_precision(symbol, stopLossPrice)
-        if isTakeProfitOrder:
-            request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLoss = self.safe_number(params, 'stopLoss')
+        takeProfit = self.safe_number(params, 'takeProfit')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
+        if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        if isStopLoss or isTakeProfit:
+            if isStopLoss:
+                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+            if isTakeProfit:
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['orderLinkId'] = clientOrderId
+        params = self.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit'])
         response = self.privatePostV5OrderAmend(self.extend(request, params))
         #
         #     {
@@ -3885,22 +3913,28 @@ class bybit(Exchange):
             request['timeInForce'] = 'FillOrKill'
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder:
-            request['stopLoss'] = self.price_to_precision(symbol, stopLossPrice)
-        if isTakeProfitOrder:
-            request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLoss = self.safe_number(params, 'stopLoss')
+        takeProfit = self.safe_number(params, 'takeProfit')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
+        if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
         if triggerPrice is not None:
-            request['triggerBy'] = 'LastPrice'
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+        if isStopLoss or isTakeProfit:
+            if isStopLoss:
+                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+            if isTakeProfit:
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'stopLoss', 'takeProfit'])
         response = self.privatePostUnifiedV3PrivateOrderReplace(self.extend(request, params))
         #
         #     {
@@ -3922,21 +3956,38 @@ class bybit(Exchange):
             'symbol': market['id'],
             'orderId': id,
             'qty': self.amount_to_precision(symbol, amount),
+            # 'orderLinkId': '',  # User customised order id. Either orderId or orderLinkId is required
+            # 'triggerPrice': '',  # Trigger price. Don't pass it if not modify the qty
+            # 'takeProfit': '',  # Take profit price after modification. Don't pass it if not modify the take profit
+            # 'stopLoss': '',  # Stop loss price after modification. Don't pass it if not modify the Stop loss
+            # 'tpTriggerBy': '',  # The price type to trigger take profit. When set a take profit, self param is required if no initial value for the order
+            # 'slTriggerBy': '',  # The price type to trigger stop loss. When set a stop loss, self param is required if no initial value for the order
+            # 'triggerBy': '',  # Trigger price type. LastPrice, IndexPrice, MarkPrice, LastPrice
         }
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder:
-            request['stopLoss'] = self.price_to_precision(symbol, stopLossPrice)
-        if isTakeProfitOrder:
-            request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLoss = self.safe_number(params, 'stopLoss')
+        takeProfit = self.safe_number(params, 'takeProfit')
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLoss = stopLoss is not None
+        isTakeProfit = takeProfit is not None
+        if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        if isStopLoss or isTakeProfit:
+            if isStopLoss:
+                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+            if isTakeProfit:
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['orderLinkId'] = clientOrderId
+        params = self.omit(params, ['stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'clientOrderId', 'stopLoss', 'takeProfit'])
         response = self.privatePostContractV3PrivateOrderReplace(self.extend(request, params))
         #
         # contract v3
@@ -4434,6 +4485,8 @@ class bybit(Exchange):
             # 'orderFilter', Conditional order or active order
             # 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
             # 'cursor', API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            # 'startTime': 0,  # The start timestamp(ms) Support UTA only temporarily startTime and endTime must be passed together If not passed, query the past 7 days data by default
+            # 'endTime': 0,  # The end timestamp(ms)
         }
         market = None
         if symbol is None:
@@ -4465,6 +4518,16 @@ class bybit(Exchange):
                 request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till', 'until'])
+        if endTime is not None:
+            request['endTime'] = endTime
+        else:
+            if since is not None:
+                raise BadRequest(self.id + ' fetchOrders() requires until/endTime when since is provided.')
         response = self.privateGetV5OrderHistory(self.extend(request, params))
         #
         #     {

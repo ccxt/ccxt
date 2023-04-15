@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -151,6 +152,8 @@ class woo(Exchange):
                             'funding_rate_history': 1,
                             'futures': 1,
                             'futures/{symbol}': 1,
+                            'orderbook/{symbol}': 1,
+                            'kline': 1,
                         },
                     },
                     'private': {
@@ -159,8 +162,6 @@ class woo(Exchange):
                             'order/{oid}': 1,
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
@@ -215,9 +216,9 @@ class woo(Exchange):
                         },
                         'put': {
                             'order/{oid}': 2,
-                            'order/client/{oid}': 2,
+                            'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
-                            'algo/order/client/{oid}': 2,
+                            'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
                             'algo/order/{oid}': 1,
@@ -701,7 +702,7 @@ class woo(Exchange):
             }
         return result
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -794,7 +795,6 @@ class woo(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'oid': id,
             # 'quantity': self.amount_to_precision(symbol, amount),
             # 'price': self.price_to_precision(symbol, price),
         }
@@ -802,7 +802,18 @@ class woo(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        response = self.v3PrivatePutOrderOid(self.extend(request, params))
+        clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
+        clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
+        isByClientOrder = clientOrderIdExchangeSpecific is not None
+        method = None
+        if isByClientOrder:
+            method = 'v3PrivatePutOrderClientClientOrderId'
+            request['client_order_id'] = clientOrderIdExchangeSpecific
+            params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+        else:
+            method = 'v3PrivatePutOrderOid'
+            request['oid'] = id
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -831,18 +842,21 @@ class woo(Exchange):
         self.load_markets()
         request = {}
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        clientOrderIdExchangeSpecific = self.safe_string_2(params, 'client_order_id', clientOrderIdUnified)
+        clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
+        method = None
         if isByClientOrder:
+            method = 'v1PrivateDeleteClientOrder'
             request['client_order_id'] = clientOrderIdExchangeSpecific
             params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         else:
+            method = 'v1PrivateDeleteOrder'
             request['order_id'] = id
         market = None
         if symbol is not None:
             market = self.market(symbol)
         request['symbol'] = market['id']
-        response = self.v1PrivateDeleteOrder(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
         #
         # {success: True, status: 'CANCEL_SENT'}
         #
@@ -1079,7 +1093,7 @@ class woo(Exchange):
         if limit is not None:
             limit = min(limit, 1000)
             request['max_level'] = limit
-        response = self.v1PrivateGetOrderbookSymbol(self.extend(request, params))
+        response = self.v1PublicGetOrderbookSymbol(self.extend(request, params))
         #
         # {
         #   success: True,
@@ -1117,7 +1131,7 @@ class woo(Exchange):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        response = self.v1PrivateGetKline(self.extend(request, params))
+        response = self.v1PublicGetKline(self.extend(request, params))
         # {
         #     success: True,
         #     rows: [

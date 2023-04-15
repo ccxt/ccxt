@@ -1,5 +1,5 @@
 import Exchange from './abstract/tokocrypto.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class tokocrypto extends Exchange {
     describe(): any;
     nonce(): number;
@@ -18,7 +18,7 @@ export default class tokocrypto extends Exchange {
     parseBalance(response: any, type?: any, marginMode?: any): import("./base/types.js").Balances;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

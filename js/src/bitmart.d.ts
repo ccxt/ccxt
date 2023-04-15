@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class bitmart extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -74,7 +74,7 @@ export default class bitmart extends Exchange {
     }>;
     parseOrder(order: any, market?: any): any;
     parseOrderStatusByType(type: any, status: any): string;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

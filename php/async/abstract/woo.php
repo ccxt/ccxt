@@ -46,6 +46,12 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v1_public_get_futures_symbol($params = array()) {
         return $this->request('futures/{symbol}', array('v1', 'public'), 'GET', $params);
     }
+    public function v1_public_get_orderbook_symbol($params = array()) {
+        return $this->request('orderbook/{symbol}', array('v1', 'public'), 'GET', $params);
+    }
+    public function v1_public_get_kline($params = array()) {
+        return $this->request('kline', array('v1', 'public'), 'GET', $params);
+    }
     public function v1_private_get_client_token($params = array()) {
         return $this->request('client/token', array('v1', 'private'), 'GET', $params);
     }
@@ -57,12 +63,6 @@ abstract class woo extends \ccxt\async\Exchange {
     }
     public function v1_private_get_orders($params = array()) {
         return $this->request('orders', array('v1', 'private'), 'GET', $params);
-    }
-    public function v1_private_get_orderbook_symbol($params = array()) {
-        return $this->request('orderbook/{symbol}', array('v1', 'private'), 'GET', $params);
-    }
-    public function v1_private_get_kline($params = array()) {
-        return $this->request('kline', array('v1', 'private'), 'GET', $params);
     }
     public function v1_private_get_client_trade_tid($params = array()) {
         return $this->request('client/trade/{tid}', array('v1', 'private'), 'GET', $params);
@@ -166,14 +166,14 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v3_private_put_order_oid($params = array()) {
         return $this->request('order/{oid}', array('v3', 'private'), 'PUT', $params);
     }
-    public function v3_private_put_order_client_oid($params = array()) {
-        return $this->request('order/client/{oid}', array('v3', 'private'), 'PUT', $params);
+    public function v3_private_put_order_client_client_order_id($params = array()) {
+        return $this->request('order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params);
     }
     public function v3_private_put_algo_order_oid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'PUT', $params);
     }
-    public function v3_private_put_algo_order_client_oid($params = array()) {
-        return $this->request('algo/order/client/{oid}', array('v3', 'private'), 'PUT', $params);
+    public function v3_private_put_algo_order_client_client_order_id($params = array()) {
+        return $this->request('algo/order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params);
     }
     public function v3_private_delete_algo_order_oid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'DELETE', $params);
@@ -226,6 +226,12 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v1PublicGetFuturesSymbol($params = array()) {
         return $this->request('futures/{symbol}', array('v1', 'public'), 'GET', $params);
     }
+    public function v1PublicGetOrderbookSymbol($params = array()) {
+        return $this->request('orderbook/{symbol}', array('v1', 'public'), 'GET', $params);
+    }
+    public function v1PublicGetKline($params = array()) {
+        return $this->request('kline', array('v1', 'public'), 'GET', $params);
+    }
     public function v1PrivateGetClientToken($params = array()) {
         return $this->request('client/token', array('v1', 'private'), 'GET', $params);
     }
@@ -237,12 +243,6 @@ abstract class woo extends \ccxt\async\Exchange {
     }
     public function v1PrivateGetOrders($params = array()) {
         return $this->request('orders', array('v1', 'private'), 'GET', $params);
-    }
-    public function v1PrivateGetOrderbookSymbol($params = array()) {
-        return $this->request('orderbook/{symbol}', array('v1', 'private'), 'GET', $params);
-    }
-    public function v1PrivateGetKline($params = array()) {
-        return $this->request('kline', array('v1', 'private'), 'GET', $params);
     }
     public function v1PrivateGetClientTradeTid($params = array()) {
         return $this->request('client/trade/{tid}', array('v1', 'private'), 'GET', $params);
@@ -346,14 +346,14 @@ abstract class woo extends \ccxt\async\Exchange {
     public function v3PrivatePutOrderOid($params = array()) {
         return $this->request('order/{oid}', array('v3', 'private'), 'PUT', $params);
     }
-    public function v3PrivatePutOrderClientOid($params = array()) {
-        return $this->request('order/client/{oid}', array('v3', 'private'), 'PUT', $params);
+    public function v3PrivatePutOrderClientClientOrderId($params = array()) {
+        return $this->request('order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params);
     }
     public function v3PrivatePutAlgoOrderOid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'PUT', $params);
     }
-    public function v3PrivatePutAlgoOrderClientOid($params = array()) {
-        return $this->request('algo/order/client/{oid}', array('v3', 'private'), 'PUT', $params);
+    public function v3PrivatePutAlgoOrderClientClientOrderId($params = array()) {
+        return $this->request('algo/order/client/{client_order_id}', array('v3', 'private'), 'PUT', $params);
     }
     public function v3PrivateDeleteAlgoOrderOid($params = array()) {
         return $this->request('algo/order/{oid}', array('v3', 'private'), 'DELETE', $params);

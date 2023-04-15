@@ -1,5 +1,5 @@
 import Exchange from './abstract/blockchaincom.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class blockchaincom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -11,7 +11,7 @@ export default class blockchaincom extends Exchange {
     fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     parseOrderState(state: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
         id: string;
         info: any;

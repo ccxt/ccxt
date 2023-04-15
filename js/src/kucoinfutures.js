@@ -1080,7 +1080,11 @@ export default class kucoinfutures extends kucoin {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
         const hidden = this.safeValue(params, 'hidden');
         if (postOnly && (hidden !== undefined)) {
             throw new BadRequest(this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');

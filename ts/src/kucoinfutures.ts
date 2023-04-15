@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1008,7 +1008,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#createOrder
@@ -1085,7 +1085,11 @@ export default class kucoinfutures extends kucoin {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
         const hidden = this.safeValue (params, 'hidden');
         if (postOnly && (hidden !== undefined)) {
             throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');

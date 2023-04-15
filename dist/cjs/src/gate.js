@@ -2464,7 +2464,8 @@ class gate extends gate$1 {
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
             request['from'] = this.parseToInt(since / 1000);
-            const toTimestamp = this.sum(request['from'], limit * duration - 1);
+            const distance = (limit - 1) * duration;
+            const toTimestamp = this.sum(request['from'], distance);
             const currentTimestamp = this.seconds();
             const to = Math.min(toTimestamp, currentTimestamp);
             if (until !== undefined) {

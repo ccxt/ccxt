@@ -5,7 +5,7 @@ import Exchange from './abstract/hitbtc.js';
 import { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -225,6 +225,9 @@ export default class hitbtc extends Exchange {
                     'spot': 'trading',
                     'trade': 'trading',
                     'trading': 'trading',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'commonCurrencies': {
@@ -975,7 +978,7 @@ export default class hitbtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#createOrder
@@ -1471,6 +1474,11 @@ export default class hitbtc extends Exchange {
         if (network !== undefined) {
             request['currency'] += network; // when network the currency need to be changed to currency + network
             params = this.omit (params, 'network');
+        }
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const includeFee = this.safeValue (withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['includeFee'] = true;
         }
         const response = await this.privatePostAccountCryptoWithdraw (this.extend (request, params));
         //

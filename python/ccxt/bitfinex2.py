@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -345,6 +346,9 @@ class bitfinex2(Exchange):
                     'margin': 'margin',
                     'derivatives': 'margin',
                     'future': 'margin',
+                },
+                'withdraw': {
+                    'includeFee': False,
                 },
             },
             'exceptions': {
@@ -1401,7 +1405,7 @@ class bitfinex2(Exchange):
             'trades': None,
         }, market)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
@@ -1868,10 +1872,14 @@ class bitfinex2(Exchange):
     def parse_transaction_status(self, status):
         statuses = {
             'SUCCESS': 'ok',
+            'COMPLETED': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
-            'COMPLETED': 'ok',
+            'PENDING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'PENDING REVIEW': 'pending',
+            'PENDING CANCELLATION': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1950,7 +1958,7 @@ class bitfinex2(Exchange):
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
-            id = self.safe_value(data, 0)
+            id = self.safe_string(data, 0)
             status = 'ok'
             if id == 0:
                 id = None
@@ -2184,7 +2192,7 @@ class bitfinex2(Exchange):
         currencyNetwork = self.safe_value(currencyNetworks, network)
         networkId = self.safe_string(currencyNetwork, 'id')
         if networkId is None:
-            raise ArgumentsRequired(self.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
+            raise ArgumentsRequired(self.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
         wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = self.omit(params, 'network', 'wallet')
         request = {
@@ -2195,6 +2203,10 @@ class bitfinex2(Exchange):
         }
         if tag is not None:
             request['payment_id'] = tag
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        if includeFee:
+            request['fee_deduct'] = 1
         response = self.privatePostAuthWWithdraw(self.extend(request, params))
         #
         #     [

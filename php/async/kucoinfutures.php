@@ -1013,7 +1013,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange
@@ -1089,7 +1089,11 @@ class kucoinfutures extends kucoin {
                     $request['timeInForce'] = $timeInForce;
                 }
             }
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
+            if ($postOnly) {
+                $request['postOnly'] = true;
+            }
             $hidden = $this->safe_value($params, 'hidden');
             if ($postOnly && ($hidden !== null)) {
                 throw new BadRequest($this->id . ' createOrder() does not support the $postOnly parameter together with a $hidden parameter');

@@ -2454,7 +2454,8 @@ class gate extends Exchange {
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
             $request['from'] = $this->parse_to_int($since / 1000);
-            $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
+            $distance = ($limit - 1) * $duration;
+            $toTimestamp = $this->sum($request['from'], $distance);
             $currentTimestamp = $this->seconds();
             $to = min ($toTimestamp, $currentTimestamp);
             if ($until !== null) {
@@ -3100,7 +3101,7 @@ class gate extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @param {string} $symbol Unified CCXT $market $symbol

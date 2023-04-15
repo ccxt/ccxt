@@ -226,6 +226,9 @@ class hitbtc extends Exchange {
                     'trade' => 'trading',
                     'trading' => 'trading',
                 ),
+                'withdraw' => array(
+                    'includeFee' => false,
+                ),
             ),
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
@@ -953,7 +956,7 @@ class hitbtc extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -1427,6 +1430,11 @@ class hitbtc extends Exchange {
         if ($network !== null) {
             $request['currency'] .= $network; // when $network the $currency need to be changed to $currency . $network
             $params = $this->omit($params, 'network');
+        }
+        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+        if ($includeFee) {
+            $request['includeFee'] = true;
         }
         $response = $this->privatePostAccountCryptoWithdraw (array_merge($request, $params));
         //

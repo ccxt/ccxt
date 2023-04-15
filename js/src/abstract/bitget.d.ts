@@ -8,6 +8,7 @@ interface Exchange {
     publicSpotGetMarketTicker(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketTickers(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketFills(params?: {}): Promise<implicitReturnType>;
+    publicSpotGetMarketFillsHistory(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketCandles(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketSpotVipLevel(params?: {}): Promise<implicitReturnType>;
@@ -25,6 +26,8 @@ interface Exchange {
     publicMixGetMarketMarkPrice(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketSymbolLeverage(params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketContractVipLevel(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketFillsHistory(params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketQueryPositionLever(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountGetInfo(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountAssets(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountTransferRecords(params?: {}): Promise<implicitReturnType>;
@@ -43,9 +46,14 @@ interface Exchange {
     privateSpotPostTradeOpenOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTradeHistory(params?: {}): Promise<implicitReturnType>;
     privateSpotPostTradeFills(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostTradeCancelOrderV2(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostTradeCancelSymbolOrder(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransfer(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletWithdrawal(params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletSubTransfer(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostWalletTransferV2(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostWalletWithdrawalV2(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostWalletWithdrawalInnerV2(params?: {}): Promise<implicitReturnType>;
     privateSpotPostPlanPlacePlan(params?: {}): Promise<implicitReturnType>;
     privateSpotPostPlanModifyPlan(params?: {}): Promise<implicitReturnType>;
     privateSpotPostPlanCancelPlan(params?: {}): Promise<implicitReturnType>;
@@ -75,6 +83,8 @@ interface Exchange {
     privateMixGetTradeProfitDateList(params?: {}): Promise<implicitReturnType>;
     privateMixGetTraceWaitProfitDateList(params?: {}): Promise<implicitReturnType>;
     privateMixGetTraceTraderSymbols(params?: {}): Promise<implicitReturnType>;
+    privateMixGetTraceTraderList(params?: {}): Promise<implicitReturnType>;
+    privateMixGetTraceQueryTraceConfig(params?: {}): Promise<implicitReturnType>;
     privateMixGetOrderMarginCoinCurrent(params?: {}): Promise<implicitReturnType>;
     privateMixPostAccountSetLeverage(params?: {}): Promise<implicitReturnType>;
     privateMixPostAccountSetMargin(params?: {}): Promise<implicitReturnType>;
@@ -85,6 +95,7 @@ interface Exchange {
     privateMixPostOrderCancelOrder(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelAllOrders(params?: {}): Promise<implicitReturnType>;
     privateMixPostOrderCancelBatchOrders(params?: {}): Promise<implicitReturnType>;
+    privateMixPostOrderCancelSymbolOrders(params?: {}): Promise<implicitReturnType>;
     privateMixPostPlanPlacePlan(params?: {}): Promise<implicitReturnType>;
     privateMixPostPlanModifyPlan(params?: {}): Promise<implicitReturnType>;
     privateMixPostPlanModifyPlanPreset(params?: {}): Promise<implicitReturnType>;
@@ -94,8 +105,13 @@ interface Exchange {
     privateMixPostPlanModifyTPSLPlan(params?: {}): Promise<implicitReturnType>;
     privateMixPostPlanCancelPlan(params?: {}): Promise<implicitReturnType>;
     privateMixPostPlanCancelAllPlan(params?: {}): Promise<implicitReturnType>;
+    privateMixPostPlanCancelSymbolPlan(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceCloseTrackOrder(params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceSetUpCopySymbols(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceFollowerSetBatchTraceConfig(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceFollowerCloseByTrackingNo(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceFollowerCloseByAll(params?: {}): Promise<implicitReturnType>;
+    privateMixPostTraceFollowerSetTpsl(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

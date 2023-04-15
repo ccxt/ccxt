@@ -194,7 +194,7 @@ class latoken extends Exchange {
                     'Unable to resolve currency by tag' => '\\ccxt\\BadSymbol', // array("message":"Unable to resolve currency by tag (null)","error":"NOT_FOUND","status":"FAILURE")
                     "Can't find currency with tag" => '\\ccxt\\BadSymbol', // array("status":"FAILURE","message":"Can't find currency with tag = null","error":"NOT_FOUND","errors":null,"result":false)
                     'Unable to place order because pair is in inactive state' => '\\ccxt\\BadSymbol', // array("message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE")
-                    'API keys are not available for FROZEN user' => '\\ccxt\\AccountSuspended', // array("result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE")
+                    'API keys are not available for' => '\\ccxt\\AccountSuspended', // array("result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE")
                 ),
             ),
             'options' => array(
@@ -1186,7 +1186,7 @@ class latoken extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order

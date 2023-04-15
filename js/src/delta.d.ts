@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class delta extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -76,7 +76,7 @@ export default class delta extends Exchange {
     };
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;

@@ -147,6 +147,8 @@ class woo extends Exchange {
                             'funding_rate_history' => 1,
                             'futures' => 1,
                             'futures/{symbol}' => 1,
+                            'orderbook/{symbol}' => 1,
+                            'kline' => 1,
                         ),
                     ),
                     'private' => array(
@@ -155,8 +157,6 @@ class woo extends Exchange {
                             'order/{oid}' => 1,
                             'client/order/{client_order_id}' => 1,
                             'orders' => 1,
-                            'orderbook/{symbol}' => 1,
-                            'kline' => 1,
                             'client/trade/{tid}' => 1,
                             'order/{oid}/trades' => 1,
                             'client/trades' => 1,
@@ -211,9 +211,9 @@ class woo extends Exchange {
                         ),
                         'put' => array(
                             'order/{oid}' => 2,
-                            'order/client/{oid}' => 2,
+                            'order/client/{client_order_id}' => 2,
                             'algo/order/{oid}' => 2,
-                            'algo/order/client/{oid}' => 2,
+                            'algo/order/client/{client_order_id}' => 2,
                         ),
                         'delete' => array(
                             'algo/order/{oid}' => 1,
@@ -722,7 +722,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -830,7 +830,6 @@ class woo extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'oid' => $id,
                 // 'quantity' => $this->amount_to_precision($symbol, $amount),
                 // 'price' => $this->price_to_precision($symbol, $price),
             );
@@ -840,7 +839,19 @@ class woo extends Exchange {
             if ($amount !== null) {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             }
-            $response = Async\await($this->v3PrivatePutOrderOid (array_merge($request, $params)));
+            $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+            $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
+            $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
+            $method = null;
+            if ($isByClientOrder) {
+                $method = 'v3PrivatePutOrderClientClientOrderId';
+                $request['client_order_id'] = $clientOrderIdExchangeSpecific;
+                $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+            } else {
+                $method = 'v3PrivatePutOrderOid';
+                $request['oid'] = $id;
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -873,12 +884,15 @@ class woo extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-            $clientOrderIdExchangeSpecific = $this->safe_string_2($params, 'client_order_id', $clientOrderIdUnified);
+            $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
             $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
+            $method = null;
             if ($isByClientOrder) {
+                $method = 'v1PrivateDeleteClientOrder';
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
             } else {
+                $method = 'v1PrivateDeleteOrder';
                 $request['order_id'] = $id;
             }
             $market = null;
@@ -886,7 +900,7 @@ class woo extends Exchange {
                 $market = $this->market($symbol);
             }
             $request['symbol'] = $market['id'];
-            $response = Async\await($this->v1PrivateDeleteOrder (array_merge($request, $params)));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // array( success => true, status => 'CANCEL_SENT' )
             //
@@ -1145,7 +1159,7 @@ class woo extends Exchange {
                 $limit = min ($limit, 1000);
                 $request['max_level'] = $limit;
             }
-            $response = Async\await($this->v1PrivateGetOrderbookSymbol (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetOrderbookSymbol (array_merge($request, $params)));
             //
             // {
             //   success => true,
@@ -1187,7 +1201,7 @@ class woo extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1000);
             }
-            $response = Async\await($this->v1PrivateGetKline (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetKline (array_merge($request, $params)));
             // {
             //     success => true,
             //     rows => array(

@@ -889,7 +889,9 @@ export default class gate extends gateRest {
             const method = methods[channel];
             method.call(this, client, message, subscription);
         }
-        delete client.subscriptions[id];
+        if (id in client.subscriptions) {
+            delete client.subscriptions[id];
+        }
     }
     handleMessage(client, message) {
         //

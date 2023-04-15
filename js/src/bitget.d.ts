@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class bitget extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
@@ -58,6 +58,8 @@ export default class bitget extends Exchange {
     };
     fetchMarketsByType(type: any, params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
+    fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
+    parseMarketLeverageTiers(info: any, market?: any): any[];
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
@@ -142,7 +144,7 @@ export default class bitget extends Exchange {
     parseBalance(balance: any): import("./base/types.js").Balances;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
