@@ -1,6 +1,5 @@
 // ----------------------------------------------------------------------------
 
-import log from 'ololog'
 import assert from 'assert'
 import testTrade from '../../../test/Exchange/base/test.trade.js'
 import errors from '../../../base/errors.js'
@@ -14,7 +13,7 @@ export default async (exchange, symbol) => {
     const method = 'watchMyTrades'
 
     if (!exchange.has[method]) {
-        log (exchange.id, 'does not support', method + '() method')
+        console.log (exchange.id, 'does not support', method, '() method')
         return
     }
 
@@ -33,7 +32,7 @@ export default async (exchange, symbol) => {
 
             assert (response instanceof Array)
 
-            log (exchange.iso8601 (now), exchange.id, symbol.green, method, (Object.values (response).length.toString () as any).green, 'trades')
+            console.log (exchange.iso8601 (now), exchange.id, symbol.green, method, (Object.values (response).length.toString () as any).green, 'trades')
 
             // log.noLocate (asTable (response))
 

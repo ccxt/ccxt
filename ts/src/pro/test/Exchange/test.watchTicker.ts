@@ -2,8 +2,6 @@
 
 // ----------------------------------------------------------------------------
 
-import log from 'ololog';
-
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import errors from '../../../base/errors.js';
 
@@ -25,12 +23,12 @@ export default async (exchange, symbol) => {
     ];
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, method + '() test skipped');
+        console.log (exchange.id, method + '() test skipped');
         return;
     }
 
     if (!exchange.has[method]) {
-        log (exchange.id, method + '() is not supported');
+        console.log (exchange.id, method + '() is not supported');
         return;
     }
 
@@ -45,7 +43,7 @@ export default async (exchange, symbol) => {
 
             response = await exchange[method] (symbol);
 
-            testTicker (exchange, response, method, symbol);
+            testTicker (exchange, method, response, symbol);
 
             now = Date.now ();
 
