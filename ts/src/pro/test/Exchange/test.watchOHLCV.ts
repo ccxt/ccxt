@@ -2,8 +2,6 @@
 
 // ----------------------------------------------------------------------------
 
-import log from 'ololog';
-
 import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import errors from '../../../base/errors.js';
@@ -26,12 +24,12 @@ export default async (exchange, symbol) => {
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, method + '() test skipped')
+        console.log (exchange.id, method + '() test skipped')
         return
     }
 
     if (!exchange.has[method]) {
-        log (exchange.id, 'does not support', method + '() method')
+        console.log (exchange.id, 'does not support', method + '() method')
         return
     }
 
@@ -77,12 +75,12 @@ export default async (exchange, symbol) => {
             ])
 
             if (response.length > 0) {
-                log (exchange.iso8601 (now), exchange.id, timeframe, symbol, response.length, 'candles', JSON.stringify (response[response.length - 1]))
+                console.log (exchange.iso8601 (now), exchange.id, timeframe, symbol, response.length, 'candles', JSON.stringify (response[response.length - 1]))
             }
 
         } catch (e) {
 
-            log (e)
+            console.log (e)
 
             if (!(e instanceof errors.NetworkError)) {
                 throw e

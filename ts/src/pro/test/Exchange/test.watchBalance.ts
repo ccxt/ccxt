@@ -2,8 +2,6 @@
 
 // ----------------------------------------------------------------------------
 
-import log from 'ololog';
-
 import assert from 'assert';
 import testBalance from '../../../test/Exchange/base/test.balance.js';
 import errors from '../../../base/errors.js';
@@ -16,11 +14,11 @@ export default async (exchange) => {
     const method = 'watchBalance';
 
     if (!exchange.has[method]) {
-        log (exchange.id, 'does not support', method + '() method');
+        console.log (exchange.id, 'does not support', method, '() method');
         return;
     }
 
-    log ('watching balance...');
+    console.log ('watching balance...');
 
     let now = Date.now ();
     const ends = now + 10000;
@@ -31,7 +29,7 @@ export default async (exchange) => {
 
             const balance = await exchange[method] ();
 
-            log (exchange.iso8601 (now), exchange.id, method, balance);
+            console.log (exchange.iso8601 (now), exchange.id, method, balance);
 
             testBalance (exchange, method, balance);
 
@@ -41,7 +39,7 @@ export default async (exchange) => {
                 throw e;
             }
 
-            log.red (e);
+            console.log (e);
         }
 
         now = Date.now ();

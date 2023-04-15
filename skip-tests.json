@@ -320,6 +320,8 @@
         "skipWs": true
     },
     "cex": {
+        "skip": true,
+        "//": "temporary unavailable, lets re-check from 16th april",
         "skipWs": true,
         "skipMethods": {
             "fetchOHLCV": "unexpected issue",
