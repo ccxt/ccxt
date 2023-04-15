@@ -252,7 +252,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchBalance (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchBalance (params = {}) {
         /**
          * @method
          * @name krakenfutures#watchOrders
