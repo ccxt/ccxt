@@ -3821,7 +3821,7 @@ export default class bybit extends Exchange {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
         let triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice');
+        const stopLossTriggerPrice = this.safeNumber (params, 'stopLossPrice', triggerPrice);
         const takeProfitTriggerPrice = this.safeNumber (params, 'takeProfitPrice');
         const stopLoss = this.safeNumber (params, 'stopLoss');
         const takeProfit = this.safeNumber (params, 'takeProfit');
