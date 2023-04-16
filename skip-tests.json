@@ -439,6 +439,7 @@
         }
     },
     "huobi": {
+		"skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": "precision is undefined",
@@ -695,6 +696,9 @@
             "fetchOHLCV": "index 1 (open price) is undefined"
         }
     },
+	"woo": {
+		"skipPhpAsync": true
+	},
     "wazirx": {
         "skip":true,
         "//": "ratelimit exceeded",
