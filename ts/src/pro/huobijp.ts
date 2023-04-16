@@ -554,15 +554,11 @@ export default class huobijp extends huobijpRest {
         }
     }
 
-    async pong (client, message) {
+    pong (client: Client, message) {
         //
         //     { ping: 1583491673714 }
         //
-        await client.send ({ 'pong': this.safeInteger (message, 'ping') });
-    }
-
-    handlePing (client: Client, message) {
-        this.spawn (this.pong, client, message);
+        client.send ({ 'pong': this.safeInteger (message, 'ping') });
     }
 
     handleErrorMessage (client: Client, message) {
@@ -617,7 +613,7 @@ export default class huobijp extends huobijpRest {
                 // route by channel aka topic aka subject
                 this.handleSubject (client, message);
             } else if (this.safeString (message, 'ping') !== undefined) {
-                this.handlePing (client, message);
+                this.pong (client, message);
             }
         }
     }

@@ -43,13 +43,13 @@ export default class cryptocom extends cryptocomRest {
         });
     }
 
-    async pong (client, message) {
+    pong (client: Client, message) {
         // {
         //     "id": 1587523073344,
         //     "method": "public/heartbeat",
         //     "code": 0
         // }
-        await client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
+        client.send ({ 'id': this.safeInteger (message, 'id'), 'method': 'public/respond-heartbeat' });
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -545,7 +545,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const subject = this.safeString (message, 'method');
         if (subject === 'public/heartbeat') {
-            this.handlePing (client, message);
+            this.pong (client, message);
             return;
         }
         if (subject === 'public/auth') {
@@ -595,10 +595,6 @@ export default class cryptocom extends cryptocomRest {
             client.subscriptions[messageHash] = future;
         }
         return future;
-    }
-
-    handlePing (client: Client, message) {
-        this.spawn (this.pong, client, message);
     }
 
     handleAuthenticate (client: Client, message) {

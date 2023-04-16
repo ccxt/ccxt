@@ -1651,7 +1651,7 @@ export default class huobi extends huobiRest {
         }
     }
 
-    async pong (client, message) {
+    pong (client: Client, message) {
         //
         //     { ping: 1583491673714 }
         //     { action: 'ping', data: { ts: 1645108204665 } }
@@ -1660,29 +1660,25 @@ export default class huobi extends huobiRest {
         try {
             const ping = this.safeInteger (message, 'ping');
             if (ping !== undefined) {
-                await client.send ({ 'pong': ping });
+                client.send ({ 'pong': ping });
                 return;
             }
             const action = this.safeString (message, 'action');
             if (action === 'ping') {
                 const data = this.safeValue (message, 'data');
                 const ping = this.safeInteger (data, 'ts');
-                await client.send ({ 'action': 'pong', 'data': { 'ts': ping }});
+                client.send ({ 'action': 'pong', 'data': { 'ts': ping }});
                 return;
             }
             const op = this.safeString (message, 'op');
             if (op === 'ping') {
                 const ping = this.safeInteger (message, 'ts');
-                await client.send ({ 'op': 'pong', 'ts': ping });
+                client.send ({ 'op': 'pong', 'ts': ping });
             }
         } catch (e) {
             const error = new NetworkError (this.id + ' pong failed ' + this.json (e));
             client.reset (error);
         }
-    }
-
-    handlePing (client: Client, message) {
-        this.spawn (this.pong, client, message);
     }
 
     handleAuthenticate (client: Client, message) {
@@ -1821,7 +1817,7 @@ export default class huobi extends huobiRest {
             if ('action' in message) {
                 const action = this.safeString (message, 'action');
                 if (action === 'ping') {
-                    this.handlePing (client, message);
+                    this.pong (client, message);
                     return;
                 }
                 if (action === 'sub') {
@@ -1842,7 +1838,7 @@ export default class huobi extends huobiRest {
             if ('op' in message) {
                 const op = this.safeString (message, 'op');
                 if (op === 'ping') {
-                    this.handlePing (client, message);
+                    this.pong (client, message);
                     return;
                 }
                 if (op === 'auth') {
@@ -1859,7 +1855,7 @@ export default class huobi extends huobiRest {
                 }
             }
             if ('ping' in message) {
-                this.handlePing (client, message);
+                this.pong (client, message);
             }
         }
     }

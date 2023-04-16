@@ -275,9 +275,9 @@ export default class ripio extends ripioRest {
         }
     }
 
-    async ack (client, messageId) {
+    ack (client: Client, messageId) {
         // the exchange requires acknowledging each received message
-        await client.send ({ 'messageId': messageId });
+        client.send ({ 'messageId': messageId });
     }
 
     handleMessage (client: Client, message) {
@@ -292,7 +292,7 @@ export default class ripio extends ripioRest {
         const messageId = this.safeString (message, 'messageId');
         if (messageId !== undefined) {
             // the exchange requires acknowledging each received message
-            this.spawn (this.ack, client, messageId);
+            this.ack (client, messageId);
         }
         const keys = Object.keys (client.subscriptions);
         const firstKey = this.safeString (keys, 0);

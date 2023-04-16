@@ -387,11 +387,7 @@ export default class bitrue extends bitrueRest {
         return this.safeString (statuses, status, status);
     }
 
-    handlePing (client: Client, message) {
-        this.spawn (this.pong, client, message);
-    }
-
-    async pong (client, message) {
+    pong (client: Client, message) {
         //
         //     {
         //         "ping": 1670057540627
@@ -401,14 +397,14 @@ export default class bitrue extends bitrueRest {
         const pong = {
             'pong': time,
         };
-        await client.send (pong);
+        client.send (pong);
     }
 
     handleMessage (client: Client, message) {
         if ('channel' in message) {
             this.handleOrderBook (client, message);
         } else if ('ping' in message) {
-            this.handlePing (client, message);
+            this.pong (client, message);
         } else {
             const event = this.safeString (message, 'e');
             const handlers = {

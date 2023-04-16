@@ -879,7 +879,7 @@ export default class ascendex extends ascendexRest {
         //
         const subject = this.safeString (message, 'm');
         const methods = {
-            'ping': this.handlePing,
+            'ping': this.pong,
             'auth': this.handleAuthenticate,
             'sub': this.handleSubscriptionStatus,
             'depth-realtime': this.handleOrderBook,
@@ -930,20 +930,16 @@ export default class ascendex extends ascendexRest {
         this.spawn (this.watchOrderBookSnapshot, symbol);
     }
 
-    async pong (client, message) {
+    pong (client: Client, message) {
         //
         //     { m: 'ping', hp: 3 }
         //
         try {
-            await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
+            client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
         } catch (e) {
-            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            const error = new NetworkError (this.id + ' pong failed with error ' + this.json (e));
             client.reset (error);
         }
-    }
-
-    handlePing (client: Client, message) {
-        this.spawn (this.pong, client, message);
     }
 
     authenticate (url, params = {}) {
