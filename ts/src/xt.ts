@@ -16,10 +16,11 @@ export default class xt extends Exchange {
             'id': 'xt',
             'name': 'XT',
             'countries': [ 'SC' ], // Seychelles
-            // 10 requests per second => 1000ms / 10 = 100 (All other)
-            // 3 requests per second => 1000ms / 3 = 333.333 (get assets -> fetchMarkets & fetchCurrencies)
-            // 1000 times per minute for each single IP -> Otherwise account locked for 10min
-            'rateLimit': 100, // TODO: Is rate limit right? https://doc.xt.com/#documentationlimitRules and https://doc.xt.com/#futures_documentationlimitRules
+            // spot api ratelimits are undefined, 10/s/ip, 50/s/ip, 100/s/ip or 200/s/ip
+            // futures 3 requests per second => 1000ms / (100 * 3.33) = 3.003 (get assets -> fetchMarkets & fetchCurrencies)
+            // futures 10 requests per second => 1000ms / (100 * 1) = 10 (all other)
+            // futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
+            'rateLimit': 100,
             'version': 'v4',
             'pro': false,
             'has': {
@@ -131,16 +132,16 @@ export default class xt extends Exchange {
                     'spot': {
                         'get': {
                             'currencies': 1,
-                            'depth': 2,
-                            'kline': 1,
-                            'symbol': 1, // 0.1 for multiple symbols
-                            'ticker': 1, // 0.1 for multiple symbols
-                            'ticker/book': 1, // 0.1 for multiple symbols
-                            'ticker/price': 1, // 0.1 for multiple symbols
-                            'ticker/24h': 1, // 0.1 for multiple symbols
+                            'depth': 0.05,
+                            'kline': 0.1,
+                            'symbol': 1, // 0.1 for a single symbol
+                            'ticker': 1, // 0.1 for a single symbol
+                            'ticker/book': 1, // 0.1 for a single symbol
+                            'ticker/price': 1, // 0.1 for a single symbol
+                            'ticker/24h': 1, // 0.1 for a single symbol
                             'time': 1,
-                            'trade/history': 1,
-                            'trade/recent': 1,
+                            'trade/history': 0.1,
+                            'trade/recent': 0.1,
                             'wallet/support/currency': 1,
                         },
                     },
@@ -163,8 +164,8 @@ export default class xt extends Exchange {
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
                             'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33333,
-                            'future/market/v1/public/symbol/detail': 3.33333,
+                            'future/market/v1/public/symbol/coins': 3.33,
+                            'future/market/v1/public/symbol/detail': 3.33,
                             'future/market/v1/public/symbol/list': 1,
                         },
                     },
@@ -187,8 +188,8 @@ export default class xt extends Exchange {
                             'future/market/v1/public/q/symbol-mark-price': 1,
                             'future/market/v1/public/q/ticker': 1,
                             'future/market/v1/public/q/tickers': 1,
-                            'future/market/v1/public/symbol/coins': 3.33333,
-                            'future/market/v1/public/symbol/detail': 3.33333,
+                            'future/market/v1/public/symbol/coins': 3.33,
+                            'future/market/v1/public/symbol/detail': 3.33,
                             'future/market/v1/public/symbol/list': 1,
                         },
                     },
@@ -209,7 +210,7 @@ export default class xt extends Exchange {
                             'withdraw/history': 1,
                         },
                         'post': {
-                            'order': 0.5,
+                            'order': 0.2,
                             'withdraw': 1,
                         },
                         'delete': {
