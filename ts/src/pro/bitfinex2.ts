@@ -60,7 +60,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const checksum = this.safeValue (this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
-            await client.send ({
+            client.send ({
                 'event': 'conf',
                 'flags': 131072,
             });
@@ -667,10 +667,10 @@ export default class bitfinex2 extends bitfinex2Rest {
         const asks = book['asks'];
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            stringArray.push (bids[i][0]);
-            stringArray.push (bids[i][1]);
-            stringArray.push (asks[i][0]);
-            stringArray.push (-asks[i][1]);
+            stringArray.push (this.numberToString (bids[i][0]));
+            stringArray.push (this.numberToString (bids[i][1]));
+            stringArray.push (this.numberToString (asks[i][0]));
+            stringArray.push (this.numberToString (-asks[i][1]));
         }
         const payload = stringArray.join (':');
         const localChecksum = this.crc32 (payload, true);
