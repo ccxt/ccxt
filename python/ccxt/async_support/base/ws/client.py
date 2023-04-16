@@ -180,7 +180,7 @@ class Client(object):
     def closed(self):
         raise NotSupported('closed() not implemented')
 
-    def send(self, message):
+    async def send(self, message):
         raise NotSupported('send() not implemented')
 
     async def close(self, code=1000):
