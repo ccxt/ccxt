@@ -39,7 +39,6 @@ parser.add_argument('--verbose', action='store_true', help='enable verbose outpu
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 
 parser.parse_args(namespace=argv)
-argv.exchange_id = 'alpaca'
 if not argv.exchange_id:
     print('Exchange id not specified')
     exit(1)
