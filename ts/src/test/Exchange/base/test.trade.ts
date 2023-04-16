@@ -18,7 +18,8 @@ function testTrade (exchange, method, entry, symbol, now) {
         'fee': {},
     };
     // todo: add takeOrMaker as mandatory set
-    const emptyNotAllowedFor = [ 'side', 'price', 'amount', 'cost' ];
+    // removed side because some public endpoints return trades without side
+    const emptyNotAllowedFor = [ 'price', 'amount', 'cost' ];
     testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertTimestamp (exchange, method, entry, now);
     testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
