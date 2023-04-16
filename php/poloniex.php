@@ -787,7 +787,7 @@ class poloniex extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $side = $this->safe_string_lower($trade, 'side');
+        $side = $this->safe_string_lower_2($trade, 'side', 'takerSide');
         $fee = null;
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
