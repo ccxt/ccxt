@@ -291,8 +291,10 @@
         "//": "private endpoints"
     },
     "coinbasepro": {
+		"skipPhpAsync":true
     },
     "coinbaseprime": {
+		"skipPhpAsync":true
     },
     "coinspot": {
         "skipMethods": {
