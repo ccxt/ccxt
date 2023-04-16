@@ -9,7 +9,6 @@
         "skipWs": true
     },
     "ascendex": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "bid might be 0",
             "fetchTicker": "same"
@@ -44,7 +43,6 @@
         }
     },
     "binanceus": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "expiry not set for future markets",
             "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0",
@@ -115,7 +113,6 @@
         }
     },
     "bitget": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "limit max value is zero, lwer than min",
             "fetchCurrencies": "precision is undefined",
@@ -163,7 +160,6 @@
         }
     },
     "bitrue": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": "max is below min",
             "fetchCurrencies": "precision is undefined",
@@ -295,10 +291,8 @@
         "//": "private endpoints"
     },
     "coinbasepro": {
-        "skipWs": true
     },
     "coinbaseprime": {
-        "skipWs": true
     },
     "coinspot": {
         "skipMethods": {
@@ -518,7 +512,6 @@
         "//": "403 forbidden"
     },
     "kucoin": {
-        "skipWs": true,
         "skipMethods": {
             "fetchTickers": "ask might be set to 0",
             "fetchTicker": "same"
