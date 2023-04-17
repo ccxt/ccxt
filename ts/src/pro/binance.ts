@@ -781,8 +781,8 @@ export default class binance extends binanceRest {
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        const price = this.safeNumber (delta, 0);
+        const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 

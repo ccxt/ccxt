@@ -506,8 +506,8 @@ export default class mexc extends mexcRest {
             if (Array.isArray (bidask)) {
                 bookside.storeArray (bidask);
             } else {
-                const price = this.safeFloat (bidask, 'p');
-                const amount = this.safeFloat (bidask, 'v');
+                const price = this.safeNumber (bidask, 'p');
+                const amount = this.safeNumber (bidask, 'v');
                 bookside.store (price, amount);
             }
         }
