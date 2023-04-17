@@ -1074,6 +1074,9 @@ class Exchange {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;
     }
+    convertToBigInt(value) {
+        return BigInt(value); // used on XT
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
