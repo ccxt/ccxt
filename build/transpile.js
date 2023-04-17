@@ -1961,6 +1961,12 @@ class Transpiler {
 
     // ============================================================================
 
+    uncamelcaseName (name) {
+        return unCamelCase (name).replace (/\./g, '_');
+    }
+
+    // ============================================================================
+
     transpileExchangeTests () {
 
         this.transpileMainTests ({
@@ -1987,10 +1993,9 @@ class Transpiler {
         // ignore throttle test for now
         baseTests = baseTests.filter (filename => filename !== 'test.throttle');
 
-        const uncamelcaseName = (name) => unCamelCase (name).replace (/\./g, '_');
         const tests = [];
         for (const testName of baseTests) {
-            const unCamelCasedFileName = uncamelcaseName(testName);
+            const unCamelCasedFileName = this.uncamelcaseName(testName);
             const test = {
                 base: true,
                 name: testName,
@@ -2001,7 +2006,7 @@ class Transpiler {
             tests.push(test);
         }
         for (const testName of exchangeTests) {
-            const unCamelCasedFileName = uncamelcaseName(testName);
+            const unCamelCasedFileName = this.uncamelcaseName(testName);
             const test = {
                 base: false,
                 name: testName,
@@ -2013,7 +2018,22 @@ class Transpiler {
             };
             tests.push(test);
         }
-        this.transpileTest (tests);
+        this.transpileAndSaveTests (tests);
+        this.createBaseInitFile(baseFolders.pyBase, baseTests)
+    }
+
+    createBaseInitFile (pyPath, tests) {
+        const finalPath = pyPath + '__init__.py';
+        const fileNames = tests.filter(t => t !== 'exportTests' && t !== 'test.sharedMethods').map(test => this.uncamelcaseName(test));
+        const importNames = fileNames.map(testName => `from ccxt.test.base.${testName} import ${testName} # noqa E402`)
+        const baseContent = [
+            '',
+            this.getPythonGenerated(),
+            ...importNames
+        ].join('\n');
+
+        log.magenta ('→', finalPath)
+        overwriteFile (finalPath, baseContent)
     }
 
     transpileMainTests (files) {
@@ -2028,7 +2048,7 @@ class Transpiler {
 
         const allDefinedFunctions = [ ...ts.matchAll (/function (.*?) \(/g)].map(m => m[1]);
         const snakeCaseFunctions = (cont) => {
-            return this.regexAll (cont, allDefinedFunctions.map( fName => { 
+            return this.regexAll (cont, allDefinedFunctions.map( fName => {
                 return [ new RegExp ('\\b' + fName + '\\b', 'g'), unCamelCase (fName)];
             }));
         };
@@ -2105,7 +2125,7 @@ class Transpiler {
     }
     // ============================================================================
 
-    async transpileTest (tests) {
+    async transpileAndSaveTests (tests) {
         const parser = {
             'LINES_BETWEEN_FILE_MEMBERS': 2
         }
@@ -2191,7 +2211,7 @@ class Transpiler {
                 const isSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
                 const phpPrefix = isSameDirImport ? '/' : '/../base/';
-                const pySuffix = isSameDirImport ? '' : '.base.';
+                let pySuffix = isSameDirImport ? '' : '.base';
 
                 if (isSharedMethodsImport) {
                     pythonHeaderAsync.push (`from ccxt.test.base import test_shared_methods  # noqa E402`)
@@ -2212,9 +2232,9 @@ class Transpiler {
                     } else {
                         phpHeaderSync.push (`include_once __DIR__ . '${phpPrefix}${snake_case}.php';`)
                         phpHeaderAsync.push (`include_once __DIR__ . '${phpPrefix}${snake_case}.php';`)
-                        pythonHeaderSync.push (`from ccxt.test${pySuffix}${snake_case} import ${snake_case}  # noqa E402`)
-                        pythonHeaderAsync.push (`from ccxt.test${pySuffix}${snake_case} import ${snake_case}  # noqa E402`)
-
+                        pySuffix = (pySuffix === '') ? snake_case : pySuffix;
+                        pythonHeaderSync.push (`from ccxt.test${pySuffix} import ${snake_case}  # noqa E402`)
+                        pythonHeaderAsync.push (`from ccxt.test${pySuffix} import ${snake_case}  # noqa E402`)
                     }
                 }
             }
