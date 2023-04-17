@@ -168,8 +168,8 @@ export default class bitfinex extends bitfinexRest {
             id = this.safeString (trade, tradeLength - 4);
         }
         const timestamp = this.safeTimestamp (trade, tradeLength - 3);
-        const price = this.safeFloat (trade, tradeLength - 2);
-        let amount = this.safeFloat (trade, tradeLength - 1);
+        const price = this.safeNumber (trade, tradeLength - 2);
+        let amount = this.safeNumber (trade, tradeLength - 1);
         let side = undefined;
         if (amount !== undefined) {
             side = (amount > 0) ? 'buy' : 'sell';

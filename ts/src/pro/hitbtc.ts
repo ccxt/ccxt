@@ -156,8 +156,8 @@ export default class hitbtc extends hitbtcRest {
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 'price');
-        const amount = this.safeFloat (delta, 'size');
+        const price = this.safeNumber (delta, 'price');
+        const amount = this.safeNumber (delta, 'size');
         bookside.store (price, amount);
     }
 
