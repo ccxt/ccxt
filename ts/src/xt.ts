@@ -113,14 +113,14 @@ export default class xt extends Exchange {
             },
             'precisionMode': DECIMAL_PLACES,
             'urls': {
-                'logo': '', // TODO: Add logo
+                'logo': 'https://user-images.githubusercontent.com/43336371/232478290-0ee97822-bbb8-4d85-b48a-d365ab56ea06.png',
                 'api': {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
                     'inverse': 'https://dapi.xt.com',
                 },
                 'www': 'https://xt.com',
-                'referral': '', // TODO: Add referral
+                'referral': 'https://www.xt.com/en/accounts/register?ref=9PTM9VW',
                 'doc': [
                     'https://doc.xt.com/',
                     'https://github.com/xtpub/api-doc',
