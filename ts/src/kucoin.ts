@@ -188,13 +188,13 @@ export default class kucoin extends Exchange {
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
                         'trade-fees': 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
-                        'hf/accounts/ledgers': 3.33,
-                        'hf/orders/active': 1, // 30 times/3s
-                        'hf/orders/active/symbols': 1, // 3 times/3s
-                        'hf/orders/done': 1, // 30 times/3s
+                        'hf/accounts/ledgers': 3.33, // 18 times/3s = 6/s => cost = 20 / 6 = 3.33
+                        'hf/orders/active': 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
+                        'hf/orders/active/symbols': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
+                        'hf/orders/done': 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
                         'hf/orders/{orderId}': 1, // didn't find rate limit
-                        'hf/orders/client-order/{clientOid}': 1, // 30 times/3s
-                        'hf/fills': 1, // 9 times/3s
+                        'hf/orders/client-order/{clientOid}': 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
+                        'hf/fills': 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
                     },
                     'post': {
                         'accounts': 1,
@@ -218,11 +218,11 @@ export default class kucoin extends Exchange {
                         'sub/user': 1,
                         'sub/api-key': 1,
                         'sub/api-key/update': 1,
-                        'hf/orders': 1, // 150 times/3s
-                        'hf/orders/sync': 1, // 45 times/3s
-                        'hf/orders/multi': 1, // 3 times/3s
-                        'hf/orders/multi/sync': 1, // 3 times/3s
-                        'hf/orders/alter': 1, // 60 times/3s
+                        'hf/orders': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/sync': 1.33, // 45 times/3s = 15/s => cost = 20/15 = 1.33
+                        'hf/orders/multi': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
+                        'hf/orders/multi/sync': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
+                        'hf/orders/alter': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -234,12 +234,12 @@ export default class kucoin extends Exchange {
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
                         'sub/api-key': 1,
-                        'hf/orders/{orderId}': 1, // 150 times/3s
-                        'hf/orders/sync/{orderId}': 1, //  150 times/3s
-                        'hf/orders/client-order/{clientOid}': 1, //  150 times/3s
-                        'hf/orders/sync/client-order/{clientOid}': 1, //  150 times/3s
-                        'hf/orders/cancel/{orderId}': 1, //  60 times/3s
-                        'hf/orders': 1, // 3 times/3s
+                        'hf/orders/{orderId}': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/sync/{orderId}': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/client-order/{clientOid}': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/sync/client-order/{clientOid}': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
+                        'hf/orders/cancel/{orderId}': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
+                        'hf/orders': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
                     },
                 },
                 'futuresPublic': {
