@@ -203,6 +203,8 @@
         }
     },
     "blockchaincom": {
+        "skip": true,
+        "//": "503 Service Unavailable",
         "skipMethods": {
             "loadMarkets": "taker key is missing from structure",
             "fetchCurrencies": "info key is missing",
