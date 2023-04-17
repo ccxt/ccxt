@@ -113,7 +113,7 @@ export default class xt extends Exchange {
             },
             'precisionMode': DECIMAL_PLACES,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/43336371/232478290-0ee97822-bbb8-4d85-b48a-d365ab56ea06.png',
+                'logo': 'https://user-images.githubusercontent.com/43336371/232508509-a3b9f7dd-7c31-46f6-98a5-98d34b013926.png',
                 'api': {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
