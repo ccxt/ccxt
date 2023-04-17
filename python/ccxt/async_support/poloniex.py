@@ -790,7 +790,7 @@ class poloniex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        side = self.safe_string_lower(trade, 'side')
+        side = self.safe_string_lower_2(trade, 'side', 'takerSide')
         fee = None
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')

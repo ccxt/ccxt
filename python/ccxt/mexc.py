@@ -1253,7 +1253,7 @@ class mexc(Exchange):
                 costString = self.safe_string(trade, 'quoteQty')
                 isBuyer = self.safe_value(trade, 'isBuyer')
                 isMaker = self.safe_value(trade, 'isMaker')
-                buyerMaker = self.safe_string_2(trade, 'isBuyerMaker', 'm')
+                buyerMaker = self.safe_value_2(trade, 'isBuyerMaker', 'm')
                 if isMaker is not None:
                     takerOrMaker = 'maker' if isMaker else 'taker'
                 if isBuyer is not None:

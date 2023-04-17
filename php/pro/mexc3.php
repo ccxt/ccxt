@@ -7,7 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 
-class mexc3 extends \ccxt\async\mexc {
+class mexc3 extends \ccxt\pro\mexc {
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(

@@ -1021,6 +1021,8 @@ class bitrue extends Exchange {
     public function parse_trade($trade, $market = null) {
         //
         // aggregate trades
+        //  - "T" is $timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual $timestamp of trades matter
+        //  - Trades are aggregated by $timestamp, price, and $side-> But "m" is always True. Use method above if $side of trades matter
         //
         //     {
         //         "a" => 26129,         // Aggregate tradeId
@@ -1028,8 +1030,8 @@ class bitrue extends Exchange {
         //         "q" => "4.70443515",  // Quantity
         //         "f" => 27781,         // First tradeId
         //         "l" => 27781,         // Last tradeId
-        //         "T" => 1498793709153, // Timestamp
-        //         "m" => true,          // Was the buyer the maker?
+        //         "T" => 1498793709153, // Timestamp of *Api-call* not $trade!
+        //         "m" => true,          // Was the buyer the maker?  // Always True -> ignore it and leave $side null
         //         "M" => true           // Was the $trade the best price match?
         //     }
         //
@@ -1039,7 +1041,7 @@ class bitrue extends Exchange {
         //         "id" => 28457,
         //         "price" => "4.00000100",
         //         "qty" => "12.00000000",
-        //         "time" => 1499865549590,
+        //         "time" => 1499865549590,  // Actual $timestamp of $trade
         //         "isBuyerMaker" => true,
         //         "isBestMatch" => true
         //     }
@@ -1066,20 +1068,17 @@ class bitrue extends Exchange {
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
+        $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string_2($trade, 't', 'a');
         $id = $this->safe_string_2($trade, 'id', 'tradeId', $id);
         $side = null;
-        $orderId = $this->safe_string($trade, 'orderId');
-        if (is_array($trade) && array_key_exists('m', $trade)) {
-            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } elseif (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
-            $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
-        } elseif (is_array($trade) && array_key_exists('side', $trade)) {
-            $side = $this->safe_string_lower($trade, 'side');
-        } else {
-            if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
-                $side = $trade['isBuyer'] ? 'buy' : 'sell'; // this is a true $side
-            }
+        $buyerMaker = $this->safe_value($trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
+        $isBuyer = $this->safe_value($trade, 'isBuyer');
+        if ($buyerMaker !== null) {
+            $side = $buyerMaker ? 'sell' : 'buy';
+        }
+        if ($isBuyer !== null) {
+            $side = $isBuyer ? 'buy' : 'sell'; // this is a true $side
         }
         $fee = null;
         if (is_array($trade) && array_key_exists('commission', $trade)) {
@@ -1089,11 +1088,9 @@ class bitrue extends Exchange {
             );
         }
         $takerOrMaker = null;
-        if (is_array($trade) && array_key_exists('isMaker', $trade)) {
-            $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
-        }
-        if (is_array($trade) && array_key_exists('maker', $trade)) {
-            $takerOrMaker = $trade['maker'] ? 'maker' : 'taker';
+        $isMaker = $this->safe_value_2($trade, 'isMaker', 'maker');
+        if ($isMaker !== null) {
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,

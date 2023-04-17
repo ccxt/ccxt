@@ -3845,7 +3845,7 @@ class bybit extends Exchange {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
             $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
             $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
             $stopLoss = $this->safe_number($params, 'stopLoss');
             $takeProfit = $this->safe_number($params, 'takeProfit');
