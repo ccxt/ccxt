@@ -7,7 +7,7 @@
 
         document.addEventListener ("DOMContentLoaded", function () {
 
-            alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+            alert ('ccxt version ' + ccxt.version);
 
             const proxy = 'https://cors-anywhere.herokuapp.com/'
             const exchange = new ccxt.bittrex ({ 'proxy': proxy })
