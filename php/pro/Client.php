@@ -56,6 +56,7 @@ class Client {
     public $noOriginHeader = true;
     public $log = null;
     public $heartbeat = null;
+    public $cost = 1;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
