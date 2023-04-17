@@ -99,6 +99,7 @@ interface Exchange {
     privateLinearPostFutureTradeV1EntrustCancelAllProfitStop (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureTradeV1EntrustCancelPlan (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureTradeV1EntrustCancelProfitStop (params?: {}): Promise<implicitReturnType>;
+    privateLinearPostFutureTradeV1EntrustCreatePlan (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureTradeV1EntrustCreateProfit (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureTradeV1EntrustUpdateProfitStop (params?: {}): Promise<implicitReturnType>;
     privateLinearPostFutureTradeV1OrderCancel (params?: {}): Promise<implicitReturnType>;
@@ -134,6 +135,7 @@ interface Exchange {
     privateInversePostFutureTradeV1EntrustCancelAllProfitStop (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureTradeV1EntrustCancelPlan (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureTradeV1EntrustCancelProfitStop (params?: {}): Promise<implicitReturnType>;
+    privateInversePostFutureTradeV1EntrustCreatePlan (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureTradeV1EntrustCreateProfit (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureTradeV1EntrustUpdateProfitStop (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureTradeV1OrderCancel (params?: {}): Promise<implicitReturnType>;
