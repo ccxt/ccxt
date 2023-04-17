@@ -612,16 +612,16 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         book = self.safe_value(self.orderbooks, symbol)
         if book is None:
             return
-        depth = self.safe_integer(subscription, 'len')
+        depth = 25  # covers the first 25 bids and asks
         stringArray = []
         bids = book['bids']
         asks = book['asks']
         # pepperoni pizza from bitfinex
         for i in range(0, depth):
-            stringArray.append(bids[i][0])
-            stringArray.append(bids[i][1])
-            stringArray.append(asks[i][0])
-            stringArray.append(-asks[i][1])
+            stringArray.append(self.number_to_string(bids[i][0]))
+            stringArray.append(self.number_to_string(bids[i][1]))
+            stringArray.append(self.number_to_string(asks[i][0]))
+            stringArray.append(self.number_to_string(-asks[i][1]))
         payload = ':'.join(stringArray)
         localChecksum = self.crc32(payload, True)
         responseChecksum = self.safe_integer(message, 2)
