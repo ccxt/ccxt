@@ -7428,7 +7428,7 @@ class binance(Exchange):
         #      ...
         #  ]
         #
-        return self.parse_open_interests(response, symbol, since, limit)
+        return self.parse_open_interests(response, market, since, limit)
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """

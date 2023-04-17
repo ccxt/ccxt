@@ -1274,7 +1274,7 @@ class mexc extends mexc$1 {
                 costString = this.safeString(trade, 'quoteQty');
                 const isBuyer = this.safeValue(trade, 'isBuyer');
                 const isMaker = this.safeValue(trade, 'isMaker');
-                const buyerMaker = this.safeString2(trade, 'isBuyerMaker', 'm');
+                const buyerMaker = this.safeValue2(trade, 'isBuyerMaker', 'm');
                 if (isMaker !== undefined) {
                     takerOrMaker = isMaker ? 'maker' : 'taker';
                 }

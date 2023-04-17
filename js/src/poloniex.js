@@ -790,7 +790,7 @@ export default class poloniex extends Exchange {
         const marketId = this.safeString(trade, 'symbol');
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
-        const side = this.safeStringLower(trade, 'side');
+        const side = this.safeStringLower2(trade, 'side', 'takerSide');
         let fee = undefined;
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');

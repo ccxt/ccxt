@@ -3526,9 +3526,9 @@ class bybit extends Exchange {
             if ($isLimit) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
             if ($postOnly) {
                 $request['timeInForce'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {
@@ -3635,8 +3635,10 @@ class bybit extends Exchange {
                 }
                 $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             }
-            $isPostOnly = $this->is_post_only($upperCaseType === 'MARKET', $type === 'LIMIT_MAKER', $params);
-            if ($isPostOnly) {
+            $isMarket = ($upperCaseType === 'MARKET');
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $type === 'LIMIT_MAKER', $params);
+            if ($postOnly) {
                 $request['orderType'] = 'LIMIT_MAKER';
             }
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
@@ -3728,7 +3730,8 @@ class bybit extends Exchange {
             }
             $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
             if ($postOnly) {
                 $request['timeInForce'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {
@@ -3829,9 +3832,9 @@ class bybit extends Exchange {
             if ($isLimit) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // same specific param
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
             if ($postOnly) {
                 $request['timeInForce'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {
@@ -3842,7 +3845,7 @@ class bybit extends Exchange {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
             $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
             $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
             $stopLoss = $this->safe_number($params, 'stopLoss');
             $takeProfit = $this->safe_number($params, 'takeProfit');
@@ -3932,7 +3935,8 @@ class bybit extends Exchange {
             }
             $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
             if ($postOnly) {
                 $request['time_in_force'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {

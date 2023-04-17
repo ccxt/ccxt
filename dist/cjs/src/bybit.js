@@ -3522,9 +3522,9 @@ class bybit extends bybit$1 {
         if (isLimit) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const exchangeSpecificParam = this.safeString(params, 'time_in_force');
-        const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        const timeInForce = this.safeStringLower(params, 'timeInForce'); // this is same as exchange specific param
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, timeInForce === 'PostOnly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }
@@ -3637,8 +3637,10 @@ class bybit extends bybit$1 {
             }
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
-        const isPostOnly = this.isPostOnly(upperCaseType === 'MARKET', type === 'LIMIT_MAKER', params);
-        if (isPostOnly) {
+        const isMarket = (upperCaseType === 'MARKET');
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, type === 'LIMIT_MAKER', params);
+        if (postOnly) {
             request['orderType'] = 'LIMIT_MAKER';
         }
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'orderLinkId');
@@ -3728,7 +3730,8 @@ class bybit extends bybit$1 {
         }
         const exchangeSpecificParam = this.safeString(params, 'time_in_force');
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }
@@ -3831,9 +3834,9 @@ class bybit extends bybit$1 {
         if (isLimit) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const exchangeSpecificParam = this.safeString(params, 'time_in_force');
-        const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        const timeInForce = this.safeStringLower(params, 'timeInForce'); // same as exchange specific param
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, timeInForce === 'PostOnly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }
@@ -3847,7 +3850,7 @@ class bybit extends bybit$1 {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
         let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const stopLoss = this.safeNumber(params, 'stopLoss');
         const takeProfit = this.safeNumber(params, 'takeProfit');
@@ -3937,7 +3940,8 @@ class bybit extends bybit$1 {
         }
         const exchangeSpecificParam = this.safeString(params, 'time_in_force');
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
         if (postOnly) {
             request['time_in_force'] = 'PostOnly';
         }
