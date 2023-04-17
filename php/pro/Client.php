@@ -54,6 +54,8 @@ class Client {
     public $connected; // connection-related Future
     public $isConnected = false;
     public $noOriginHeader = true;
+    public $log = null;
+    public $heartbeat = null;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
