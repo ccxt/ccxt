@@ -2018,7 +2018,7 @@ class Transpiler {
             };
             tests.push(test);
         }
-        this.transpileAndSaveTests (tests);
+        this.transpileAndSaveExchangeTests (tests);
         this.createBaseInitFile(baseFolders.pyBase, baseTests)
     }
 
@@ -2043,7 +2043,6 @@ class Transpiler {
         ts = this.regexAll (ts, [
             [ /\'use strict\';?\s+/g, '' ],
             [ /[^\n]+require[^\n]+\n/g, '' ],
-           // [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
         const allDefinedFunctions = [ ...ts.matchAll (/function (.*?) \(/g)].map(m => m[1]);
@@ -2125,7 +2124,7 @@ class Transpiler {
     }
     // ============================================================================
 
-    async transpileAndSaveTests (tests) {
+    async transpileAndSaveExchangeTests (tests) {
         const parser = {
             'LINES_BETWEEN_FILE_MEMBERS': 2
         }
@@ -2187,9 +2186,9 @@ class Transpiler {
             const pythonAsync = !tests.base ? replaceAsert (result[3].content): '';
 
             const imports = result[0].imports;
-            // const exports = result[0].exports;
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
+            const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
 
             let pythonHeaderSync = []
@@ -2197,7 +2196,7 @@ class Transpiler {
             let phpHeaderSync = []
             let phpHeaderAsync = []
 
-            if (pythonAsync.indexOf ('numbers.') >= 0) {
+            if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
             }
@@ -2240,10 +2239,8 @@ class Transpiler {
             }
 
             if (pythonHeaderAsync.length > 0) {
-                pythonHeaderAsync.unshift ('')
-                pythonHeaderAsync.push ('', '')
-                pythonHeaderSync.unshift ('')
-                pythonHeaderSync.push ('', '')
+                pythonHeaderAsync = ['', ...pythonHeaderAsync, '', '']
+                pythonHeaderSync = ['', ...pythonHeaderSync, '', '']
             }
             const pythonPreambleSync = this.getPythonPreamble(4) + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
             const phpPreamble = this.getPHPPreamble (false)
@@ -2366,10 +2363,6 @@ class Transpiler {
                 if (tsContent.match ('console\.log \((.*?)\\+(.*?)\);')){
                     throw new Error ('console.log with +(plus) detected in ' + tsFile + '. Please use commas or string interpolation.');
                 }
-                // from JS content, remove everything before the transpile flag
-                //tsContent = this.regexAll (tsContent, [
-                //    [ /(.*?)\/\/ AUTO-TRANSPILE \/\/+\n/gs, '' ],
-                //])
 
                 // detect all function declarations in JS, e.g. `async function Xyz (...)`)
                 const allDetectedFunctionNames = [...tsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
@@ -2399,7 +2392,6 @@ class Transpiler {
                     return this.regexAll (body, regexes);
                 };
 
-                // define bodies
                 const finalBodies = {};
                 finalBodies.pyAsync = fixPython (pythonAsyncBody, true);
                 finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
@@ -2534,10 +2526,6 @@ class Transpiler {
         this.transpileErrorHierarchy ()
 
         this.transpileTests ()
-
-        // this.transpilePythonAsyncToSync () // moved into transpileMainTests
-
-        // this.transpilePhpAsyncToSync () // moved into transpileMainTests
 
         // this.transpilePhpBaseClassMethods ()
 
