@@ -7,7 +7,7 @@
 
         document.addEventListener ("DOMContentLoaded", async function () {
 
-            alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+            alert ('ccxt version ' + ccxt.version);
 
             const enableRateLimit = true
             const exchange = new ccxt.poloniex ({ enableRateLimit })
