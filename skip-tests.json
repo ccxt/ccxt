@@ -727,5 +727,10 @@
     },
     "zipmex": {
         "skipWs": true
+    },
+    "xt": {
+        "skipMethods": {
+            "fetchTickers": "some outaded contracts, eg RICHARLISONGBALL2022/USDT:USDT-221219 return bid > ask"
+        }
     }
 }
