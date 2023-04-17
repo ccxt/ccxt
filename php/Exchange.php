@@ -45,13 +45,13 @@ const ROUND_UP = 2;
 const ROUND_DOWN = 3;
 
 // digits counting mode
-const DECIMAL_PLACES = 0;
-const SIGNIFICANT_DIGITS = 1;
-const TICK_SIZE = 2;
+const DECIMAL_PLACES = 2;
+const SIGNIFICANT_DIGITS = 3;
+const TICK_SIZE = 4;
 
 // padding mode
-const NO_PADDING = 0;
-const PAD_WITH_ZERO = 1;
+const NO_PADDING = 5;
+const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
