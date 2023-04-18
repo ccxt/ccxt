@@ -1,9 +1,9 @@
 
 import assert from 'assert';
 import testSharedMethods from './base/test.sharedMethods.js';
-import testTransaction from './base/test.transaction.js';
+import testTransaction from './base/test.depositWithdrawal.js';
 
-async function testFetchTransactions (exchange, code) {
+async function testFetchDepositsWithdrawals (exchange, code) {
     const method = 'fetchTransactions';
     const transactions = await exchange.fetchTransactions (code);
     assert (Array.isArray (transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (transactions));
@@ -14,4 +14,4 @@ async function testFetchTransactions (exchange, code) {
     testSharedMethods.assertTimestampOrder (exchange, method, code, transactions);
 }
 
-export default testFetchTransactions;
+export default testFetchDepositsWithdrawals;

@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTransaction (exchange, method, entry, requestedCode, now) {
+function testDepositWithdrawal (exchange, method, entry, requestedCode, now) {
     const format = {
         'info': {}, // or []
         'id': '1234',
@@ -33,4 +33,4 @@ function testTransaction (exchange, method, entry, requestedCode, now) {
     testSharedMethods.assertFee (exchange, method, entry['fee']);
 }
 
-export default testTransaction;
+export default testDepositWithdrawal;
