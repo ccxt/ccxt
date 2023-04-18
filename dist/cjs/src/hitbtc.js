@@ -1,13 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var hitbtc$1 = require('./abstract/hitbtc.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class hitbtc extends Exchange["default"] {
+class hitbtc extends hitbtc$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hitbtc',
@@ -223,6 +223,9 @@ class hitbtc extends Exchange["default"] {
                     'spot': 'trading',
                     'trade': 'trading',
                     'trading': 'trading',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'commonCurrencies': {
@@ -1435,6 +1438,11 @@ class hitbtc extends Exchange["default"] {
             request['currency'] += network; // when network the currency need to be changed to currency + network
             params = this.omit(params, 'network');
         }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['includeFee'] = true;
+        }
         const response = await this.privatePostAccountCryptoWithdraw(this.extend(request, params));
         //
         //     {
@@ -1466,10 +1474,10 @@ class hitbtc extends Exchange["default"] {
             else if (Object.keys(query).length) {
                 body = this.json(query);
             }
-            const payload = this.encode(this.apiKey + ':' + this.secret);
+            const payload = this.apiKey + ':' + this.secret;
             const auth = this.stringToBase64(payload);
             headers = {
-                'Authorization': 'Basic ' + this.decode(auth),
+                'Authorization': 'Basic ' + auth,
                 'Content-Type': 'application/json',
             };
         }

@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var whitebit$1 = require('./abstract/whitebit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class whitebit extends Exchange["default"] {
+class whitebit extends whitebit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'whitebit',
@@ -2056,15 +2057,15 @@ class whitebit extends Exchange["default"] {
         if (accessibility === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
-            const secret = this.stringToBinary(this.encode(this.secret));
+            const secret = this.encode(this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json(this.extend({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64(body);
-            const signature = this.hmac(payload, secret, 'sha512');
+            const signature = this.hmac(payload, secret, sha512.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
-                'X-TXC-PAYLOAD': this.decode(payload),
+                'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             };
         }

@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var currencycom$1 = require('./abstract/currencycom.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class currencycom extends Exchange["default"] {
+class currencycom extends currencycom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'currencycom',
@@ -1774,7 +1775,7 @@ class currencycom extends Exchange["default"] {
                 'timestamp': this.nonce(),
                 'recvWindow': this.options['recvWindow'],
             }, params));
-            const signature = this.hmac(this.encode(query), this.encode(this.secret));
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
@@ -1852,10 +1853,11 @@ class currencycom extends Exchange["default"] {
         const unrealizedProfit = this.safeNumber(position, 'upl');
         const marginCoeff = this.safeString(position, 'margin');
         const leverage = Precise["default"].stringDiv('1', marginCoeff);
-        return {
+        return this.safePosition({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
             'entryPrice': entryPrice,
@@ -1868,6 +1870,7 @@ class currencycom extends Exchange["default"] {
             'marginMode': undefined,
             'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -1876,7 +1879,7 @@ class currencycom extends Exchange["default"] {
             'marginRatio': undefined,
             'info': position,
             'id': undefined,
-        };
+        });
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((httpCode === 418) || (httpCode === 429)) {

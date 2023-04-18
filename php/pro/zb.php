@@ -38,7 +38,7 @@ class zb extends \ccxt\async\zb {
         ));
     }
 
-    public function watch_public($url, $messageHash, $symbol, $method, $limit = null, $params = array ()) {
+    public function watch_public($url, $messageHash, $symbol, $method, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($url, $messageHash, $symbol, $method, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -75,7 +75,7 @@ class zb extends \ccxt\async\zb {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -133,7 +133,7 @@ class zb extends \ccxt\async\zb {
         ), $market);
     }
 
-    public function handle_ticker($client, $message, $subscription) {
+    public function handle_ticker(Client $client, $message, $subscription) {
         //
         // spot $ticker
         //
@@ -187,7 +187,7 @@ class zb extends \ccxt\async\zb {
         return $message;
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -208,7 +208,7 @@ class zb extends \ccxt\async\zb {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message, $subscription) {
+    public function handle_ohlcv(Client $client, $message, $subscription) {
         //
         // snapshot update
         //    {
@@ -255,7 +255,7 @@ class zb extends \ccxt\async\zb {
         return $message;
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -275,7 +275,7 @@ class zb extends \ccxt\async\zb {
         }) ();
     }
 
-    public function handle_trades($client, $message, $subscription) {
+    public function handle_trades(Client $client, $message, $subscription) {
         // contract $trades
         // {
         //     "channel":"BTC_USDT.Trade",
@@ -342,7 +342,7 @@ class zb extends \ccxt\async\zb {
         $client->resolve ($array, $channel);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             if ($limit !== null) {
                 if (($limit !== 5) && ($limit !== 10)) {
@@ -399,7 +399,7 @@ class zb extends \ccxt\async\zb {
         ), $market);
     }
 
-    public function handle_order_book($client, $message, $subscription) {
+    public function handle_order_book(Client $client, $message, $subscription) {
         // spot $snapshot
         //
         //     {
@@ -489,7 +489,7 @@ class zb extends \ccxt\async\zb {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         // {
         //     channel => 'BTC_USDT.Depth',
@@ -523,7 +523,7 @@ class zb extends \ccxt\async\zb {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         //
         //
         //     {
@@ -594,7 +594,7 @@ class zb extends \ccxt\async\zb {
         return $message;
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         // array( $errorCode => 10020, errorMsg => "action param can't be empty" )
         // array( $errorCode => 10015, errorMsg => '无效的签名(1002)' )

@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var zonda$1 = require('./abstract/zonda.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class zonda extends Exchange["default"] {
+class zonda extends zonda$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'zonda',
@@ -1072,7 +1073,7 @@ class zonda extends Exchange["default"] {
             request['from'] = request['to'] - timerange;
         }
         else {
-            request['from'] = parseInt(since);
+            request['from'] = since;
             request['to'] = this.sum(request['from'], timerange);
         }
         const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution(this.extend(request, params));
@@ -1664,7 +1665,7 @@ class zonda extends Exchange["default"] {
                 'Request-Timestamp': nonce,
                 'Operation-Id': this.uuid(),
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac(this.encode(payload), this.encode(this.secret), 'sha512'),
+                'API-Hash': this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha512),
                 'Content-Type': 'application/json',
             };
         }
@@ -1677,7 +1678,7 @@ class zonda extends Exchange["default"] {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
+                'API-Hash': this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

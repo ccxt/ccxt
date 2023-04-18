@@ -1,13 +1,15 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var ndax$1 = require('./abstract/ndax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var totp = require('./base/functions/totp.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class ndax extends Exchange["default"] {
+class ndax extends ndax$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ndax',
@@ -293,7 +295,7 @@ class ndax extends Exchange["default"] {
             }
             this.options['pending2faToken'] = pending2faToken;
             request = {
-                'Code': this.oath(),
+                'Code': totp.totp(this.twofa),
             };
             const response = await this.publicGetAuthenticate2FA(this.extend(request, params));
             //
@@ -2318,7 +2320,7 @@ class ndax extends Exchange["default"] {
         };
         const withdrawRequest = {
             'TfaType': 'Google',
-            'TFaCode': this.oath(),
+            'TFaCode': totp.totp(this.twofa),
             'Payload': this.json(withdrawPayload),
         };
         const response = await this.privatePostCreateWithdrawTicket(this.deepExtend(withdrawRequest, params));
@@ -2335,7 +2337,7 @@ class ndax extends Exchange["default"] {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64(auth);
                 headers = {
-                    'Authorization': 'Basic ' + this.decode(auth64),
+                    'Authorization': 'Basic ' + auth64,
                     // 'Content-Type': 'application/json',
                 };
             }
@@ -2359,7 +2361,7 @@ class ndax extends Exchange["default"] {
             if (sessionToken === undefined) {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                 headers = {
                     'Nonce': nonce,
                     'APIKey': this.apiKey,

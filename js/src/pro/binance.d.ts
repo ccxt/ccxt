@@ -1,17 +1,19 @@
 import binanceRest from '../binance.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
     requestId(url: any): any;
     stream(type: any, subscriptionHash: any): string;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: any, message: any, orderbook: any): any;
-    handleOrderBook(client: any, message: any): void;
-    handleOrderBookSubscription(client: any, message: any, subscription: any): void;
-    handleSubscriptionStatus(client: any, message: any): any;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
+    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
+    handleOrderBook(client: Client, message: any): void;
+    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("../base/types.js").Trade | {
         id: any;
         timestamp: number;
@@ -30,10 +32,10 @@ export default class binance extends binanceRest {
         };
         info: any;
     };
-    handleTrade(client: any, message: any): void;
-    watchOHLCV(symbol: any, timeframe?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    handleOHLCV(client: any, message: any): void;
-    watchTicker(symbol: any, params?: {}): Promise<any>;
+    handleTrade(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleOHLCV(client: Client, message: any): void;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: string[], params?: {}): any;
     parseWsTicker(message: any, marketType: any): {
         symbol: any;
@@ -57,19 +59,19 @@ export default class binance extends binanceRest {
         quoteVolume: number;
         info: any;
     };
-    handleTicker(client: any, message: any): void;
-    handleTickers(client: any, message: any): void;
+    handleTicker(client: Client, message: any): void;
+    handleTickers(client: Client, message: any): void;
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
-    setBalanceCache(client: any, type: any): any;
+    setBalanceCache(client: Client, type: any): any;
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     watchBalance(params?: {}): Promise<any>;
-    handleBalance(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+    handleBalance(client: Client, message: any): void;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrder(order: any, market?: any): any;
-    handleOrderUpdate(client: any, message: any): void;
-    watchMyTrades(symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-    handleMyTrade(client: any, message: any): void;
-    handleOrder(client: any, message: any): void;
-    handleMessage(client: any, message: any): any;
+    handleOrderUpdate(client: Client, message: any): void;
+    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleMyTrade(client: Client, message: any): void;
+    handleOrder(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
 }

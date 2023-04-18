@@ -582,14 +582,22 @@ class huobijp extends huobijp$1 {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
-            if ('id' in message) {
+            //           ________________________
+            //
+            // sometimes huobijp responds with half of a JSON response like
+            //
+            //     ' {"ch":"market.ethbtc.m '
+            //
+            // this is passed to handleMessage as a string since it failed to be decoded as JSON
+            //
+            if (this.safeString(message, 'id') !== undefined) {
                 this.handleSubscriptionStatus(client, message);
             }
-            else if ('ch' in message) {
+            else if (this.safeString(message, 'ch') !== undefined) {
                 // route by channel aka topic aka subject
                 this.handleSubject(client, message);
             }
-            else if ('ping' in message) {
+            else if (this.safeString(message, 'ping') !== undefined) {
                 this.handlePing(client, message);
             }
         }

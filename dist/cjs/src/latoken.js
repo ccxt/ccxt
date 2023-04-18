@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var latoken$1 = require('./abstract/latoken.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class latoken extends Exchange["default"] {
+class latoken extends latoken$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'latoken',
@@ -188,7 +189,7 @@ class latoken extends Exchange["default"] {
                     'Unable to resolve currency by tag': errors.BadSymbol,
                     "Can't find currency with tag": errors.BadSymbol,
                     'Unable to place order because pair is in inactive state': errors.BadSymbol,
-                    'API keys are not available for FROZEN user': errors.AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
+                    'API keys are not available for': errors.AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
             'options': {
@@ -1544,7 +1545,7 @@ class latoken extends Exchange["default"] {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512);
             headers = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,

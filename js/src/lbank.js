@@ -5,10 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/lbank.js';
 import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
+import { rsa } from './base/functions/rsa.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class lbank extends Exchange {
     describe() {
@@ -399,7 +402,7 @@ export default class lbank extends Exchange {
             'size': 100,
         };
         if (since !== undefined) {
-            request['time'] = parseInt(since);
+            request['time'] = since;
         }
         if (limit !== undefined) {
             request['size'] = limit;
@@ -807,7 +810,7 @@ export default class lbank extends Exchange {
                 'api_key': this.apiKey,
             }, params));
             const queryString = this.rawencode(query);
-            const message = this.hash(this.encode(queryString)).toUpperCase();
+            const message = this.hash(this.encode(queryString), md5).toUpperCase();
             const cacheSecretAsPem = this.safeValue(this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
             if (cacheSecretAsPem) {
@@ -820,7 +823,7 @@ export default class lbank extends Exchange {
             else {
                 pem = this.convertSecretToPem(this.secret);
             }
-            query['sign'] = this.rsa(message, pem, 'RS256');
+            query['sign'] = rsa(message, pem, sha256);
             body = this.urlencode(query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }

@@ -1,13 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var blockchaincom$1 = require('./abstract/blockchaincom.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class blockchaincom extends Exchange["default"] {
+class blockchaincom extends blockchaincom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'blockchaincom',

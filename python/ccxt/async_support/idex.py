@@ -5,6 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -29,12 +32,10 @@ class idex(Exchange):
             'id': 'idex',
             'name': 'IDEX',
             'countries': ['US'],
-            # public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly(without Authentication)
-            # all endpoints 10 requests a second =>(1000ms / rateLimit) / 10 => 1 / 2(with Authentication)
-            'rateLimit': 200,
+            'rateLimit': 1000,
             'version': 'v3',
             'pro': True,
-            'certified': True,
+            'certified': False,
             'requiresWeb3': True,
             'has': {
                 'CORS': None,
@@ -141,20 +142,20 @@ class idex(Exchange):
                         'user': 1,
                         'wallets': 1,
                         'balances': 1,
-                        'orders': 1,
-                        'fills': 1,
+                        'orders': 0.1,
+                        'fills': 0.1,
                         'deposits': 1,
                         'withdrawals': 1,
                         'wsToken': 1,
                     },
                     'post': {
                         'wallets': 1,
-                        'orders': 1,
-                        'orders/test': 1,
+                        'orders': 0.1,
+                        'orders/test': 0.1,
                         'withdrawals': 1,
                     },
                     'delete': {
-                        'orders': 1,
+                        'orders': 0.1,
                     },
                 },
             },
@@ -320,7 +321,7 @@ class idex(Exchange):
             })
         return result
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -354,7 +355,7 @@ class idex(Exchange):
         ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -428,7 +429,7 @@ class idex(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -484,7 +485,7 @@ class idex(Exchange):
         volume = self.safe_number(ohlcv, 'volume')
         return [timestamp, open, high, low, close, volume]
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -634,7 +635,7 @@ class idex(Exchange):
             }
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -791,7 +792,7 @@ class idex(Exchange):
                 raise e
         return self.parse_balance(response)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -849,7 +850,7 @@ class idex(Exchange):
                 raise e
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -861,7 +862,7 @@ class idex(Exchange):
         }
         return await self.fetch_orders_helper(symbol, None, None, self.extend(request, params))
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -875,7 +876,7 @@ class idex(Exchange):
         }
         return await self.fetch_orders_helper(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -889,7 +890,7 @@ class idex(Exchange):
         }
         return await self.fetch_orders_helper(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_orders_helper(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders_helper(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         request = {
             'nonce': self.uuidv1(),
@@ -1079,7 +1080,7 @@ class idex(Exchange):
         result = await self.privatePostWallets(request)
         return result
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order, https://docs.idex.io/#create-order
         :param str symbol: unified symbol of the market to create an order in
@@ -1173,7 +1174,7 @@ class idex(Exchange):
             self.number_to_be(orderVersion, 1),
             self.base16_to_binary(nonce),
             self.base16_to_binary(walletBytes),
-            self.encode(market['id']),  # TODO: refactor to remove either encode or stringToBinary
+            self.encode(market['id']),
             self.number_to_be(typeEnum, 1),
             self.number_to_be(sideEnum, 1),
             self.encode(amountString),
@@ -1254,7 +1255,7 @@ class idex(Exchange):
         response = await self.privatePostOrders(request)
         return self.parse_order(response, market)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1305,7 +1306,7 @@ class idex(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1340,7 +1341,7 @@ class idex(Exchange):
         response = await self.privateDeleteOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1385,7 +1386,7 @@ class idex(Exchange):
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
 
-    async def fetch_deposit(self, id, code=None, params={}):
+    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1403,7 +1404,7 @@ class idex(Exchange):
         response = await self.privateGetDeposits(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1429,7 +1430,7 @@ class idex(Exchange):
         #
         return self.safe_number(response, 'serverTime')
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1447,7 +1448,7 @@ class idex(Exchange):
         response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1461,7 +1462,7 @@ class idex(Exchange):
         }, params)
         return self.fetch_transactions_helper(code, since, limit, params)
 
-    async def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         nonce = self.uuidv1()
         request = {
@@ -1612,3 +1613,32 @@ class idex(Exchange):
                 payload = body
             headers['IDEX-HMAC-Signature'] = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def remove0x_prefix(self, hexData):
+        if hexData[0:2] == '0x':
+            return hexData[2:]
+        else:
+            return hexData
+
+    def hash_message(self, message):
+        # takes a hex encoded message
+        binaryMessage = self.base16_to_binary(self.remove0x_prefix(message))
+        prefix = self.encode('\x19Ethereum Signed Message:\n' + binaryMessage.byteLength)
+        return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
+
+    def sign_hash(self, hash, privateKey):
+        signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
+        return {
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': 27 + signature['v'],
+        }
+
+    def sign_message(self, message, privateKey):
+        return self.sign_hash(self.hash_message(message), privateKey[-64:])
+
+    def sign_message_string(self, message, privateKey):
+        # still takes the input hex string
+        # same but returns a string instead of an object
+        signature = self.sign_message(message, privateKey)
+        return signature['r'] + self.remove0x_prefix(signature['s']) + self.binary_to_base16(self.number_to_be(signature['v'], 1))

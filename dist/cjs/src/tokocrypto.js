@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var tokocrypto$1 = require('./abstract/tokocrypto.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class tokocrypto extends Exchange["default"] {
+class tokocrypto extends tokocrypto$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tokocrypto',
@@ -596,7 +597,7 @@ class tokocrypto extends Exchange["default"] {
          * @param {object} params extra parameters specific to the tokocrypto api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTime(params);
+        const response = await this.publicGetOpenV1CommonTime(params);
         //
         //
         //
@@ -1888,8 +1889,7 @@ class tokocrypto extends Exchange["default"] {
         };
         const endTime = this.safeInteger2(params, 'until', 'endTime');
         if (since !== undefined) {
-            const startTime = parseInt(since);
-            request['startTime'] = startTime;
+            request['startTime'] = since;
         }
         if (endTime !== undefined) {
             request['endTime'] = endTime;
@@ -2327,7 +2327,7 @@ class tokocrypto extends Exchange["default"] {
             else {
                 query = this.urlencode(extendedParams);
             }
-            const signature = this.hmac(this.encode(query), this.encode(this.secret));
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

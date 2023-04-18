@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var digifinex$1 = require('./abstract/digifinex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class digifinex extends Exchange["default"] {
+class digifinex extends digifinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'digifinex',
@@ -1760,7 +1761,7 @@ class digifinex extends Exchange["default"] {
             'market': orderType,
             'order_id': ids.join(','),
         };
-        const response = await this.privateSpotPostCancelOrder(this.extend(request, params));
+        const response = await this.privateSpotPostSpotOrderCancel(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -3831,7 +3832,7 @@ class digifinex extends Exchange["default"] {
                 nonce = this.nonce().toString();
                 auth = urlencoded;
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             if (method === 'GET') {
                 if (urlencoded) {
                     url += '?' + urlencoded;

@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/whitebit.js';
 import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class whitebit extends Exchange {
     describe() {
@@ -2059,15 +2060,15 @@ export default class whitebit extends Exchange {
         if (accessibility === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
-            const secret = this.stringToBinary(this.encode(this.secret));
+            const secret = this.encode(this.secret);
             const request = '/' + 'api' + '/' + version + pathWithParams;
             body = this.json(this.extend({ 'request': request, 'nonce': nonce }, params));
             const payload = this.stringToBase64(body);
-            const signature = this.hmac(payload, secret, 'sha512');
+            const signature = this.hmac(payload, secret, sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
-                'X-TXC-PAYLOAD': this.decode(payload),
+                'X-TXC-PAYLOAD': payload,
                 'X-TXC-SIGNATURE': signature,
             };
         }

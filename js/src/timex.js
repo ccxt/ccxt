@@ -4,7 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -1525,7 +1525,7 @@ export default class timex extends Exchange {
         if (api !== 'public') {
             this.checkRequiredCredentials();
             const auth = this.stringToBase64(this.apiKey + ':' + this.secret);
-            const secret = 'Basic ' + this.decode(auth);
+            const secret = 'Basic ' + auth;
             headers = { 'authorization': secret };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

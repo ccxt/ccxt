@@ -6,8 +6,9 @@
 
 //  ---------------------------------------------------------------------------
 import huobiRest from '../huobi.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError, } from '../base/errors.js';
+import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class huobi extends huobiRest {
     describe() {
@@ -2139,7 +2140,7 @@ export default class huobi extends huobiRest {
             signatureParams = this.keysort(signatureParams);
             const auth = this.urlencode(signatureParams);
             const payload = ['GET', hostname, relativePath, auth].join("\n"); // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha256', 'base64');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
             let request = undefined;
             if (type === 'spot') {
                 const params = {

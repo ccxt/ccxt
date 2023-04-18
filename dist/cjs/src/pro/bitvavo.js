@@ -3,6 +3,7 @@
 var bitvavo$1 = require('../bitvavo.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -581,7 +582,7 @@ class bitvavo extends bitvavo$1 {
             const timestamp = this.milliseconds();
             const stringTimestamp = timestamp.toString();
             const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             const action = 'authenticate';
             const request = {
                 'action': action,

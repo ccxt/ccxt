@@ -2,12 +2,13 @@
 
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var Exchange = require('./base/Exchange.js');
+var bitfinex2$1 = require('./abstract/bitfinex2.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class bitfinex2 extends Exchange["default"] {
+class bitfinex2 extends bitfinex2$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitfinex2',
@@ -323,6 +324,9 @@ class bitfinex2 extends Exchange["default"] {
                     'margin': 'margin',
                     'derivatives': 'margin',
                     'future': 'margin',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'exceptions': {
@@ -1959,10 +1963,14 @@ class bitfinex2 extends Exchange["default"] {
     parseTransactionStatus(status) {
         const statuses = {
             'SUCCESS': 'ok',
+            'COMPLETED': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
-            'COMPLETED': 'ok',
+            'PENDING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'PENDING REVIEW': 'pending',
+            'PENDING CANCELLATION': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -2043,7 +2051,7 @@ class bitfinex2 extends Exchange["default"] {
                 feeCost = Precise["default"].stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeValue(data, 0);
+            id = this.safeString(data, 0);
             status = 'ok';
             if (id === 0) {
                 id = undefined;
@@ -2297,7 +2305,7 @@ class bitfinex2 extends Exchange["default"] {
         const currencyNetwork = this.safeValue(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
         if (networkId === undefined) {
-            throw new errors.ArgumentsRequired(this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
+            throw new errors.ArgumentsRequired(this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
         }
         const wallet = this.safeString(params, 'wallet', 'exchange'); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = this.omit(params, 'network', 'wallet');
@@ -2309,6 +2317,11 @@ class bitfinex2 extends Exchange["default"] {
         };
         if (tag !== undefined) {
             request['payment_id'] = tag;
+        }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw(this.extend(request, params));
         //
@@ -2430,7 +2443,7 @@ class bitfinex2 extends Exchange["default"] {
             const nonce = this.nonce().toString();
             body = this.json(query);
             const auth = '/api/' + request + nonce + body;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), 'sha384');
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha384);
             headers = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': this.apiKey,

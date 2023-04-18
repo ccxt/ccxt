@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var coinmate$1 = require('./abstract/coinmate.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class coinmate extends Exchange["default"] {
+class coinmate extends coinmate$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinmate',
@@ -942,7 +943,7 @@ class coinmate extends Exchange["default"] {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const auth = nonce + this.uid + this.apiKey;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             body = this.urlencode(this.extend({
                 'clientId': this.uid,
                 'nonce': nonce,

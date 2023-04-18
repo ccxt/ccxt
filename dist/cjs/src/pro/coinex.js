@@ -4,6 +4,8 @@ var Precise = require('../base/Precise.js');
 var coinex$1 = require('../coinex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
+var md5 = require('../static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -481,7 +483,7 @@ class coinex extends coinex$1 {
             'params': Object.values(watchOrderBookSubscriptions),
         };
         this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
-        const subscriptionHash = this.hash(this.encode(this.json(watchOrderBookSubscriptions)));
+        const subscriptionHash = this.hash(this.encode(this.json(watchOrderBookSubscriptions)), sha256.sha256);
         const request = this.deepExtend(subscribe, params);
         const orderbook = await this.watch(url, messageHash, request, subscriptionHash, request);
         return orderbook.limit();
@@ -602,32 +604,6 @@ class coinex extends coinex$1 {
         }
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
         client.resolve(this.orderbooks[symbol], messageHash);
-    }
-    checkOrderBookChecksum(orderBook) {
-        const asks = this.safeValue(orderBook, 'asks', []);
-        const bids = this.safeValue(orderBook, 'bids', []);
-        let string = '';
-        const bidsLength = bids.length;
-        for (let i = 0; i < bidsLength; i++) {
-            const bid = bids[i];
-            if (i !== 0) {
-                string += ':';
-            }
-            string += bid[0] + ':' + bid[1];
-        }
-        const asksLength = asks.length;
-        for (let i = 0; i < asksLength; i++) {
-            const ask = asks[i];
-            if (bidsLength !== 0) {
-                string += ':';
-            }
-            string += ask[0] + ':' + ask[1];
-        }
-        const signedString = this.hash(string, 'cr32', 'hex');
-        const checksum = this.safeString(orderBook, 'checksum');
-        if (checksum !== signedString) {
-            throw new errors.ExchangeError(this.id + ' watchOrderBook () checksum failed');
-        }
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -989,7 +965,7 @@ class coinex extends coinex$1 {
                 'future': 'authenticated:spot',
             };
             const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString(time) + '&secret_key=' + this.secret;
-            const hash = this.hash(this.encode(signData), 'md5');
+            const hash = this.hash(this.encode(signData), md5.md5);
             const request = {
                 'method': 'server.sign',
                 'params': [
@@ -1015,7 +991,7 @@ class coinex extends coinex$1 {
                 'future': 'authenticated:swap',
             };
             const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString(time) + '&secret_key=' + this.secret;
-            const hash = this.hash(this.encode(signData), 'sha256', 'hex');
+            const hash = this.hash(this.encode(signData), sha256.sha256, 'hex');
             const request = {
                 'method': 'server.sign',
                 'params': [

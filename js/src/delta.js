@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class delta extends Exchange {
     describe() {
@@ -1568,8 +1569,8 @@ export default class delta extends Exchange {
         // 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
         // 'start_time': since * 1000,
         // 'end_time': this.microseconds (),
-        // 'after': string, // after cursor for pagination
-        // 'before': string, // before cursor for pagination
+        // 'after', // after cursor for pagination
+        // 'before', // before cursor for pagination
         // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1627,8 +1628,8 @@ export default class delta extends Exchange {
         // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
         // 'start_time': since * 1000,
         // 'end_time': this.microseconds (),
-        // 'after': string, // after cursor for pagination
-        // 'before': string, // before cursor for pagination
+        // 'after', // after cursor for pagination
+        // 'before', // before cursor for pagination
         // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1912,7 +1913,7 @@ export default class delta extends Exchange {
                 auth += body;
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers['signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

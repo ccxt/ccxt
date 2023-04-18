@@ -45,5 +45,5 @@ export default class Client {
     onUpgrade(message: any): void;
     send(message: any): void;
     close(): void;
-    onMessage(message: any): void;
+    onMessage(messageEvent: any): void;
 }

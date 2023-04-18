@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var coinbase$1 = require('./abstract/coinbase.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class coinbase extends Exchange["default"] {
+class coinbase extends coinbase$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbase',
@@ -1315,20 +1316,26 @@ class coinbase extends Exchange["default"] {
         //     {
         //         "trades": [
         //             {
-        //                 "trade_id": "10209805",
-        //                 "product_id": "BTC-USDT",
-        //                 "price": "19381.27",
-        //                 "size": "0.1",
-        //                 "time": "2023-01-13T20:35:41.865970Z",
+        //                 "trade_id": "518078013",
+        //                 "product_id": "BTC-USD",
+        //                 "price": "28208.1",
+        //                 "size": "0.00659179",
+        //                 "time": "2023-04-04T23:05:34.492746Z",
         //                 "side": "BUY",
         //                 "bid": "",
         //                 "ask": ""
         //             }
-        //         ]
+        //         ],
+        //         "best_bid": "28208.61",
+        //         "best_ask": "28208.62"
         //     }
         //
         const data = this.safeValue(response, 'trades', []);
-        return this.parseTicker(data[0], market);
+        const ticker = this.parseTicker(data[0], market);
+        return this.extend(ticker, {
+            'bid': this.safeNumber(response, 'best_bid'),
+            'ask': this.safeNumber(response, 'best_ask'),
+        });
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -2729,7 +2736,7 @@ class coinbase extends Exchange["default"] {
                 else {
                     auth = nonce + method + fullPath + payload;
                 }
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
                     'CB-ACCESS-SIGN': signature,

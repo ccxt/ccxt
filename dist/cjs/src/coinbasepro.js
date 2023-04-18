@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var coinbasepro$1 = require('./abstract/coinbasepro.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class coinbasepro extends Exchange["default"] {
+class coinbasepro extends coinbasepro$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbasepro',
@@ -1765,7 +1766,7 @@ class coinbasepro extends Exchange["default"] {
             catch (e) {
                 throw new errors.AuthenticationError(this.id + ' sign() invalid base64 secret');
             }
-            const signature = this.hmac(this.encode(what), secret, 'sha256', 'base64');
+            const signature = this.hmac(this.encode(what), secret, sha256.sha256, 'base64');
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,

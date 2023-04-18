@@ -3,44 +3,11 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 require('./_virtual/_commonjsHelpers.js');
-require('./_virtual/bn.cjs.js');
-require('./_virtual/crypto-js.cjs.js');
-require('./_virtual/elliptic.cjs.js');
-require('./_virtual/base.cjs.js');
-require('./_virtual/edwards.cjs.js');
-require('./_virtual/index.cjs.js');
-require('./_virtual/mont.cjs.js');
-require('./_virtual/short.cjs.js');
-require('./_virtual/curves.cjs.js');
-require('./_virtual/index.cjs2.js');
-require('./_virtual/key.cjs.js');
-require('./_virtual/signature.cjs.js');
-require('./_virtual/index.cjs3.js');
-require('./_virtual/key.cjs2.js');
-require('./_virtual/signature.cjs2.js');
-require('./_virtual/secp256k1.cjs.js');
-require('./_virtual/utils.cjs.js');
-require('./_virtual/hmac-drbg.cjs.js');
-require('./_virtual/errors.cjs.js');
-require('./_virtual/index.cjs4.js');
-require('./_virtual/reader.cjs.js');
-require('./_virtual/types.cjs.js');
-require('./_virtual/index.cjs5.js');
-require('./_virtual/components.cjs.js');
 require('./_virtual/formats.cjs.js');
-require('./_virtual/pkcs1.cjs.js');
-require('./_virtual/pkcs8.cjs.js');
-require('./_virtual/jsbn.cjs.js');
-require('./_virtual/rsa.cjs.js');
-require('./_virtual/NodeRSA.cjs.js');
-require('./_virtual/pkcs1.cjs2.js');
-require('./_virtual/schemes.cjs.js');
-require('./_virtual/utils.cjs2.js');
-require('./_virtual/formats.cjs2.js');
-require('./_virtual/index.cjs6.js');
+require('./_virtual/index.cjs.js');
 require('./_virtual/parse.cjs.js');
 require('./_virtual/stringify.cjs.js');
-require('./_virtual/utils.cjs3.js');
+require('./_virtual/utils.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
@@ -153,6 +120,7 @@ var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
+var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zb = require('./src/zb.js');
@@ -200,11 +168,13 @@ var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
+var mexc3$1 = require('./src/pro/mexc3.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okex$1 = require('./src/pro/okex.js');
 var okx$1 = require('./src/pro/okx.js');
 var phemex$1 = require('./src/pro/phemex.js');
+var probit$1 = require('./src/pro/probit.js');
 var ripio$1 = require('./src/pro/ripio.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
@@ -214,7 +184,7 @@ var zb$1 = require('./src/pro/zb.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.29';
+const version = '3.0.70';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -325,6 +295,7 @@ const exchanges = {
     'wazirx': wazirx,
     'whitebit': whitebit,
     'woo': woo,
+    'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
     'zb': zb,
@@ -374,11 +345,13 @@ const pro = {
     'kucoinfutures': kucoinfutures$1,
     'luno': luno$1,
     'mexc': mexc$1,
+    'mexc3': mexc3$1,
     'ndax': ndax$1,
     'okcoin': okcoin$1,
     'okex': okex$1,
     'okx': okx$1,
     'phemex': phemex$1,
+    'probit': probit$1,
     'ripio': ripio$1,
     'upbit': upbit$1,
     'wazirx': wazirx$1,
@@ -534,6 +507,7 @@ exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
+exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zb = zb;

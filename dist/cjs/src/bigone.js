@@ -1,12 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bigone$1 = require('./abstract/bigone.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var rsa = require('./base/functions/rsa.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bigone extends Exchange["default"] {
+class bigone extends bigone$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bigone',
@@ -850,11 +852,11 @@ class bigone extends Exchange["default"] {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        side = (side === 'buy') ? 'BID' : 'ASK';
+        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
         const uppercaseType = type.toUpperCase();
         const request = {
             'asset_pair_name': market['id'],
-            'side': side,
+            'side': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
             // 'price': this.priceToPrecision (symbol, price), // order price, string, required
             'type': uppercaseType,
@@ -1123,7 +1125,7 @@ class bigone extends Exchange["default"] {
     }
     nonce() {
         const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
-        return this.microseconds() * 1000 + exchangeTimeCorrection;
+        return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
@@ -1144,8 +1146,8 @@ class bigone extends Exchange["default"] {
                 'nonce': nonce,
                 // 'recv_window': '30', // default 30
             };
-            const jwt = this.jwt(request, this.encode(this.secret));
-            headers['Authorization'] = 'Bearer ' + jwt;
+            const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256);
+            headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys(query).length) {
                     url += '?' + this.urlencode(query);

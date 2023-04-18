@@ -4,6 +4,7 @@ var bitfinex2$1 = require('../bitfinex2.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -649,16 +650,16 @@ class bitfinex2 extends bitfinex2$1 {
         if (book === undefined) {
             return;
         }
-        const depth = this.safeInteger(subscription, 'len');
+        const depth = 25; // covers the first 25 bids and asks
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            stringArray.push(bids[i][0]);
-            stringArray.push(bids[i][1]);
-            stringArray.push(asks[i][0]);
-            stringArray.push(-asks[i][1]);
+            stringArray.push(this.numberToString(bids[i][0]));
+            stringArray.push(this.numberToString(bids[i][1]));
+            stringArray.push(this.numberToString(asks[i][0]));
+            stringArray.push(this.numberToString(-asks[i][1]));
         }
         const payload = stringArray.join(':');
         const localChecksum = this.crc32(payload, true);
@@ -831,7 +832,7 @@ class bitfinex2 extends bitfinex2$1 {
         if (future === undefined) {
             const nonce = this.milliseconds();
             const payload = 'AUTH' + nonce.toString();
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha384', 'hex');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384, 'hex');
             const event = 'auth';
             const request = {
                 'apiKey': this.apiKey,

@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var exmo$1 = require('./abstract/exmo.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class exmo extends Exchange["default"] {
+class exmo extends exmo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'exmo',
@@ -2066,7 +2067,7 @@ class exmo extends Exchange["default"] {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
+                'Sign': this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

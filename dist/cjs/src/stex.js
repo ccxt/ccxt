@@ -1,13 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var stex$1 = require('./abstract/stex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class stex extends Exchange["default"] {
+class stex extends stex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'stex',

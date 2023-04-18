@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var gate$1 = require('./abstract/gate.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
-class gate extends Exchange["default"] {
+class gate extends gate$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gate',
@@ -1041,7 +1042,7 @@ class gate extends Exchange["default"] {
         const underlyings = await this.fetchOptionUnderlyings();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
-            const query = params;
+            const query = this.extend({}, params);
             query['underlying'] = underlying;
             const response = await this.publicOptionsGetContracts(query);
             //
@@ -2463,7 +2464,8 @@ class gate extends Exchange["default"] {
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
             request['from'] = this.parseToInt(since / 1000);
-            const toTimestamp = this.sum(request['from'], limit * duration - 1);
+            const distance = (limit - 1) * duration;
+            const toTimestamp = this.sum(request['from'], distance);
             const currentTimestamp = this.seconds();
             const to = Math.min(toTimestamp, currentTimestamp);
             if (until !== undefined) {
@@ -4383,13 +4385,13 @@ class gate extends Exchange["default"] {
         const takerFee = '0.00075';
         const feePaid = Precise["default"].stringMul(takerFee, notional);
         const initialMarginString = Precise["default"].stringAdd(Precise["default"].stringDiv(notional, leverage), feePaid);
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealisedPnl, initialMarginString), '100');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber(Precise["default"].stringMul(maintenanceRate, notional)),
@@ -4404,11 +4406,12 @@ class gate extends Exchange["default"] {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'liq_price'),
             'markPrice': this.safeNumber(position, 'mark_price'),
+            'lastPrice': undefined,
             'collateral': this.safeNumber(position, 'margin'),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
@@ -4976,14 +4979,14 @@ class gate extends Exchange["default"] {
                 body = this.json(query);
             }
             const bodyPayload = (body === undefined) ? '' : body;
-            const bodySignature = this.hash(this.encode(bodyPayload), 'sha512');
+            const bodySignature = this.hash(this.encode(bodyPayload), sha512.sha512);
             const timestamp = this.seconds();
             const timestampString = timestamp.toString();
             const signaturePath = '/api/' + this.version + entirePath;
             const payloadArray = [method.toUpperCase(), signaturePath, queryString, bodySignature, timestampString];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join("\n");
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), 'sha512');
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha512);
             headers = {
                 'KEY': this.apiKey,
                 'Timestamp': timestampString,

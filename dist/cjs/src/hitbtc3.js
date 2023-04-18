@@ -1,11 +1,12 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var hitbtc3$1 = require('./abstract/hitbtc3.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-class hitbtc3 extends Exchange["default"] {
+class hitbtc3 extends hitbtc3$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hitbtc3',
@@ -312,6 +313,9 @@ class hitbtc3 extends Exchange["default"] {
                     'spot': 'spot',
                     'funding': 'wallet',
                     'future': 'derivatives',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'commonCurrencies': {
@@ -1275,7 +1279,7 @@ class hitbtc3 extends Exchange["default"] {
         //
         return this.parseTradingFee(response, market);
     }
-    async fetchTradingFees(symbols = undefined, params = {}) {
+    async fetchTradingFees(params = {}) {
         /**
          * @method
          * @name hitbtc3#fetchTradingFees
@@ -2085,6 +2089,11 @@ class hitbtc3 extends Exchange["default"] {
             }
             params = this.omit(params, 'network');
         }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['include_fee'] = true;
+        }
         const response = await this.privatePostWalletCryptoWithdraw(this.extend(request, params));
         //
         //     {
@@ -2343,7 +2352,7 @@ class hitbtc3 extends Exchange["default"] {
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -2357,10 +2366,12 @@ class hitbtc3 extends Exchange["default"] {
             'contracts': contracts,
             'contractSize': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'side': undefined,
             'hedged': undefined,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
+            'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': collateral,
@@ -2368,7 +2379,7 @@ class hitbtc3 extends Exchange["default"] {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
-        };
+        });
     }
     async fetchFundingRate(symbol, params = {}) {
         /**
@@ -2808,9 +2819,9 @@ class hitbtc3 extends Exchange["default"] {
             }
             payload.push(timestamp);
             const payloadString = payload.join('');
-            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), 'sha256', 'hex');
+            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256.sha256, 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
-            const encoded = this.decode(this.stringToBase64(secondPayload));
+            const encoded = this.stringToBase64(secondPayload);
             headers['Authorization'] = 'HS256 ' + encoded;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

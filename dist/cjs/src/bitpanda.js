@@ -1,13 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitpanda$1 = require('./abstract/bitpanda.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitpanda extends Exchange["default"] {
+class bitpanda extends bitpanda$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitpanda',

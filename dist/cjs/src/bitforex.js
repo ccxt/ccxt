@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitforex$1 = require('./abstract/bitforex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitforex extends Exchange["default"] {
+class bitforex extends bitforex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitforex',
@@ -689,7 +690,7 @@ class bitforex extends Exchange["default"] {
             }
             // let message = '/' + 'api/' + this.version + '/' + path + '?' + payload;
             const message = '/' + path + '?' + payload;
-            const signature = this.hmac(this.encode(message), this.encode(this.secret));
+            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha256.sha256);
             body = payload + '&signData=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

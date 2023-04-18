@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var bitfinex$1 = require('./abstract/bitfinex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitfinex extends Exchange["default"] {
+class bitfinex extends bitfinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitfinex',
@@ -1616,10 +1617,10 @@ class bitfinex extends Exchange["default"] {
             body = this.json(query);
             const payload = this.stringToBase64(body);
             const secret = this.encode(this.secret);
-            const signature = this.hmac(payload, secret, 'sha384');
+            const signature = this.hmac(payload, secret, sha512.sha384);
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
-                'X-BFX-PAYLOAD': this.decode(payload),
+                'X-BFX-PAYLOAD': payload,
                 'X-BFX-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             };

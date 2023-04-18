@@ -8,6 +8,7 @@
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class ascendex extends ascendexRest {
     describe() {
@@ -941,7 +942,7 @@ export default class ascendex extends ascendexRest {
             const version = this.safeString(urlParts, partsLength - 2);
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary(this.secret);
-            const signature = this.hmac(this.encode(auth), secret, 'sha256', 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha256, 'base64');
             const request = {
                 'op': 'auth',
                 'id': this.nonce().toString(),

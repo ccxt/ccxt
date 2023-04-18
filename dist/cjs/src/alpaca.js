@@ -1,12 +1,12 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var alpaca$1 = require('./abstract/alpaca.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------xs
-class alpaca extends Exchange["default"] {
+class alpaca extends alpaca$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'alpaca',
@@ -323,7 +323,7 @@ class alpaca extends Exchange["default"] {
             request['start'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
         const response = await this[method](this.extend(request, params));

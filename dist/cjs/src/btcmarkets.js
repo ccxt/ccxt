@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var btcmarkets$1 = require('./abstract/btcmarkets.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class btcmarkets extends Exchange["default"] {
+class btcmarkets extends btcmarkets$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'btcmarkets',
@@ -655,7 +656,7 @@ class btcmarkets extends Exchange["default"] {
         const request = {
             'id': market['id'],
         };
-        const response = await this.publicGetMarketIdTick(this.extend(request, params));
+        const response = await this.publicGetMarketsMarketIdTicker(this.extend(request, params));
         return this.parseTicker(response, market);
     }
     parseTrade(trade, market = undefined) {
@@ -1171,7 +1172,7 @@ class btcmarkets extends Exchange["default"] {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
-            const secret = this.base64ToBinary(this.encode(this.secret));
+            const secret = this.base64ToBinary(this.secret);
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
                 if (Object.keys(query).length) {
@@ -1182,7 +1183,7 @@ class btcmarkets extends Exchange["default"] {
                 body = this.json(query);
                 auth += body;
             }
-            const signature = this.hmac(this.encode(auth), secret, 'sha512', 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha512.sha512, 'base64');
             headers = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',

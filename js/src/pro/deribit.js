@@ -8,6 +8,7 @@
 import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class deribit extends deribitRest {
     describe() {
@@ -150,6 +151,7 @@ export default class deribit extends deribitRest {
          * @param {str|undefined} params.interval specify aggregation and frequency of notifications. Possible values: 100ms, raw
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        await this.loadMarkets();
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
@@ -785,25 +787,22 @@ export default class deribit extends deribitRest {
         //         testnet: false
         //     }
         //
-        const future = this.safeValue(client.futures, 'authenticated');
-        if (future !== undefined) {
-            future.resolve(true);
-        }
+        const messageHash = 'authenticated';
+        client.resolve(message, messageHash);
         return message;
     }
-    async authenticate(params = {}) {
+    authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const time = this.milliseconds();
         const timeString = this.numberToString(time);
         const nonce = timeString;
         const messageHash = 'authenticated';
-        const future = client.future('authenticated');
-        const authenticated = this.safeValue(client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        let future = this.safeValue(client.subscriptions, messageHash);
+        if (future === undefined) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
-            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,
@@ -817,8 +816,9 @@ export default class deribit extends deribitRest {
                     'data': '',
                 },
             };
-            this.spawn(this.watch, url, messageHash, this.extend(request, params), messageHash);
+            future = this.watch(url, messageHash, this.extend(request, params));
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

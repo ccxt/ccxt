@@ -1,13 +1,16 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var upbit$1 = require('./abstract/upbit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var rsa = require('./base/functions/rsa.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class upbit extends Exchange["default"] {
+class upbit extends upbit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'upbit',
@@ -1748,13 +1751,13 @@ class upbit extends Exchange["default"] {
             };
             if (Object.keys(query).length) {
                 const auth = this.urlencode(query);
-                const hash = this.hash(this.encode(auth), 'sha512');
+                const hash = this.hash(this.encode(auth), sha512.sha512);
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }
-            const jwt = this.jwt(request, this.encode(this.secret));
+            const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256);
             headers = {
-                'Authorization': 'Bearer ' + jwt,
+                'Authorization': 'Bearer ' + token,
             };
             if ((method !== 'GET') && (method !== 'DELETE')) {
                 body = this.json(params);

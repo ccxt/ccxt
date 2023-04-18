@@ -1,13 +1,14 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var delta$1 = require('./abstract/delta.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class delta extends Exchange["default"] {
+class delta extends delta$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'delta',
@@ -1565,8 +1566,8 @@ class delta extends Exchange["default"] {
         // 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
         // 'start_time': since * 1000,
         // 'end_time': this.microseconds (),
-        // 'after': string, // after cursor for pagination
-        // 'before': string, // before cursor for pagination
+        // 'after', // after cursor for pagination
+        // 'before', // before cursor for pagination
         // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1624,8 +1625,8 @@ class delta extends Exchange["default"] {
         // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
         // 'start_time': since * 1000,
         // 'end_time': this.microseconds (),
-        // 'after': string, // after cursor for pagination
-        // 'before': string, // before cursor for pagination
+        // 'after', // after cursor for pagination
+        // 'before', // before cursor for pagination
         // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1909,7 +1910,7 @@ class delta extends Exchange["default"] {
                 auth += body;
                 headers['Content-Type'] = 'application/json';
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
             headers['signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

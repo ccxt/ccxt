@@ -1,12 +1,13 @@
 'use strict';
 
-var Exchange = require('./base/Exchange.js');
+var coinspot$1 = require('./abstract/coinspot.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
+var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class coinspot extends Exchange["default"] {
+class coinspot extends coinspot$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinspot',
@@ -433,7 +434,7 @@ class coinspot extends Exchange["default"] {
             headers = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
+                'sign': this.hmac(this.encode(body), this.encode(this.secret), sha512.sha512),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
