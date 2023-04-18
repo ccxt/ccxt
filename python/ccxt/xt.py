@@ -125,7 +125,7 @@ class xt(Exchange):
             },
             'precisionMode': DECIMAL_PLACES,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/43336371/232478290-0ee97822-bbb8-4d85-b48a-d365ab56ea06.png',
+                'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
                 'api': {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
