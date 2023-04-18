@@ -568,7 +568,8 @@
     },
     "mercado": {
         "skipMethods": {
-            "fetchCurrencies": "info key is missing"
+            "fetchCurrencies": "info key is missing",
+            "fetchTicker": "bid > ask"
         }
     },
     "novadax": {
