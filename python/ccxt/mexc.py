@@ -350,19 +350,14 @@ class mexc(Exchange):
             'precisionMode': TICK_SIZE,
             'timeframes': {
                 '1m': '1m',  # spot, swap
-                '3m': '3m',  # spot
                 '5m': '5m',  # spot, swap
                 '15m': '15m',  # spot, swap
                 '30m': '30m',  # spot, swap
                 '1h': '1h',  # spot, swap
-                '2h': '2h',  # spot
                 '4h': '4h',  # spot, swap
-                '6h': '6h',  # spot
-                '8h': '8h',  # spot, swap
-                '12h': '12h',  # spot
+                '8h': '8h',  # swap
                 '1d': '1d',  # spot, swap
-                '3d': '3d',  # spot
-                '1w': '1w',  # spot, swap
+                '1w': '1w',  # swap
                 '1M': '1M',  # spot, swap
             },
             'fees': {
@@ -396,19 +391,12 @@ class mexc(Exchange):
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
-                        '3m': '3m',
                         '5m': '5m',
                         '15m': '15m',
                         '30m': '30m',
-                        '1h': '1h',
-                        '2h': '2h',
+                        '1h': '60m',
                         '4h': '4h',
-                        '6h': '6h',
-                        '8h': '8h',
-                        '12h': '12h',
                         '1d': '1d',
-                        '3d': '3d',
-                        '1w': '1w',
                         '1M': '1M',
                     },
                     'swap': {
