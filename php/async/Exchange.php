@@ -57,9 +57,33 @@ class Exchange extends \ccxt\Exchange {
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $connector = new React\Socket\Connector(Loop::get(), array(
-            'timeout' => $this->timeout,
+        /*
+        composer require clue/http-proxy-react
+        $proxy = new \Clue\React\HttpProxy\ProxyConnector('127.0.0.1:38700');
+        $connector = new React\Socket\Connector(array(
+            'tcp' => $proxy,
+            'timeout' => 3.0,
+            'dns' => false,
         ));
+        $connector->connect('tls://google.com:443')->then(function (React\Socket\ConnectionInterface $connection) {
+            $connection->write("GET / HTTP/1.1\r\nHost: google.com\r\nConnection: close\r\n\r\n");
+            $connection->on('data', function ($chunk) {
+                echo '连接谷歌测试成功' . PHP_EOL;
+            });
+        }, function (Exception $e) {
+            echo 'Error: ' . $e->getMessage() . PHP_EOL;
+        });*/
+        $context = array(
+            'timeout' => $this->timeout
+        );
+        if(isset($options['myproxy']) && !empty($options['myproxy'])) {
+            $context = array(
+                'timeout' => $this->timeout,
+                'tcp' => $options['myproxy'],
+                'dns' => false,
+            );
+        }
+        $connector = new React\Socket\Connector(Loop::get(), $context);
         if ($this->browser === null) {
             $this->browser = (new React\Http\Browser(Loop::get(), $connector))->withRejectErrorResponse(false);
         }
