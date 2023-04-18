@@ -568,8 +568,7 @@
     },
     "mercado": {
         "skipMethods": {
-            "fetchCurrencies": "info key is missing",
-            "fetchTicker": "bid > ask"
+            "fetchCurrencies": "info key is missing"
         }
     },
     "novadax": {
@@ -610,7 +609,8 @@
     "paymium": {
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value",
-            "fetchCurrencies": "info key is missing"
+            "fetchTickers": "quoteVolume >= baseVolume * low does not get true",
+            "fetchTicker": "same"
         }
     },
     "phemex": {
