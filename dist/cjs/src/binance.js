@@ -8151,7 +8151,7 @@ class binance extends binance$1 {
         }
     }
     parseOpenInterest(interest, market = undefined) {
-        const timestamp = this.safeInteger(interest, 'timestamp');
+        const timestamp = this.safeInteger2(interest, 'timestamp', 'time');
         const id = this.safeString(interest, 'symbol');
         const amount = this.safeNumber2(interest, 'sumOpenInterest', 'openInterest');
         const value = this.safeNumber2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');

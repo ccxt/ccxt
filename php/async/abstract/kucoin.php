@@ -196,6 +196,27 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_get_trade_fees($params = array()) {
         return $this->request('trade-fees', 'private', 'GET', $params);
     }
+    public function private_get_hf_accounts_ledgers($params = array()) {
+        return $this->request('hf/accounts/ledgers', 'private', 'GET', $params);
+    }
+    public function private_get_hf_orders_active($params = array()) {
+        return $this->request('hf/orders/active', 'private', 'GET', $params);
+    }
+    public function private_get_hf_orders_active_symbols($params = array()) {
+        return $this->request('hf/orders/active/symbols', 'private', 'GET', $params);
+    }
+    public function private_get_hf_orders_done($params = array()) {
+        return $this->request('hf/orders/done', 'private', 'GET', $params);
+    }
+    public function private_get_hf_orders_orderid($params = array()) {
+        return $this->request('hf/orders/{orderId}', 'private', 'GET', $params);
+    }
+    public function private_get_hf_orders_client_order_clientoid($params = array()) {
+        return $this->request('hf/orders/client-order/{clientOid}', 'private', 'GET', $params);
+    }
+    public function private_get_hf_fills($params = array()) {
+        return $this->request('hf/fills', 'private', 'GET', $params);
+    }
     public function private_post_accounts($params = array()) {
         return $this->request('accounts', 'private', 'POST', $params);
     }
@@ -259,6 +280,21 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_post_sub_api_key_update($params = array()) {
         return $this->request('sub/api-key/update', 'private', 'POST', $params);
     }
+    public function private_post_hf_orders($params = array()) {
+        return $this->request('hf/orders', 'private', 'POST', $params);
+    }
+    public function private_post_hf_orders_sync($params = array()) {
+        return $this->request('hf/orders/sync', 'private', 'POST', $params);
+    }
+    public function private_post_hf_orders_multi($params = array()) {
+        return $this->request('hf/orders/multi', 'private', 'POST', $params);
+    }
+    public function private_post_hf_orders_multi_sync($params = array()) {
+        return $this->request('hf/orders/multi/sync', 'private', 'POST', $params);
+    }
+    public function private_post_hf_orders_alter($params = array()) {
+        return $this->request('hf/orders/alter', 'private', 'POST', $params);
+    }
     public function private_delete_withdrawals_withdrawalid($params = array()) {
         return $this->request('withdrawals/{withdrawalId}', 'private', 'DELETE', $params);
     }
@@ -285,6 +321,24 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function private_delete_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params);
+    }
+    public function private_delete_hf_orders_orderid($params = array()) {
+        return $this->request('hf/orders/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function private_delete_hf_orders_sync_orderid($params = array()) {
+        return $this->request('hf/orders/sync/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function private_delete_hf_orders_client_order_clientoid($params = array()) {
+        return $this->request('hf/orders/client-order/{clientOid}', 'private', 'DELETE', $params);
+    }
+    public function private_delete_hf_orders_sync_client_order_clientoid($params = array()) {
+        return $this->request('hf/orders/sync/client-order/{clientOid}', 'private', 'DELETE', $params);
+    }
+    public function private_delete_hf_orders_cancel_orderid($params = array()) {
+        return $this->request('hf/orders/cancel/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function private_delete_hf_orders($params = array()) {
+        return $this->request('hf/orders', 'private', 'DELETE', $params);
     }
     public function futurespublic_get_contracts_active($params = array()) {
         return $this->request('contracts/active', 'futuresPublic', 'GET', $params);
@@ -619,6 +673,27 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function privateGetTradeFees($params = array()) {
         return $this->request('trade-fees', 'private', 'GET', $params);
     }
+    public function privateGetHfAccountsLedgers($params = array()) {
+        return $this->request('hf/accounts/ledgers', 'private', 'GET', $params);
+    }
+    public function privateGetHfOrdersActive($params = array()) {
+        return $this->request('hf/orders/active', 'private', 'GET', $params);
+    }
+    public function privateGetHfOrdersActiveSymbols($params = array()) {
+        return $this->request('hf/orders/active/symbols', 'private', 'GET', $params);
+    }
+    public function privateGetHfOrdersDone($params = array()) {
+        return $this->request('hf/orders/done', 'private', 'GET', $params);
+    }
+    public function privateGetHfOrdersOrderId($params = array()) {
+        return $this->request('hf/orders/{orderId}', 'private', 'GET', $params);
+    }
+    public function privateGetHfOrdersClientOrderClientOid($params = array()) {
+        return $this->request('hf/orders/client-order/{clientOid}', 'private', 'GET', $params);
+    }
+    public function privateGetHfFills($params = array()) {
+        return $this->request('hf/fills', 'private', 'GET', $params);
+    }
     public function privatePostAccounts($params = array()) {
         return $this->request('accounts', 'private', 'POST', $params);
     }
@@ -682,6 +757,21 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function privatePostSubApiKeyUpdate($params = array()) {
         return $this->request('sub/api-key/update', 'private', 'POST', $params);
     }
+    public function privatePostHfOrders($params = array()) {
+        return $this->request('hf/orders', 'private', 'POST', $params);
+    }
+    public function privatePostHfOrdersSync($params = array()) {
+        return $this->request('hf/orders/sync', 'private', 'POST', $params);
+    }
+    public function privatePostHfOrdersMulti($params = array()) {
+        return $this->request('hf/orders/multi', 'private', 'POST', $params);
+    }
+    public function privatePostHfOrdersMultiSync($params = array()) {
+        return $this->request('hf/orders/multi/sync', 'private', 'POST', $params);
+    }
+    public function privatePostHfOrdersAlter($params = array()) {
+        return $this->request('hf/orders/alter', 'private', 'POST', $params);
+    }
     public function privateDeleteWithdrawalsWithdrawalId($params = array()) {
         return $this->request('withdrawals/{withdrawalId}', 'private', 'DELETE', $params);
     }
@@ -708,6 +798,24 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privateDeleteSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteHfOrdersOrderId($params = array()) {
+        return $this->request('hf/orders/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteHfOrdersSyncOrderId($params = array()) {
+        return $this->request('hf/orders/sync/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteHfOrdersClientOrderClientOid($params = array()) {
+        return $this->request('hf/orders/client-order/{clientOid}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteHfOrdersSyncClientOrderClientOid($params = array()) {
+        return $this->request('hf/orders/sync/client-order/{clientOid}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteHfOrdersCancelOrderId($params = array()) {
+        return $this->request('hf/orders/cancel/{orderId}', 'private', 'DELETE', $params);
+    }
+    public function privateDeleteHfOrders($params = array()) {
+        return $this->request('hf/orders', 'private', 'DELETE', $params);
     }
     public function futuresPublicGetContractsActive($params = array()) {
         return $this->request('contracts/active', 'futuresPublic', 'GET', $params);
