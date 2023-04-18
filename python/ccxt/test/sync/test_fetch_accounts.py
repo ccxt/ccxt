@@ -13,7 +13,7 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 
-from ccxt.test.base.test_account import test_account  # noqa E402
+from ccxt.test.base import test_account  # noqa E402
 
 
 def test_fetch_accounts(exchange):
