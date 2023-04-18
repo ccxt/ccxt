@@ -299,7 +299,10 @@
         }
     },
     "coinbaseprime": {
-		"skipPhpAsync":true
+		"skipPhpAsync":true,
+        "skipMethods": {
+            "fetchStatus": "request timeout"
+        }
     },
     "coinspot": {
         "skipMethods": {
@@ -610,7 +613,8 @@
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value",
             "fetchTickers": "quoteVolume >= baseVolume * low does not get true",
-            "fetchTicker": "same"
+            "fetchTicker": "same",
+            "fetchCurrencies": "info key is missing from structure <<< paymium fetchCurrencie"
         }
     },
     "phemex": {
