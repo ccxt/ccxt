@@ -261,7 +261,6 @@ export default class Client {
             this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
-        this.connection.send (message, )
         const future = Future ()
         if (isNode) {
             function onSendComplete (error) {
