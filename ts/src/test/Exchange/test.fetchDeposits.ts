@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testTransaction from './base/test.transaction.js';
+import testTransaction from './base/test.depositWithdrawal.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchDeposits (exchange, code) {
