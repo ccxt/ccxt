@@ -61,7 +61,7 @@ function assertTimestamp (exchange, method, entry, nowToCheck = undefined, keyNa
         assert ((keyName in entry), 'timestamp key ' + keyName + ' is missing from structure' + logText);
     } else {
         // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
-        assert (!(entry[keyName] === undefined), 'timestamp index ' + keyName + ' is undefined' + logText);
+        assert (!(entry[keyName] === undefined), 'timestamp index ' + keyName.toString () + ' is undefined' + logText);
     }
     const ts = entry[keyName];
     if (ts !== undefined) {
@@ -112,7 +112,19 @@ function assertGreater (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
-        assert (Precise.stringGt (value, compareTo), key + ' is expected to be > ' + compareTo + logText);
+        let keyStr = undefined;
+        if (typeof key === 'string') {
+            keyStr = key;
+        } else {
+            keyStr = key.toString ();
+        }
+        let compareToStr = undefined;
+        if (typeof compareTo === 'string') {
+            compareToStr = compareTo;
+        } else {
+            compareToStr = compareTo.toString ();
+        }
+        assert (Precise.stringGt (value, compareTo), keyStr + ' key (with a value of ' + value + ') was expected to be > ' + compareToStr + logText);
     }
 }
 
@@ -120,7 +132,19 @@ function assertGreaterOrEqual (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
-        assert (Precise.stringGe (value, compareTo), key + ' is expected to be >= ' + compareTo + logText);
+        let keyStr = undefined;
+        if (typeof key === 'string') {
+            keyStr = key;
+        } else {
+            keyStr = key.toString ();
+        }
+        let compareToStr = undefined;
+        if (typeof compareTo === 'string') {
+            compareToStr = compareTo;
+        } else {
+            compareToStr = compareTo.toString ();
+        }
+        assert (Precise.stringGe (value, compareTo), keyStr + ' key (with a value of ' + value + ') was expected to be >= ' + compareToStr + logText);
     }
 }
 
@@ -128,7 +152,19 @@ function assertLess (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
-        assert (Precise.stringLt (value, compareTo), key + ' is expected to be < ' + compareTo + logText);
+        let keyStr = undefined;
+        if (typeof key === 'string') {
+            keyStr = key;
+        } else {
+            keyStr = key.toString ();
+        }
+        let compareToStr = undefined;
+        if (typeof compareTo === 'string') {
+            compareToStr = compareTo;
+        } else {
+            compareToStr = compareTo.toString ();
+        }
+        assert (Precise.stringLt (value, compareTo), keyStr + ' key (with a value of ' + value + ') was expected to be < ' + compareToStr + logText);
     }
 }
 
@@ -136,7 +172,19 @@ function assertLessOrEqual (exchange, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
-        assert (Precise.stringLe (value, compareTo), key + ' is expected to be <= ' + compareTo + logText);
+        let keyStr = undefined;
+        if (typeof key === 'string') {
+            keyStr = key;
+        } else {
+            keyStr = key.toString ();
+        }
+        let compareToStr = undefined;
+        if (typeof compareTo === 'string') {
+            compareToStr = compareTo;
+        } else {
+            compareToStr = compareTo.toString ();
+        }
+        assert (Precise.stringLe (value, compareTo), keyStr + ' key (with a value of ' + value + ') was expected to be <= ' + compareToStr + logText);
     }
 }
 
@@ -144,7 +192,13 @@ function assertInArray (exchange, method, entry, key, expectedArray) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeValue (entry, key);
     if (value !== undefined) {
-        assert (exchange.inArray (value, expectedArray), '"' + key + '" key is expected to be one from: [' + expectedArray.join (',') + ']' + logText);
+        let keyStr = undefined;
+        if (typeof key === 'string') {
+            keyStr = key;
+        } else {
+            keyStr = key.toString ();
+        }
+        assert (exchange.inArray (value, expectedArray), keyStr + ' key (with a value of ' + value + ') was expected to be one from: [' + expectedArray.join (',') + ']' + logText);
     }
 }
 
