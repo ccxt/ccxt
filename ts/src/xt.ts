@@ -113,7 +113,7 @@ export default class xt extends Exchange {
             },
             'precisionMode': DECIMAL_PLACES,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/43336371/232508509-a3b9f7dd-7c31-46f6-98a5-98d34b013926.png',
+                'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
                 'api': {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
@@ -1046,6 +1046,7 @@ export default class xt extends Exchange {
             contract = true;
             spot = false;
         }
+        const isActive = (state === 'ONLINE') || (state === '0');
         return {
             'id': id,
             'symbol': symbol,
@@ -1061,7 +1062,7 @@ export default class xt extends Exchange {
             'swap': swap,
             'future': future,
             'option': false,
-            'active': (state === 'ONLINE') || (state === '0') ? true : false,
+            'active': isActive,
             'contract': contract,
             'linear': linear,
             'inverse': inverse,

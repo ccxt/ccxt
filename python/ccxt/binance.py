@@ -7489,7 +7489,7 @@ class binance(Exchange):
             return self.parse_open_interest(response, market)
 
     def parse_open_interest(self, interest, market=None):
-        timestamp = self.safe_integer(interest, 'timestamp')
+        timestamp = self.safe_integer_2(interest, 'timestamp', 'time')
         id = self.safe_string(interest, 'symbol')
         amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')
         value = self.safe_number_2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd')
