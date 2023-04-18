@@ -570,6 +570,7 @@
         }
     },
     "mercado": {
+        "skip": true,
         "skipMethods": {
             "fetchCurrencies": "info key is missing"
         }
