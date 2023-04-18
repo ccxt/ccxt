@@ -1,11 +1,9 @@
-'use strict'
+'use strict';
 
 // ----------------------------------------------------------------------------
 
-import log from 'ololog';
-
 import assert from 'assert';
-import testOHLCV from '../../../test/Exchange/test.ohlcv.js';
+import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
@@ -14,7 +12,7 @@ export default async (exchange, symbol) => {
 
     // log (symbol.green, 'watching ohlcv...')
 
-    const method = 'watchOHLCV'
+    const method = 'watchOHLCV';
 
     const skippedExchanges = [
         'dsx',
@@ -22,47 +20,47 @@ export default async (exchange, symbol) => {
         'bitvavo',
         'zb', // supports watchOHLCV for contracts only
         'woo',
-        'bitget',  // timeframes structure differs from rest 
-    ]
+        'bitget',  // timeframes structure differs from rest
+    ];
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, method + '() test skipped')
-        return
+        console.log (exchange.id, method + '() test skipped');
+        return;
     }
 
     if (!exchange.has[method]) {
-        log (exchange.id, 'does not support', method + '() method')
-        return
+        console.log (exchange.id, 'does not support', method + '() method');
+        return;
     }
 
-    const timeframe = (exchange.timeframes && ('1m' in exchange.timeframes)) ? '1m' : Object.keys (exchange.timeframes)[0]
+    const timeframe = (exchange.timeframes && ('1m' in exchange.timeframes)) ? '1m' : Object.keys (exchange.timeframes)[0];
 
-    let response = undefined
+    let response = undefined;
 
-    let now = Date.now ()
-    const ends = now + 10000
+    let now = Date.now ();
+    const ends = now + 10000;
 
     while (now < ends) {
 
         try {
 
-            response = await exchange[method] (symbol, timeframe)
+            response = await exchange[method] (symbol, timeframe);
 
-            now = Date.now ()
+            now = Date.now ();
 
-            assert (response instanceof Array)
+            assert (response instanceof Array);
 
             // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
             for (let i = 0; i < response.length; i++) {
-                const current = response[i]
-                testOHLCV (exchange, current, symbol, now)
+                const current = response[i];
+                testOHLCV (exchange, method, current, symbol, now);
                 if (i > 0) {
-                    const previous = response[i - 1]
+                    const previous = response[i - 1];
                     if (current[0] && previous[0]) {
                         assert (
                             current[0] >= previous[0],
                             'OHLCV timestamp ordering is wrong at candle ' + i.toString () + ' ' + current[0].toString () + ' < ' + previous[0].toString ()
-                        )
+                        );
                     }
                 }
             }
@@ -74,26 +72,26 @@ export default async (exchange, symbol) => {
                 ohlcv[3],
                 ohlcv[4],
                 ohlcv[5],
-            ])
+            ]);
 
             if (response.length > 0) {
-                log (exchange.iso8601 (now), exchange.id, timeframe, symbol, response.length, 'candles', JSON.stringify (response[response.length - 1]))
+                console.log (exchange.iso8601 (now), exchange.id, timeframe, symbol, response.length, 'candles', JSON.stringify (response[response.length - 1]));
             }
 
         } catch (e) {
 
-            log (e)
+            console.log (e);
 
             if (!(e instanceof errors.NetworkError)) {
-                throw e
+                throw e;
             }
 
-            now = Date.now ()
+            now = Date.now ();
         }
 
         // console.log ('--------------------------------------------------------')
         // log.noLocate (asTable (response))
     }
 
-    return response
+    return response;
 };

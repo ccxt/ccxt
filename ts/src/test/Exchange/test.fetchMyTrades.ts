@@ -1,32 +1,17 @@
 
-// ----------------------------------------------------------------------------
-
 import assert from 'assert';
-import testTrade from './test.trade.js';
+import testSharedMethods from './base/test.sharedMethods.js';
+import testTrade from './base/test.trade.js';
 
-// ----------------------------------------------------------------------------
-
-export default async (exchange, symbol) => {
+async function testFetchMyTrades (exchange, symbol) {
     const method = 'fetchMyTrades';
-    const skippedExchanges = [
-        'bitso',
-    ];
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
+    const trades = await exchange.fetchMyTrades (symbol);
+    assert (Array.isArray (trades), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (trades));
+    const now = exchange.milliseconds ();
+    for (let i = 0; i < trades.length; i++) {
+        testTrade (exchange, method, trades[i], symbol, now);
     }
-    if (exchange.has[method]) {
-        const trades = await exchange[method] (symbol);
-        assert (trades instanceof Array);
-        console.log ('fetched', trades.length, 'trades');
-        const now = Date.now ();
-        for (let i = 0; i < trades.length; i++) {
-            testTrade (exchange, trades[i], symbol, now);
-            if (i > 0) {
-                assert (trades[i].timestamp >= trades[i - 1].timestamp);
-            }
-        }
-    } else {
-        console.log (method + '() is not supported');
-    }
-};
+    testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
+}
+
+export default testFetchMyTrades;

@@ -1,40 +1,27 @@
 
-// ----------------------------------------------------------------------------
-
 import assert from 'assert';
-import testPosition from './test.position.js';
+import testSharedMethods from './base/test.sharedMethods.js';
+import testPosition from './base/test.position.js';
 
-// ----------------------------------------------------------------------------
-
-export default async (exchange, symbol) => {
+async function testFetchPositions (exchange, symbol) {
     const method = 'fetchPositions';
-    const skippedExchanges = [
-        'bitmart',
-        'rightbtc',
-    ];
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
+    const now = exchange.milliseconds ();
+    // without symbol
+    const positions = await exchange.fetchPositions ();
+    assert (Array.isArray (positions), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positions));
+    for (let i = 0; i < positions.length; i++) {
+        testPosition (exchange, method, positions[i], undefined, now);
     }
-    if (exchange.has[method]) {
-        const now = Date.now ();
-        // without symbol
-        const positions = await exchange[method] ();
-        console.log ('fetched', positions.length, 'positions, asserting each...');
-        assert (positions instanceof Array);
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            testPosition (exchange, position, undefined, now);
-        }
-        // with symbol
-        const positionsForSymbol = await exchange[method] ([ symbol ]);
-        console.log ('fetched', positions.length, 'positions (' + symbol + '), asserting each...');
-        assert (positionsForSymbol instanceof Array);
-        for (let i = 0; i < positionsForSymbol.length; i++) {
-            const position = positionsForSymbol[i];
-            testPosition (exchange, position, symbol, now);
-        }
-    } else {
-        console.log (method + '() is not supported');
+    testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions);
+    // with symbol
+    const positionsForSymbol = await exchange.fetchPositions ([ symbol ]);
+    assert (Array.isArray (positionsForSymbol), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbol));
+    const positionsForSymbolLength = positionsForSymbol.length;
+    assert (positionsForSymbolLength <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbol));
+    for (let i = 0; i < positionsForSymbol.length; i++) {
+        testPosition (exchange, method, positionsForSymbol[i], symbol, now);
     }
-};
+    testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbol);
+}
+
+export default testFetchPositions;
