@@ -121,7 +121,8 @@
     "ts-node": "^10.9.1",
     "typescript": "4.7.4",
     "webpack": "^5.76.2",
-    "webpack-cli": "^5.0.1"
+    "webpack-cli": "^5.0.1",
+    "piscina": "^3.2.0"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -219,8 +220,6 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "ast-transpiler": "^0.0.5",
-    "piscina": "^3.2.0",
     "ws": "^8.8.1"
   }
 }

@@ -293,7 +293,10 @@
         "//": "private endpoints"
     },
     "coinbasepro": {
-		"skipPhpAsync":true
+		"skipPhpAsync":true,
+        "skipMethods": {
+            "fetchStatus": "request timeout"
+        }
     },
     "coinbaseprime": {
 		"skipPhpAsync":true
