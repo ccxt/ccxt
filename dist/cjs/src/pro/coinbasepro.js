@@ -675,6 +675,7 @@ class coinbasepro extends coinbasepro$1 {
             this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
+            orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else if (type === 'l2update') {

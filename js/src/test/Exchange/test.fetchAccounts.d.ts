@@ -1,2 +1,2 @@
-declare function testFetchAccounts(exchange: any): Promise<any>;
+declare function testFetchAccounts(exchange: any): Promise<void>;
 export default testFetchAccounts;

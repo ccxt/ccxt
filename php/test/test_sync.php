@@ -39,6 +39,7 @@ define ('exchangeSymbol', $nonPrefixedArgs[3] ?? null);
 define ('sandbox', in_array('--sandbox', $args));
 define ('privateTest', in_array('--private', $args));
 define ('privateOnly', in_array('--privateOnly', $args));
+define ('info', in_array('--info', $args));
 
 define ('is_sync', stripos(__FILE__, '_async') === false);
 
@@ -100,11 +101,11 @@ foreach ($allfuncs as $fName) {
 define('testFiles', $testFuncs);
 define('envVars', []);
 
-
 // non-transpiled commons
 class baseMainTestClass {
     public $skippedMethods = [];
     public $checkedPublicTests = [];
+    public $publicTests = [];
 }
 
 function io_file_exists($path) {
@@ -121,15 +122,17 @@ function call_method($methodName, $exchange, $args) {
 }
 
 function exception_message ($exc) {
-    return '[' . get_class($exc) . '] ' . substr($exc->getMessage(), 0, 200);
+    $inner_message = $exc->getMessage();
+    return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
 }
 
-function add_proxy_agent ($exchange, $settings) {
-    // placeholder function in php
+function add_proxy ($exchange, $http_proxy) {
+    // just add a simple redirect through proxy
+    $exchange->proxy = $http_proxy;
 }
 
 function exit_script() {
-    exit();
+    exit(0);
 }
 
 function reqCredentials ($exchange) {
@@ -179,6 +182,11 @@ class testMainClass extends baseMainTestClass {
                     set_exchange_prop ($exchange, $key, $exchange->deep_extend($existing, $exchangeSettings[$key]));
                 }
             }
+            // support simple $proxy
+            $proxy = get_exchange_prop ($exchange, 'httpProxy');
+            if ($proxy) {
+                add_proxy ($exchange, $proxy);
+            }
         }
         // credentials
         $reqCreds = get_exchange_prop ($exchange, 're' . 'quiredCredentials'); // dont glue the r-e-q-u-$i-r-e phrase, because leads to messed up transpilation
@@ -201,17 +209,28 @@ class testMainClass extends baseMainTestClass {
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
         if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED_EXCHANGE]', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED] exchange', $exchangeId);
             exit_script();
         }
         if ($exchange->alias) {
-            dump ('[SKIPPED_EXCHANGE] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
+            dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
             exit_script();
         }
         //
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
         $this->checkedPublicTests = array();
-        add_proxy_agent ($exchange, $exchangeSettings);
+    }
+
+    public function pad_end($message, $size) {
+        // has to be transpilable
+        $res = '';
+        $missingSpace = $size - count($message);
+        if ($missingSpace > 0) {
+            for ($i = 0; $i < $missingSpace; $i++) {
+                $res .= ' ';
+            }
+        }
+        return $message . $res;
     }
 
     public function test_method($methodName, $exchange, $args, $isPublic) {
@@ -221,19 +240,24 @@ class testMainClass extends baseMainTestClass {
             return;
         }
         $skipMessage = null;
-        if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
-            $skipMessage = '[UNSUPPORTED]  '; // keep it aligned with the longest message
+        $isFetchOhlcvEmulated = ($methodName === 'fetchOHLCV' && $exchange->has['fetchOHLCV'] === 'emulated'); // todo => remove emulation from base
+        if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
+            $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
-            $skipMessage = '[SKIPPED]      ';
+            $skipMessage = '[INFO:SKIPPED_TEST]';
         } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
-            $skipMessage = '[UNIMPLEMENTED]';
+            $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
         if ($skipMessage) {
-            dump ($skipMessage, $exchange->id, $methodNameInTest);
+            if (info) {
+                dump (str_pad(this, $skipMessage, 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest);
+            }
             return;
         }
         $argsStringified = '(' . implode(',', $args) . ')';
-        dump ('[TESTING]      ', $exchange->id, $methodNameInTest, $argsStringified);
+        if (info) {
+            dump (str_pad(this, '[INFO:TESTING]', 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest, $argsStringified);
+        }
         $result = null;
         try {
             $result = call_method ($methodNameInTest, $exchange, $args);
@@ -243,7 +267,7 @@ class testMainClass extends baseMainTestClass {
         } catch (Exception $e) {
             $isAuthError = ($e instanceof AuthenticationError);
             if (!($isPublic && $isAuthError)) {
-                dump (exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
+                dump ('ERROR:', exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                 throw $e;
             }
         }
@@ -297,6 +321,9 @@ class testMainClass extends baseMainTestClass {
         // todo - not yet ready in other langs too
         // $promises[] = test_throttle();
         $promises;
+        if (info) {
+            dump (str_pad(this, '[INFO:PUBLIC_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+        }
     }
 
     public function load_exchange($exchange) {
@@ -626,6 +653,10 @@ class testMainClass extends baseMainTestClass {
         }
         if (strlen($errors) > 0) {
             throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
+        } else {
+            if (info) {
+                dump (str_pad(this, '[INFO:PRIVATE_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+            }
         }
     }
 

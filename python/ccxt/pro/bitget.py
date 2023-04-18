@@ -403,6 +403,7 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook = self.safe_value(self.orderbooks, symbol)
             if storedOrderBook is None:
                 storedOrderBook = self.counted_order_book({})
+                storedOrderBook['symbol'] = symbol
             asks = self.safe_value(rawOrderBook, 'asks', [])
             bids = self.safe_value(rawOrderBook, 'bids', [])
             self.handle_deltas(storedOrderBook['asks'], asks)

@@ -264,17 +264,28 @@ class btctradeua(Exchange):
     def convert_month_name_to_string(self, cyrillic):
         months = {
             'Jan': '01',
+            'January': '01',
             'Feb': '02',
+            'February': '02',
             'Mar': '03',
+            'March': '03',
             'Apr': '04',
+            'April': '04',
             'May': '05',
             'Jun': '06',
+            'June': '06',
             'Jul': '07',
+            'July': '07',
             'Aug': '08',
+            'August': '08',
             'Sept': '09',
+            'September': '09',
             'Oct': '10',
+            'October': '10',
             'Nov': '11',
+            'November': '11',
             'Dec': '12',
+            'December': '12',
         }
         return self.safe_string(months, cyrillic)
 

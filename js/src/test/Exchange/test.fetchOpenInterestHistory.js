@@ -4,22 +4,14 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// ----------------------------------------------------------------------------
-import testOpenInterest from './test.openInterest.js';
-// ----------------------------------------------------------------------------
+import assert from 'assert';
+import testOpenInterest from './base/test.openInterest.js';
 async function testFetchOpenInterestHistory(exchange, symbol) {
     const method = 'fetchOpenInterestHistory';
-    if (exchange.has[method]) {
-        const openInterestHistory = await exchange[method](symbol);
-        console.log('fetched ', openInterestHistory.length, ' records of open interest');
-        for (let i = 0; i < openInterestHistory.length; i++) {
-            const openInterest = openInterestHistory[i];
-            testOpenInterest(exchange, openInterest, method);
-        }
-        return openInterestHistory;
-    }
-    else {
-        console.log('fetching open interest history not supported');
+    const openInterestHistory = await exchange.fetchOpenInterestHistory(symbol);
+    assert(Array.isArray(openInterestHistory), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(openInterestHistory));
+    for (let i = 0; i < openInterestHistory.length; i++) {
+        testOpenInterest(exchange, method, openInterestHistory[i]);
     }
 }
 export default testFetchOpenInterestHistory;

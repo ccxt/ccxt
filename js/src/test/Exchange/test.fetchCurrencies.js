@@ -4,28 +4,16 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// ----------------------------------------------------------------------------
-import testCurrency from './test.currency.js';
-// ----------------------------------------------------------------------------
-export default async (exchange) => {
+import testCurrency from './base/test.currency.js';
+async function testFetchCurrencies(exchange) {
     const method = 'fetchCurrencies';
-    const skippedExchanges = [];
-    if (skippedExchanges.includes(exchange.id)) {
-        console.log(exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
-    }
-    if (exchange.has[method] === true || exchange.has[method] === 'emulated') {
-        const currencies = await exchange[method]();
-        if (currencies !== undefined) {
-            const values = Object.values(currencies);
-            for (let i = 0; i < values.length; i++) {
-                const currency = values[i];
-                testCurrency(exchange, currency, method);
-            }
+    const currencies = await exchange.fetchCurrencies();
+    // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+    if (currencies !== undefined) {
+        const values = Object.values(currencies);
+        for (let i = 0; i < values.length; i++) {
+            testCurrency(exchange, method, values[i]);
         }
-        return currencies;
     }
-    else {
-        console.log(method + '() is not supported');
-    }
-};
+}
+export default testFetchCurrencies;

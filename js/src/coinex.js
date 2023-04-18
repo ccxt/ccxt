@@ -3779,7 +3779,7 @@ export default class coinex extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString(entry, 'market');
-            const symbol = this.safeSymbol(marketId);
+            const symbol = this.safeSymbol(marketId, market, undefined, 'swap');
             const timestamp = this.safeTimestamp(entry, 'time');
             rates.push({
                 'info': entry,

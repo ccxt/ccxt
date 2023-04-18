@@ -1,2 +1,2 @@
-declare const _default: (exchange: any) => Promise<any>;
-export default _default;
+declare function testFetchTradingFees(exchange: any): Promise<void>;
+export default testFetchTradingFees;

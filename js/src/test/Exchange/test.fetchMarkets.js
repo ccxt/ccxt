@@ -4,25 +4,15 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// ----------------------------------------------------------------------------
-import testMarket from './test.market.js';
-// ----------------------------------------------------------------------------
-export default async (exchange) => {
+import assert from 'assert';
+import testMarket from './base/test.market.js';
+async function testFetchMarkets(exchange) {
     const method = 'fetchMarkets';
-    const skippedExchanges = [
-        'bitforex',
-    ];
-    if (skippedExchanges.includes(exchange.id)) {
-        console.log(exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
+    const markets = await exchange.fetchMarkets();
+    assert(typeof markets === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json(markets));
+    const marketValues = Object.values(markets);
+    for (let i = 0; i < marketValues.length; i++) {
+        testMarket(exchange, method, marketValues[i]);
     }
-    if (exchange.has[method]) {
-        // log ('fetching markets...')
-        const markets = await exchange[method]();
-        Object.values(markets).forEach((market) => testMarket(exchange, market, method));
-        return markets;
-    }
-    else {
-        console.log(method + '() is not supported');
-    }
-};
+}
+export default testFetchMarkets;

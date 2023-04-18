@@ -432,7 +432,7 @@ class bigone(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(data, 'timestamp')
+        timestamp = self.safe_integer(data, 'Timestamp')
         return self.parse_to_int(timestamp / 1000000)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):

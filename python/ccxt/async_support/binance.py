@@ -2052,7 +2052,7 @@ class binance(Exchange):
             contract = True
             option = True
             settleId = 'USDT' if (settleId is None) else settleId
-        else:
+        elif expiry is not None:
             future = True
         settle = self.safe_currency_code(settleId)
         spot = not contract

@@ -2085,7 +2085,7 @@ class binance extends Exchange {
             $contract = true;
             $option = true;
             $settleId = ($settleId === null) ? 'USDT' : $settleId;
-        } else {
+        } elseif ($expiry !== null) {
             $future = true;
         }
         $settle = $this->safe_currency_code($settleId);

@@ -2079,7 +2079,7 @@ export default class binance extends Exchange {
             option = true;
             settleId = (settleId === undefined) ? 'USDT' : settleId;
         }
-        else {
+        else if (expiry !== undefined) {
             future = true;
         }
         const settle = this.safeCurrencyCode(settleId);

@@ -1,5 +1,6 @@
 <?php
 namespace ccxt;
+use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -7,126 +8,113 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
+include_once __DIR__ . '/test_shared_methods.php';
 
-function test_market($exchange, $market, $method) {
+function test_market($exchange, $method, $market) {
     $format = array(
-        'id' => 'btcusd', // string literal for referencing within an $exchange
-        'symbol' => 'BTC/USD', // uppercase string literal of a pair of currencies
-        'base' => 'BTC', // unified uppercase string, base currency, 3 or more letters
-        'quote' => 'USD', // unified uppercase string, quote currency, 3 or more letters
-        'taker' => 0.0011, // taker fee, for example, 0.0011 = 0.11%
-        'maker' => 0.0009, // maker fee, for example, 0.0009 = 0.09%
-        'baseId' => 'btc', // $exchange-specific base currency id
-        'quoteId' => 'usd', // $exchange-specific quote currency id
-        'active' => true, // boolean, $market status
+        'id' => 'btcusd',
+        'symbol' => 'BTC/USD',
+        'base' => 'BTC',
+        'quote' => 'USD',
+        'taker' => $exchange->parse_number('0.0011'),
+        'maker' => $exchange->parse_number('0.0009'),
+        'baseId' => 'btc',
+        'quoteId' => 'usd',
+        'active' => true,
         'type' => 'spot',
-        'linear' => null,
-        'inverse' => null,
+        'linear' => false,
+        'inverse' => false,
         'spot' => true,
         'swap' => false,
         'future' => false,
         'option' => false,
         'margin' => false,
         'contract' => false,
-        'contractSize' => 0.001,
+        'contractSize' => $exchange->parse_number('0.001'),
         'expiry' => 1656057600000,
         'expiryDatetime' => '2022-06-24T08:00:00.000Z',
         'optionType' => 'put',
-        'strike' => 56000,
-        'settle' => null,
-        'settleId' => null,
+        'strike' => $exchange->parse_number('56000'),
+        'settle' => 'XYZ',
+        'settleId' => 'Xyz',
         'precision' => array(
-            'price' => 8, // integer or fraction
-            'amount' => 8, // integer or fraction
-            'cost' => 8, // integer or fraction
+            'price' => $exchange->parse_number('8'),
+            'amount' => $exchange->parse_number('8'),
+            'cost' => $exchange->parse_number('8'),
         ),
-        // $value limits when placing orders on this $market
         'limits' => array(
             'amount' => array(
-                'min' => 0.01, // order amount should be > min
-                'max' => 1000, // order amount should be < max
+                'min' => $exchange->parse_number('0.01'),
+                'max' => $exchange->parse_number('1000'),
             ),
             'price' => array(
-                'min' => 0.01, // order price should be > min
-                'max' => 1000, // order price should be < max
+                'min' => $exchange->parse_number('0.01'),
+                'max' => $exchange->parse_number('1000'),
             ),
-            // order cost = price * amount
             'cost' => array(
-                'min' => 0.01, // order cost should be > min
-                'max' => 1000, // order cost should be < max
+                'min' => $exchange->parse_number('0.01'),
+                'max' => $exchange->parse_number('1000'),
             ),
         ),
+        'info' => array(),
     );
-    $keys = is_array($format) ? array_keys($format) : array();
-    for ($i = 0; $i < count($keys); $i++) {
-        $key = $keys[$i];
-        $keyPresent = (is_array($market) && array_key_exists($key, $market));
-        assert ($keyPresent, $key . ' missing ' . $exchange->json ($market));
-    }
-    $keys = array(
-        'id',
-        'symbol',
-        'baseId',
-        'quoteId',
-        'base',
-        'quote',
-        'precision',
-        'limits',
-    );
-    for ($i = 0; $i < count($keys); $i++) {
-        $key = $keys[$i];
-        assert ($market[$key] !== null, $key . ' null ' . $exchange->json ($market));
-    }
-    assert (($market['taker'] === null) || ((is_float($market['taker']) || is_int($market['taker']))));
-    assert (($market['maker'] === null) || ((is_float($market['maker']) || is_int($market['maker']))));
+    $empty_not_allowed_for = ['id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'swap', 'future', 'contract'];
+    assert_structure($exchange, $method, $market, $format, $empty_not_allowed_for);
+    assert_symbol($exchange, $method, $market, 'symbol');
+    $log_text = log_template($exchange, $method, $market);
+    //
+    assert_greater($exchange, $method, $market, 'contractSize', '0');
+    assert_greater($exchange, $method, $market, 'expiry', '0');
+    assert_greater($exchange, $method, $market, 'strike', '0');
+    assert_in_array($exchange, $method, $market, 'optionType', ['put', 'call']);
+    assert_greater($exchange, $method, $market, 'taker', '-100');
+    assert_greater($exchange, $method, $market, 'maker', '-100');
     if ($market['contract']) {
-        assert ($market['linear'] !== $market['inverse']);
+        assert($market['linear'] !== $market['inverse'], 'market linear and inverse must not be the same' . $log_text);
     } else {
-        assert (($market['linear'] === null) && ($market['inverse'] === null));
+        assert(($market['linear'] === null) && ($market['inverse'] === null), 'market linear and inverse must be undefined when \"contract\" is true' . $log_text);
     }
     if ($market['option']) {
-        assert ($market['strike'] !== null);
-        assert ($market['optionType'] !== null);
+        assert($market['strike'] !== null, '\"strike\" must be defined when \"option\" is true' . $log_text);
+        assert($market['optionType'] !== null, '\"optionType\" must be defined when \"option\" is true' . $log_text);
     }
-    $validTypes = array(
-        'spot' => true,
-        'margin' => true,
-        'swap' => true,
-        'future' => true,
-        'option' => true,
-    );
-    //
-    // binance has type = 'delivery'
-    // https://github.com/ccxt/ccxt/issues/11121
-    //
-    // assert (is_array($validTypes) && array_key_exists(type, $validTypes));
-    //
-    $types = is_array($validTypes) ? array_keys($validTypes) : array();
+    $valid_types = ['spot', 'margin', 'swap', 'future', 'option'];
+    assert_in_array($exchange, $method, $market, 'type', $valid_types);
+    $types = $valid_types;
     for ($i = 0; $i < count($types); $i++) {
-        $entry = $types[$i];
-        if (is_array($market) && array_key_exists($entry, $market)) {
-            $value = $market[$entry];
-            assert (($value === null) || $value || !$value);
-        }
+        assert_in_array($exchange, $method, $market, $types[$i], [true, false, null]);
     }
-    //
-    // todo fix binance
-    //
-    // if ($market['future']) {
-    //     assert (($market['swap'] === false) && ($market['option'] === false));
-    // } elseif ($market['swap']) {
-    //     assert (($market['future'] === false) && ($market['option'] === false));
-    // } elseif ($market['option']) {
-    //     assert (($market['future'] === false) && ($market['swap'] === false));
-    // }
-    // if ($market['linear']) {
-    //     assert ($market['inverse'] === false);
-    // } elseif ($market['inverse']) {
-    //     assert ($market['linear'] === false);
-    // }
-    // if ($market['future']) {
-    //     assert ($market['expiry'] !== null);
-    //     assert ($market['expiryDatetime'] !== null);
-    // }
+    if ($market['future']) {
+        assert(!$market['swap'] && !$market['option'], 'market swap and option must be false when \"future\" is true' . $log_text);
+    } elseif ($market['swap']) {
+        assert(!$market['future'] && !$market['option'], 'market future and option must be false when \"swap\" is true' . $log_text);
+    } elseif ($market['option']) {
+        assert(!$market['future'] && !$market['swap'], 'market future and swap must be false when \"option\" is true' . $log_text);
+    }
+    if ($market['linear']) {
+        assert(!$market['inverse'], 'market inverse must be false when \"linear\" is true' . $log_text);
+    } elseif ($market['inverse']) {
+        assert(!$market['linear'], 'market linear must be false when \"inverse\" is true' . $log_text);
+    }
+    if ($market['future']) {
+        assert($market['expiry'] !== null, '\"expiry\" must be defined when \"future\" is true' . $log_text);
+        assert($market['expiryDatetime'] !== null, '\"expiryDatetime\" must be defined when \"future\" is true' . $log_text);
+    }
+    if ($market['expiry'] !== null) {
+        assert($market['expiryDatetime'] === $exchange->iso8601($market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' . $log_text);
+    }
+    $target_keys = ['cost', 'amount', 'price'];
+    // check precisions
+    for ($i = 0; $i < count($target_keys); $i++) {
+        $key = $target_keys[$i];
+        // todo: should be migrated into assertGreater after TickSize handling is implemented
+        assert_greater_or_equal($exchange, $method, $market['precision'], $key, '0');
+    }
+    // check limits
+    for ($i = 0; $i < count($target_keys); $i++) {
+        $key = $target_keys[$i];
+        $limit_entry = $market['limits'][$key];
+        assert_greater_or_equal($exchange, $method, $limit_entry, 'min', '0');
+        assert_greater($exchange, $method, $limit_entry, 'max', '0');
+    }
 }
-

@@ -4,36 +4,25 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// ----------------------------------------------------------------------------
-import testTicker from './test.ticker.js';
-// ----------------------------------------------------------------------------
-export default async (exchange, symbol) => {
+import assert from 'assert';
+import testTicker from './base/test.ticker.js';
+async function testFetchTickers(exchange, symbol) {
     const method = 'fetchTickers';
-    const skippedExchanges = [
-        'binance',
-        'digifinex',
-        'currencycom',
-    ];
-    if (skippedExchanges.includes(exchange.id)) {
-        console.log(exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
+    // log ('fetching all tickers at once...')
+    let tickers = undefined;
+    let checkedSymbol = undefined;
+    try {
+        tickers = await exchange.fetchTickers();
     }
-    if (exchange.has[method]) {
-        // log ('fetching all tickers at once...')
-        let tickers = undefined;
-        try {
-            tickers = await exchange[method]();
-            console.log('fetched all', Object.keys(tickers).length, 'tickers');
-        }
-        catch (e) {
-            console.log('failed to fetch all tickers, fetching multiple tickers at once...');
-            tickers = await exchange[method]([symbol]);
-            console.log('fetched', Object.keys(tickers).length, 'tickers');
-        }
-        Object.values(tickers).forEach((ticker) => testTicker(exchange, ticker, undefined, symbol));
-        return tickers;
+    catch (e) {
+        tickers = await exchange.fetchTickers([symbol]);
+        checkedSymbol = symbol;
     }
-    else {
-        console.log(method + '() is not supported');
+    assert(typeof tickers === 'object', exchange.id + ' ' + method + ' ' + checkedSymbol + ' must return an object. ' + exchange.json(tickers));
+    const values = Object.values(tickers);
+    for (let i = 0; i < values.length; i++) {
+        const ticker = values[i];
+        testTicker(exchange, method, ticker, checkedSymbol);
     }
-};
+}
+export default testFetchTickers;

@@ -6,15 +6,16 @@
 
 import fs from 'fs';
 import log from 'ololog';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import HttpsProxyAgent from 'https-proxy-agent';
 import { Agent } from 'https';
+import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../../ccxt.js';
+//
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 log.handleNodeErrors();
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter((x) => !x.startsWith('--'));
 const verbose = process.argv.includes('--verbose') || false;
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const ext = import.meta.url.split('.')[1];
 // ----------------------------------------------------------------------------
 if (!exchangeId) {
     console.log('Exchange id not specified');
@@ -59,27 +60,33 @@ const tests = {};
 // eslint-disable-next-line no-path-concat
 const pathToExchangeTests = __dirname + '/Exchange/';
 const filteredFiles = fs.readdirSync(pathToExchangeTests)
-    .filter((file) => file.match(/test.[a-zA-Z0-9_-]+.js$/));
+    .filter((file) => file.match(/test.[a-zA-Z0-9_-]+.(ts|js)$/))
+    .map((file) => file.slice(0, -3)); // remove extensions
+// eslint-disable-next-line no-restricted-syntax
 for (const file of filteredFiles) {
-    const key = file.slice(5, -3);
-    const test = await import(pathToExchangeTests + file);
-    tests[key] = test.default;
+    const key = file.slice(5);
+    tests[key] = (await import(pathToFileURL(pathToExchangeTests + file + '.js').toString()))['default'];
 }
 //-----------------------------------------------------------------------------
-const keysGlobal = 'keys.json', keysLocal = 'keys.local.json', keysFile = fs.existsSync(keysLocal) ? keysLocal : keysGlobal;
-const settingsFile = fs.readFileSync(keysFile);
+const rootDir = __dirname + '/../../../../';
+const keysGlobal = rootDir + 'keys.json', keysLocal = rootDir + 'keys.local.json', keysFile = fs.existsSync(keysLocal) ? keysLocal : keysGlobal;
+const settingsFile = fs.readFileSync(keysFile, 'utf8');
 let settings = JSON.parse(settingsFile);
-settings = settings[exchangeId];
+settings = exchange.safeValue(settings, exchangeId, {});
+const skipSettingsFile = fs.readFileSync(rootDir + 'skip-tests.json', 'utf8');
+const skipSettings = JSON.parse(skipSettingsFile);
+const skippedSettingsForExchange = exchange.safeValue(skipSettings, exchangeId, {});
 if (settings) {
-    for (const key in settings) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [key, val] of Object.entries(settings)) {
         if (settings[key]) {
-            settings[key] = ccxt.deepExtend(exchange[key] || {}, settings[key]);
+            settings[key] = ccxt.deepExtend(exchange[key] || {}, val);
         }
     }
 }
 Object.assign(exchange, settings);
-if (settings && (settings.skip || settings.skipWs)) {
-    log.error.bright('[Skipped]', { exchangeId, symbol });
+if (skippedSettingsForExchange && (skippedSettingsForExchange.skip || skippedSettingsForExchange.skipWs)) {
+    log.error.bright('[Skipped] exchange', exchangeId);
     process.exit(0);
 }
 //-----------------------------------------------------------------------------

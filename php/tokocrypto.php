@@ -667,8 +667,8 @@ class tokocrypto extends Exchange {
             $symbol = $base . '/' . $quote;
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
-            $status = $this->safe_string_2($market, 'status', 'contractStatus');
-            $active = ($status === 'TRADING');
+            $status = $this->safe_string($market, 'spotTradingEnable');
+            $active = ($status === '1');
             $permissions = $this->safe_value($market, 'permissions', array());
             for ($j = 0; $j < count($permissions); $j++) {
                 if ($permissions[$j] === 'TRD_GRP_003') {

@@ -6,16 +6,15 @@
 
 'use strict';
 // ----------------------------------------------------------------------------
-import log from 'ololog';
 import assert from 'assert';
-import testOrder from '../../../test/Exchange/test.order.js';
+import testOrder from '../../../test/Exchange/base/test.order.js';
 import errors from '../../../base/errors.js';
 /*  ------------------------------------------------------------------------ */
 export default async (exchange, symbol) => {
     // log (symbol.green, 'watching orders...')
     const method = 'watchOrders';
     if (!exchange.has[method]) {
-        log(exchange.id, 'does not support', method + '() method');
+        console.log(exchange.id, 'does not support', method + '() method');
         return;
     }
     let response = undefined;
@@ -26,11 +25,11 @@ export default async (exchange, symbol) => {
             response = await exchange[method](symbol);
             now = Date.now();
             assert(response instanceof Array);
-            log(exchange.iso8601(now), exchange.id, symbol.green, method, Object.values(response).length.toString().green, 'orders');
+            console.log(exchange.iso8601(now), exchange.id, symbol.green, method, Object.values(response).length.toString().green, 'orders');
             // log.noLocate (asTable (response))
             for (let i = 0; i < response.length; i++) {
                 const order = response[i];
-                testOrder(exchange, order, symbol, now);
+                testOrder(exchange, method, order, symbol, now);
             }
         }
         catch (e) {

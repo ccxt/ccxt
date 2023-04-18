@@ -1039,6 +1039,7 @@ class xt extends Exchange {
             $contract = true;
             $spot = false;
         }
+        $isActive = ($state === 'ONLINE') || ($state === '0');
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1054,7 +1055,7 @@ class xt extends Exchange {
             'swap' => $swap,
             'future' => $future,
             'option' => false,
-            'active' => ($state === 'ONLINE') || ($state === '0') ? true : false,
+            'active' => $isActive,
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => $inverse,

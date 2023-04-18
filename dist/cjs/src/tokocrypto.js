@@ -667,8 +667,8 @@ class tokocrypto extends tokocrypto$1 {
             const symbol = base + '/' + quote;
             const filters = this.safeValue(market, 'filters', []);
             const filtersByType = this.indexBy(filters, 'filterType');
-            const status = this.safeString2(market, 'status', 'contractStatus');
-            let active = (status === 'TRADING');
+            const status = this.safeString(market, 'spotTradingEnable');
+            let active = (status === '1');
             const permissions = this.safeValue(market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {

@@ -1038,6 +1038,7 @@ class xt extends xt$1 {
             contract = true;
             spot = false;
         }
+        const isActive = (state === 'ONLINE') || (state === '0');
         return {
             'id': id,
             'symbol': symbol,
@@ -1053,7 +1054,7 @@ class xt extends xt$1 {
             'swap': swap,
             'future': future,
             'option': false,
-            'active': (state === 'ONLINE') || (state === '0') ? true : false,
+            'active': isActive,
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
