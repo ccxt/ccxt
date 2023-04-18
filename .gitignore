@@ -30,8 +30,10 @@ python/package-lock.json
 python/package.json
 python/keys.json
 python/LICENSE.txt
+__pycache__
 .env
 *.swp
 .cache
 *.log
 *.un~
+*.pyc
