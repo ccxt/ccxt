@@ -570,8 +570,11 @@
         }
     },
     "mercado": {
-        "skip": true,
         "skipMethods": {
+            "fetchOrderBook": "some bid might be lower than next bid",
+            "fetchL2OrderBook": "some bid might be lower than next bid",
+            "fetchTickers": "some bid might be lower than next bid",
+            "fetchTicker": "some bid might be lower than next bid",
             "fetchCurrencies": "info key is missing"
         }
     },
