@@ -91,7 +91,7 @@ function init_exchange ($exchangeId, $args) {
     return new $exchangeId($args);
 }
 
-function set_test_files ($holderClass) {
+function set_test_files ($holderClass, $properties) {
     $skiped = ['test_throttle'];
     foreach (glob(__DIR__ . '/' . (is_sync ? 'sync' : 'async') . '/test_*.php') as $filename) {
         $basename = basename($filename);

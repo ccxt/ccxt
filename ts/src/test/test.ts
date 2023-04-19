@@ -84,7 +84,7 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js')) as any)['default'];
 }
 
-async function setTestFiles (holderClass) {
+async function setTestFiles (holderClass, properties) {
     // exchange tests
     for (let i = 0; i < properties.length; i++) {
         const name = properties[i];
@@ -135,7 +135,7 @@ export default class testMainClass extends baseMainTestClass {
         this.testFiles = {};
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
-        await setTestFiles (this, propertyName);
+        await setTestFiles (this, properties);
     }
 
     expandSettings (exchange, symbol) {
