@@ -41,7 +41,6 @@ const exchange = new (ccxt)[exchangeId] ({
     timeout,
 });
 //-----------------------------------------------------------------------------
-const get_test_name = (str) => str;
 const testFiles = {};
 const properties = Object.keys (exchange.has);
 properties.push ('loadMarkets');
@@ -70,6 +69,10 @@ const rootDir = __dirname + '/../../../';
 const envVars = process.env;
 
 class baseMainTestClass {}
+
+function get_test_name (str) {
+    return str;
+}
 
 function dump (...args) {
     console.log (...args);
