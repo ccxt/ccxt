@@ -5,8 +5,10 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,6 +18,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
@@ -26,7 +29,7 @@ class wavesexchange(Exchange):
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
-            'certified': False,
+            'certified': True,
             'pro': False,
             'has': {
                 'CORS': None,
@@ -365,11 +368,11 @@ class wavesexchange(Exchange):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
         return super(wavesexchange, self).set_sandbox_mode(enabled)
 
-    async def get_fees_for_asset(self, symbol, side, amount, price, params={}):
+    async def get_fees_for_asset(self, symbol: str, side, amount, price, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        amount = self.amount_to_precision(symbol, amount)
-        price = self.price_to_precision(symbol, price)
+        amount = self.custom_amount_to_precision(symbol, amount)
+        price = self.custom_price_to_precision(symbol, price)
         request = self.extend({
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
@@ -379,7 +382,7 @@ class wavesexchange(Exchange):
         }, params)
         return await self.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee(request)
 
-    async def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+    async def custom_calculate_fee(self, symbol: str, type, side, amount, price, takerOrMaker='taker', params={}):
         response = await self.get_fees_for_asset(symbol, side, amount, price)
         # {
         #     "base":{
@@ -418,7 +421,7 @@ class wavesexchange(Exchange):
             return quotes
         else:
             # currencies can have any name because you can create you own token
-            # as a result someone can create a fake token called BTC
+            # result someone can create a fake token called BTC
             # we use self mapping to determine the real tokens
             # https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
             response = await self.matcherGetMatcherSettings()
@@ -573,13 +576,13 @@ class wavesexchange(Exchange):
             })
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -600,7 +603,7 @@ class wavesexchange(Exchange):
             'nonce': None,
         }
 
-    def parse_order_book_side(self, bookSide, market=None, limit=None):
+    def parse_order_book_side(self, bookSide, market=None, limit: Optional[int] = None):
         precision = market['precision']
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
         amountPrecision = math.pow(10, precision['amount'])
@@ -720,39 +723,55 @@ class wavesexchange(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
-        #     {
-        #         "__type":"pair",
-        #         "data":{
-        #             "firstPrice":0.00012512,
-        #             "lastPrice":0.00012441,
-        #             "low":0.00012167,
-        #             "high":0.00012768,
-        #             "weightedAveragePrice":0.000124710697407246,
-        #             "volume":209554.26356614,
-        #             "quoteVolume":26.1336583539951,
-        #             "volumeWaves":209554.26356614,
-        #             "txsCount":6655
-        #         },
-        #         "amountAsset":"WAVES",
-        #         "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        #     }
+        #       {
+        #           "symbol": "WAVES/BTC",
+        #           "amountAssetID": "WAVES",
+        #           "amountAssetName": "Waves",
+        #           "amountAssetDecimals": 8,
+        #           "amountAssetTotalSupply": "106908766.00000000",
+        #           "amountAssetMaxSupply": "106908766.00000000",
+        #           "amountAssetCirculatingSupply": "106908766.00000000",
+        #           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        #           "priceAssetName": "WBTC",
+        #           "priceAssetDecimals": 8,
+        #           "priceAssetTotalSupply": "20999999.96007507",
+        #           "priceAssetMaxSupply": "20999999.96007507",
+        #           "priceAssetCirculatingSupply": "20999999.66019601",
+        #           "24h_open": "0.00032688",
+        #           "24h_high": "0.00033508",
+        #           "24h_low": "0.00032443",
+        #           "24h_close": "0.00032806",
+        #           "24h_vwap": "0.00032988",
+        #           "24h_volume": "42349.69440104",
+        #           "24h_priceVolume": "13.97037207",
+        #           "timestamp":1640232379124
+        #       }
         #
-        timestamp = None
-        baseId = self.safe_string(ticker, 'amountAsset')
-        quoteId = self.safe_string(ticker, 'priceAsset')
-        symbol = None
-        if (baseId is not None) and (quoteId is not None):
-            marketId = baseId + '/' + quoteId
-            market = self.safe_market(marketId, market, '/')
-            symbol = market['symbol']
-        data = self.safe_value(ticker, 'data', {})
-        last = self.safe_string(data, 'lastPrice')
-        low = self.safe_string(data, 'low')
-        high = self.safe_string(data, 'high')
-        vwap = self.safe_string(data, 'weightedAveragePrice')
-        baseVolume = self.safe_string(data, 'volume')
-        quoteVolume = self.safe_string(data, 'quoteVolume')
-        open = self.safe_string(data, 'firstPrice')
+        #  fetch ticker
+        #
+        #       {
+        #           firstPrice: '21749',
+        #           lastPrice: '22000',
+        #           volume: '0.73747149',
+        #           quoteVolume: '16409.44564928645471',
+        #           high: '23589.999941',
+        #           low: '21010.000845',
+        #           weightedAveragePrice: '22250.955964',
+        #           txsCount: '148',
+        #           volumeWaves: '0.0000000000680511203072'
+        #       }
+        #
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market, '/')
+        symbol = market['symbol']
+        last = self.safe_string_2(ticker, '24h_close', 'lastPrice')
+        low = self.safe_string_2(ticker, '24h_low', 'low')
+        high = self.safe_string_2(ticker, '24h_high', 'high')
+        vwap = self.safe_string_2(ticker, '24h_vwap', 'weightedAveragePrice')
+        baseVolume = self.safe_string_2(ticker, '24h_volume', 'volume')
+        quoteVolume = self.safe_string_2(ticker, '24h_priceVolume', 'quoteVolume')
+        open = self.safe_string_2(ticker, '24h_open', 'firstPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -776,12 +795,12 @@ class wavesexchange(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -814,44 +833,49 @@ class wavesexchange(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         ticker = self.safe_value(data, 0, {})
-        return self.parse_ticker(ticker, market)
+        dataTicker = self.safe_value(ticker, 'data', {})
+        return self.parse_ticker(dataTicker, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the aax api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        response = await self.publicGetPairs(params)
+        response = await self.marketGetTickers(params)
         #
-        #     {
-        #         "__type":"list",
-        #         "data":[
-        #             {
-        #                 "__type":"pair",
-        #                 "data":{
-        #                     "firstPrice":0.00012512,
-        #                     "lastPrice":0.00012441,
-        #                     "low":0.00012167,
-        #                     "high":0.00012768,
-        #                     "weightedAveragePrice":0.000124710697407246,
-        #                     "volume":209554.26356614,
-        #                     "quoteVolume":26.1336583539951,
-        #                     "volumeWaves":209554.26356614,
-        #                     "txsCount":6655
-        #                 },
-        #                 "amountAsset":"WAVES",
-        #                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        #             }
-        #         ]
-        #     }
+        #   [
+        #       {
+        #           "symbol": "WAVES/BTC",
+        #           "amountAssetID": "WAVES",
+        #           "amountAssetName": "Waves",
+        #           "amountAssetDecimals": 8,
+        #           "amountAssetTotalSupply": "106908766.00000000",
+        #           "amountAssetMaxSupply": "106908766.00000000",
+        #           "amountAssetCirculatingSupply": "106908766.00000000",
+        #           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        #           "priceAssetName": "WBTC",
+        #           "priceAssetDecimals": 8,
+        #           "priceAssetTotalSupply": "20999999.96007507",
+        #           "priceAssetMaxSupply": "20999999.96007507",
+        #           "priceAssetCirculatingSupply": "20999999.66019601",
+        #           "24h_open": "0.00032688",
+        #           "24h_high": "0.00033508",
+        #           "24h_low": "0.00032443",
+        #           "24h_close": "0.00032806",
+        #           "24h_vwap": "0.00032988",
+        #           "24h_volume": "42349.69440104",
+        #           "24h_priceVolume": "13.97037207",
+        #           "timestamp":1640232379124
+        #       }
+        #       ...
+        #   ]
         #
-        data = self.safe_value(response, 'data', [])
-        return self.parse_tickers(data, symbols)
+        return self.parse_tickers(response, symbols)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -859,14 +883,14 @@ class wavesexchange(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
         if limit is None:
@@ -874,7 +898,7 @@ class wavesexchange(Exchange):
         limit = min(allowedCandles, limit)
         duration = self.parse_timeframe(timeframe) * 1000
         if since is None:
-            durationRoundedTimestamp = int(self.milliseconds() / duration) * duration
+            durationRoundedTimestamp = self.parse_to_int(self.milliseconds() / duration) * duration
             delta = (limit - 1) * duration
             timeStart = durationRoundedTimestamp - delta
             request['timeStart'] = str(timeStart)
@@ -963,12 +987,12 @@ class wavesexchange(Exchange):
             self.safe_number(data, 'volume', 0),
         ]
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.sign_in()
         networks = self.safe_value(self.options, 'networks', {})
@@ -1115,17 +1139,17 @@ class wavesexchange(Exchange):
             return ''
         return currencyId
 
-    def price_to_precision(self, symbol, price):
+    def custom_price_to_precision(self, symbol, price):
         market = self.markets[symbol]
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
         difference = market['precision']['amount'] - market['precision']['price']
-        return int(float(self.to_precision(price, wavesPrecision - difference)))
+        return self.parse_to_int(float(self.to_precision(price, wavesPrecision - difference)))
 
-    def amount_to_precision(self, symbol, amount):
-        return int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
+    def custom_amount_to_precision(self, symbol, amount):
+        return self.parse_to_int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
 
     def currency_to_precision(self, code, amount, networkCode=None):
-        return int(float(self.to_precision(amount, self.currencies[code]['precision'])))
+        return self.parse_to_int(float(self.to_precision(amount, self.currencies[code]['precision'])))
 
     def from_precision(self, amount, scale):
         if amount is None:
@@ -1165,7 +1189,7 @@ class wavesexchange(Exchange):
             return {'WAVES': 1}
         return rates
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1174,7 +1198,7 @@ class wavesexchange(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1240,8 +1264,8 @@ class wavesexchange(Exchange):
                     matcherFee = int(discountMatcherFee)
         if matcherFeeAssetId is None:
             raise InsufficientFunds(self.id + ' not enough funds on none of the eligible asset fees')
-        amount = self.amount_to_precision(symbol, amount)
-        price = self.price_to_precision(symbol, price)
+        amount = self.custom_amount_to_precision(symbol, amount)
+        price = self.custom_price_to_precision(symbol, price)
         byteArray = [
             self.number_to_be(3, 1),
             self.base58_to_binary(self.apiKey),
@@ -1312,13 +1336,13 @@ class wavesexchange(Exchange):
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1358,12 +1382,12 @@ class wavesexchange(Exchange):
             'trades': None,
         }
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1388,14 +1412,14 @@ class wavesexchange(Exchange):
         response = await self.matcherGetMatcherOrderbookPublicKeyOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1437,14 +1461,14 @@ class wavesexchange(Exchange):
         #     avgWeighedPrice: 0}, ...]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         await self.sign_in()
@@ -1459,14 +1483,14 @@ class wavesexchange(Exchange):
         response = await self.forwardGetMatcherOrdersAddress(request)
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         await self.sign_in()
@@ -1616,6 +1640,7 @@ class wavesexchange(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -1776,14 +1801,14 @@ class wavesexchange(Exchange):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         address = await self.get_waves_address()
@@ -1865,7 +1890,7 @@ class wavesexchange(Exchange):
         #
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -2056,7 +2081,7 @@ class wavesexchange(Exchange):
         if not success:
             raise ExchangeError(self.id + ' ' + body)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2064,7 +2089,7 @@ class wavesexchange(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # currently only works for BTC and WAVES

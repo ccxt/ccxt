@@ -6,12 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\NetworkError;
 use ccxt\AuthenticationError;
 use React\Async;
 
 class ascendex extends \ccxt\async\ascendex {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -82,7 +81,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -91,7 +90,7 @@ class ascendex extends \ccxt\async\ascendex {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the ascendex api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -99,7 +98,7 @@ class ascendex extends \ccxt\async\ascendex {
             if (($limit === null) || ($limit > 1440)) {
                 $limit = 100;
             }
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $channel = 'bar' . ':' . $interval . ':' . $market['id'];
             $params = array(
                 'ch' => $channel,
@@ -112,7 +111,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         // {
         //     "m" => "bar",
@@ -149,7 +148,7 @@ class ascendex extends \ccxt\async\ascendex {
         return $message;
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -174,7 +173,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         // {
         //     m => 'trades',
@@ -212,14 +211,14 @@ class ascendex extends \ccxt\async\ascendex {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the ascendex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -232,7 +231,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function watch_order_book_snapshot($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book_snapshot(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -250,7 +249,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_order_book_snapshot($client, $message) {
+    public function handle_order_book_snapshot(Client $client, $message) {
         //
         // {
         //     m => 'depth',
@@ -288,7 +287,7 @@ class ascendex extends \ccxt\async\ascendex {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //   {
         //       m => 'depth',
@@ -332,7 +331,7 @@ class ascendex extends \ccxt\async\ascendex {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         // {
         //     "m":"depth",
@@ -392,7 +391,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         // cash $account
         //
@@ -489,15 +488,16 @@ class ascendex extends \ccxt\async\ascendex {
         $client->resolve ($this->safe_balance($result), $messageHash);
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://ascendex.github.io/ascendex-pro-api/#$channel-order-and-balance
              * watches information on multiple $orders made by the user
              * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the ascendex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -508,7 +508,7 @@ class ascendex extends \ccxt\async\ascendex {
             list($type, $query) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $messageHash = null;
             $channel = null;
-            if ($type !== 'spot') {
+            if ($type !== 'spot' && $type !== 'margin') {
                 $channel = 'futures-order';
                 $messageHash = 'order:FUTURES';
             } else {
@@ -529,7 +529,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(Client $client, $message) {
         //
         // spot $order
         // {
@@ -682,6 +682,7 @@ class ascendex extends \ccxt\async\ascendex {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -693,7 +694,7 @@ class ascendex extends \ccxt\async\ascendex {
         ), $market);
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         // {
         //     m => 'disconnected',
@@ -712,32 +713,31 @@ class ascendex extends \ccxt\async\ascendex {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
             }
+            return false;
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
-                $client->reject ($e, 'authenticated');
-                $method = 'auth';
-                if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
-                    unset($client->subscriptions[$method]);
+                $messageHash = 'authenticated';
+                $client->reject ($e, $messageHash);
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
                 }
-                return false;
             } else {
                 $client->reject ($e);
             }
+            return true;
         }
-        return $message;
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
         //     array( m => 'auth', id => '1647605234', code => 0 )
         //
-        $future = $client->futures['authenticated'];
-        $future->resolve (1);
-        return $message;
+        $messageHash = 'authenticated';
+        $client->resolve ($message, $messageHash);
     }
 
-    public function handle_message($client, $message) {
-        if (!$this->handle_error_message($client, $message)) {
+    public function handle_message(Client $client, $message) {
+        if ($this->handle_error_message($client, $message)) {
             return;
         }
         //
@@ -912,7 +912,7 @@ class ascendex extends \ccxt\async\ascendex {
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     array( m => 'sub', ch => 'bar:BTC/USDT', code => 0 )
         //
@@ -925,7 +925,7 @@ class ascendex extends \ccxt\async\ascendex {
         return $message;
     }
 
-    public function handle_order_book_subscription($client, $message) {
+    public function handle_order_book_subscription(Client $client, $message) {
         $channel = $this->safe_string($message, 'ch');
         $parts = explode(':', $channel);
         $marketId = $parts[1];
@@ -942,41 +942,43 @@ class ascendex extends \ccxt\async\ascendex {
             //
             //     array( m => 'ping', hp => 3 )
             //
-            Async\await($client->send (array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') )));
+            try {
+                Async\await($client->send (array( 'op' => 'pong', 'hp' => $this->safe_integer($message, 'hp') )));
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' handlePing failed with $error ' . $this->json($e));
+                $client->reset ($error);
+            }
         }) ();
     }
 
-    public function handle_ping($client, $message) {
+    public function handle_ping(Client $client, $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
     public function authenticate($url, $params = array ()) {
-        return Async\async(function () use ($url, $params) {
-            $this->check_required_credentials();
-            $messageHash = 'authenticated';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->futures, $messageHash);
-            if ($future === null) {
-                $future = $client->future ('authenticated');
-                $client->future ($messageHash);
-                $timestamp = (string) $this->milliseconds();
-                $urlParts = explode('/', $url);
-                $partsLength = count($urlParts);
-                $path = $this->safe_string($urlParts, $partsLength - 1);
-                $version = $this->safe_string($urlParts, $partsLength - 2);
-                $auth = $timestamp . '+' . $version . '/' . $path;
-                $secret = base64_decode($this->secret);
-                $signature = $this->hmac($this->encode($auth), $secret, 'sha256', 'base64');
-                $request = array(
-                    'op' => 'auth',
-                    'id' => (string) $this->nonce(),
-                    't' => $timestamp,
-                    'key' => $this->apiKey,
-                    'sig' => $signature,
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params));
-            }
-            return Async\await($future);
-        }) ();
+        $this->check_required_credentials();
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $timestamp = (string) $this->milliseconds();
+            $urlParts = explode('/', $url);
+            $partsLength = count($urlParts);
+            $path = $this->safe_string($urlParts, $partsLength - 1);
+            $version = $this->safe_string($urlParts, $partsLength - 2);
+            $auth = $timestamp . '+' . $version . '/' . $path;
+            $secret = base64_decode($this->secret);
+            $signature = $this->hmac($this->encode($auth), $secret, 'sha256', 'base64');
+            $request = array(
+                'op' => 'auth',
+                'id' => (string) $this->nonce(),
+                't' => $timestamp,
+                'key' => $this->apiKey,
+                'sig' => $signature,
+            );
+            $future = $this->watch($url, $messageHash, array_merge($request, $params));
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 }

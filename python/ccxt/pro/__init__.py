@@ -4,13 +4,11 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.4.74'
+__version__ = '3.0.72'
 
 # ----------------------------------------------------------------------------
 
-# Pro Exchange
-
-from ccxt.pro.base.exchange import Exchange  # noqa: F401
+from ccxt.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
@@ -32,6 +30,7 @@ from ccxt.pro.bitrue import bitrue                                        # noqa
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
+from ccxt.pro.btcex import btcex                                          # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbaseprime import coinbaseprime                          # noqa: F401
@@ -43,28 +42,32 @@ from ccxt.pro.deribit import deribit                                      # noqa
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
+from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.huobipro import huobipro                                    # noqa: F401
 from ccxt.pro.idex import idex                                            # noqa: F401
+from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
+from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
+from ccxt.pro.mexc3 import mexc3                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okex import okex                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
+from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.ripio import ripio                                          # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
 from ccxt.pro.zb import zb                                                # noqa: F401
-from ccxt.pro.zipmex import zipmex                                        # noqa: F401
 
 exchanges = [
     'alpaca',
@@ -85,6 +88,7 @@ exchanges = [
     'bitstamp',
     'bittrex',
     'bitvavo',
+    'btcex',
     'bybit',
     'cex',
     'coinbaseprime',
@@ -96,26 +100,30 @@ exchanges = [
     'exmo',
     'gate',
     'gateio',
+    'gemini',
     'hitbtc',
     'hollaex',
     'huobi',
     'huobijp',
     'huobipro',
     'idex',
+    'independentreserve',
     'kraken',
     'kucoin',
+    'kucoinfutures',
     'luno',
     'mexc',
+    'mexc3',
     'ndax',
     'okcoin',
     'okex',
     'okx',
     'phemex',
+    'probit',
     'ripio',
     'upbit',
     'wazirx',
     'whitebit',
     'woo',
     'zb',
-    'zipmex',
 ]
