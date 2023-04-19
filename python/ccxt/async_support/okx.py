@@ -6,8 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import AccountSuspended
@@ -26,6 +28,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -60,6 +63,7 @@ class okx(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -186,6 +190,7 @@ class okx(Exchange):
                         'market/option/instrument-family-trades': 1,
                         # 'market/oracle',
                         'public/instruments': 1,
+                        'public/instrument-tick-bands': 4,
                         'public/delivery-exercise-history': 0.5,
                         'public/open-interest': 1,
                         'public/funding-rate': 1,
@@ -216,8 +221,8 @@ class okx(Exchange):
                         'rubik/stat/option/open-interest-volume-strike': 4,
                         'rubik/stat/option/taker-block-volume': 4,
                         'system/status': 100,
-                        'asset/lending-rate-summary': 5 / 3,
-                        'asset/lending-rate-history': 5 / 3,
+                        'finance/savings/lending-rate-summary': 5 / 3,
+                        'finance/savings/lending-rate-history': 5 / 3,
                         'market/exchange-rate': 20,
                     },
                 },
@@ -226,6 +231,7 @@ class okx(Exchange):
                         'account/account-position-risk': 2,
                         'account/balance': 2,
                         'account/positions': 2,
+                        'account/positions-history': 2,
                         'account/bills': 5 / 3,
                         'account/bills-archive': 5 / 3,
                         'account/config': 4,
@@ -255,8 +261,6 @@ class okx(Exchange):
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
                         'asset/deposit-lightning': 5,
-                        'asset/lending-history': 5 / 3,
-                        'asset/saving-balance': 5 / 3,
                         'asset/non-tradable-assets': 5 / 3,
                         'trade/order': 1 / 3,
                         'trade/orders-pending': 1,
@@ -266,6 +270,7 @@ class okx(Exchange):
                         'trade/fills-history': 2,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
+                        'trade/order-algo': 1,
                         'account/subaccount/balances': 10,
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
@@ -292,6 +297,8 @@ class okx(Exchange):
                         'finance/staking-defi/offers': 1,
                         'finance/staking-defi/orders-active': 1,
                         'finance/staking-defi/orders-history': 1,
+                        'finance/savings/balance': 5 / 3,
+                        'finance/savings/lending-history': 5 / 3,
                         'rfq/counterparties': 4,
                         'rfq/maker-instrument-settings': 4,
                         'rfq/rfqs': 10,
@@ -324,11 +331,10 @@ class okx(Exchange):
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
                         'account/activate-option': 4,
+                        'account/set-auto-loan': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
-                        'asset/purchase_redempt': 5 / 3,
                         'asset/withdrawal-lightning': 5,
-                        'asset/set-lending-rate': 5 / 3,
                         'asset/cancel-withdrawal': 5 / 3,
                         'asset/convert-dust-assets': 10,
                         'trade/order': 1 / 3,
@@ -360,6 +366,8 @@ class okx(Exchange):
                         'finance/staking-defi/purchase': 3,
                         'finance/staking-defi/redeem': 3,
                         'finance/staking-defi/cancel': 3,
+                        'finance/savings/purchase-redempt': 5 / 3,
+                        'finance/savings/set-lending-rate': 5 / 3,
                         'rfq/create-rfq': 4,
                         'rfq/cancel-rfq': 4,
                         'rfq/cancel-batch-rfqs': 10,
@@ -531,7 +539,7 @@ class okx(Exchange):
                     '51138': InvalidOrder,  # Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139': InvalidOrder,  # Reduce-only feature is unavailable for the spot transactions by simple account
                     '51156': BadRequest,  # You're leading trades in long/short mode and can't use self API endpoint to close positions
-                    '51159': BadRequest,  # You're leading trades in buy/sell mode. If you want to place orders using self API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51159': BadRequest,  # You're leading trades in buy/sell mode. If you want to place orders using self API endpoint, the orders must be in the same direction existing positions and open orders.
                     '51162': InvalidOrder,  # You have {instrument} open orders. Cancel these orders and try again
                     '51163': InvalidOrder,  # You hold {instrument} positions. Close these positions and try again
                     '51166': InvalidOrder,  # Currently, we don't support leading trades with self instrument
@@ -579,26 +587,26 @@ class okx(Exchange):
                     '51328': InvalidOrder,  # closeFraction is only available for reduceOnly orders
                     '51329': InvalidOrder,  # closeFraction is only available in NET mode
                     '51330': InvalidOrder,  # closeFraction is only available for stop market orders
-                    '51400': OrderNotFound,  # Cancellation failed as the order does not exist
-                    '51401': OrderNotFound,  # Cancellation failed as the order is already canceled
-                    '51402': OrderNotFound,  # Cancellation failed as the order is already completed
-                    '51403': InvalidOrder,  # Cancellation failed as the order type does not support cancellation
+                    '51400': OrderNotFound,  # Cancellation failed order does not exist
+                    '51401': OrderNotFound,  # Cancellation failed order is already canceled
+                    '51402': OrderNotFound,  # Cancellation failed order is already completed
+                    '51403': InvalidOrder,  # Cancellation failed order type does not support cancellation
                     '51404': InvalidOrder,  # Order cancellation unavailable during the second phase of call auction
-                    '51405': ExchangeError,  # Cancellation failed as you do not have any pending orders
+                    '51405': ExchangeError,  # Cancellation failed do not have any pending orders
                     '51406': ExchangeError,  # Canceled - order count exceeds the limit {0}
                     '51407': BadRequest,  # Either order ID or client order ID is required
                     '51408': ExchangeError,  # Pair ID or name does not match the order info
                     '51409': ExchangeError,  # Either pair ID or pair name ID is required
-                    '51410': CancelPending,  # Cancellation failed as the order is already under cancelling status
+                    '51410': CancelPending,  # Cancellation failed order is already under cancelling status
                     '51500': ExchangeError,  # Either order price or amount is required
                     '51501': ExchangeError,  # Maximum {0} orders can be modified
                     '51502': InsufficientFunds,  # Order modification failed for insufficient margin
-                    '51503': ExchangeError,  # Order modification failed as the order does not exist
+                    '51503': ExchangeError,  # Order modification failed order does not exist
                     '51506': ExchangeError,  # Order modification unavailable for the order type
                     '51508': ExchangeError,  # Orders are not allowed to be modified during the call auction
-                    '51509': ExchangeError,  # Modification failed as the order has been canceled
-                    '51510': ExchangeError,  # Modification failed as the order has been completed
-                    '51511': ExchangeError,  # Modification failed as the order price did not meet the requirement for Post Only
+                    '51509': ExchangeError,  # Modification failed order has been canceled
+                    '51510': ExchangeError,  # Modification failed order has been completed
+                    '51511': ExchangeError,  # Modification failed order price did not meet the requirement for Post Only
                     '51600': ExchangeError,  # Status not found
                     '51601': ExchangeError,  # Order status and order ID cannot exist at the same time
                     '51602': ExchangeError,  # Either order status or order ID is required
@@ -633,7 +641,7 @@ class okx(Exchange):
                     '58108': ExchangeError,  # Please enable the account for option contract
                     '58109': ExchangeError,  # Please enable the account for swap contract
                     '58110': ExchangeError,  # The contract triggers risk control, and the platform has suspended the fund transfer function of it. Please wait patiently
-                    '58111': ExchangeError,  # Funds transfer unavailable as the perpetual contract is charging the funding fee. Please try again later
+                    '58111': ExchangeError,  # Funds transfer unavailable perpetual contract is charging the funding fee. Please try again later
                     '58112': ExchangeError,  # Your fund transfer failed. Please try again later
                     '58114': ExchangeError,  # Transfer amount must be more than 0
                     '58115': ExchangeError,  # Sub-account does not exist
@@ -641,6 +649,8 @@ class okx(Exchange):
                     '58117': ExchangeError,  # Account assets are abnormal, please deal with negative assets before transferring
                     '58125': BadRequest,  # Non-tradable assets can only be transferred from sub-accounts to main accounts
                     '58126': BadRequest,  # Non-tradable assets can only be transferred between funding accounts
+                    '58127': BadRequest,  # Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128': BadRequest,  # Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
                     '58200': ExchangeError,  # Withdrawal from {0} to {1} is unavailable for self currency
                     '58201': ExchangeError,  # Withdrawal amount exceeds the daily limit
                     '58202': ExchangeError,  # The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -664,8 +674,8 @@ class okx(Exchange):
                     '58300': ExchangeError,  # Deposit-address count exceeds the limit
                     '58350': InsufficientFunds,  # Insufficient balance
                     # Account error codes 59000-59999
-                    '59000': ExchangeError,  # Your settings failed as you have positions or open orders
-                    '59001': ExchangeError,  # Switching unavailable as you have borrowings
+                    '59000': ExchangeError,  # Your settings failed have positions or open orders
+                    '59001': ExchangeError,  # Switching unavailable have borrowings
                     '59100': ExchangeError,  # You have open positions. Please cancel all open positions before changing the leverage
                     '59101': ExchangeError,  # You have pending orders with isolated positions. Please cancel all the pending orders and adjust the leverage
                     '59102': ExchangeError,  # Leverage exceeds the maximum leverage. Please adjust the leverage
@@ -708,7 +718,7 @@ class okx(Exchange):
                     '60012': BadRequest,  # Illegal request
                     '60013': BadRequest,  # Invalid args
                     '60014': RateLimitExceeded,  # Requests too frequent
-                    '60015': NetworkError,  # Connection closed as there was no data transmission in the last 30 seconds
+                    '60015': NetworkError,  # Connection closed was no data transmission in the last 30 seconds
                     '60016': ExchangeNotAvailable,  # Buffer is full, cannot write data
                     '60017': BadRequest,  # Invalid url path
                     '60018': BadRequest,  # The {0} {1} {2} {3} {4} does not exist
@@ -728,6 +738,7 @@ class okx(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'sandboxMode': False,
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'BTC': 'Bitcoin',
@@ -763,6 +774,9 @@ class okx(Exchange):
                     # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                     'timezone': 'UTC',  # UTC, HK
                 },
+                'fetchPositions': {
+                    'method': 'privateGetAccountPositions',  # privateGetAccountPositions or privateGetAccountPositionsHistory
+                },
                 'createOrder': 'privatePostTradeBatchOrders',  # or 'privatePostTradeOrder' or 'privatePostTradeOrderAlgo'
                 'createMarketBuyOrderRequiresPrice': False,
                 'fetchMarkets': ['spot', 'future', 'swap', 'option'],  # spot, future, swap, option
@@ -773,7 +787,7 @@ class okx(Exchange):
                 'fetchLedger': {
                     'method': 'privateGetAccountBills',  # privateGetAccountBillsArchive, privateGetAssetBills
                 },
-                # 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
+                # 6: Funding account, 18: Trading account
                 'fetchOrder': {
                     'method': 'privateGetTradeOrder',  # privateGetTradeOrdersAlgoHistory
                 },
@@ -798,22 +812,17 @@ class okx(Exchange):
                     'twap': True,
                 },
                 'accountsByType': {
-                    'spot': '1',
-                    'future': '3',
-                    'futures': '3',
-                    'margin': '5',
                     'funding': '6',
-                    'swap': '9',
-                    'option': '12',
                     'trading': '18',  # unified trading account
+                    'spot': '18',
+                    'future': '18',
+                    'futures': '18',
+                    'margin': '18',
+                    'swap': '18',
+                    'option': '18',
                 },
                 'accountsById': {
-                    '1': 'spot',
-                    '3': 'future',
-                    '5': 'margin',
                     '6': 'funding',
-                    '9': 'swap',
-                    '12': 'option',
                     '18': 'trading',  # unified trading account
                 },
                 'exchangeType': {
@@ -861,7 +870,7 @@ class okx(Exchange):
         """
         the latest known information on the availability of the exchange API
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = await self.publicGetSystemStatus(params)
         #
@@ -925,7 +934,7 @@ class okx(Exchange):
         """
         fetch all the accounts associated with a profile
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
         response = await self.privateGetAccountConfig(params)
         #
@@ -1193,7 +1202,8 @@ class okx(Exchange):
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
-        if not self.check_required_credentials(False):
+        isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        if not self.check_required_credentials(False) or isSandboxMode:
             return None
         #
         # has['fetchCurrencies'] is currently set to True, but an unauthorized request returns
@@ -1264,7 +1274,7 @@ class okx(Exchange):
                 canWithdraw = self.safe_value(chain, 'canWd')
                 canInternal = self.safe_value(chain, 'canInternal')
                 active = True if (canDeposit and canWithdraw and canInternal) else False
-                currencyActive = active if (currencyActive is None) else currencyActive
+                currencyActive = active if (active) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
                 if canDeposit and not depositEnabled:
                     depositEnabled = True
@@ -1320,13 +1330,13 @@ class okx(Exchange):
             }
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1418,12 +1428,12 @@ class okx(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1461,7 +1471,7 @@ class okx(Exchange):
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
 
-    async def fetch_tickers_by_type(self, type, symbols=None, params={}):
+    async def fetch_tickers_by_type(self, type, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
         request = {
             'instType': self.convert_to_instrument_type(type),
@@ -1503,12 +1513,12 @@ class okx(Exchange):
         tickers = self.safe_value(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1592,7 +1602,7 @@ class okx(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1626,27 +1636,38 @@ class okx(Exchange):
     def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
-        #         "1621447080000",  # timestamp
-        #         "0.07073",  # open
-        #         "0.07073",  # high
-        #         "0.07064",  # low
-        #         "0.07064",  # close
-        #         "12.08863",  # base volume
-        #         "0.854309"  # quote volume
+        #         "1678928760000",  # timestamp
+        #         "24341.4",  # open
+        #         "24344",  # high
+        #         "24313.2",  # low
+        #         "24323",  # close
+        #         "628",  # contract volume
+        #         "2.5819",  # base volume
+        #         "62800",  # quote volume
+        #         "0"  # candlestick state
         #     ]
         #
+        res = self.handle_market_type_and_params('fetchOHLCV', market, None)
+        type = res[0]
+        volumeIndex = 5 if (type == 'spot') else 6
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 5),
+            self.safe_number(ohlcv, volumeIndex),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
+        see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -1654,7 +1675,7 @@ class okx(Exchange):
         :param dict params: extra parameters specific to the okx api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1703,16 +1724,16 @@ class okx(Exchange):
         #         "code": "0",
         #         "msg": "",
         #         "data": [
-        #             ["1621447080000","0.07073","0.07073","0.07064","0.07064","12.08863","0.854309"],
-        #             ["1621447020000","0.0708","0.0709","0.0707","0.07072","58.517435","4.143309"],
-        #             ["1621446960000","0.0707","0.07082","0.0707","0.07076","53.850841","3.810921"],
+        #             ["1678928760000","24341.4","24344","24313.2","24323","628","2.5819","62800","0"],
+        #             ["1678928700000","24324.1","24347.6","24321.7","24341.4","2565","10.5401","256500","1"],
+        #             ["1678928640000","24300.2","24324.1","24288","24324.1","3304","13.5937","330400","1"],
         #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
         :param str|None symbol: unified symbol of the market to fetch the funding rate history for
@@ -1833,17 +1854,17 @@ class okx(Exchange):
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
-            # OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
+            # OKX returns the fees values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
         }
 
-    async def fetch_trading_fee(self, symbol, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2003,7 +2024,7 @@ class okx(Exchange):
         #
         return self.parse_balance_by_type(marketType, response)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -2014,7 +2035,7 @@ class okx(Exchange):
         :param dict params: extra parameters specific to the okx api endpoint
         :param bool|None params['reduceOnly']: MARGIN orders only, or swap/future orders in net mode
         :param bool|None params['postOnly']: True to place a post only order
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2056,7 +2077,7 @@ class okx(Exchange):
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so as to be extended into the request
+        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
         margin = False
         if (marginMode is not None) and (marginMode != 'cash'):
             margin = True
@@ -2073,7 +2094,8 @@ class okx(Exchange):
         elif contract:
             request['tdMode'] = marginMode
         isMarketOrder = type == 'market'
-        postOnly = self.is_post_only(isMarketOrder, type == 'post_only', params)
+        postOnly = False
+        postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
         params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
@@ -2132,7 +2154,7 @@ class okx(Exchange):
             request['ordType'] = 'conditional'
             twoWayCondition = ((takeProfitPrice is not None) and (stopLossPrice is not None))
             # if TP and SL are sent together
-            # as ordType 'conditional' only stop-loss order will be applied
+            # 'conditional' only stop-loss order will be applied
             if twoWayCondition:
                 request['ordType'] = 'oco'
             if takeProfitPrice is not None:
@@ -2172,13 +2194,69 @@ class okx(Exchange):
             'side': side,
         })
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def edit_order(self, id: str, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://www.okx.com/docs-v5/en/#rest-api-trade-amend-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        request = {
+            'instId': market['id'],
+        }
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clOrdId'] = clientOrderId
+        else:
+            request['ordId'] = id
+        params = self.omit(params, ['clOrdId', 'clientOrderId'])
+        if amount is not None:
+            request['newSz'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['newPx'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostTradeAmendOrder(self.extend(request, params))
+        #
+        #     {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        #                 "ordId": "559176536793178112",
+        #                 "reqId": "",
+        #                 "sCode": "0",
+        #                 "sMsg": ""
+        #            }
+        #        ],
+        #        "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0)
+        order = self.parse_order(first, market)
+        return self.extend(order, {
+            'type': type,
+            'side': side,
+        })
+
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         stop = self.safe_value(params, 'stop')
         if stop:
@@ -2216,13 +2294,13 @@ class okx(Exchange):
         else:
             return ids
 
-    async def cancel_orders(self, ids, symbol=None, params={}):
+    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         :param [str] ids: order ids
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
         if symbol is None:
@@ -2314,6 +2392,16 @@ class okx(Exchange):
         #         "clOrdId": "oktswap6",
         #         "ordId": "312269865356374016",
         #         "tag": "",
+        #         "sCode": "0",
+        #         "sMsg": ""
+        #     }
+        #
+        # editOrder
+        #
+        #     {
+        #         "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        #         "ordId": "559176536793178112",
+        #         "reqId": "",
         #         "sCode": "0",
         #         "sMsg": ""
         #     }
@@ -2450,10 +2538,13 @@ class okx(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopPrice = self.safe_number_n(order, ['tpTriggerPx', 'triggerPx', 'slTriggerPx'])
-        reduceOnly = self.safe_string(order, 'reduceOnly')
+        stopLossPrice = self.safe_number_2(order, 'slTriggerPx', 'slOrdPx')
+        takeProfitPrice = self.safe_number_2(order, 'tpTriggerPx', 'tpOrdPx')
+        stopPrice = self.safe_number_n(order, ['triggerPx', 'moveTriggerPx'])
+        reduceOnlyRaw = self.safe_string(order, 'reduceOnly')
+        reduceOnly = False
         if reduceOnly is not None:
-            reduceOnly = (reduceOnly == 'true')
+            reduceOnly = (reduceOnlyRaw == 'true')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2467,6 +2558,8 @@ class okx(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'average': average,
@@ -2480,13 +2573,13 @@ class okx(Exchange):
             'reduceOnly': reduceOnly,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an order by the id
         :param str id: the order id
         :param str symbol: unified market symbol
         :param dict params: extra and exchange specific parameters
-        :returns: `an order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns: `an order structure <https://docs.ccxt.com/#/?id=order-structure>`
        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -2504,13 +2597,17 @@ class okx(Exchange):
         method = self.safe_string(params, 'method', defaultMethod)
         stop = self.safe_value(params, 'stop')
         if stop:
-            raise NotSupported(self.id + ' fetchOrder() does not support stop orders, use fetchOpenOrders() fetchCanceledOrders() or fetchClosedOrders()')
+            method = 'privateGetTradeOrderAlgo'
+            if clientOrderId is not None:
+                request['algoClOrdId'] = clientOrderId
+            else:
+                request['algoId'] = id
         else:
             if clientOrderId is not None:
                 request['clOrdId'] = clientOrderId
             else:
                 request['ordId'] = id
-        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId'])
+        query = self.omit(params, ['method', 'clOrdId', 'clientOrderId', 'stop'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         # Spot and Swap
@@ -2556,11 +2653,63 @@ class okx(Exchange):
         #         "msg": ""
         #     }
         #
+        # Algo order
+        #     {
+        #         "code":"0",
+        #         "msg":"",
+        #         "data":[
+        #             {
+        #                 "instType":"FUTURES",
+        #                 "instId":"BTC-USD-200329",
+        #                 "ordId":"123445",
+        #                 "ccy":"BTC",
+        #                 "clOrdId":"",
+        #                 "algoId":"1234",
+        #                 "sz":"999",
+        #                 "closeFraction":"",
+        #                 "ordType":"oco",
+        #                 "side":"buy",
+        #                 "posSide":"long",
+        #                 "tdMode":"cross",
+        #                 "tgtCcy": "",
+        #                 "state":"effective",
+        #                 "lever":"20",
+        #                 "tpTriggerPx":"",
+        #                 "tpTriggerPxType":"",
+        #                 "tpOrdPx":"",
+        #                 "slTriggerPx":"",
+        #                 "slTriggerPxType":"",
+        #                 "triggerPx":"99",
+        #                 "triggerPxType":"last",
+        #                 "ordPx":"12",
+        #                 "actualSz":"",
+        #                 "actualPx":"",
+        #                 "actualSide":"",
+        #                 "pxVar":"",
+        #                 "pxSpread":"",
+        #                 "pxLimit":"",
+        #                 "szLimit":"",
+        #                 "tag": "adadadadad",
+        #                 "timeInterval":"",
+        #                 "callbackRatio":"",
+        #                 "callbackSpread":"",
+        #                 "activePx":"",
+        #                 "moveTriggerPx":"",
+        #                 "reduceOnly": "false",
+        #                 "triggerTime":"1597026383085",
+        #                 "last": "16012",
+        #                 "failCode": "",
+        #                 "algoClOrdId": "",
+        #                 "cTime":"1597026383000"
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         order = self.safe_value(data, 0)
         return self.parse_order(order, market)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Fetch orders that are still open
         fetch all unfilled currently open orders
@@ -2572,7 +2721,7 @@ class okx(Exchange):
         :param bool params['stop']: True if fetching trigger or conditional orders
         :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str|None params['algoId']: Algo ID "'433845797218942976'"
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -2702,7 +2851,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -2713,7 +2862,7 @@ class okx(Exchange):
         :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str|None params['algoId']: Algo ID "'433845797218942976'"
         :param int|None params['until']: timestamp in ms to fetch orders for
-        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -2865,7 +3014,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -2876,7 +3025,7 @@ class okx(Exchange):
         :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str|None params['algoId']: Algo ID "'433845797218942976'"
         :param int|None params['until']: timestamp in ms to fetch orders for
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -3020,14 +3169,14 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {
@@ -3076,7 +3225,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit, query)
 
-    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -3084,7 +3233,7 @@ class okx(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         request = {
             # 'instrument_id': market['id'],
@@ -3095,7 +3244,7 @@ class okx(Exchange):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
@@ -3106,7 +3255,7 @@ class okx(Exchange):
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the okx api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated'
-        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'fetchLedger', {})
@@ -3426,12 +3575,12 @@ class okx(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>` indexed by the network
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -3462,15 +3611,15 @@ class okx(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         filtered = self.filter_by(data, 'selected', True)
-        parsed = self.parse_deposit_addresses(filtered, [code], False)
+        parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         rawNetwork = self.safe_string_upper(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
@@ -3497,7 +3646,7 @@ class okx(Exchange):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
         return result
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3505,7 +3654,7 @@ class okx(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -3513,26 +3662,31 @@ class okx(Exchange):
         currency = self.currency(code)
         if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
-        fee = self.safe_string(params, 'fee')
-        if fee is None:
-            raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
         request = {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4',  # 2 = OKCoin International, 3 = OKX 4 = others
             'amt': self.number_to_string(amount),
-            'fee': self.number_to_string(fee),  # withdrawals to OKCoin or OKX are fee-free, please set 0
         }
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        if network is not None:
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string(networks, network.upper(), network)  # handle ETH>ERC20 alias
+            request['chain'] = currency['id'] + '-' + network
+            params = self.omit(params, 'network')
+        fee = self.safe_string(params, 'fee')
+        if fee is None:
+            currencies = await self.fetch_currencies()
+            self.currencies = self.deep_extend(self.currencies, currencies)
+            targetNetwork = self.safe_value(currency['networks'], self.network_id_to_code(network), {})
+            fee = self.safe_string(targetNetwork, 'fee')
+            if fee is None:
+                raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+        request['fee'] = self.number_to_string(fee)  # withdrawals to OKCoin or OKX are fee-free, please set 0
         if 'password' in params:
             request['pwd'] = params['password']
         elif 'pwd' in params:
             request['pwd'] = params['pwd']
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ETH>ERC20 alias
-        if network is not None:
-            request['chain'] = currency['id'] + '-' + network
-            params = self.omit(params, 'network')
         query = self.omit(params, ['fee', 'password', 'pwd'])
         if not ('pwd' in request):
             raise ExchangeError(self.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase')
@@ -3554,7 +3708,7 @@ class okx(Exchange):
         transaction = self.safe_value(data, 0)
         return self.parse_transaction(transaction, currency)
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -3562,7 +3716,7 @@ class okx(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -3622,14 +3776,14 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_deposit(self, id, code=None, params={}):
+    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
         :param str id: deposit id
         :param str|None code: filter by currency code
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -3644,7 +3798,7 @@ class okx(Exchange):
         deposit = self.safe_value(data, 0, {})
         return self.parse_transaction(deposit, currency)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -3652,7 +3806,7 @@ class okx(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -3704,14 +3858,14 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
         :param str id: withdrawal id
         :param str|None code: unified currency code of the currency withdrawn, default is None
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -3804,9 +3958,9 @@ class okx(Exchange):
         #         "ccy": "ETH",
         #         "from": "13426335357",
         #         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        #         'tag': string,
-        #         'pmtId': string,
-        #         'memo': string,
+        #         'tag',
+        #         'pmtId',
+        #         'memo',
         #         "ts": "1597026383085",
         #         "state": "2"
         #     }
@@ -3875,20 +4029,20 @@ class okx(Exchange):
             },
         }
 
-    async def fetch_leverage(self, symbol, params={}):
+    async def fetch_leverage(self, symbol: str, params={}):
         """
         fetch the set leverage for a market
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-leverage
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
         :param str params['marginMode']: 'cross' or 'isolated'
-        :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         await self.load_markets()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
@@ -3913,14 +4067,14 @@ class okx(Exchange):
         #
         return response
 
-    async def fetch_position(self, symbol, params={}):
+    async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict params: extra parameters specific to the okx api endpoint
         :param str|None params['instType']: MARGIN, SWAP, FUTURES, OPTION
-        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3932,7 +4086,7 @@ class okx(Exchange):
         }
         if type is not None:
             request['instType'] = self.convert_to_instrument_type(type)
-        response = await self.privateGetAccountPositions(query)
+        response = await self.privateGetAccountPositions(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -3985,14 +4139,14 @@ class okx(Exchange):
             return position
         return self.parse_position(position)
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the okx api endpoint
         :param str|None params['instType']: MARGIN, SWAP, FUTURES, OPTION
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         request = {
@@ -4009,7 +4163,9 @@ class okx(Exchange):
             marketIdsLength = len(marketIds)
             if marketIdsLength > 0:
                 request['instId'] = ','.join(marketIds)
-        response = await self.privateGetAccountPositions(self.extend(request, params))
+        fetchPositionsOptions = self.safe_value(self.options, 'fetchPositions', {})
+        method = self.safe_string(fetchPositionsOptions, 'method', 'privateGetAccountPositions')
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -4119,6 +4275,8 @@ class okx(Exchange):
                 parsedCurrency = self.safe_currency_code(posCcy)
                 if parsedCurrency is not None:
                     side = 'long' if (market['base'] == parsedCurrency) else 'short'
+            if side is None:
+                side = self.safe_string(position, 'direction')
         else:
             if pos is not None:
                 if side == 'net':
@@ -4128,7 +4286,7 @@ class okx(Exchange):
                         side = 'short'
                     else:
                         side = None
-        contractSize = self.safe_value(market, 'contractSize')
+        contractSize = self.safe_number(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')
         notionalString = self.safe_string(position, 'notionalUsd')
@@ -4150,19 +4308,19 @@ class okx(Exchange):
             collateralString = self.safe_string(position, 'margin')
         maintenanceMarginString = self.safe_string(position, 'mmr')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
-        maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notionalString)
+        maintenanceMarginPercentageString = Precise.string_div(maintenanceMarginString, notionalString)
         if initialMarginPercentage is None:
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
             initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
         rounder = '0.00005'  # round to closest 0.01%
-        maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentage, rounder), '1', 4))
+        maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4))
         liquidationPrice = self.safe_number(position, 'liqPx')
         percentageString = self.safe_string(position, 'uplRatio')
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
         timestamp = self.safe_integer(position, 'uTime')
         marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -4175,10 +4333,12 @@ class okx(Exchange):
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': self.parse_number(markPriceString),
+            'lastPrice': None,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': None,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'collateral': self.parse_number(collateralString),
@@ -4186,17 +4346,18 @@ class okx(Exchange):
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': self.parse_number(leverageString),
             'marginRatio': marginRatio,
-        }
+        })
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-funds-transfer
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -4206,12 +4367,13 @@ class okx(Exchange):
         request = {
             'ccy': currency['id'],
             'amt': self.currency_to_precision(code, amount),
-            'type': '0',  # 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account
-            'from': fromId,  # remitting account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
-            'to': toId,  # beneficiary account, 1 = SPOT, 3 = FUTURES, 5 = MARGIN, 6 = FUNDING, 9 = SWAP, 12 = OPTION, 18 = Unified account
-            # 'subAcct': 'sub-account-name',  # optional, only required when type is 1 or 2
-            # 'instId': market['id'],  # required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred out
-            # 'toInstId': market['id'],  # required when from is 3, 5 or 9, margin trading pair like BTC-USDT or contract underlying like BTC-USD to be transferred in
+            'type': '0',  # 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account, 3 = sub-account to master account(Only applicable to APIKey from sub-account), 4 = sub-account to sub-account
+            'from': fromId,  # remitting account, 6: Funding account, 18: Trading account
+            'to': toId,  # beneficiary account, 6: Funding account, 18: Trading account
+            # 'subAcct': 'sub-account-name',  # optional, only required when type is 1, 2 or 4
+            # 'loanTrans': False,  # Whether or not borrowed coins can be transferred out under Multi-currency margin and Portfolio margin. The default is False
+            # 'clientId': 'client-supplied id',  # A combination of case-sensitive alphanumerics, all numbers, or all letters of up to 32 characters
+            # 'omitPosRisk': False,  # Ignore position risk. Default is False. Applicable to Portfolio margin
         }
         if fromId == 'master':
             request['type'] = '1'
@@ -4293,7 +4455,7 @@ class okx(Exchange):
             'status': status,
         }
 
-    async def fetch_transfer(self, id, code=None, params={}):
+    async def fetch_transfer(self, id: str, code: Optional[str] = None, params={}):
         await self.load_markets()
         request = {
             'transId': id,
@@ -4399,12 +4561,12 @@ class okx(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -4434,14 +4596,14 @@ class okx(Exchange):
         entry = self.safe_value(data, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch funding history for
         :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         await self.load_markets()
         request = {
@@ -4536,7 +4698,7 @@ class okx(Exchange):
         type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
         if type == 'swap':
             request['instType'] = self.convert_to_instrument_type(type)
-        # AccountBillsArchive has the same cost as AccountBills but supports three months of data
+        # AccountBillsArchive has the same cost but supports three months of data
         response = await self.privateGetAccountBillsArchive(self.extend(request, query))
         #
         #    {
@@ -4583,7 +4745,7 @@ class okx(Exchange):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         see https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
@@ -4605,7 +4767,7 @@ class okx(Exchange):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated')
         request = {
@@ -4617,8 +4779,8 @@ class okx(Exchange):
         if marginMode == 'isolated':
             if posSide is None:
                 raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide argument for isolated margin')
-            if posSide != 'long' and posSide != 'short':
-                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long" or "short"')
+            if posSide != 'long' and posSide != 'short' and posSide != 'net':
+                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"')
         response = await self.privatePostAccountSetLeverage(self.extend(request, params))
         #
         #     {
@@ -4636,7 +4798,7 @@ class okx(Exchange):
         #
         return response
 
-    async def set_position_mode(self, hedged, symbol=None, params={}):
+    async def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """
         set hedged to True or False for a market
         :param bool hedged: set to True to use long_short_mode, False for net_mode
@@ -4666,7 +4828,7 @@ class okx(Exchange):
         #
         return response
 
-    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -4713,7 +4875,7 @@ class okx(Exchange):
         """
         fetch the borrow interest rates of all currencies
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
         """
         await self.load_markets()
         response = await self.privateGetAccountInterestRate(params)
@@ -4745,12 +4907,12 @@ class okx(Exchange):
             }
         return rates
 
-    async def fetch_borrow_rate(self, code, params={}):
+    async def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `borrow rate structure <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        :returns dict: a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -4831,14 +4993,14 @@ class okx(Exchange):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
-    async def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
+    async def fetch_borrow_rate_histories(self, codes=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
         :param [str]|None codes: list of unified currency codes, default is None
         :param int|None since: timestamp in ms of the earliest borrowRate, default is None
         :param int|None limit: max number of borrow rate prices to return, default is None
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` indexed by the market symbol
+        :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` indexed by the market symbol
         """
         await self.load_markets()
         request = {
@@ -4851,7 +5013,7 @@ class okx(Exchange):
             request['before'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetAssetLendingRateHistory(self.extend(request, params))
+        response = await self.publicGetFinanceSavingsLendingRateHistory(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -4869,14 +5031,14 @@ class okx(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_borrow_rate_histories(data, codes, since, limit)
 
-    async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
         :param str code: unified currency code
         :param int|None since: timestamp for the earliest borrow rate
-        :param int|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
+        :param int|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` to retrieve
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -4890,7 +5052,7 @@ class okx(Exchange):
             request['before'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetAssetLendingRateHistory(self.extend(request, params))
+        response = await self.publicGetFinanceSavingsLendingRateHistory(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -4908,7 +5070,7 @@ class okx(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_borrow_rate_history(data, code, since, limit)
 
-    async def modify_margin_helper(self, symbol, amount, type, params={}):
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
         await self.load_markets()
         market = self.market(symbol)
         posSide = self.safe_string(params, 'posSide', 'net')
@@ -4956,34 +5118,34 @@ class okx(Exchange):
             'status': status,
         }
 
-    async def reduce_margin(self, symbol, amount, params={}):
+    async def reduce_margin(self, symbol: str, amount, params={}):
         """
         remove margin from a position
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def add_margin(self, symbol, amount, params={}):
+    async def add_margin(self, symbol: str, amount, params={}):
         """
         add margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def fetch_market_leverage_tiers(self, symbol, params={}):
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
         see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the okx api endpoint
         :param str params['marginMode']: 'cross' or 'isolated'
-        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -4995,7 +5157,7 @@ class okx(Exchange):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'tdMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(params, 'tdMode', 'cross')  # cross marginMode
         request = {
             'instType': type,
             'tdMode': marginMode,
@@ -5066,24 +5228,24 @@ class okx(Exchange):
             })
         return tiers
 
-    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
         :param str|None code: the unified currency code for the currency of the interest
         :param str|None symbol: the market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
         :param int|None since: timestamp in ms of the earliest time to receive interest records for
-        :param int|None limit: the number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
+        :param int|None limit: the number of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>` to retrieve
         :param dict params: exchange specific parameters
         :param int|None params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
         :param str params['marginMode']: 'cross' or 'isolated'
-        :returns [dict]: An list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        :returns [dict]: An list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         await self.load_markets()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
         request = {
             'mgnMode': marginMode,
         }
@@ -5139,7 +5301,7 @@ class okx(Exchange):
             'info': info,
         }
 
-    async def borrow_margin(self, code, amount, symbol=None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
         see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
@@ -5147,7 +5309,7 @@ class okx(Exchange):
         :param float amount: the amount to borrow
         :param str|None symbol: not used by okx.borrowMargin()
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -5181,7 +5343,7 @@ class okx(Exchange):
             'symbol': symbol,
         })
 
-    async def repay_margin(self, code, amount, symbol=None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
         see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
@@ -5189,7 +5351,7 @@ class okx(Exchange):
         :param float amount: the amount to repay
         :param str|None symbol: not used by okx.repayMargin()
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -5246,13 +5408,13 @@ class okx(Exchange):
             'info': info,
         }
 
-    async def fetch_open_interest(self, symbol, params={}):
+    async def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a currency
         see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
         :param str symbol: Unified CCXT market symbol
         :param dict params: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure:
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -5284,16 +5446,16 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_open_interest(data[0], market)
 
-    async def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT currency code instead of a unified symbol
         :param str timeframe: "5m", "1h", or "1d"
-        :param int|None since: The time in ms of the earliest record to retrieve as a unix timestamp
+        :param int|None since: The time in ms of the earliest record to retrieve unix timestamp
         :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
-        :param int|None params['until']: The time in ms of the latest record to retrieve as a unix timestamp
-        :returns: An array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
+        :param int|None params['until']: The time in ms of the latest record to retrieve unix timestamp
+        :returns: An array of `open interest structures <https://docs.ccxt.com/#/?id=interest-history-structure>`
         """
         options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
         timeframes = self.safe_value(options, 'timeframes', {})
@@ -5370,6 +5532,7 @@ class okx(Exchange):
 
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable
         if enable:
             self.headers['x-simulated-trading'] = '1'
         elif 'x-simulated-trading' in self.headers:
@@ -5381,7 +5544,7 @@ class okx(Exchange):
         see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
         :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         response = await self.privateGetAssetCurrencies(params)

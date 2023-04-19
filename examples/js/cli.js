@@ -1,5 +1,17 @@
-"use strict";
+import fs from 'fs'
+import path from 'path'
+import ansi from 'ansicolor'
+import asTable from 'as-table'
+import ololog from 'ololog'
+import util from 'util'
+import { execSync } from 'child_process'
+import ccxt from '../../js/ccxt.js'
+import { Agent } from 'https'
 
+const fsPromises = fs.promises;
+ansi.nice
+const log = ololog.configure ({ locate: false }).unlimited
+const { ExchangeError , NetworkError} = ccxt
 //-----------------------------------------------------------------------------
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
@@ -25,32 +37,6 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
 
 //-----------------------------------------------------------------------------
 
-const ccxt         = require ('../../ccxt.js')
-    , fs           = require ('fs')
-    , path         = require ('path')
-    , ansi         = require ('ansicolor').nice
-    , asTable      = require ('as-table').configure ({
-
-        delimiter: ' | '.lightGray.dim,
-        right: true,
-        title: x => String (x).lightGray,
-        dash: '-'.lightGray.dim,
-        print: x => {
-            if (typeof x === 'object') {
-                const j = JSON.stringify (x).trim ()
-                if (j.length < 100) return j
-            }
-            return String (x)
-        }
-    })
-    , util         = require ('util')
-    , { execSync } = require ('child_process')
-    , log          = require ('ololog').configure ({ locate: false }).unlimited
-    , fsPromises   = require ('fs/promises')
-    , { ExchangeError, NetworkError } = ccxt
-
-//-----------------------------------------------------------------------------
-
 console.log (new Date ())
 console.log ('Node.js:', process.version)
 console.log ('CCXT v' + ccxt.version)
@@ -66,16 +52,19 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-const globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
-const localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-const settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
+const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+const settingsFile  = fs.readFileSync(keysFile);
+// eslint-disable-next-line import/no-dynamic-require, no-path-concat
+let settings = JSON.parse(settingsFile)
+settings = settings[exchangeId] || {}
+
 
 //-----------------------------------------------------------------------------
 
 const timeout = 30000
 let exchange = undefined
 
-const { Agent } = require ('https')
+
 
 const httpsAgent = new Agent ({
     ecdhCurve: 'auto',
@@ -179,7 +168,20 @@ const printHumanReadable = (exchange, result) => {
             })
 
         if (arrayOfObjects || table && Array.isArray (result)) {
-            log (result.length > 0 ? asTable (result.map (element => {
+            const configuredAsTable = asTable.configure ({
+                delimiter: ' | '.lightGray.dim,
+                right: true,
+                title: x => String (x).lightGray,
+                dash: '-'.lightGray.dim,
+                print: x => {
+                    if (typeof x === 'object') {
+                        const j = JSON.stringify (x).trim ()
+                        if (j.length < 100) return j
+                    }
+                    return String (x)
+                }
+            })
+            log (result.length > 0 ? configuredAsTable (result.map (element => {
                 let keys = Object.keys (element)
                 delete element['info']
                 keys.forEach (key => {
@@ -340,3 +342,6 @@ async function run () {
 //-----------------------------------------------------------------------------
 
 run ()
+
+export  {
+}
