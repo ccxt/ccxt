@@ -1239,7 +1239,7 @@ export default class okx extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'minSz'),
-                    'max': this.safeNumber (market, 'maxLmtSz'),
+                    'max': undefined,
                 },
                 'price': {
                     'min': undefined,
