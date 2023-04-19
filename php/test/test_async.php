@@ -325,7 +325,7 @@ class testMainClass extends baseMainTestClass {
 
     public function load_exchange($exchange) {
         return Async\async(function () use ($exchange) {
-            $markets = Async\await($exchange->load_markets());
+            Async\await($exchange->load_markets());
             assert (gettype($exchange->markets) === 'array', '.markets is not an object');
             assert (gettype($exchange->symbols) === 'array' && array_keys($exchange->symbols) === array_keys(array_keys($exchange->symbols)), '.symbols is not an array');
             $symbolsLength = count($exchange->symbols);

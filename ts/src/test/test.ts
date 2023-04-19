@@ -302,7 +302,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async loadExchange (exchange) {
-        const markets = await exchange.loadMarkets ();
+        await exchange.loadMarkets ();
         assert (typeof exchange.markets === 'object', '.markets is not an object');
         assert (Array.isArray (exchange.symbols), '.symbols is not an array');
         const symbolsLength = exchange.symbols.length;

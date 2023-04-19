@@ -336,11 +336,9 @@ class testMainClass(baseMainTestClass):
         await asyncio.gather(*promises)
         if self.info:
             dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
-        if not is_synchronous:
-            await exchange.close()
 
     async def load_exchange(self, exchange):
-        markets = await exchange.load_markets()
+        await exchange.load_markets()
         assert isinstance(exchange.markets, dict), '.markets is not an object'
         assert isinstance(exchange.symbols, list), '.symbols is not an array'
         symbolsLength = len(exchange.symbols)
