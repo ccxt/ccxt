@@ -8,6 +8,10 @@ import sys
 import time  # noqa: F401
 from traceback import format_tb
 
+import importlib  # noqa: E402
+import glob  # noqa: E402
+import re
+
 # ------------------------------------------------------------------------------
 # logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
@@ -45,6 +49,8 @@ parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
 parser.parse_args(namespace=argv)
+
+
 token_bucket = argv.token_bucket
 sandbox = argv.sandbox
 privateOnly = argv.privateOnly
@@ -55,12 +61,6 @@ exchangeName = argv.exchange
 exchangeSymbol = argv.symbol
 info = argv.info
 
-print('\nTESTING (PY)', {'exchange': exchangeName, 'symbol': exchangeSymbol or 'all'}, '\n')
-
-ext  = 'py'
-
-exchange = getattr(ccxt, exchangeName)({'verbose': verbose})
-
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
@@ -69,33 +69,8 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 
 # ------------------------------------------------------------------------------
 
-# this logic is being transpiled from async->sync python, so the below variable tells runtime whether async or sync tests are being run
-# to trick transpiler regexes, we have to: A) divide "token" and "bucket"; B)dont use word "a s y n c" together in the code
-is_asynchronous = ('token_' + 'bucket') in locals()
 
-skip_tests = ['test_throttle']
-
-import importlib  # noqa: E402
-import glob  # noqa: E402
-testFiles = {}
-if is_asynchronous:
-    for file_path in glob.glob(current_dir + '/async/test_*.py'):
-        name = os.path.basename(file_path)[:-3]
-        if not (name in skip_tests):
-            imp = importlib.import_module('ccxt.test.async.' + name)
-            testFiles[name] = imp  # getattr(imp, finalName)
-else:
-    for file_path in glob.glob(current_dir + '/sync/test_*.py'):
-        name = os.path.basename(file_path)[:-3]
-        if not (name in skip_tests):
-            imp = importlib.import_module('ccxt.test.sync.' + name)
-            testFiles[name] = imp  # getattr(imp, finalName)
-
-
-# print a colored string
-def dump(*args):
-    print(' '.join([str(arg) for arg in args]))
-
+# ------------------------------------------------------------------------------
 
 # print an error string
 def dump_error(*args):
@@ -106,7 +81,6 @@ def dump_error(*args):
 
 
 Error = Exception
-# ------------------------------------------------------------------------------
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
@@ -115,26 +89,32 @@ def handle_all_unhandled_exceptions(type, value, traceback):
 
 
 sys.excepthook = handle_all_unhandled_exceptions
-
 # ------------------------------------------------------------------------------
 
-# non-transpiled commons
-import re
-
-
-def get_test_name(methodName):
-    snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()
-    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
-    full_name = 'test_' + snake_cased
-    return full_name
-
-
-rootDir = current_dir + '/../../../'
-envVars = os.environ
-
+# non-transpiled part, but shared names among langs
 
 class baseMainTestClass():
     pass
+
+is_synchronous = ('token_' + 'bucket') in locals()  # to trick transpiler regexes, we have to: A) divide "token" and "bucket"; B) dont use word "a s y n c" together in the code
+
+rootDir = current_dir + '/../../../'
+envVars = os.environ
+ext  = 'py'
+httpsAgent = None
+
+def dump(*args):
+    print(' '.join([str(arg) for arg in args]))
+
+def cli_argument_bool (arg):
+    return getattr(argv, arg) if hasattr(argv, arg) else False
+
+
+def get_test_name(methodName):
+    snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()  # snake_case
+    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
+    full_name = 'test_' + snake_cased
+    return full_name
 
 
 def io_file_exists(path):
@@ -150,17 +130,17 @@ def io_file_read(path, decode=True):
         return content
 
 
+async def call_method(testFiles, methodName, exchange, args):
+    return await getattr(testFiles[methodName], methodName)(exchange, *args)
+
+
 def exception_message(exc):
     return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
 
 
-async def call_method(methodName, exchange, args):
-    return await getattr(testFiles[methodName], methodName)(exchange, *args)
-
-
 def add_proxy(exchange, http_proxy):
     # just add a simple redirect through proxy
-    exchange.aiohttp_proxy = http_proxy
+    exchange.aiohttp_proxy = http_proxy  # todo: needs to be same a js/php with redirect proxy prop
 
 
 def exit_script():
@@ -179,8 +159,21 @@ def set_exchange_prop(exchange, prop, value):
     setattr(exchange, prop, value)
 
 
-async def test_throttle():
-    importlib.import_module(current_dir + '/test_throttle.py')
+def init_exchange (exchangeId, args):
+    return getattr(ccxt, exchangeId)(args)
+
+
+def set_test_files (holderClass, properties):
+    skip_tests = ['test_throttle']
+    setattr (holderClass, 'testFiles', {})
+    syncAsync = 'async' if not is_synchronous else 'sync'
+    for file_path in glob.glob(current_dir + '/' + syncAsync + '/test_*.py'):
+        name = os.path.basename(file_path)[:-3]
+        if not (name in skip_tests):
+            imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name)
+            holderClass.testFiles[name] = imp  # getattr(imp, finalName)
+
+
 # *********************************
 # ***** AUTO-TRANSPILER-START *****
 # -*- coding: utf-8 -*-

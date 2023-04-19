@@ -29,16 +29,16 @@ const envVars = process.env;
 const ext = import.meta.url.split ('.')[1];
 const httpsAgent = new Agent ({ 'ecdhCurve': 'auto' });
 
+function dump (...args) {
+    console.log (...args);
+}
+
 function cliArgumentBool (arg) {
     return process.argv.includes (arg) || false;
 }
 
 function get_test_name (str) {
     return str;
-}
-
-function dump (...args) {
-    console.log (...args);
 }
 
 function ioFileExists (path) {

@@ -3,23 +3,18 @@ namespace ccxt;
 
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
+ini_set('memory_limit', '512M');
 
 include_once 'vendor/autoload.php';
 use React\Async;
 use React\Promise;
 
-ini_set('memory_limit', '512M');
-define ('is_sync', stripos(__FILE__, '_async') === false);
 $filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
 $exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
-$exchangeSymbol = null; // this should be different than JS
-
-function snake_case ($methodName) {
-    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
-}
-//define('testFiles', $testFuncs);
+$exchangeSymbol = null; // todo: this should be different than JS
 
 // non-transpiled part, but shared names among langs
+
 class baseMainTestClass {
     public $testFiles = [];
     public $skippedMethods = [];
@@ -28,20 +23,12 @@ class baseMainTestClass {
     public $info = false;
 }
 
+define ('is_synchronous', stripos(__FILE__, '_async') === false);
+
 define('rootDir', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('ext', 'php');
 define('httpsAgent', null);
-
-function cli_argument_bool ($arg) {
-    return in_array($arg, $GLOBALS['argv']);
-}
-
-function get_test_name($methodName) {
-    $snake_cased = snake_case($methodName);
-    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
-    return 'test_' . $snake_cased;
-}
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -52,6 +39,16 @@ function dump(...$s) {
         }
     }, func_get_args());
     echo implode(' ', $args) . "\n";
+}
+
+function cli_argument_bool ($arg) {
+    return in_array($arg, $GLOBALS['argv']);
+}
+
+function get_test_name($methodName) {
+    $snake_cased = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName)); // snake_case
+    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
+    return 'test_' . $snake_cased;
 }
 
 function io_file_exists($path) {
@@ -90,14 +87,14 @@ function set_exchange_prop ($exchange, $prop, $value) {
 }
 
 function init_exchange ($exchangeId, $args) {
-    $exchangeClassString = '\\ccxt\\' . (is_sync ? '' : 'async\\') . $exchangeId;
+    $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
     return new $exchangeClassString($args);
 }
 
 function set_test_files ($holderClass, $properties) {
     return Async\async (function() use ($holderClass, $properties){
         $skiped = ['test_throttle'];
-        foreach (glob(__DIR__ . '/' . (is_sync ? 'sync' : 'async') . '/test_*.php') as $filename) {
+        foreach (glob(__DIR__ . '/' . (is_synchronous ? 'sync' : 'async') . '/test_*.php') as $filename) {
             $basename = basename($filename);
             if (!in_array($basename, $skiped)) {
                 include_once $filename;
@@ -112,6 +109,7 @@ function set_test_files ($holderClass, $properties) {
         }
     })();
 }
+
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 
