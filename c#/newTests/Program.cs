@@ -28,6 +28,7 @@ public class Tests
     public static bool privateTests = false;
     public static bool privateOnly = false;
     public static bool baseTests = true;
+    public static bool info = false;
 
     public static BaseTest tests = new BaseTest();
 
@@ -42,7 +43,9 @@ public class Tests
         if (args.Contains("--private-only"))
             privateOnly = true;
         if (args.Contains("--base"))
-            privateOnly = true;
+            baseTests = true;
+        if (args.Contains("--info"))
+            info = true;
 
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
@@ -67,7 +70,7 @@ public class Tests
     static void ReadConfig()
     {
         var file = File.ReadAllText(exchangesPath);
-        var converted = (dict)Exchange.JsonHelper.Deserialize(file);
+        var converted = (dict)JsonHelper.Deserialize(file);
         var ids = (list)converted["ids"];
         List<string> strings = ids.Select(s => (string)s).ToList();
         exchangesId = strings;

@@ -43,6 +43,8 @@ public partial class BaseTest
             throw new Exception(errorMessage);
         }
     }
+
+    public static void assert(bool condition, object message) => Assert(condition, message);
 }
 
 public partial class BaseTest
@@ -73,16 +75,18 @@ public partial class BaseTest
 {
 
     // bridges to make auxiliary methods available in tests
-    public object getValue(object a, object b) => Exchange.GetValue(a, b);
-    public object getArrayLength(object a) => Exchange.getArrayLength(a);
-    public bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);
-    public bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
-    public bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
-    public bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
-    public object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
-    public object add(object a, object b) => Exchange.add(a, b);
-    public object subtract(object a, object b) => Exchange.subtract(a, b);
-    public string toStringOrNull(object a) => Exchange.toStringOrNull(a);
+
+    public static Task<List<object>> promiseAll(object a) => Main.Exchange.PromiseAll(a);
+    public static object getValue(object a, object b) => Exchange.GetValue(a, b);
+    public static object getArrayLength(object a) => Exchange.getArrayLength(a);
+    public static bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);
+    public static bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
+    public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
+    public static bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
+    public static object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
+    public static object add(object a, object b) => Exchange.add(a, b);
+    public static object subtract(object a, object b) => Exchange.subtract(a, b);
+    public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
     public static object encode(object a) => a;

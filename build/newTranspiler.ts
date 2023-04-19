@@ -492,7 +492,9 @@ class NewTranspiler {
 
         const options = { csharpFolder, exchanges }
 
-        const classes = await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        this.transpileExchangeTests()
+
+        // const classes = await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
@@ -504,9 +506,9 @@ class NewTranspiler {
         // Exchange tests
         // this.transpileExchangeTestsToCsharp();
 
-        this.transpileBaseMethods (exchangeBase)
+        // this.transpileBaseMethods (exchangeBase)
 
-        this.transpileErrorHierarchy ({ tsFilename })
+        // this.transpileErrorHierarchy ({ tsFilename })
 
         // this.transpileTests ()
 
@@ -758,6 +760,49 @@ class NewTranspiler {
 
     capitalize(s: string) {
         return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    transpileMainTest(files) {
+        log.magenta ('Transpiling from', files.tsFile.yellow)
+        let ts = fs.readFileSync (files.tsFile).toString ();
+
+        ts = this.regexAll (ts, [
+            [ /\'use strict\';?\s+/g, '' ],
+        ])
+
+        const commentStartLine = '***** AUTO-TRANSPILER-START *****';
+        const commentEndLine = '***** AUTO-TRANSPILER-END *****';
+
+        const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
+        const csharp = this.transpiler.transpileCSharp(mainContent);
+        let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
+
+        // ad-hoc fixes
+        contentIndentend = this.regexAll (contentIndentend, [
+            [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
+            [ /throw new Error/g, 'throw new Exception' ],
+        ])
+
+        const file = [
+            'using Main;',
+            'namespace Tests;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            '',
+            'public partial class BaseTest',
+            '{',
+            contentIndentend,
+            '}',
+        ].join('\n')
+
+        overwriteFile (files.csharpFile, file);
+    }
+
+    transpileExchangeTests(){
+        this.transpileMainTest({
+            'tsFile': './ts/src/test/test.ts',
+            'csharpFile': './c#/newTests/Generated/BaseMethods.cs',
+        });
     }
 }
 
