@@ -808,7 +808,7 @@ class NewTranspiler {
     transpileExchangeTests(){
         this.transpileMainTest({
             'tsFile': './ts/src/test/test.ts',
-            'csharpFile': './c#/newTests/Generated/BaseMethods.cs',
+            'csharpFile': './c#/newTests/Generated/TestMethods.cs',
         });
 
         const baseFolders = {

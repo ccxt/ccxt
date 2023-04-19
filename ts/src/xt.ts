@@ -4390,6 +4390,7 @@ export default class xt extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
