@@ -61,17 +61,17 @@ assert (equals ($cache, array(
 
 $cache = new ArrayCacheByTimestamp ();
 
-$ohlcv1 = [100, 1, 2, 3];
-$ohlcv2 = [200, 5, 6, 7];
+$ohlcv1 = array( 100, 1, 2, 3 );
+$ohlcv2 = array( 200, 5, 6, 7 );
 $cache->append ($ohlcv1);
 $cache->append ($ohlcv2);
 
-assert (equals ($cache, [$ohlcv1, $ohlcv2]));
+assert (equals ($cache, array( $ohlcv1, $ohlcv2 )));
 
-$modify2 = [200, 10, 11, 12];
+$modify2 = array( 200, 10, 11, 12 );
 $cache->append ($modify2);
 
-assert (equals ($cache, [$ohlcv1, $modify2]));
+assert (equals ($cache, array( $ohlcv1, $modify2 )));
 
 // ----------------------------------------------------------------------------
 
@@ -268,8 +268,8 @@ $outsideLimit = 5;
 $limited = $cache->getLimit ($symbol, $outsideLimit);
 $limited2 = $cache->getLimit (null, $outsideLimit);
 
-assert (1 == $limited);
-assert (2 == $limited2);
+assert ($limited == 1);
+assert ($limited2 == 2);
 
 
 // ----------------------------------------------------------------------------

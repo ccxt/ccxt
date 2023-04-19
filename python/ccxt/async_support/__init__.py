@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.9.8'
+__version__ = '3.0.71'
 
 # -----------------------------------------------------------------------------
 
@@ -103,6 +103,7 @@ from ccxt.async_support.coinex import coinex                                    
 from ccxt.async_support.coinfalcon import coinfalcon                            # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
+from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
 from ccxt.async_support.currencycom import currencycom                          # noqa: F401
@@ -160,6 +161,7 @@ from ccxt.async_support.wavesexchange import wavesexchange                      
 from ccxt.async_support.wazirx import wazirx                                    # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
+from ccxt.async_support.xt import xt                                            # noqa: F401
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
 from ccxt.async_support.zb import zb                                            # noqa: F401
@@ -216,6 +218,7 @@ exchanges = [
     'coinfalcon',
     'coinmate',
     'coinone',
+    'coinsph',
     'coinspot',
     'cryptocom',
     'currencycom',
@@ -273,6 +276,7 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
+    'xt',
     'yobit',
     'zaif',
     'zb',

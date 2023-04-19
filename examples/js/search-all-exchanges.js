@@ -1,5 +1,12 @@
-"use strict";
 
+import asTable from 'as-table';
+import { noLocate as log } from 'ololog';
+import path from 'path';
+import fs from 'fs';
+import ansicolor from 'ansicolor';
+import ccxt from '../../ccxt.js';
+
+ansicolor.nice
 /*  ------------------------------------------------------------------------ */
 
 const [processPath, , argument = null] = process.argv.filter (x => !x.startsWith ('--'))
@@ -9,16 +16,6 @@ const [processPath, , argument = null] = process.argv.filter (x => !x.startsWith
     , debug = process.argv.includes ('--debug')
     , marketsOnly = process.argv.includes ('--markets')
     , currenciesOnly = process.argv.includes ('--currencies')
-
-
-/*  ------------------------------------------------------------------------ */
-
-const asTable   = require ('as-table')
-    , log       = require ('ololog').noLocate
-    , path      = require ('path')
-    , fs        = require ('fs')
-    , ansi      = require ('ansicolor').nice
-    , ccxt      = require ('../../ccxt.js')
 
 /*  ------------------------------------------------------------------------ */
 
