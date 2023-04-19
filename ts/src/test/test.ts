@@ -24,44 +24,12 @@ const ext = import.meta.url.split ('.')[1];
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
 process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) });
 
-// ----------------------------------------------------------------------------
-console.log ('\nTESTING (JS)', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n');
-//-----------------------------------------------------------------------------
 const enableRateLimit = true;
 const httpsAgent = new Agent ({
     'ecdhCurve': 'auto',
 });
 
-const timeout = 20000;
-const exchange = new (ccxt)[exchangeId] ({
-    httpsAgent,
-    verbose,
-    enableRateLimit,
-    debug,
-    timeout,
-});
-//-----------------------------------------------------------------------------
-const testFiles = {};
-const properties = Object.keys (exchange.has);
-properties.push ('loadMarkets');
-for (let i = 0; i < properties.length; i++) {
-    const property = properties[i];
-    const filePath = __dirname + '/Exchange/test.' + property ;
-    if (fs.existsSync (filePath + '.' + ext)) {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[property] = (await import (pathToFileURL (filePath + '.js')) as any)['default'];
-    }
-}
 import errorsHierarchy from '../base/errorHierarchy.js';
-Object.keys (errorsHierarchy)
-    .forEach (async (error) => {
-        const filePath = __dirname + '/base/errors/test.' + error;
-        if (fs.existsSync (filePath + '.' + ext)) {
-            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            testFiles[error] = (await import (pathToFileURL (filePath + '.js')) as any)['default'];
-        }
-    });
-
 const AuthenticationError = ccxt.AuthenticationError;
 
 // non-transpiled commons
@@ -91,7 +59,7 @@ function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 500);
 }
 
-async function callMethod (methodName, exchange, args) {
+async function callMethod (testFiles, methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
 }
 
@@ -112,6 +80,23 @@ function setExchangeProp (exchange, prop, value) {
     exchange[prop] = value;
 }
 
+function initExchange (exchangeId, args) {
+    return new (ccxt)[exchangeId] (args);
+}
+
+function testFilePathWithoutExtension (methodName) {
+    return __dirname + '/Exchange/test.' + methodName;
+}
+
+function errorTestFilePathWithoutExtension (errorName) {
+    return  __dirname + '/base/errors/test.' + errorName;
+}
+
+async function importTestFile (filePath) {
+    // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+    return (await import (pathToFileURL (filePath + '.js')) as any)['default'];
+}
+
 async function testThrottle () {
     // todo: exists in py/php not in js
 }
@@ -121,9 +106,46 @@ async function testThrottle () {
 
 export default class testMainClass extends baseMainTestClass {
 
-    async init (exchange, symbol) {
-        this.expandSettings(exchange, symbol);
+    async init (exchangeId, symbol) {
+
+        const symbolStr = symbol !== undefined ? symbol : 'all';
+        console.log ('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
+
+        const args = {
+            httpsAgent: httpsAgent,
+            verbose: verbose,
+            enableRateLimit: enableRateLimit,
+            debug: debug,
+            timeout: 20000,
+        };
+        const exchange = initExchange (exchangeId, args);
+        await this.importFiles (exchange);
+        this.expandSettings (exchange, symbol);
         await this.startTest (exchange, symbol);
+    }
+
+    async importFiles (exchange) {
+        // exchange tests
+        this.testFiles = {};
+        const properties = Object.keys (exchange.has);
+        properties.push ('loadMarkets');
+        for (let i = 0; i < properties.length; i++) {
+            const property = properties[i];
+            const filePath = testFilePathWithoutExtension (property);
+            if (ioFileExists (filePath + '.' + ext)) {
+                this.testFiles[property] = await importTestFile (filePath);
+            }
+        }
+        // errors tests
+        const errorHierarchyKeys = Object.keys (errorsHierarchy);
+        for (let i = 0; i < errorHierarchyKeys.length; i++) {
+            const errorName = errorHierarchyKeys[i];
+            const filePath = errorTestFilePathWithoutExtension (errorName);
+            if (ioFileExists (filePath + '.' + ext)) {
+                // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+                this.testFiles[errorName] = await importTestFile (filePath);
+            }
+        }
     }
 
     expandSettings (exchange, symbol) {
@@ -157,7 +179,7 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < objkeys.length; i++) {
             const credential = objkeys[i];
             const isRequired = reqCreds[credential];
-            if (isRequired && getExchangeProp(exchange, credential) === undefined) {
+            if (isRequired && getExchangeProp (exchange, credential) === undefined) {
                 const fullKey = exchangeId + '_' + credential;
                 const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
                 const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
@@ -173,11 +195,11 @@ export default class testMainClass extends baseMainTestClass {
         // others
         if (exchange.safeValue (skippedSettingsForExchange, 'skip')) {
             dump ('[SKIPPED] exchange', exchangeId);
-            exitScript();
+            exitScript ();
         }
         if (exchange.alias) {
             dump ('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
-            exitScript();
+            exitScript ();
         }
         //
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
@@ -208,29 +230,29 @@ export default class testMainClass extends baseMainTestClass {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if (methodName in this.skippedMethods) {
             skipMessage = '[INFO:SKIPPED_TEST]';
-        } else if (!(methodNameInTest in testFiles)) {
+        } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
         if (skipMessage) {
             if (info) {
-                dump (this.padEnd(skipMessage, 25), exchange.id, methodNameInTest);
+                dump (this.padEnd (skipMessage, 25), exchange.id, methodNameInTest);
             }
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
         if (info) {
-            dump (this.padEnd('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+            dump (this.padEnd ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
         }
         let result = null;
         try {
-            result = await callMethod (methodNameInTest, exchange, args);
+            result = await callMethod (this.testFiles, methodNameInTest, exchange, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
         } catch (e) {
             const isAuthError = (e instanceof AuthenticationError);
             if (!(isPublic && isAuthError)) {
-                dump ('ERROR:', exceptionMessage(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
+                dump ('ERROR:', exceptionMessage (e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
                 throw e;
             }
         }
@@ -239,7 +261,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async testSafe (methodName, exchange, args, isPublic) {
         try {
-            await this.testMethod(methodName, exchange, args, isPublic);
+            await this.testMethod (methodName, exchange, args, isPublic);
             return true;
         } catch (e) {
             return false;
@@ -282,10 +304,10 @@ export default class testMainClass extends baseMainTestClass {
             promises.push (this.testSafe (testName, exchange, testArgs, true));
         }
         // todo - not yet ready in other langs too
-        // promises.push(testThrottle());
+        // promises.push (testThrottle ());
         await Promise.all (promises);
         if (info) {
-            dump (this.padEnd('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
+            dump (this.padEnd ('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
         }
     }
 
@@ -326,7 +348,7 @@ export default class testMainClass extends baseMainTestClass {
         const exchangeSpecificSymbols = exchange.symbols;
         for (let i = 0; i < exchangeSpecificSymbols.length; i++) {
             const symbol = exchangeSpecificSymbols[i];
-            if (exchange.inArray(symbol, symbols)) {
+            if (exchange.inArray (symbol, symbols)) {
                 resultSymbols.push (symbol);
             }
         }
@@ -375,7 +397,7 @@ export default class testMainClass extends baseMainTestClass {
     getMarketsFromExchange (exchange, spot = true) {
         let res = {};
         let markets = exchange.markets;
-        const keys = Object.keys(markets);
+        const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = markets[key];
@@ -482,7 +504,7 @@ export default class testMainClass extends baseMainTestClass {
         let spotSymbol = undefined;
         let swapSymbol = undefined;
         if (providedSymbol !== undefined) {
-            const market = exchange.market(providedSymbol);
+            const market = exchange.market (providedSymbol);
             if (market['spot']) {
                 spotSymbol = providedSymbol;
             } else {
@@ -618,7 +640,7 @@ export default class testMainClass extends baseMainTestClass {
             throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
             if (info) {
-                dump (this.padEnd('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
+                dump (this.padEnd ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
             }
         }
     }
@@ -638,4 +660,4 @@ export default class testMainClass extends baseMainTestClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchange, exchangeSymbol);
+(new testMainClass ()).init (exchangeId, exchangeSymbol);
