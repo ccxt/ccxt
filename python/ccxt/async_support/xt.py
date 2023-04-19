@@ -1037,6 +1037,7 @@ class xt(Exchange):
             minAmount = self.safe_number(market, 'minQty')
             contract = True
             spot = False
+        isActive = (state == 'ONLINE') or (state == '0')
         return {
             'id': id,
             'symbol': symbol,
@@ -1052,7 +1053,7 @@ class xt(Exchange):
             'swap': swap,
             'future': future,
             'option': False,
-            'active': (state == 'ONLINE') or True if (state == '0') else False,
+            'active': isActive,
             'contract': contract,
             'linear': linear,
             'inverse': inverse,

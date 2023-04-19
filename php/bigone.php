@@ -432,7 +432,7 @@ class bigone extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $timestamp = $this->safe_integer($data, 'timestamp');
+        $timestamp = $this->safe_integer($data, 'Timestamp');
         return $this->parse_to_int($timestamp / 1000000);
     }
 

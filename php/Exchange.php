@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.70';
+$version = '3.0.71';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.70';
+    const VERSION = '3.0.71';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2992,19 +2992,19 @@ class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return array_merge($ticker, array(
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'bid' => $this->omit_zero($this->safe_number($ticker, 'bid')),
             'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->omit_zero($this->safe_number($ticker, 'ask')),
             'askVolume' => $this->safe_number($ticker, 'askVolume'),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'open' => $this->parse_number($open),
-            'close' => $this->parse_number($close),
-            'last' => $this->parse_number($last),
+            'high' => $this->omit_zero($this->safe_number($ticker, 'high')),
+            'low' => $this->omit_zero($this->safe_number($ticker, 'low')),
+            'open' => $this->omit_zero($this->parse_number($open)),
+            'close' => $this->omit_zero($this->parse_number($close)),
+            'last' => $this->omit_zero($this->parse_number($last)),
             'change' => $this->parse_number($change),
             'percentage' => $this->parse_number($percentage),
-            'average' => $this->parse_number($average),
-            'vwap' => $this->parse_number($vwap),
+            'average' => $this->omit_zero($this->parse_number($average)),
+            'vwap' => $this->omit_zero($this->parse_number($vwap)),
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
             'previousClose' => $this->safe_number($ticker, 'previousClose'),

@@ -299,7 +299,10 @@
         }
     },
     "coinbaseprime": {
-		"skipPhpAsync":true
+		"skipPhpAsync":true,
+        "skipMethods": {
+            "fetchStatus": "request timeout"
+        }
     },
     "coinspot": {
         "skipMethods": {
@@ -368,6 +371,7 @@
         }
     },
     "delta": {
+        "skip": true,
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "fetchTickers": "quoteVolume >= baseVolume * low is incorrect, also quoteVolume <= baseVolume * high",
@@ -568,6 +572,10 @@
     },
     "mercado": {
         "skipMethods": {
+            "fetchOrderBook": "some bid might be lower than next bid",
+            "fetchL2OrderBook": "some bid might be lower than next bid",
+            "fetchTickers": "some bid might be lower than next bid",
+            "fetchTicker": "some bid might be lower than next bid",
             "fetchCurrencies": "info key is missing"
         }
     },
@@ -610,7 +618,8 @@
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value",
             "fetchTickers": "quoteVolume >= baseVolume * low does not get true",
-            "fetchTicker": "same"
+            "fetchTicker": "same",
+            "fetchCurrencies": "info key is missing from structure <<< paymium fetchCurrencie"
         }
     },
     "phemex": {

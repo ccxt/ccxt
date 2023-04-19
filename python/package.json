@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "3.0.70",
+  "version": "3.0.71",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -47,9 +47,9 @@
     "test-base-ws": "npm run test-js-base-ws && npm run test-python-base-ws && npm run test-php-base-ws",
     "test-js-base": "node ./js/src/test/base/test.base.js",
     "test-js-base-ws": "npm run test-js-cache && npm run test-js-orderbook",
-    "test-python-base": "python3 python/ccxt/test/test_decimal_to_precision.py && python3 python/ccxt/test/test_crypto.py",
+    "test-python-base": "python3 python/ccxt/test/base/test_number.py && python3 python/ccxt/test/base/test_crypto.py",
     "test-python-base-ws": "npm run test-python-cache && npm run test-python-orderbook",
-    "test-php-base": "php -f php/test/decimal_to_precision.php && php -f php/test/test_crypto.php",
+    "test-php-base": "php -f php/test/base/test_number.php && php -f php/test/base/test_crypto.php",
     "test-php-base-ws": "npm run test-php-cache && npm run test-php-orderbook",
     "cli.js": "node ./examples/js/cli.js",
     "cli.py": "python3 ./examples/py/cli.py",
@@ -121,7 +121,8 @@
     "ts-node": "^10.9.1",
     "typescript": "4.7.4",
     "webpack": "^5.76.2",
-    "webpack-cli": "^5.0.1"
+    "webpack-cli": "^5.0.1",
+    "piscina": "^3.2.0"
   },
   "author": {
     "name": "Igor Kroitor",

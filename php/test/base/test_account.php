@@ -1,5 +1,6 @@
 <?php
 namespace ccxt;
+use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -7,26 +8,16 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
+include_once __DIR__ . '/test_shared_methods.php';
 
-function test_account($exchange, $account, $method) {
+function test_account($exchange, $method, $entry) {
     $format = array(
         'info' => array(),
         'code' => 'BTC',
-        // 'name' => 'account name',
-        'type' => 'spot', // 'spot', 'margin', 'futures', 'swap'
+        'type' => 'spot',
         'id' => '12345',
     );
-    $keys = is_array($format) ? array_keys($format) : array();
-    for ($i = 0; $i < count($keys); $i++) {
-        $key = $keys[$i];
-        $keyInAccount = (is_array($account) && array_key_exists($key, $account));
-    }
-    $accountKeys = is_array($account) ? array_keys($account) : array();
-    assert (strlen($keys) === strlen($accountKeys), $exchange->id . ' ' . $method . ' respone includes more $keys than expected');
-    assert (gettype($account['info']) === 'array');
-    assert ($account['id'] === null || gettype($account['id']) === 'string');
-    // assert ($account['name'] === null || gettype($account['name']) === 'string');
-    assert ($account['type'] === null || gettype($account['type']) === 'string');
-    assert ($account['code'] === null || gettype($account['code']) === 'string');
+    $empty_not_allowed_for = ['type'];
+    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
+    assert_currency_code($exchange, $method, $entry, $entry['code']);
 }
-

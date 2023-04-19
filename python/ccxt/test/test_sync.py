@@ -26,10 +26,10 @@ class Argv(object):
     privateOnly = False
     private = False
     verbose = False
-    warnings = False
     nonce = None
     exchange = None
     symbol = None
+    info = False
     pass
 
 
@@ -40,7 +40,7 @@ parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode'
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
-parser.add_argument('--warnings', action='store_true', help='enable warnings')
+parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -53,6 +53,7 @@ verbose = argv.verbose
 nonce = argv.nonce
 exchangeName = argv.exchange
 exchangeSymbol = argv.symbol
+info = argv.info
 
 print('\nTESTING (PY)', {'exchange': exchangeName, 'symbol': exchangeSymbol or 'all'}, '\n')
 
@@ -107,7 +108,7 @@ Error = Exception
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump_error((type), (value), '\n\n' + ('\n'.join(format_tb(traceback))))
+    dump((type), (value), '\n\n' + ('\n'.join(format_tb(traceback))))
     exit(1)  # unrecoverable crash
 
 
@@ -126,7 +127,7 @@ def get_test_name(methodName):
     return full_name
 
 
-rootDir = current_dir + '/../../'
+rootDir = current_dir + '/../../../'
 envVars = os.environ
 
 
@@ -139,7 +140,7 @@ def io_file_exists(path):
 
 
 def io_file_read(path, decode=True):
-    fs = open(path, "r")
+    fs = open(path, "r", encoding="utf-8")
     content = fs.read()
     if decode:
         return json.loads(content)
@@ -148,23 +149,28 @@ def io_file_read(path, decode=True):
 
 
 def exception_message(exc):
-    return '[' + type(exc).__name__ + '] ' + str(exc)[0:200]
+    return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
 
 
 def call_method(methodName, exchange, args):
     return getattr(testFiles[methodName], methodName)(exchange, *args)
 
 
-def add_proxy_agent(exchange, settings):
-    pass
+def add_proxy(exchange, http_proxy):
+    # just add a simple redirect through proxy
+    exchange.aiohttp_proxy = http_proxy
 
 
 def exit_script():
-    exit()
+    exit(0)
 
 
 def get_exchange_prop(exchange, prop, defaultValue=None):
-    return getattr(exchange, prop) if hasattr(exchange, prop) else defaultValue
+    if hasattr(exchange, prop):
+        res = getattr(exchange, prop)
+        if res is not None and res != '':
+            return res
+    return defaultValue
 
 
 def set_exchange_prop(exchange, prop, value):
@@ -207,6 +213,10 @@ class testMainClass(baseMainTestClass):
                 if exchangeSettings[key]:
                     existing = get_exchange_prop(exchange, key, {})
                     set_exchange_prop(exchange, key, exchange.deep_extend(existing, exchangeSettings[key]))
+            # support simple proxy
+            proxy = get_exchange_prop(exchange, 'httpProxy')
+            if proxy:
+                add_proxy(exchange, proxy)
         # credentials
         reqCreds = get_exchange_prop(exchange, 're' + 'quiredCredentials')  # dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         objkeys = list(reqCreds.keys())
@@ -225,15 +235,23 @@ class testMainClass(baseMainTestClass):
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
         if exchange.safe_value(skippedSettingsForExchange, 'skip'):
-            dump('[SKIPPED_EXCHANGE]', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED] exchange', exchangeId)
             exit_script()
         if exchange.alias:
-            dump('[SKIPPED_EXCHANGE] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
             exit_script()
         #
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
-        add_proxy_agent(exchange, exchangeSettings)
+
+    def pad_end(self, message, size):
+        # has to be transpilable
+        res = ''
+        missingSpace = size - len(message)
+        if missingSpace > 0:
+            for i in range(0, missingSpace):
+                res += ' '
+        return message + res
 
     def test_method(self, methodName, exchange, args, isPublic):
         methodNameInTest = get_test_name(methodName)
@@ -241,17 +259,20 @@ class testMainClass(baseMainTestClass):
         if not isPublic and (methodNameInTest in self.checkedPublicTests) and (methodName != 'fetchCurrencies'):
             return
         skipMessage = None
-        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]):
-            skipMessage = '[UNSUPPORTED]  '  # keep it aligned with the longest message
+        isFetchOhlcvEmulated = (methodName == 'fetchOHLCV' and exchange.has['fetchOHLCV'] == 'emulated')  # todo: remove emulation from base
+        if (methodName != 'loadMarkets') and (not(methodName in exchange.has) or not exchange.has[methodName]) or isFetchOhlcvEmulated:
+            skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
         elif methodName in self.skippedMethods:
-            skipMessage = '[SKIPPED]      '
+            skipMessage = '[INFO:SKIPPED_TEST]'
         elif not (methodNameInTest in testFiles):
-            skipMessage = '[UNIMPLEMENTED]'
+            skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
         if skipMessage:
-            dump(skipMessage, exchange.id, methodNameInTest)
+            if info:
+                dump(self.pad_end(skipMessage, 25), exchange.id, methodNameInTest)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        dump('[TESTING]      ', exchange.id, methodNameInTest, argsStringified)
+        if info:
+            dump(self.pad_end('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
             result = call_method(methodNameInTest, exchange, args)
@@ -260,7 +281,7 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             isAuthError = (isinstance(e, AuthenticationError))
             if not (isPublic and isAuthError):
-                dump(exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
+                dump('ERROR:', exception_message(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified)
                 raise e
         return result
 
@@ -307,6 +328,8 @@ class testMainClass(baseMainTestClass):
         # todo - not yet ready in other langs too
         # promises.append(test_throttle())
         (promises)
+        if info:
+            dump(self.pad_end('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
 
     def load_exchange(self, exchange):
         markets = exchange.load_markets()
@@ -594,6 +617,9 @@ class testMainClass(baseMainTestClass):
                 errors.append(testName)
         if len(errors) > 0:
             raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
+        else:
+            if info:
+                dump(self.pad_end('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
     def start_test(self, exchange, symbol):
         # we don't need to test aliases

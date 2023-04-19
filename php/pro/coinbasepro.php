@@ -694,6 +694,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'bids', array()));
             $orderbook['timestamp'] = null;
             $orderbook['datetime'] = null;
+            $orderbook['symbol'] = $symbol;
             $client->resolve ($orderbook, $messageHash);
         } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];

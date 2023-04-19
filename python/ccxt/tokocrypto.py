@@ -690,8 +690,8 @@ class tokocrypto(Exchange):
             symbol = base + '/' + quote
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
-            status = self.safe_string_2(market, 'status', 'contractStatus')
-            active = (status == 'TRADING')
+            status = self.safe_string(market, 'spotTradingEnable')
+            active = (status == '1')
             permissions = self.safe_value(market, 'permissions', [])
             for j in range(0, len(permissions)):
                 if permissions[j] == 'TRD_GRP_003':

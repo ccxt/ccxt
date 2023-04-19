@@ -3821,7 +3821,7 @@ class coinex extends Exchange {
             for ($i = 0; $i < count($result); $i++) {
                 $entry = $result[$i];
                 $marketId = $this->safe_string($entry, 'market');
-                $symbol = $this->safe_symbol($marketId);
+                $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
                 $timestamp = $this->safe_timestamp($entry, 'time');
                 $rates[] = array(
                     'info' => $entry,

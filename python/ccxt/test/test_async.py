@@ -189,7 +189,6 @@ async def test_throttle():
 
 import asyncio
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ExchangeNotAvailable
 
 
 class testMainClass(baseMainTestClass):
@@ -237,7 +236,7 @@ class testMainClass(baseMainTestClass):
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
         if exchange.safe_value(skippedSettingsForExchange, 'skip'):
-            dump('[SKIPPED]', 'exchange', exchangeId, 'symbol', symbol)
+            dump('[SKIPPED] exchange', exchangeId)
             exit_script()
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)

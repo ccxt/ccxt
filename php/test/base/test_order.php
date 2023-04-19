@@ -1,5 +1,6 @@
 <?php
 namespace ccxt;
+use \ccxt\Precise;
 
 // ----------------------------------------------------------------------------
 
@@ -7,61 +8,58 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
+include_once __DIR__ . '/test_shared_methods.php';
+include_once __DIR__ . '/test_trade.php';
 
-function test_order($exchange, $order, $symbol, $now) {
-    assert ($order);
-    assert (is_array($order) && array_key_exists('id', $order));
-    assert (gettype($order['id']) === 'string');
-    assert (is_array($order) && array_key_exists('clientOrderId', $order));
-    assert (($order['clientOrderId'] === null) || (gettype($order['clientOrderId']) === 'string'));
-    assert (is_array($order) && array_key_exists('timestamp', $order));
-    assert ((is_float($order['timestamp']) || is_int($order['timestamp'])));
-    assert ($order['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
-    assert ($order['timestamp'] < $now);
-    assert (is_array($order) && array_key_exists('lastTradeTimestamp', $order));
-    assert (is_array($order) && array_key_exists('datetime', $order));
-    assert ($order['datetime'] === $exchange->iso8601 ($order['timestamp']));
-    assert (is_array($order) && array_key_exists('status', $order));
-    assert (($order['status'] === 'open') || ($order['status'] === 'closed') || ($order['status'] === 'canceled'));
-    assert (is_array($order) && array_key_exists('symbol', $order));
-    assert ($order['symbol'] === $symbol);
-    assert (is_array($order) && array_key_exists('type', $order));
-    assert (($order['type'] === null) || (gettype($order['type']) === 'string'));
-    assert (is_array($order) && array_key_exists('timeInForce', $order));
-    assert (($order['timeInForce'] === null) || (gettype($order['timeInForce']) === 'string'));
-    assert (is_array($order) && array_key_exists('side', $order));
-    assert (($order['side'] === 'buy') || ($order['side'] === 'sell'));
-    assert (is_array($order) && array_key_exists('price', $order));
-    assert (($order['price'] === null) || ((is_float($order['price']) || is_int($order['price']))));
-    if ($order['price'] !== null) {
-        assert ($order['price'] > 0);
-    }
-    assert (is_array($order) && array_key_exists('amount', $order));
-    assert ((is_float($order['amount']) || is_int($order['amount'])));
-    assert ($order['amount'] >= 0);
-    assert (is_array($order) && array_key_exists('filled', $order));
-    if ($order['filled'] !== null) {
-        assert ((is_float($order['filled']) || is_int($order['filled'])));
-        assert (($order['filled'] >= 0) && ($order['filled'] <= $order['amount']));
-    }
-    assert (is_array($order) && array_key_exists('remaining', $order));
-    if ($order['remaining'] !== null) {
-        assert ((is_float($order['remaining']) || is_int($order['remaining'])));
-        assert (($order['remaining'] >= 0) && ($order['remaining'] <= $order['amount']));
-    }
-    assert (is_array($order) && array_key_exists('trades', $order));
-    if ($order['trades']) {
-        assert (gettype($order['trades']) === 'array' && array_keys($order['trades']) === array_keys(array_keys($order['trades'])));
-    }
-    assert (is_array($order) && array_key_exists('fee', $order));
-    $fee = $order['fee'];
-    if ($fee) {
-        assert ((is_float($fee['cost']) || is_int($fee['cost'])));
-        if ($fee['cost'] !== 0) {
-            assert (gettype($fee['currency']) === 'string');
+function test_order($exchange, $method, $entry, $symbol, $now) {
+    $format = array(
+        'info' => array(),
+        'id' => '123',
+        'clientOrderId' => '1234',
+        'timestamp' => 1649373600000,
+        'datetime' => '2022-04-07T23:20:00.000Z',
+        'lastTradeTimestamp' => 1649373610000,
+        'symbol' => 'XYZ/USDT',
+        'type' => 'limit',
+        'timeInForce' => 'GTC',
+        'postOnly' => true,
+        'side' => 'sell',
+        'price' => $exchange->parse_number('1.23456'),
+        'stopPrice' => $exchange->parse_number('1.1111'),
+        'amount' => $exchange->parse_number('1.23'),
+        'cost' => $exchange->parse_number('2.34'),
+        'average' => $exchange->parse_number('1.234'),
+        'filled' => $exchange->parse_number('1.23'),
+        'remaining' => $exchange->parse_number('0.123'),
+        'status' => 'ok',
+        'fee' => array(),
+        'trades' => [],
+    );
+    $empty_not_allowed_for = ['id'];
+    // todo: skip some exchanges
+    // const emptyNotAllowedFor = [ 'id', 'timestamp', 'symbol', 'type', 'side', 'price' ];
+    assert_structure($exchange, $method, $entry, $format, $empty_not_allowed_for);
+    assert_timestamp($exchange, $method, $entry, $now);
+    //
+    assert_in_array($exchange, $method, $entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK']);
+    assert_in_array($exchange, $method, $entry, 'status', ['open', 'closed', 'canceled']);
+    assert_in_array($exchange, $method, $entry, 'side', ['buy', 'sell']);
+    assert_in_array($exchange, $method, $entry, 'postOnly', [true, false]);
+    assert_symbol($exchange, $method, $entry, 'symbol', $symbol);
+    assert_greater($exchange, $method, $entry, 'price', '0');
+    assert_greater($exchange, $method, $entry, 'stopPrice', '0');
+    assert_greater($exchange, $method, $entry, 'cost', '0');
+    assert_greater($exchange, $method, $entry, 'average', '0');
+    assert_greater($exchange, $method, $entry, 'average', '0');
+    assert_greater_or_equal($exchange, $method, $entry, 'filled', '0');
+    assert_greater_or_equal($exchange, $method, $entry, 'remaining', '0');
+    assert_greater_or_equal($exchange, $method, $entry, 'amount', '0');
+    assert_greater_or_equal($exchange, $method, $entry, 'amount', $exchange->safe_string($entry, 'remaining'));
+    assert_greater_or_equal($exchange, $method, $entry, 'amount', $exchange->safe_string($entry, 'filled'));
+    if ($entry['trades'] !== null) {
+        for ($i = 0; $i < count($entry['trades']); $i++) {
+            test_trade($exchange, $method, $entry['trades'][$i], $symbol, $now);
         }
     }
-    assert (is_array($order) && array_key_exists('info', $order));
-    assert ($order['info']);
+    assert_fee($exchange, $method, $entry['fee']);
 }
-
