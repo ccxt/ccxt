@@ -42,7 +42,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
             },
             'streaming': {
                 'keepAlive': 60000,
-                'ping': this.ping,
             },
         });
     }
@@ -189,7 +188,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @name poloniexfutures#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://futures-docs.poloniex.com/#private-messages
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol not used by poloniexfutures watchOrders
          * @param {int|undefined} since not used by poloniexfutures watchOrders
          * @param {int|undefined} limit not used by poloniexfutures watchOrders
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
@@ -198,7 +197,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
         const name = stop ? '/contractMarket/advancedOrders' : '/contractMarket/tradeOrders';
-        const orders = await this.subscribe (name, true, symbol, params);
+        const orders = await this.subscribe (name, true, undefined, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -208,7 +207,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     async watchBalance (params = {}) {
         /**
          * @method
-         * @name poloniexfutures#watchOrders
+         * @name poloniexfutures#watchBalance
          * @description watches information on multiple orders made by the user
          * @see https://futures-docs.poloniex.com/#account-balance-events
          * @param {string|undefined} symbol not used by poloniexfutures watchBalance
@@ -811,12 +810,5 @@ export default class poloniexfutures extends poloniexfuturesRest {
             }
         }
         return message;
-    }
-
-    ping (client) {
-        return {
-            'type': 'ping',
-            'id': this.milliseconds (),
-        };
     }
 }
