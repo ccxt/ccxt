@@ -76,6 +76,12 @@ class NewTranspiler {
         return text
     }
 
+    // ============================================================================
+
+    iden(level = 1) {
+        return '    '.repeat(level)
+    }
+    // ============================================================================
 
     getTranspilerConfig() {
         return {
@@ -492,13 +498,14 @@ class NewTranspiler {
 
         const options = { csharpFolder, exchanges }
 
-        this.transpileExchangeTests()
 
-        // const classes = await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        const classes = await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
         }
+
+        this.transpileExchangeTests()
 
         // crypto, precision, datetime
         // this.transpileBaseTestsToCSharp();
@@ -506,7 +513,7 @@ class NewTranspiler {
         // Exchange tests
         // this.transpileExchangeTestsToCsharp();
 
-        // this.transpileBaseMethods (exchangeBase)
+        this.transpileBaseMethods (exchangeBase)
 
         // this.transpileErrorHierarchy ({ tsFilename })
 
@@ -802,6 +809,82 @@ class NewTranspiler {
         this.transpileMainTest({
             'tsFile': './ts/src/test/test.ts',
             'csharpFile': './c#/newTests/Generated/BaseMethods.cs',
+        });
+
+        const baseFolders = {
+            ts: './ts/src/test/Exchange/',
+            tsBase: './ts/src/test/Exchange/base/',
+            csharpBase: './c#/newTests/Generated/Exchange/Base/',
+            csharp: './c#/newTests/Generated/Exchange/',
+        };
+
+        let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        const exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+
+        // ignore throttle test for now
+        baseTests = baseTests.filter (filename => filename !== 'test.throttle');
+
+        const tests = [] as any;
+        baseTests.forEach (baseTest => {
+            tests.push({
+                base: true,
+                name:baseTest,
+                tsFile: baseFolders.tsBase + baseTest + '.ts',
+                csharpFile: baseFolders.csharpBase + baseTest + '.cs',
+            });
+        });
+        exchangeTests.forEach (test => {
+            tests.push({
+                base: false,
+                name: test,
+                tsFile: baseFolders.ts + test + '.ts',
+                csharpFile: baseFolders.csharp + test + '.cs',
+            });
+        });
+
+        this.transpileAndSaveCsharpExchangeTests (tests);
+    }
+
+    async transpileAndSaveCsharpExchangeTests(tests) {
+        const paths = tests.map(test => test.tsFile);
+        const flatResult = await this.webworkerTranspile (paths, this.getTranspilerConfig());
+        flatResult.forEach((file, idx) => {
+            let contentIndentend = file.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
+            contentIndentend = this.regexAll (contentIndentend, [
+                [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
+                [ /throw new Error/g, 'throw new Exception' ],
+                [/void function/g, 'void']
+            ])
+            const fileHeaders = [
+                'using Main;',
+                'namespace Tests;',
+                '',
+                this.createGeneratedHeader().join('\n'),
+                '',
+                'public partial class BaseTest',
+                '{',
+            ]
+            let csharp: string;
+            const filename = tests[idx].name;
+            if (filename === 'test.sharedMethods') {
+                const doubleIndented = contentIndentend.split('\n').map(line => line ? '    ' + line : line).join('\n');
+                csharp = [
+                    ...fileHeaders,
+                    `${this.iden(1)}public partial class SharedMethods`,
+                    `${this.iden(1)}{`,
+                    doubleIndented,
+                    `${this.iden(1)}}`,
+                    '}',
+                ].join('\n');
+            } else {
+                csharp = [
+                    ...fileHeaders,
+                    contentIndentend,
+                    '}',
+                ].join('\n');
+            }
+            log.magenta ('Transpiling from', paths[idx])
+            overwriteFile (tests[idx].csharpFile, csharp);
         });
     }
 }

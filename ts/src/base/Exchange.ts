@@ -1479,6 +1479,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setLeverage() is not supported yet');
     }
 
+    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchOpenInterestHistory() is not supported yet');
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+    }
+
+    async signIn (params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' signIn() is not supported yet');
+    }
+
     parseToInt (number) {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
@@ -2810,6 +2822,22 @@ export default class Exchange {
 
     async fetchBidsAsks (symbols: string[] = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
+    }
+
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchBorrowInterest() is not supported yet');
+    }
+
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
+    }
+
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported yet');
+    }
+
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchLedger() is not supported yet');
     }
 
     parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1) {

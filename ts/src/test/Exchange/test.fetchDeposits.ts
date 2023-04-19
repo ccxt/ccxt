@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testTransaction from './base/test.depositWithdrawal.js';
+import testDepositWithdrawal from './base/test.depositWithdrawal.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchDeposits (exchange, code) {
@@ -9,7 +9,7 @@ async function testFetchDeposits (exchange, code) {
     assert (Array.isArray (transactions), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (transactions));
     const now = exchange.milliseconds ();
     for (let i = 0; i < transactions.length; i++) {
-        testTransaction (exchange, method, transactions[i], code, now);
+        testDepositWithdrawal (exchange, method, transactions[i], code, now);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, code, transactions);
 }
