@@ -41,7 +41,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'privateToken': undefined,
             },
             'streaming': {
-                'keepAlive': 60000,
+                'keepAlive': 30000,
+                'maxPingPongMisses': 2.0,
             },
         });
     }
