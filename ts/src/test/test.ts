@@ -79,21 +79,25 @@ function initExchange (exchangeId, args) {
     return new (ccxt)[exchangeId] (args);
 }
 
-function testFilePathWithoutExtension (methodName) {
-    return __dirname + '/Exchange/test.' + methodName;
-}
-
-function errorTestFilePathWithoutExtension (errorName) {
-    return  __dirname + '/base/errors/test.' + errorName;
-}
-
 async function importTestFile (filePath) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
     return (await import (pathToFileURL (filePath + '.js')) as any)['default'];
 }
 
-async function testThrottle () {
-    // todo: exists in py/php not in js
+async function setTestFile (holderClass, name) {
+    const filePathWoExt = __dirname + '/Exchange/test.' + name;
+    if (ioFileExists (filePathWoExt + '.' + ext)) {
+        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+        holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+    }
+}
+
+async function setTestErrorFile (holderClass, name) {
+    const filePathWoExt = __dirname + '/base/errors/test.' + name;
+    if (ioFileExists (filePathWoExt + '.' + ext)) {
+        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+        holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+    }
 }
 
 // *********************************
@@ -126,21 +130,14 @@ export default class testMainClass extends baseMainTestClass {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
         for (let i = 0; i < properties.length; i++) {
-            const property = properties[i];
-            const filePath = testFilePathWithoutExtension (property);
-            if (ioFileExists (filePath + '.' + ext)) {
-                this.testFiles[property] = await importTestFile (filePath);
-            }
+            const propertyName = properties[i];
+            await setTestFile (this, propertyName);
         }
         // errors tests
         const errorHierarchyKeys = Object.keys (errorsHierarchy);
         for (let i = 0; i < errorHierarchyKeys.length; i++) {
             const errorName = errorHierarchyKeys[i];
-            const filePath = errorTestFilePathWithoutExtension (errorName);
-            if (ioFileExists (filePath + '.' + ext)) {
-                // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-                this.testFiles[errorName] = await importTestFile (filePath);
-            }
+            await setTestErrorFile (this, errorName);
         }
     }
 

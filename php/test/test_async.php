@@ -74,8 +74,8 @@ function io_file_read($path, $decode = true) {
     return $decode ? json_decode($content, true) : $content;
 }
 
-function call_method($methodName, $exchange, $args) {
-    return testFiles[$methodName]($exchange, ... $args);
+function call_method($testFiles, $methodName, $exchange, $args) {
+    return $testFiles[$methodName]($exchange, ... $args);
 }
 
 function exception_message ($exc) {
@@ -105,17 +105,20 @@ function init_exchange ($exchangeId, $args) {
     return new $exchangeId($args);
 }
 
-function test_file_path_without_extension ($methodName) {
-    return __dirname + '/Exchange/test.' + $methodName;
+function setTestFile (holderClass, name) {
+    const filePathWoExt = __dirname + '/Exchange/test.' + name;
+    if (ioFileExists (filePathWoExt + '.' + ext)) {
+        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+        holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+    }
 }
 
-function error_test_file_path_without_extension ($errorName) {
-    return  __dirname + '/base/errors/test.' + $errorName;
-}
-
-function import_test_file ($filePath) {
-    // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-    return (await import (pathToFileURL (filePath + '.js')) as any)['default'];
+function setTestErrorFile (holderClass, name) {
+    const filePathWoExt = __dirname + '/base/errors/test.' + name;
+    if (ioFileExists (filePathWoExt + '.' + ext)) {
+        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+        holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+    }
 }
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
