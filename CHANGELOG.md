@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.72 (2023-04-19)
+
+
+### Features
+
+* **bitget:** change fetchOpenInterest error type ([026e199](https://github.com/ccxt/ccxt/commit/026e199bf96cca54c3b367ab8031a81c83ad8cc9))
+
 ### 3.0.71 (2023-04-18)
 
 ### 3.0.70 (2023-04-18)
