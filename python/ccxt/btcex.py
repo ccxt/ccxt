@@ -4,8 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -16,6 +19,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -228,10 +232,12 @@ class btcex(Exchange):
                     '403': AuthenticationError,  # ACCESS_DENIED_ERROR Access denied
                     '1000': ExchangeNotAvailable,  # NO_SERVICE No service found
                     '1001': BadRequest,  # BAD_REQUEST Bad requested
+                    '1005': DDoSProtection,  # {"code":1005,"message":"Operate too frequently"}
                     '2000': AuthenticationError,  # NEED_LOGIN Login is required
                     '2001': AuthenticationError,  # ACCOUNT_NOT_MATCH Account information does not match
                     '2002': AuthenticationError,  # ACCOUNT_NEED_ENABLE Account needs to be activated
                     '2003': AuthenticationError,  # ACCOUNT_NOT_AVAILABLE Account not available
+                    '2010': PermissionDenied,  # {"code":2010,"message":"Access denied","data":{}}
                     '3000': AuthenticationError,  # TEST user
                     '3002': AuthenticationError,  # NICKNAME_EXIST Nicknames exist
                     '3003': AuthenticationError,  # ACCOUNT_NOT_EXIST No account
@@ -296,6 +302,7 @@ class btcex(Exchange):
                     '5013': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_HIGH order price range is too high.
                     '5014': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
                     '5109': InvalidOrder,  # ORDER_PRICE_RANGE_IS_TOO_LOW Order price range is too low.
+                    '5119': InvalidOrder,  # {"code":5119,"message":"Cannot be less than the minimum order value：10USDT, instrument: GXE/USDT","data":{"coinType":"USDT","amount":"10","instrumentName":"GXE/USDT"}}
                     '5135': InvalidOrder,  # The quantity should be larger than: 0.01
                     '5901': InvalidOrder,  # TRANSFER_RESULT transfer out success.
                     '5902': InvalidOrder,  # ORDER_SUCCESS place order success.
@@ -334,6 +341,7 @@ class btcex(Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
             },
         })
 
@@ -530,7 +538,7 @@ class btcex(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -566,7 +574,7 @@ class btcex(Exchange):
         ticker = self.safe_value(result, 0)
         return self.parse_ticker(ticker, market)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -617,7 +625,7 @@ class btcex(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -726,7 +734,7 @@ class btcex(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1179,7 +1187,7 @@ class btcex(Exchange):
             'trades': trades,
         }, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         self.sign_in()
         self.load_markets()
         request = {
@@ -1219,7 +1227,7 @@ class btcex(Exchange):
         #
         return self.parse_order(result)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1245,7 +1253,7 @@ class btcex(Exchange):
         :param str|None params['timeInForce']: 'GTC', 'IOC', 'FOK'
         :param bool|None params.postOnly:
         :param bool|None params.reduceOnly:
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.sign_in()
         self.load_markets()
@@ -1254,7 +1262,7 @@ class btcex(Exchange):
             'instrument_name': market['id'],
             'type': type,
         }
-        if side == 'sell':
+        if side == 'sell' or type == 'limit':
             request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
@@ -1351,7 +1359,7 @@ class btcex(Exchange):
         order = self.safe_value(result, 'order')
         return self.parse_order(order, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         self.sign_in()
         self.load_markets()
         request = {
@@ -1373,7 +1381,7 @@ class btcex(Exchange):
         #
         return self.parse_order(result)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.sign_in()
@@ -1395,7 +1403,7 @@ class btcex(Exchange):
         #
         return response
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.sign_in()
@@ -1437,7 +1445,7 @@ class btcex(Exchange):
         #
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.sign_in()
@@ -1482,7 +1490,7 @@ class btcex(Exchange):
         #
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if id is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a id argument')
         self.load_markets()
@@ -1527,7 +1535,7 @@ class btcex(Exchange):
         trades = self.safe_value(result, 'trades', [])
         return self.parse_trades(trades, None, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a id argument')
         self.sign_in()
@@ -1538,17 +1546,16 @@ class btcex(Exchange):
             # 'end_id': 0,  # The ID number of the last trade to be returned
             # 'sorting': '',  # Direction of results sorting,default: desc
             # 'self_trade': False,  # If not set, query all
+            # 'start_timestamp': False  # The trade time of the first trade to be returned
+            # 'end_timestamp': False  # The trade time of the last trade to be returned
         }
-        method = None
         market = self.market(symbol)
         request['instrument_name'] = market['id']
-        if since is None:
-            method = 'privateGetGetUserTradesByInstrument'
-        else:
-            method = 'privateGetGetUserTradesByInstrumentAndTime'
         if limit is not None:
             request['count'] = limit  # default 20
-        response = getattr(self, method)(self.extend(request, params))
+        if since is not None:
+            request['start_timestamp'] = since
+        response = self.privateGetGetUserTradesByInstrument(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
         #     {
@@ -1625,14 +1632,14 @@ class btcex(Exchange):
         notionalString = Precise.string_mul(markPrice, size)
         unrealisedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
-        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         marginType = self.safe_string(position, 'margin_type')
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notionalString)),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -1646,13 +1653,14 @@ class btcex(Exchange):
             'marginRatio': self.parse_number(riskLevel),
             'liquidationPrice': self.safe_number(position, 'liquid_price'),
             'markPrice': self.parse_number(markPrice),
+            'lastPrice': None,
             'collateral': self.parse_number(collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': self.parse_number(percentage),
-        }
+            'percentage': None,
+        })
 
-    def fetch_position(self, symbol, params={}):
+    def fetch_position(self, symbol: str, params={}):
         self.sign_in()
         self.load_markets()
         market = self.market(symbol)
@@ -1698,7 +1706,7 @@ class btcex(Exchange):
         #
         return self.parse_position(result)
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         self.sign_in()
         self.load_markets()
         request = {
@@ -1815,7 +1823,7 @@ class btcex(Exchange):
             'fee': None,
         }
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires the code argument')
         self.sign_in()
@@ -1848,7 +1856,7 @@ class btcex(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires the code argument')
         self.sign_in()
@@ -1881,7 +1889,7 @@ class btcex(Exchange):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_withdrawal(self, id, code=None, params={}):
+    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires the code argument')
         self.sign_in()
@@ -1916,13 +1924,13 @@ class btcex(Exchange):
         record = self.safe_value(records, 0)
         return self.parse_transaction(record, currency)
 
-    def fetch_leverage(self, symbol, params={}):
+    def fetch_leverage(self, symbol: str, params={}):
         """
         see https://docs.btcex.com/#get-perpetual-instrument-config
         fetch the set leverage for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         self.sign_in()
         self.load_markets()
@@ -1948,13 +1956,13 @@ class btcex(Exchange):
         data = self.safe_value(response, 'result', {})
         return self.safe_number(data, 'leverage')
 
-    def fetch_market_leverage_tiers(self, symbol, params={}):
+    def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
         see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
         retrieve information on the maximum leverage, for different trade sizes for a single market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1986,7 +1994,7 @@ class btcex(Exchange):
         data = self.safe_value(response, 'result', [])
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market):
+    def parse_market_leverage_tiers(self, info, market=None):
         #
         #     [
         #         {
@@ -2015,13 +2023,13 @@ class btcex(Exchange):
             })
         return tiers
 
-    def fetch_leverage_tiers(self, symbols=None, params={}):
+    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
         retrieve information on the maximum leverage, for different trade sizes
         :param [str]|None symbols: a list of unified market symbols
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
         response = self.publicGetGetPerpetualLeverageBracketAll(params)
@@ -2050,7 +2058,7 @@ class btcex(Exchange):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
         #
         #     {
         #         "WAVES-USDT-PERPETUAL": [
@@ -2084,7 +2092,7 @@ class btcex(Exchange):
                 result[symbol] = self.parse_market_leverage_tiers(entry, market)
         return result
 
-    def set_margin_mode(self, marginMode, symbol=None, params={}):
+    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         see https://docs.btcex.com/#modify-perpetual-instrument-margin-type
@@ -2119,7 +2127,7 @@ class btcex(Exchange):
         #
         return result
 
-    def set_leverage(self, leverage, symbol=None, params={}):
+    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the leverage amount for a market
         see https://docs.btcex.com/#modify-perpetual-instrument-leverage
@@ -2155,13 +2163,13 @@ class btcex(Exchange):
         #
         return response
 
-    def fetch_funding_rates(self, symbols=None, params={}):
+    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the current funding rates
         see https://docs.btcex.com/#contracts
-        :param array symbols: unified market symbols
+        :param [str] symbols: unified market symbols
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns array: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2213,13 +2221,13 @@ class btcex(Exchange):
                 result[symbol] = self.parse_funding_rate(entry, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_funding_rate(self, symbol, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         see https://docs.btcex.com/#contracts
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2313,7 +2321,7 @@ class btcex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         see https://docs.btcex.com/#asset-transfer
@@ -2322,7 +2330,7 @@ class btcex(Exchange):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         self.sign_in()
         self.load_markets()
@@ -2372,13 +2380,13 @@ class btcex(Exchange):
             'status': None,
         }
 
-    def fetch_open_interest(self, symbol, params={}):
+    def fetch_open_interest(self, symbol: str, params={}):
         """
         fetch the open interest of a market
         see https://docs.btcex.com/#contracts
         :param str symbol: unified CCXT market symbol
         :param dict params: extra parameters specific to the btcex api endpoint
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure:
         """
         self.load_markets()
         market = self.market(symbol)
