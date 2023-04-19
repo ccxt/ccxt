@@ -1395,13 +1395,13 @@ module.exports = class binance extends Exchange {
     }
 
     // Override
-    isUsingForcedProxy (params) {
-        if (params?.forceProxy) {
+    isUsingForcedProxy (params, api = undefined, method = undefined) {
+        if (params && params.forceProxy) {
             delete params['forceProxy'];
             return true;
         }
-        return false
-    };
+        return false;
+    }
 
     isInverse (type, subType = undefined) {
         if (subType === undefined) {

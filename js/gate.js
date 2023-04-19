@@ -668,6 +668,15 @@ module.exports = class gate extends Exchange {
         });
     }
 
+    // Override
+    isUsingForcedProxy (params = {}, api = [], method = undefined) {
+        const authentication = api[0]; // public, private
+        if (authentication === 'private') {
+            return true;
+        }
+        return false;
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method

@@ -1040,6 +1040,15 @@ module.exports = class huobi extends Exchange {
         });
     }
 
+    // Override
+    isUsingForcedProxy (params, api = undefined, method = undefined) {
+        if (params && params.forceProxy) {
+            delete params['forceProxy'];
+            return true;
+        }
+        return false;
+    }
+
     async fetchStatus (params = {}) {
         await this.loadMarkets ();
         let marketType = undefined;
@@ -4138,6 +4147,7 @@ module.exports = class huobi extends Exchange {
         const accountId = await this.fetchAccountIdByType (market['type']);
         const request = {
             // spot -----------------------------------------------------------
+            'forceProxy': true,
             'account-id': accountId,
             'symbol': market['id'],
             // 'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
@@ -4247,6 +4257,7 @@ module.exports = class huobi extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
+            'forceProxy': true,
             // 'symbol': 'BTC', // optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
             'contract_code': market['id'], // optional BTC180914
@@ -4391,6 +4402,7 @@ module.exports = class huobi extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const request = {
+            'forceProxy': true,
             // spot -----------------------------------------------------------
             // 'order-id': 'id',
             // 'symbol': market['id'],
@@ -4489,6 +4501,7 @@ module.exports = class huobi extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const request = {
+            'forceProxy': true,
             // spot -----------------------------------------------------------
             // 'order-ids': ids.jsoin (','), // max 50
             // 'client-order-ids': ids.join (','), // max 50
@@ -4623,6 +4636,7 @@ module.exports = class huobi extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const request = {
+            'forceProxy': true,
             // spot -----------------------------------------------------------
             // 'account-id': account['id'],
             // 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
@@ -5041,6 +5055,8 @@ module.exports = class huobi extends Exchange {
         this.checkAddress (address);
         const currency = this.currency (code);
         const request = {
+            'forceProxy': true,
+            'forceProxy': true,
             'address': address, // only supports existing addresses in your withdraw address list
             'currency': currency['id'].toLowerCase (),
         };
@@ -5128,6 +5144,7 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
+            'forceProxy': true,
             'currency': currency['id'],
             'amount': parseFloat (this.currencyToPrecision (code, amount)),
         };
@@ -5670,7 +5687,7 @@ module.exports = class huobi extends Exchange {
                 }
                 request = this.keysort (request);
                 let auth = this.urlencode (request);
-                // unfortunately, PHP demands double quotes for the escaped newline symbol
+                // unfortunately, PHP demands double quotes for the escaped newline0 symbol
                 const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
                 auth += '&' + this.urlencode ({ 'Signature': signature });

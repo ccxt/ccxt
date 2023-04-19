@@ -2043,7 +2043,7 @@ module.exports = class Exchange {
             await this.throttle (cost, path, customExpireInterval, customPriority);
         }
         this.lastRestRequestTimestamp = this.milliseconds ();
-        const forcedProxy = this.isUsingForcedProxy(params)?this.forcedProxy:"";
+        const forcedProxy = this.isUsingForcedProxy (params, api, method) ? this.forcedProxy : '';
         const request = this.sign (path, api, method, params, headers, body);
         return await this.fetch (forcedProxy + request['url'], request['method'], request['headers'], request['body']);
     }
