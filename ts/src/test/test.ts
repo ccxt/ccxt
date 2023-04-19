@@ -56,7 +56,7 @@ for (let i = 0; i < properties.length; i++) {
 import errorsHierarchy from '../base/errorHierarchy.js';
 Object.keys (errorsHierarchy)
     .forEach (async (error) => {
-        const filePath = __dirname + '/errors/test.' + error;
+        const filePath = __dirname + '/base/errors/test.' + error;
         if (fs.existsSync (filePath + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             testFiles[error] = (await import (pathToFileURL (filePath + '.js')) as any)['default'];
