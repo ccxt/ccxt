@@ -5,9 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class independentreserve extends Exchange {
     describe() {
@@ -734,7 +735,7 @@ export default class independentreserve extends Exchange {
                 auth.push(key + '=' + value);
             }
             const message = auth.join(',');
-            const signature = this.hmac(this.encode(message), this.encode(this.secret));
+            const signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
             const query = this.ordered({});
             query['apiKey'] = this.apiKey;
             query['nonce'] = nonce;

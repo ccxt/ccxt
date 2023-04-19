@@ -8,6 +8,7 @@
 import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class currencycom extends currencycomRest {
     describe() {
@@ -319,7 +320,7 @@ export default class currencycom extends currencycomRest {
             'correlationId': requestId,
             'payload': payload,
         }, params);
-        request['payload']['signature'] = this.hmac(this.encode(auth), this.encode(this.secret));
+        request['payload']['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         const subscription = this.extend(request, {
             'messageHash': messageHash,
         });

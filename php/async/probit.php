@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\async\abstract\probit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadResponse;
@@ -23,6 +24,7 @@ class probit extends Exchange {
             'name' => 'ProBit',
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
             'rateLimit' => 50, // ms
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -513,7 +515,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -543,7 +545,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -579,7 +581,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -662,7 +664,7 @@ class probit extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -714,7 +716,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -886,7 +888,7 @@ class probit extends Exchange {
         }
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -976,7 +978,7 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1000,7 +1002,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1033,7 +1035,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_order($id, $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -1075,21 +1077,21 @@ class probit extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {
-        //         $id => string,
-        //         user_id => string,
-        //         market_id => string,
+        //         $id,
+        //         user_id,
+        //         market_id,
         //         $type => 'orderType',
         //         $side => 'side',
-        //         quantity => string,
-        //         limit_price => string,
+        //         quantity,
+        //         limit_price,
         //         time_in_force => 'timeInForce',
-        //         filled_cost => string,
-        //         filled_quantity => string,
-        //         open_quantity => string,
-        //         cancelled_quantity => string,
+        //         filled_cost,
+        //         filled_quantity,
+        //         open_quantity,
+        //         cancelled_quantity,
         //         $status => 'orderStatus',
         //         time => 'date',
-        //         client_order_id => string,
+        //         client_order_id,
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -1142,7 +1144,7 @@ class probit extends Exchange {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1200,21 +1202,21 @@ class probit extends Exchange {
             //
             //     {
             //         $data => {
-            //             id => string,
-            //             user_id => string,
-            //             market_id => string,
+            //             id,
+            //             user_id,
+            //             market_id,
             //             $type => 'orderType',
             //             $side => 'side',
-            //             quantity => string,
-            //             limit_price => string,
+            //             quantity,
+            //             limit_price,
             //             time_in_force => 'timeInForce',
-            //             filled_cost => string,
-            //             filled_quantity => string,
-            //             open_quantity => string,
-            //             cancelled_quantity => string,
+            //             filled_cost,
+            //             filled_quantity,
+            //             open_quantity,
+            //             cancelled_quantity,
             //             status => 'orderStatus',
             //             time => 'date',
-            //             client_order_id => string,
+            //             client_order_id,
             //         }
             //     }
             //
@@ -1231,7 +1233,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1272,7 +1274,7 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1350,7 +1352,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1523,7 +1525,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency) {
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         // {
         //     id => 'USDT',
@@ -1601,7 +1603,7 @@ class probit extends Exchange {
             $auth = $this->apiKey . ':' . $this->secret;
             $auth64 = base64_encode($auth);
             $headers = array(
-                'Authorization' => 'Basic ' . $this->decode($auth64),
+                'Authorization' => 'Basic ' . $auth64,
                 'Content-Type' => 'application/json',
             );
             if ($query) {

@@ -1,10 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/huobijp.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -18,7 +20,7 @@ export default class huobijp extends Exchange {
             'userAgent': this.userAgents['chrome39'],
             'certified': false,
             'version': 'v1',
-            'hostname': 'api-cloud.huobi.co.jp',
+            'hostname': 'api-cloud.bittrade.co.jp',
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -332,7 +334,7 @@ export default class huobijp extends Exchange {
          * @param {object} params extra parameters specific to the huobijp api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetCommonTimestamp (params);
+        const response = await this.publicGetCommonTimestamp (params);
         return this.safeInteger (response, 'data');
     }
 
@@ -352,11 +354,11 @@ export default class huobijp extends Exchange {
         return result;
     }
 
-    async fetchTradingLimitsById (id, params = {}) {
+    async fetchTradingLimitsById (id: string, params = {}) {
         const request = {
             'symbol': id,
         };
-        const response = await (this as any).publicGetCommonExchange (this.extend (request, params));
+        const response = await this.publicGetCommonExchange (this.extend (request, params));
         //
         //     { status:   "ok",
         //         data: {                                  symbol: "aidocbtc",
@@ -608,7 +610,7 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrderBook
@@ -624,7 +626,7 @@ export default class huobijp extends Exchange {
             'symbol': market['id'],
             'type': 'step0',
         };
-        const response = await (this as any).marketGetDepth (this.extend (request, params));
+        const response = await this.marketGetDepth (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -659,7 +661,7 @@ export default class huobijp extends Exchange {
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name huobijp#fetchTicker
@@ -673,7 +675,7 @@ export default class huobijp extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).marketGetDetailMerged (this.extend (request, params));
+        const response = await this.marketGetDetailMerged (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -712,7 +714,7 @@ export default class huobijp extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).marketGetTickers (params);
+        const response = await this.marketGetTickers (params);
         const tickers = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {};
@@ -813,7 +815,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrderTrades
@@ -829,11 +831,11 @@ export default class huobijp extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrderOrdersIdMatchresults (this.extend (request, params));
+        const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchMyTrades
@@ -858,11 +860,11 @@ export default class huobijp extends Exchange {
             request['start-time'] = since; // a date within 120 days from today
             // request['end-time'] = this.sum (since, 172800000); // 48 hours window
         }
-        const response = await (this as any).privateGetOrderMatchresults (this.extend (request, params));
+        const response = await this.privateGetOrderMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name huobijp#fetchTrades
@@ -881,7 +883,7 @@ export default class huobijp extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).marketGetHistoryTrade (this.extend (request, params));
+        const response = await this.marketGetHistoryTrade (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -942,7 +944,7 @@ export default class huobijp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOHLCV
@@ -963,7 +965,7 @@ export default class huobijp extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await (this as any).marketGetHistoryKline (this.extend (request, params));
+        const response = await this.marketGetHistoryKline (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
@@ -989,7 +991,7 @@ export default class huobijp extends Exchange {
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountAccounts (params);
+        const response = await this.privateGetAccountAccounts (params);
         return response['data'];
     }
 
@@ -1004,7 +1006,7 @@ export default class huobijp extends Exchange {
         const request = {
             'language': this.options['language'],
         };
-        const response = await (this as any).publicGetSettingsCurrencys (this.extend (request, params));
+        const response = await this.publicGetSettingsCurrencys (this.extend (request, params));
         //
         //     {
         //         "status":"ok",
@@ -1134,7 +1136,7 @@ export default class huobijp extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrdersByStates (states, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrdersByStates (states, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'states': states,
@@ -1166,7 +1168,7 @@ export default class huobijp extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrder
@@ -1179,12 +1181,12 @@ export default class huobijp extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrderOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrderOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOrders
@@ -1198,7 +1200,7 @@ export default class huobijp extends Exchange {
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchOpenOrders
@@ -1213,14 +1215,14 @@ export default class huobijp extends Exchange {
         return await this[method] (symbol, since, limit, params);
     }
 
-    async fetchOpenOrdersV1 (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrdersV1 (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrdersV1() requires a symbol argument');
         }
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchClosedOrders
@@ -1234,7 +1236,7 @@ export default class huobijp extends Exchange {
         return await this.fetchOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrdersV2 (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrdersV2 (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1261,7 +1263,7 @@ export default class huobijp extends Exchange {
             request['size'] = limit;
         }
         const omitted = this.omit (params, 'account-id');
-        const response = await (this as any).privateGetOrderOpenOrders (this.extend (request, omitted));
+        const response = await this.privateGetOrderOpenOrders (this.extend (request, omitted));
         //
         //     {
         //         "status":"ok",
@@ -1383,7 +1385,7 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#createOrder
@@ -1464,7 +1466,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#cancelOrder
@@ -1474,7 +1476,7 @@ export default class huobijp extends Exchange {
          * @param {object} params extra parameters specific to the huobijp api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const response = await (this as any).privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
         //
         //     {
         //         'status': 'ok',
@@ -1506,7 +1508,7 @@ export default class huobijp extends Exchange {
         } else {
             request['client-order-ids'] = clientOrderIds;
         }
-        const response = await (this as any).privatePostOrderOrdersBatchcancel (this.extend (request, params));
+        const response = await this.privatePostOrderOrdersBatchcancel (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -1564,7 +1566,7 @@ export default class huobijp extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await (this as any).privatePostOrderOrdersBatchCancelOpenOrders (this.extend (request, params));
+        const response = await this.privatePostOrderOrdersBatchCancelOpenOrders (this.extend (request, params));
         //
         //     {
         //         code: 200,
@@ -1621,7 +1623,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchDeposits
@@ -1650,12 +1652,12 @@ export default class huobijp extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await (this as any).privateGetQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#fetchWithdrawals
@@ -1684,7 +1686,7 @@ export default class huobijp extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await (this as any).privateGetQueryDepositWithdraw (this.extend (request, params));
+        const response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
         return this.parseTransactions (response['data'], currency, since, limit);
     }
@@ -1792,7 +1794,7 @@ export default class huobijp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name huobijp#withdraw
@@ -1828,7 +1830,7 @@ export default class huobijp extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privatePostDwWithdrawApiCreate (this.extend (request, params));
+        const response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -1838,7 +1840,7 @@ export default class huobijp extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         if (api === 'market') {
             url += api;
@@ -1866,7 +1868,7 @@ export default class huobijp extends Exchange {
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             const payload = [ method, this.hostname, url, auth ].join ("\n");
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
             url += '?' + auth;
             if (method === 'POST') {

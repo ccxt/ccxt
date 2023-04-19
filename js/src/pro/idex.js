@@ -8,6 +8,7 @@
 import idexRest from '../idex.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class idex extends idexRest {
     describe() {
@@ -104,34 +105,34 @@ export default class idex extends idexRest {
         const symbol = this.safeSymbol(marketId);
         const messageHash = type + ':' + marketId;
         const timestamp = this.safeInteger(data, 't');
-        const close = this.safeFloat(data, 'c');
-        const percentage = this.safeFloat(data, 'P');
+        const close = this.safeString(data, 'c');
+        const percentage = this.safeString(data, 'P');
         let change = undefined;
         if ((percentage !== undefined) && (close !== undefined)) {
-            change = close * percentage;
+            change = Precise.stringMul(close, percentage);
         }
-        const ticker = {
+        const ticker = this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'high': this.safeFloat(data, 'h'),
-            'low': this.safeFloat(data, 'l'),
-            'bid': this.safeFloat(data, 'b'),
+            'high': this.safeString(data, 'h'),
+            'low': this.safeString(data, 'l'),
+            'bid': this.safeString(data, 'b'),
             'bidVolume': undefined,
-            'ask': this.safeFloat(data, 'a'),
+            'ask': this.safeString(data, 'a'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat(data, 'o'),
+            'open': this.safeString(data, 'o'),
             'close': close,
             'last': close,
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat(data, 'v'),
-            'quoteVolume': this.safeFloat(data, 'q'),
+            'baseVolume': this.safeString(data, 'v'),
+            'quoteVolume': this.safeString(data, 'q'),
             'info': message,
-        };
+        });
         client.resolve(ticker, messageHash);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {

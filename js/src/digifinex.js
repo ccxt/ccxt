@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/digifinex.js';
 import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class digifinex extends Exchange {
     describe() {
@@ -1763,7 +1764,7 @@ export default class digifinex extends Exchange {
             'market': orderType,
             'order_id': ids.join(','),
         };
-        const response = await this.privateSpotPostCancelOrder(this.extend(request, params));
+        const response = await this.privateSpotPostSpotOrderCancel(this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -2817,7 +2818,7 @@ export default class digifinex extends Exchange {
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
-    parseBorrowInterest(info, market) {
+    parseBorrowInterest(info, market = undefined) {
         //
         //     {
         //         "amount": 0.0006103,
@@ -3649,7 +3650,7 @@ export default class digifinex extends Exchange {
         const data = this.safeValue(response, 'data', {});
         return this.parseMarketLeverageTiers(data, market);
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3861,7 +3862,7 @@ export default class digifinex extends Exchange {
                 nonce = this.nonce().toString();
                 auth = urlencoded;
             }
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             if (method === 'GET') {
                 if (urlencoded) {
                     url += '?' + urlencoded;

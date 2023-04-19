@@ -5,9 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bigone.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { jwt } from './base/functions/rsa.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bigone extends Exchange {
     describe() {
@@ -433,7 +435,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const timestamp = this.safeInteger(data, 'timestamp');
+        const timestamp = this.safeInteger(data, 'Timestamp');
         return this.parseToInt(timestamp / 1000000);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -853,11 +855,11 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        side = (side === 'buy') ? 'BID' : 'ASK';
+        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
         const uppercaseType = type.toUpperCase();
         const request = {
             'asset_pair_name': market['id'],
-            'side': side,
+            'side': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
             // 'price': this.priceToPrecision (symbol, price), // order price, string, required
             'type': uppercaseType,
@@ -1126,7 +1128,7 @@ export default class bigone extends Exchange {
     }
     nonce() {
         const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
-        return this.microseconds() * 1000 + exchangeTimeCorrection;
+        return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
@@ -1147,8 +1149,8 @@ export default class bigone extends Exchange {
                 'nonce': nonce,
                 // 'recv_window': '30', // default 30
             };
-            const jwt = this.jwt(request, this.encode(this.secret));
-            headers['Authorization'] = 'Bearer ' + jwt;
+            const token = jwt(request, this.encode(this.secret), sha256);
+            headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
                 if (Object.keys(query).length) {
                     url += '?' + this.urlencode(query);

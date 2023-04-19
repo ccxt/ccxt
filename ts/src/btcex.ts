@@ -1,7 +1,8 @@
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -321,12 +322,13 @@ export default class btcex extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        const response = await (this as any).publicGetGetInstruments (params);
+        const response = await this.publicGetGetInstruments (params);
         const markets = this.safeValue (response, 'result', []);
         //
         //     {
@@ -530,13 +532,13 @@ export default class btcex extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await (this as any).publicGetTickers (this.extend (request, params));
+        const response = await this.publicGetTickers (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -567,7 +569,7 @@ export default class btcex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -576,7 +578,7 @@ export default class btcex extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response = await (this as any).publicGetGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -621,7 +623,7 @@ export default class btcex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -646,7 +648,7 @@ export default class btcex extends Exchange {
             request['start_timestamp'] = since;
             request['end_timestamp'] = this.sum (request['start_timestamp'], limit * timeframeInMilliseconds);
         }
-        const response = await (this as any).publicGetGetTradingviewChartData (this.extend (request, params));
+        const response = await this.publicGetGetTradingviewChartData (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -736,7 +738,7 @@ export default class btcex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -748,7 +750,7 @@ export default class btcex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 10
         }
-        const response = await (this as any).publicGetGetLastTradesByInstrument (this.extend (request, params));
+        const response = await this.publicGetGetLastTradesByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -787,7 +789,7 @@ export default class btcex extends Exchange {
             // 'refresh_token': '', // Required for grant type refresh_token
             // 'signature': '', // Required for grant type client_signature
         };
-        const response = await (this as any).publicPostAuth (this.extend (request, params));
+        const response = await this.publicPostAuth (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         //
         //     {
@@ -965,7 +967,7 @@ export default class btcex extends Exchange {
         const request = {
             'asset_type': [ assetType ],
         };
-        const response = await (this as any).privatePostGetAssetsInfo (this.extend (request, params));
+        const response = await this.privatePostGetAssetsInfo (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1205,13 +1207,13 @@ export default class btcex extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privateGetGetOrderState (this.extend (request, params));
+        const response = await this.privateGetGetOrderState (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         //
         //     {
@@ -1246,7 +1248,7 @@ export default class btcex extends Exchange {
         return this.parseOrder (result);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcex#createOrder
@@ -1396,13 +1398,13 @@ export default class btcex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const response = await (this as any).privatePostCancel (this.extend (request, params));
+        const response = await this.privatePostCancel (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -1429,7 +1431,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await (this as any).privatePostCancelAllByInstrument (this.extend (request, params));
+        const response = await this.privatePostCancelAllByInstrument (this.extend (request, params));
         //
         //     {
         //         "id":"1647686580",
@@ -1443,7 +1445,7 @@ export default class btcex extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1453,7 +1455,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await (this as any).privateGetGetOpenOrdersByInstrument (this.extend (request, params));
+        const response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1487,7 +1489,7 @@ export default class btcex extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -1500,7 +1502,7 @@ export default class btcex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await (this as any).privateGetGetOrderHistoryByInstrument (this.extend (request, params));
+        const response = await this.privateGetGetOrderHistoryByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1535,7 +1537,7 @@ export default class btcex extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a id argument');
         }
@@ -1549,7 +1551,7 @@ export default class btcex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 20
         }
-        const response = await (this as any).privateGetGetUserTradesByOrder (this.extend (request, params));
+        const response = await this.privateGetGetUserTradesByOrder (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -1583,7 +1585,7 @@ export default class btcex extends Exchange {
         return this.parseTrades (trades, undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a id argument');
         }
@@ -1606,7 +1608,7 @@ export default class btcex extends Exchange {
         if (since !== undefined) {
             request['start_timestamp'] = since;
         }
-        const response = await (this as any).privateGetGetUserTradesByInstrument (this.extend (request, params));
+        const response = await this.privateGetGetUserTradesByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -1684,14 +1686,14 @@ export default class btcex extends Exchange {
         const notionalString = Precise.stringMul (markPrice, size);
         const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         const marginType = this.safeString (position, 'margin_type');
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
@@ -1705,21 +1707,22 @@ export default class btcex extends Exchange {
             'marginRatio': this.parseNumber (riskLevel),
             'liquidationPrice': this.safeNumber (position, 'liquid_price'),
             'markPrice': this.parseNumber (markPrice),
+            'lastPrice': undefined,
             'collateral': this.parseNumber (collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
-    async fetchPosition (symbol, params = {}) {
+    async fetchPosition (symbol: string, params = {}) {
         await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await (this as any).privateGetGetPosition (this.extend (request, params));
+        const response = await this.privateGetGetPosition (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         //
         //     {
@@ -1766,7 +1769,7 @@ export default class btcex extends Exchange {
             'currency': 'PERPETUAL',
             // 'kind' : '', // option, future, spot, margin,perpetual The order kind
         };
-        const response = await (this as any).privateGetGetPositions (this.extend (request, params));
+        const response = await this.privateGetGetPositions (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         //
         //     {
@@ -1879,7 +1882,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires the code argument');
         }
@@ -1889,7 +1892,7 @@ export default class btcex extends Exchange {
         const request = {
             'coin_type': currency['id'],
         };
-        const response = await (this as any).privateGetGetDepositRecord (this.extend (request, params));
+        const response = await this.privateGetGetDepositRecord (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1914,7 +1917,7 @@ export default class btcex extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires the code argument');
         }
@@ -1925,7 +1928,7 @@ export default class btcex extends Exchange {
             'coin_type': currency['id'],
             // 'withdraw_id': 0,
         };
-        const response = await (this as any).privateGetGetWithdrawRecord (this.extend (request, params));
+        const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1949,7 +1952,7 @@ export default class btcex extends Exchange {
         return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
         }
@@ -1960,7 +1963,7 @@ export default class btcex extends Exchange {
             'coin_type': currency['id'],
             'withdraw_id': id,
         };
-        const response = await (this as any).privateGetGetWithdrawRecord (this.extend (request, params));
+        const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1986,7 +1989,7 @@ export default class btcex extends Exchange {
         return this.parseTransaction (record, currency);
     }
 
-    async fetchLeverage (symbol, params = {}) {
+    async fetchLeverage (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#fetchLeverage
@@ -2002,7 +2005,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await (this as any).privateGetGetPerpetualUserConfig (this.extend (request, params));
+        const response = await this.privateGetGetPerpetualUserConfig (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2021,7 +2024,7 @@ export default class btcex extends Exchange {
         return this.safeNumber (data, 'leverage');
     }
 
-    async fetchMarketLeverageTiers (symbol, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#fetchMarketLeverageTiers
@@ -2039,7 +2042,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await (this as any).publicGetGetPerpetualLeverageBracket (this.extend (request, params));
+        const response = await this.publicGetGetPerpetualLeverageBracket (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2063,7 +2066,7 @@ export default class btcex extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market) {
+    parseMarketLeverageTiers (info, market = undefined) {
         //
         //     [
         //         {
@@ -2105,7 +2108,7 @@ export default class btcex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetGetPerpetualLeverageBracketAll (params);
+        const response = await this.publicGetGetPerpetualLeverageBracketAll (params);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2197,7 +2200,7 @@ export default class btcex extends Exchange {
             'instrument_name': market['id'],
             'margin_type': marginMode,
         };
-        const result = await (this as any).privatePostAdjustPerpetualMarginType (this.extend (request, params));
+        const result = await this.privatePostAdjustPerpetualMarginType (this.extend (request, params));
         //
         //     {
         //         "id": "1674857919",
@@ -2239,7 +2242,7 @@ export default class btcex extends Exchange {
             'instrument_name': market['id'],
             'leverage': leverage,
         };
-        const response = await (this as any).privatePostAdjustPerpetualLeverage (this.extend (request, params));
+        const response = await this.privatePostAdjustPerpetualLeverage (this.extend (request, params));
         //
         //     {
         //         "id": "1674856410",
@@ -2265,7 +2268,7 @@ export default class btcex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).publicGetCoinGeckoContracts (params);
+        const response = await this.publicGetCoinGeckoContracts (params);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2317,7 +2320,7 @@ export default class btcex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#fetchFundingRate
@@ -2329,7 +2332,7 @@ export default class btcex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await (this as any).publicGetCoinGeckoContracts (params);
+        const response = await this.publicGetCoinGeckoContracts (params);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2423,7 +2426,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name btcex#transfer
@@ -2448,7 +2451,7 @@ export default class btcex extends Exchange {
             'from': fromId, // WALLET, SPOT, PERPETUAL
             'to': toId, // WALLET, SPOT, PERPETUAL
         };
-        const response = await (this as any).privatePostSubmitTransfer (this.extend (request, params));
+        const response = await this.privatePostSubmitTransfer (this.extend (request, params));
         //
         //     {
         //         "id": "1674937273",
@@ -2486,7 +2489,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    async fetchOpenInterest (symbol, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}) {
         /**
          * @method
          * @name btcex#fetchOpenInterest
@@ -2501,7 +2504,7 @@ export default class btcex extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        const response = await (this as any).publicGetCoinGeckoContracts (params);
+        const response = await this.publicGetCoinGeckoContracts (params);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2587,7 +2590,7 @@ export default class btcex extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -540,7 +540,7 @@ export default class lykke extends Exchange {
         const timestamp = this.safeInteger(orderbook, 'timestamp');
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }
-    parseTrade(trade, market) {
+    parseTrade(trade, market = undefined) {
         //
         //  public fetchTrades
         //

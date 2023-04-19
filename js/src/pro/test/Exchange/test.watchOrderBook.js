@@ -6,8 +6,7 @@
 
 'use strict';
 // ----------------------------------------------------------------------------
-import log from 'ololog';
-import testOrderBook from '../../../test/Exchange/test.orderbook.js';
+import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import errors from '../../../base/errors.js';
 /*  ------------------------------------------------------------------------ */
 export default async (exchange, symbol) => {
@@ -24,11 +23,11 @@ export default async (exchange, symbol) => {
         'alpaca', // requires auth
     ];
     if (skippedExchanges.includes(exchange.id)) {
-        log(exchange.id, method + '() test skipped');
+        console.log(exchange.id, method, '() test skipped');
         return;
     }
     if (!exchange.has[method]) {
-        log(exchange.id, 'does not support', method + '() method');
+        console.log(exchange.id, 'does not support', method, '() method');
         return;
     }
     let response = undefined;
@@ -37,7 +36,7 @@ export default async (exchange, symbol) => {
     while (now < ends) {
         try {
             response = await exchange[method](symbol);
-            testOrderBook(exchange, response, method, symbol);
+            testOrderBook(exchange, method, response, symbol);
         }
         catch (e) {
             if (!(e instanceof errors.NetworkError)) {

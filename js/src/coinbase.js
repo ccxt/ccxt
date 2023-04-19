@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/coinbase.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
 export default class coinbase extends Exchange {
     describe() {
@@ -1318,20 +1319,26 @@ export default class coinbase extends Exchange {
         //     {
         //         "trades": [
         //             {
-        //                 "trade_id": "10209805",
-        //                 "product_id": "BTC-USDT",
-        //                 "price": "19381.27",
-        //                 "size": "0.1",
-        //                 "time": "2023-01-13T20:35:41.865970Z",
+        //                 "trade_id": "518078013",
+        //                 "product_id": "BTC-USD",
+        //                 "price": "28208.1",
+        //                 "size": "0.00659179",
+        //                 "time": "2023-04-04T23:05:34.492746Z",
         //                 "side": "BUY",
         //                 "bid": "",
         //                 "ask": ""
         //             }
-        //         ]
+        //         ],
+        //         "best_bid": "28208.61",
+        //         "best_ask": "28208.62"
         //     }
         //
         const data = this.safeValue(response, 'trades', []);
-        return this.parseTicker(data[0], market);
+        const ticker = this.parseTicker(data[0], market);
+        return this.extend(ticker, {
+            'bid': this.safeNumber(response, 'best_bid'),
+            'ask': this.safeNumber(response, 'best_ask'),
+        });
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -2732,7 +2739,7 @@ export default class coinbase extends Exchange {
                 else {
                     auth = nonce + method + fullPath + payload;
                 }
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret));
+                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
                     'CB-ACCESS-SIGN': signature,

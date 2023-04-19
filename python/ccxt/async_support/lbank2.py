@@ -4,6 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -414,7 +418,7 @@ class lbank2(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -451,7 +455,7 @@ class lbank2(Exchange):
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -466,7 +470,7 @@ class lbank2(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -580,7 +584,7 @@ class lbank2(Exchange):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -644,7 +648,7 @@ class lbank2(Exchange):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -878,7 +882,7 @@ class lbank2(Exchange):
             'taker': self.safe_number(fee, 'takerCommission'),
         }
 
-    async def fetch_trading_fee(self, symbol, params={}):
+    async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
@@ -906,7 +910,7 @@ class lbank2(Exchange):
             result[symbol] = fee
         return result
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1115,7 +1119,7 @@ class lbank2(Exchange):
             'average': None,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1130,7 +1134,7 @@ class lbank2(Exchange):
         result = await getattr(self, method)(id, symbol, params)
         return result
 
-    async def fetch_order_supplement(self, id, symbol=None, params={}):
+    async def fetch_order_supplement(self, id: str, symbol: Optional[str] = None, params={}):
         await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -1164,7 +1168,7 @@ class lbank2(Exchange):
         result = self.safe_value(response, 'data', {})
         return self.parse_order(result)
 
-    async def fetch_order_default(self, id, symbol=None, params={}):
+    async def fetch_order_default(self, id: str, symbol: Optional[str] = None, params={}):
         # Id can be a list of ids delimited by a comma
         await self.load_markets()
         if symbol is None:
@@ -1206,7 +1210,7 @@ class lbank2(Exchange):
                 parsedOrders.append(parsedOrder)
             return parsedOrders
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1223,12 +1227,12 @@ class lbank2(Exchange):
         params = self.omit(params, 'start_date')
         request = {
             'symbol': market['id'],
-            # 'start_date': str Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            # 'end_date': str Finish time yyyy-mm-dd, the maximum is today, the default is today
+            # 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            # 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
             # 'The start': and end date of the query window is up to 2 days
-            # 'from': str Initial transaction number inquiring
-            # 'direct': str inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            # 'size': str Query the number of defaults to 100
+            # 'from' Initial transaction number inquiring
+            # 'direct' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            # 'size' Query the number of defaults to 100
         }
         if limit is not None:
             request['size'] = limit
@@ -1258,7 +1262,7 @@ class lbank2(Exchange):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1313,7 +1317,7 @@ class lbank2(Exchange):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1365,7 +1369,7 @@ class lbank2(Exchange):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1402,7 +1406,7 @@ class lbank2(Exchange):
         result = self.safe_value(response, 'data', {})
         return result
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
@@ -1445,7 +1449,7 @@ class lbank2(Exchange):
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         return network
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1460,7 +1464,7 @@ class lbank2(Exchange):
             method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
         return await getattr(self, method)(code, params)
 
-    async def fetch_deposit_address_default(self, code, params={}):
+    async def fetch_deposit_address_default(self, code: str, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1498,7 +1502,7 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    async def fetch_deposit_address_supplement(self, code, params={}):
+    async def fetch_deposit_address_supplement(self, code: str, params={}):
         # returns the address for whatever the default network is...
         await self.load_markets()
         currency = self.currency(code)
@@ -1537,7 +1541,7 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1693,7 +1697,7 @@ class lbank2(Exchange):
             'fee': fee,
         }
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1741,7 +1745,7 @@ class lbank2(Exchange):
         deposits = self.safe_value(data, 'depositOrders', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2144,7 +2148,7 @@ class lbank2(Exchange):
                 'timestamp': timestamp,
             }, query)))
             encoded = self.encode(auth)
-            hash = self.hash(encoded)
+            hash = self.hash(encoded, 'md5')
             uppercaseHash = hash.upper()
             sign = None
             if signatureMethod == 'RSA':
@@ -2157,9 +2161,9 @@ class lbank2(Exchange):
                         self.options['pem'] = pem
                 else:
                     pem = self.convert_secret_to_pem(self.encode(self.secret))
-                sign = self.rsa(uppercaseHash, pem)
+                sign = self.rsa(uppercaseHash, pem, 'sha256')
             elif signatureMethod == 'HmacSHA256':
-                sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret))
+                sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret), hashlib.sha256)
             query['sign'] = sign
             body = self.urlencode(self.keysort(query))
             headers = {

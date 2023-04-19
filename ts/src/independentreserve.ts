@@ -1,9 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -140,11 +142,11 @@ export default class independentreserve extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const baseCurrencies = await (this as any).publicGetGetValidPrimaryCurrencyCodes (params);
+        const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        const quoteCurrencies = await (this as any).publicGetGetValidSecondaryCurrencyCodes (params);
+        const quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes (params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        const limits = await (this as any).publicGetGetOrderMinimumVolumes (params);
+        const limits = await this.publicGetGetOrderMinimumVolumes (params);
         //
         //     {
         //         "Xbt": 0.0001,
@@ -238,11 +240,11 @@ export default class independentreserve extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetAccounts (params);
+        const response = await this.privatePostGetAccounts (params);
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOrderBook
@@ -258,7 +260,7 @@ export default class independentreserve extends Exchange {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         };
-        const response = await (this as any).publicGetGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (response, 'CreatedTimestampUtc'));
         return this.parseOrderBook (response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
@@ -311,7 +313,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchTicker
@@ -326,7 +328,7 @@ export default class independentreserve extends Exchange {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         };
-        const response = await (this as any).publicGetGetMarketSummary (this.extend (request, params));
+        const response = await this.publicGetGetMarketSummary (this.extend (request, params));
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -456,7 +458,7 @@ export default class independentreserve extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOrder
@@ -466,7 +468,7 @@ export default class independentreserve extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetOrderDetails (this.extend ({
+        const response = await this.privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
         }, params));
         let market = undefined;
@@ -476,7 +478,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOpenOrders
@@ -500,12 +502,12 @@ export default class independentreserve extends Exchange {
         }
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
-        const response = await (this as any).privatePostGetOpenOrders (this.extend (request, params));
+        const response = await this.privatePostGetOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchClosedOrders
@@ -529,12 +531,12 @@ export default class independentreserve extends Exchange {
         }
         request['pageIndex'] = 1;
         request['pageSize'] = limit;
-        const response = await (this as any).privatePostGetClosedOrders (this.extend (request, params));
+        const response = await this.privatePostGetClosedOrders (this.extend (request, params));
         const data = this.safeValue (response, 'Data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit = 50, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchMyTrades
@@ -554,7 +556,7 @@ export default class independentreserve extends Exchange {
             'pageIndex': pageIndex,
             'pageSize': limit,
         });
-        const response = await (this as any).privatePostGetTrades (this.extend (request, params));
+        const response = await this.privatePostGetTrades (this.extend (request, params));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -603,7 +605,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchTrades
@@ -621,7 +623,7 @@ export default class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
-        const response = await (this as any).publicGetGetRecentTrades (this.extend (request, params));
+        const response = await this.publicGetGetRecentTrades (this.extend (request, params));
         return this.parseTrades (response['Trades'], market, since, limit);
     }
 
@@ -634,7 +636,7 @@ export default class independentreserve extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGetBrokerageFees (params);
+        const response = await this.privatePostGetBrokerageFees (params);
         //
         //     [
         //         {
@@ -672,7 +674,7 @@ export default class independentreserve extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#createOrder
@@ -707,7 +709,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#cancelOrder
@@ -721,10 +723,10 @@ export default class independentreserve extends Exchange {
         const request = {
             'orderGuid': id,
         };
-        return await (this as any).privatePostCancelOrder (this.extend (request, params));
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -745,7 +747,7 @@ export default class independentreserve extends Exchange {
                 auth.push (key + '=' + value);
             }
             const message = auth.join (',');
-            const signature = this.hmac (this.encode (message), this.encode (this.secret));
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
             const query = this.ordered ({});
             query['apiKey'] = this.apiKey;
             query['nonce'] = nonce;

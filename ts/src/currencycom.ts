@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/currencycom.js';
 import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -299,7 +301,7 @@ export default class currencycom extends Exchange {
          * @param {object} params extra parameters specific to the currencycom api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetV2Time (params);
+        const response = await this.publicGetV2Time (params);
         //
         //     {
         //         "serverTime": 1590998366609
@@ -320,7 +322,7 @@ export default class currencycom extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await (this as any).privateGetV2Currencies (params);
+        const response = await this.privateGetV2Currencies (params);
         //
         //     [
         //         {
@@ -389,7 +391,7 @@ export default class currencycom extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetV2ExchangeInfo (params);
+        const response = await this.publicGetV2ExchangeInfo (params);
         //
         //     {
         //         timezone: "UTC",
@@ -576,7 +578,7 @@ export default class currencycom extends Exchange {
          * @param {object} params extra parameters specific to the currencycom api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
-        const response = await (this as any).privateGetV2Account (params);
+        const response = await this.privateGetV2Account (params);
         //
         //     {
         //         "makerCommission": "0.20",
@@ -634,7 +636,7 @@ export default class currencycom extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetV2Account (params);
+        const response = await this.privateGetV2Account (params);
         //
         //    {
         //        makerCommission: '0.20',
@@ -712,7 +714,7 @@ export default class currencycom extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetV2Account (params);
+        const response = await this.privateGetV2Account (params);
         //
         //     {
         //         "makerCommission": "0.20",
@@ -747,7 +749,7 @@ export default class currencycom extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchOrderBook
@@ -765,7 +767,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000, 5000
         }
-        const response = await (this as any).publicGetV2Depth (this.extend (request, params));
+        const response = await this.publicGetV2Depth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId":1590999849037,
@@ -865,7 +867,7 @@ export default class currencycom extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name currencycom#fetchTicker
@@ -879,7 +881,7 @@ export default class currencycom extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).publicGetV2Ticker24hr (this.extend (request, params));
+        const response = await this.publicGetV2Ticker24hr (this.extend (request, params));
         //
         //     {
         //         "symbol":"ETH/BTC",
@@ -913,7 +915,7 @@ export default class currencycom extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetV2Ticker24hr (params);
+        const response = await this.publicGetV2Ticker24hr (params);
         //
         //     [
         //         {
@@ -956,7 +958,7 @@ export default class currencycom extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchOHLCV
@@ -980,7 +982,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response = await (this as any).publicGetV2Klines (this.extend (request, params));
+        const response = await this.publicGetV2Klines (this.extend (request, params));
         //
         //     [
         //         [1590971040000,"0.02454","0.02456","0.02452","0.02456",249],
@@ -1069,7 +1071,7 @@ export default class currencycom extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchTrades
@@ -1092,7 +1094,7 @@ export default class currencycom extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await (this as any).publicGetV2AggTrades (this.extend (request, params));
+        const response = await this.publicGetV2AggTrades (this.extend (request, params));
         //
         // [
         //     {
@@ -1263,7 +1265,7 @@ export default class currencycom extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#createOrder
@@ -1315,7 +1317,7 @@ export default class currencycom extends Exchange {
                 }
             }
         }
-        const response = await (this as any).privatePostV2Order (this.extend (request, params));
+        const response = await this.privatePostV2Order (this.extend (request, params));
         //
         // limit
         //
@@ -1358,7 +1360,7 @@ export default class currencycom extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchOpenOrders
@@ -1381,7 +1383,7 @@ export default class currencycom extends Exchange {
             const fetchOpenOrdersRateLimit = this.parseToInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
-        const response = await (this as any).privateGetV2OpenOrders (this.extend (request, params));
+        const response = await this.privateGetV2OpenOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1404,7 +1406,7 @@ export default class currencycom extends Exchange {
         return this.parseOrders (response, market, since, limit, params);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#cancelOrder
@@ -1430,7 +1432,7 @@ export default class currencycom extends Exchange {
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
-        const response = await (this as any).privateDeleteV2Order (this.extend (request, params));
+        const response = await this.privateDeleteV2Order (this.extend (request, params));
         //
         //     {
         //         "symbol": "DOGE/USD",
@@ -1447,7 +1449,7 @@ export default class currencycom extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchMyTrades
@@ -1469,7 +1471,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetV2MyTrades (this.extend (request, params));
+        const response = await this.privateGetV2MyTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1491,7 +1493,7 @@ export default class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchDeposits
@@ -1505,7 +1507,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchWithdrawals
@@ -1519,7 +1521,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Withdrawals', code, since, limit, params);
     }
 
-    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchTransactions
@@ -1533,7 +1535,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Transactions', code, since, limit, params);
     }
 
-    async fetchTransactionsByMethod (method, code = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactionsByMethod (method, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -1546,7 +1548,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //    [
         //        {
@@ -1634,7 +1636,7 @@ export default class currencycom extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchLedger
@@ -1657,7 +1659,7 @@ export default class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetV2Ledger (this.extend (request, params));
+        const response = await this.privateGetV2Ledger (this.extend (request, params));
         // in the below example, first item expresses withdrawal/deposit type, second example expresses trade
         //
         // [
@@ -1739,7 +1741,7 @@ export default class currencycom extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchLeverage (symbol, params = {}) {
+    async fetchLeverage (symbol: string, params = {}) {
         /**
          * @method
          * @name currencycom#fetchLeverage
@@ -1753,7 +1755,7 @@ export default class currencycom extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).privateGetV2LeverageSettings (this.extend (request, params));
+        const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
         //
         // {
         //     "values": [ 1, 2, 5, 10, ],
@@ -1763,7 +1765,7 @@ export default class currencycom extends Exchange {
         return this.safeNumber (response, 'value');
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name currencycom#fetchDepositAddress
@@ -1777,7 +1779,7 @@ export default class currencycom extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await (this as any).privateGetV2DepositAddress (this.extend (request, params));
+        const response = await this.privateGetV2DepositAddress (this.extend (request, params));
         //
         //     { "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" }
         //
@@ -1797,7 +1799,7 @@ export default class currencycom extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (path === 'historicalTrades') {
             headers = {
@@ -1810,7 +1812,7 @@ export default class currencycom extends Exchange {
                 'timestamp': this.nonce (),
                 'recvWindow': this.options['recvWindow'],
             }, params));
-            const signature = this.hmac (this.encode (query), this.encode (this.secret));
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
@@ -1840,7 +1842,7 @@ export default class currencycom extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetV2TradingPositions (params);
+        const response = await this.privateGetV2TradingPositions (params);
         //
         // {
         //     "positions": [
@@ -1888,10 +1890,11 @@ export default class currencycom extends Exchange {
         const unrealizedProfit = this.safeNumber (position, 'upl');
         const marginCoeff = this.safeString (position, 'margin');
         const leverage = Precise.stringDiv ('1', marginCoeff);
-        return {
+        return this.safePosition ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
             'contracts': this.parseNumber (quantity),
             'contractSize': undefined,
             'entryPrice': entryPrice,
@@ -1904,6 +1907,7 @@ export default class currencycom extends Exchange {
             'marginMode': undefined,
             'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -1912,7 +1916,7 @@ export default class currencycom extends Exchange {
             'marginRatio': undefined,
             'info': position,
             'id': undefined,
-        };
+        });
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

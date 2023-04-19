@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bit2c.js';
 import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -204,7 +206,7 @@ export default class bit2c extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountBalanceV2 (params);
+        const response = await this.privateGetAccountBalanceV2 (params);
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -250,7 +252,7 @@ export default class bit2c extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOrderBook
@@ -265,7 +267,7 @@ export default class bit2c extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const orderbook = await (this as any).publicGetExchangesPairOrderbook (this.extend (request, params));
+        const orderbook = await this.publicGetExchangesPairOrderbook (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol);
     }
 
@@ -299,7 +301,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bit2c#fetchTicker
@@ -313,11 +315,11 @@ export default class bit2c extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetExchangesPairTicker (this.extend (request, params));
+        const response = await this.publicGetExchangesPairTicker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchTrades
@@ -363,7 +365,7 @@ export default class bit2c extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetAccountBalance (params);
+        const response = await this.privateGetAccountBalance (params);
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -403,7 +405,7 @@ export default class bit2c extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#createOrder
@@ -434,7 +436,7 @@ export default class bit2c extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#cancelOrder
@@ -447,10 +449,10 @@ export default class bit2c extends Exchange {
         const request = {
             'id': id,
         };
-        return await (this as any).privatePostOrderCancelOrder (this.extend (request, params));
+        return await this.privatePostOrderCancelOrder (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOpenOrders
@@ -469,14 +471,14 @@ export default class bit2c extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).privateGetOrderMyOrders (this.extend (request, params));
+        const response = await this.privateGetOrderMyOrders (this.extend (request, params));
         const orders = this.safeValue (response, market['id'], {});
         const asks = this.safeValue (orders, 'ask', []);
         const bids = this.safeValue (orders, 'bid', []);
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOrder
@@ -490,7 +492,7 @@ export default class bit2c extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).privateGetOrderGetById (this.extend (request, params));
+        const response = await this.privateGetOrderGetById (this.extend (request, params));
         //
         //         {
         //             "pair": "BtcNis",
@@ -623,7 +625,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchMyTrades
@@ -649,7 +651,7 @@ export default class bit2c extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await (this as any).privateGetOrderOrderHistory (this.extend (request, params));
+        const response = await this.privateGetOrderOrderHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -804,7 +806,7 @@ export default class bit2c extends Exchange {
         return code === 'NIS';
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name bit2c#fetchDepositAddress
@@ -821,7 +823,7 @@ export default class bit2c extends Exchange {
         const request = {
             'Coin': currency['id'],
         };
-        const response = await (this as any).privatePostFundsAddCoinFundsRequest (this.extend (request, params));
+        const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));
         //
         //     {
         //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
@@ -854,7 +856,7 @@ export default class bit2c extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             url += '.json';
@@ -872,7 +874,7 @@ export default class bit2c extends Exchange {
             } else {
                 body = auth;
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512, 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,

@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/huobi.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -366,7 +368,6 @@ export default class huobi extends Exchange {
                             'market/depth': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
-                            'market/detail/': 1,
                             'market/etp': 1, // Get real-time equity of leveraged ETP
                             // ETP
                             'v2/etp/reference': 1,
@@ -1301,7 +1302,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchTradingFee
@@ -1315,7 +1316,7 @@ export default class huobi extends Exchange {
         const request = {
             'symbols': market['id'], // trading symbols comma-separated
         };
-        const response = await (this as any).spotPrivateGetV2ReferenceTransactFeeRate (this.extend (request, params));
+        const response = await this.spotPrivateGetV2ReferenceTransactFeeRate (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1352,11 +1353,11 @@ export default class huobi extends Exchange {
         return result;
     }
 
-    async fetchTradingLimitsById (id, params = {}) {
+    async fetchTradingLimitsById (id: string, params = {}) {
         const request = {
             'symbol': id,
         };
-        const response = await (this as any).spotPublicGetV1CommonExchange (this.extend (request, params));
+        const response = await this.spotPublicGetV1CommonExchange (this.extend (request, params));
         //
         //     { status:   "ok",
         //         data: {                                  symbol: "aidocbtc",
@@ -1838,7 +1839,7 @@ export default class huobi extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchTicker
@@ -2069,7 +2070,7 @@ export default class huobi extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrderBook
@@ -2295,7 +2296,7 @@ export default class huobi extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrderTrades
@@ -2321,16 +2322,16 @@ export default class huobi extends Exchange {
         return await this[method] (id, symbol, since, limit, params);
     }
 
-    async fetchSpotOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchSpotOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order-id': id,
         };
-        const response = await (this as any).spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
+        const response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchMyTrades
@@ -2488,7 +2489,7 @@ export default class huobi extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name huobi#fetchTrades
@@ -2587,7 +2588,7 @@ export default class huobi extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOHLCV
@@ -2712,7 +2713,7 @@ export default class huobi extends Exchange {
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPrivateGetV1AccountAccounts (params);
+        const response = await this.spotPrivateGetV1AccountAccounts (params);
         //
         //     {
         //         "status":"ok",
@@ -2766,7 +2767,7 @@ export default class huobi extends Exchange {
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).spotPublicGetV2ReferenceCurrencies (params);
+        const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //
         //    {
         //        "code": 200,
@@ -3205,7 +3206,7 @@ export default class huobi extends Exchange {
         return result;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrder
@@ -3427,7 +3428,7 @@ export default class huobi extends Exchange {
         return account;
     }
 
-    async fetchSpotOrdersByStates (states, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchSpotOrdersByStates (states, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
             if (symbol === undefined) {
@@ -3495,15 +3496,15 @@ export default class huobi extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchSpotOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchSpotOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchSpotOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchClosedSpotOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedSpotOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchSpotOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchContractOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchContractOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
         }
@@ -3602,14 +3603,14 @@ export default class huobi extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedContractOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedContractOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = {
             'status': '5,6,7', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         };
         return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrders
@@ -3642,7 +3643,7 @@ export default class huobi extends Exchange {
         return await this[method] (symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchClosedOrders
@@ -3671,7 +3672,7 @@ export default class huobi extends Exchange {
         return await this[method] (symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOpenOrders
@@ -4104,7 +4105,7 @@ export default class huobi extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name huobi#createOrder
@@ -4135,7 +4136,7 @@ export default class huobi extends Exchange {
         return await this[method] (symbol, type, side, amount, price, query);
     }
 
-    async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createSpotOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
@@ -4175,7 +4176,8 @@ export default class huobi extends Exchange {
                 throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (orderType === 'market', orderType === 'limit-maker', params);
         if (postOnly) {
             orderType = 'limit-maker';
         }
@@ -4214,7 +4216,7 @@ export default class huobi extends Exchange {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
+        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
         //
         // spot
         //
@@ -4243,7 +4245,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createContractOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
         const offset = this.safeString (params, 'offset');
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
@@ -4283,7 +4285,7 @@ export default class huobi extends Exchange {
             //     optimal_5_ioc
             //     optimal_10_ioc
             //     optimal_20_ioc
-            //     opponent_fok // FOR order using the BBO price
+            //     opponent_fok // FOK order using the BBO price
             //     optimal_5_fok
             //     optimal_10_fok
             //     optimal_20_fok
@@ -4327,7 +4329,8 @@ export default class huobi extends Exchange {
             throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
         params = this.omit (params, [ 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price' ]);
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
         }
@@ -4377,7 +4380,7 @@ export default class huobi extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobi#cancelOrder
@@ -4714,7 +4717,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchDepositAddressesByNetwork
@@ -4728,7 +4731,7 @@ export default class huobi extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).spotPrivateGetV2AccountDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivateGetV2AccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         code: 200,
@@ -4747,7 +4750,7 @@ export default class huobi extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchDepositAddress
@@ -4764,13 +4767,13 @@ export default class huobi extends Exchange {
         return indexedAddresses[selectedNetworkCode];
     }
 
-    async fetchWithdrawAddresses (code, note = undefined, networkCode = undefined, params = {}) {
+    async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).spotPrivateGetV2AccountWithdrawAddress (this.extend (request, params));
+        const response = await this.spotPrivateGetV2AccountWithdrawAddress (this.extend (request, params));
         //
         //     {
         //         code: 200,
@@ -4799,7 +4802,7 @@ export default class huobi extends Exchange {
         return addresses;
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchDeposits
@@ -4829,7 +4832,7 @@ export default class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await (this as any).spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
+        const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         //
         //    {
         //         "status": "ok",
@@ -4859,7 +4862,7 @@ export default class huobi extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchWithdrawals
@@ -4889,7 +4892,7 @@ export default class huobi extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // max 100
         }
-        const response = await (this as any).spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
+        const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         //
         //    {
         //         "status": "ok",
@@ -5029,7 +5032,7 @@ export default class huobi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name huobi#withdraw
@@ -5080,7 +5083,7 @@ export default class huobi extends Exchange {
             amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
         }
         request['amount'] = amount;
-        const response = await (this as any).spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
+        const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
         //
         //     {
         //         "status": "ok",
@@ -5114,7 +5117,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name huobi#transfer
@@ -5214,7 +5217,7 @@ export default class huobi extends Exchange {
          * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by market symbol
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPrivateGetV1MarginLoanInfo (params);
+        const response = await this.spotPrivateGetV1MarginLoanInfo (params);
         //
         //    {
         //        "status": "ok",
@@ -5281,7 +5284,7 @@ export default class huobi extends Exchange {
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPrivateGetV1MarginLoanInfo (params);
+        const response = await this.spotPrivateGetV1MarginLoanInfo (params);
         // {
         //     "status": "ok",
         //     "data": [
@@ -5332,7 +5335,7 @@ export default class huobi extends Exchange {
         return rates;
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchFundingRateHistory
@@ -5444,7 +5447,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchFundingRate (symbol, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchFundingRate
@@ -5533,7 +5536,7 @@ export default class huobi extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchBorrowInterest
@@ -5660,7 +5663,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit (params, this.extractParams (path));
         if (typeof api === 'string') {
@@ -5687,7 +5690,7 @@ export default class huobi extends Exchange {
                 let auth = this.urlencode (sortedRequest);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
@@ -5745,7 +5748,7 @@ export default class huobi extends Exchange {
                 let auth = this.urlencode (request);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
                 auth += '&' + this.urlencode ({ 'Signature': signature });
                 url += '?' + auth;
                 if (method === 'POST') {
@@ -5796,7 +5799,7 @@ export default class huobi extends Exchange {
         }
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchFundingHistory
@@ -6046,7 +6049,7 @@ export default class huobi extends Exchange {
         const maintenanceMarginPercentage = Precise.stringDiv (adjustmentFactor, leverage);
         const maintenanceMargin = Precise.stringMul (maintenanceMarginPercentage, notional);
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -6061,6 +6064,7 @@ export default class huobi extends Exchange {
             'marginMode': marginMode,
             'notional': this.parseNumber (notional),
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (intialMarginPercentage),
@@ -6069,7 +6073,8 @@ export default class huobi extends Exchange {
             'marginRatio': this.parseNumber (marginRatio),
             'timestamp': undefined,
             'datetime': undefined,
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
@@ -6202,7 +6207,7 @@ export default class huobi extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    async fetchPosition (symbol, params = {}) {
+    async fetchPosition (symbol: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchPosition
@@ -6517,7 +6522,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchLedger
@@ -6551,7 +6556,7 @@ export default class huobi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 500
         }
-        const response = await (this as any).spotPrivateGetV2AccountLedger (this.extend (request, params));
+        const response = await this.spotPrivateGetV2AccountLedger (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -6598,7 +6603,7 @@ export default class huobi extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).contractPublicGetLinearSwapApiV1SwapAdjustfactor (params);
+        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (params);
         //
         //    {
         //        "status": "ok",
@@ -6632,7 +6637,7 @@ export default class huobi extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'contract_code');
     }
 
-    async fetchMarketLeverageTiers (symbol, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchMarketLeverageTiers
@@ -6650,7 +6655,7 @@ export default class huobi extends Exchange {
             }
             request['contract_code'] = market['id'];
         }
-        const response = await (this as any).contractPublicGetLinearSwapApiV1SwapAdjustfactor (this.extend (request, params));
+        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (this.extend (request, params));
         //
         //    {
         //        "status": "ok",
@@ -6719,7 +6724,7 @@ export default class huobi extends Exchange {
         return result;
     }
 
-    async fetchOpenInterestHistory (symbol, timeframe = '1h', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOpenInterestHistory
@@ -6838,7 +6843,7 @@ export default class huobi extends Exchange {
         return this.parseOpenInterests (tick, market, since, limit);
     }
 
-    async fetchOpenInterest (symbol, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}) {
         /**
          * @method
          * @name huobi#fetchOpenInterest
@@ -7011,7 +7016,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async borrowMargin (code, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobi#borrowMargin
@@ -7066,7 +7071,7 @@ export default class huobi extends Exchange {
         });
     }
 
-    async repayMargin (code, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name huobi#repayMargin
@@ -7091,7 +7096,7 @@ export default class huobi extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'accountId': accountId,
         };
-        const response = await (this as any).v2PrivatePostAccountRepayment (this.extend (request, params));
+        const response = await this.v2PrivatePostAccountRepayment (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -7146,7 +7151,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchSettlementHistory (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchSettlementHistory
@@ -7265,7 +7270,7 @@ export default class huobi extends Exchange {
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).spotPublicGetV2ReferenceCurrencies (params);
+        const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //
         //    {
         //        "code": 200,

@@ -1,40 +1,26 @@
 
-// ----------------------------------------------------------------------------
+import assert from 'assert';
+import testOHLCV from './base/test.ohlcv.js';
 
-import testOHLCV from './test.ohlcv.js';
-
-// ----------------------------------------------------------------------------
-
-export default async (exchange, symbol) => {
+async function testFetchOHLCV (exchange, symbol) {
     const method = 'fetchOHLCV';
-    const skippedExchanges = [
-        'btcalpha', // issue with 404 on a documented endpoint https://travis-ci.org/ccxt/ccxt/builds/643930431#L2213
-        'bitmex', // an issue with null values,to be resolved later
-        'cex',
-    ];
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
-        return;
+    const timeframeKeys = Object.keys (exchange.timeframes);
+    assert (timeframeKeys.length > 0, exchange.id + ' ' + method + ' - no timeframes found');
+    // prefer 1m timeframe if available, otherwise return the first one
+    let chosenTimeframeKey = '1m';
+    if (!exchange.inArray (chosenTimeframeKey, timeframeKeys)) {
+        chosenTimeframeKey = timeframeKeys[0];
     }
-    if (exchange.has[method]) {
-
-        const exchangeHasOneMinuteTimeframe = exchange.timeframes && ('1m' in exchange.timeframes)
-        const timeframe = exchangeHasOneMinuteTimeframe ? '1m' : Object.keys (exchange.timeframes || { '1d': '1d' })[0]
-        const limit = 10
-        const duration = exchange.parseTimeframe (timeframe)
-        const since = exchange.milliseconds () - duration * limit * 1000 - 1000
-
-        const ohlcvs = await exchange[method] (symbol, timeframe, since, limit)
-
-        const now = Date.now ()
-
-        for (let i = 0; i < ohlcvs.length; i++) {
-            const ohlcv = ohlcvs[i];
-            testOHLCV (exchange, ohlcv, symbol, now);
-        }
-        console.log (symbol, 'fetched', Object.keys (ohlcvs).length, 'OHLCVs');
-        return ohlcvs;
-    } else {
-        console.log (method + '() is not supported');
+    const limit = 10;
+    const duration = exchange.parseTimeframe (chosenTimeframeKey);
+    const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
+    const ohlcvs = await exchange.fetchOHLCV (symbol, chosenTimeframeKey, since, limit);
+    assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (ohlcvs));
+    const now = exchange.milliseconds ();
+    for (let i = 0; i < ohlcvs.length; i++) {
+        testOHLCV (exchange, method, ohlcvs[i], symbol, now);
     }
-};
+    // todo: sorted timestamps check
+}
+
+export default testFetchOHLCV;

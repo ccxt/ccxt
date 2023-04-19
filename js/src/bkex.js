@@ -5,9 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/bkex.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // ---------------------------------------------------------------------------
 export default class bkex extends Exchange {
     describe() {
@@ -1848,7 +1849,7 @@ export default class bkex extends Exchange {
         const data = this.safeValue(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
-    parseMarketLeverageTiers(info, market) {
+    parseMarketLeverageTiers(info, market = undefined) {
         //
         //     [
         //         {
@@ -1892,7 +1893,7 @@ export default class bkex extends Exchange {
         }
         if (signed) {
             this.checkRequiredCredentials();
-            const signature = this.hmac(this.encode(paramsSortedEncoded), this.encode(this.secret), 'sha256');
+            const signature = this.hmac(this.encode(paramsSortedEncoded), this.encode(this.secret), sha256);
             headers = {
                 'Cache-Control': 'no-cache',
                 'Content-type': 'application/x-www-form-urlencoded',

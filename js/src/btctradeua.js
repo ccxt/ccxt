@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btctradeua.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class btctradeua extends Exchange {
     describe() {
@@ -281,17 +282,28 @@ export default class btctradeua extends Exchange {
     convertMonthNameToString(cyrillic) {
         const months = {
             'Jan': '01',
+            'January': '01',
             'Feb': '02',
+            'February': '02',
             'Mar': '03',
+            'March': '03',
             'Apr': '04',
+            'April': '04',
             'May': '05',
             'Jun': '06',
+            'June': '06',
             'Jul': '07',
+            'July': '07',
             'Aug': '08',
+            'August': '08',
             'Sept': '09',
+            'September': '09',
             'Oct': '10',
+            'October': '10',
             'Nov': '11',
+            'November': '11',
             'Dec': '12',
+            'December': '12',
         };
         return this.safeString(months, cyrillic);
     }
@@ -517,7 +529,7 @@ export default class btctradeua extends Exchange {
             const auth = body + this.secret;
             headers = {
                 'public-key': this.apiKey,
-                'api-sign': this.hash(this.encode(auth), 'sha256'),
+                'api-sign': this.hash(this.encode(auth), sha256),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

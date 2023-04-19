@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/buda.js';
 import { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -187,7 +189,7 @@ export default class buda extends Exchange {
 
     async fetchCurrencyInfo (currency, currencies = undefined) {
         if (!currencies) {
-            const response = await (this as any).publicGetCurrencies ();
+            const response = await this.publicGetCurrencies ();
             //
             //     {
             //         "currencies":[
@@ -228,7 +230,7 @@ export default class buda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const marketsResponse = await (this as any).publicGetMarkets (params);
+        const marketsResponse = await this.publicGetMarkets (params);
         //
         //     {
         //         "markets": [
@@ -254,7 +256,7 @@ export default class buda extends Exchange {
         //     }
         //
         const markets = this.safeValue (marketsResponse, 'markets', []);
-        const currenciesResponse = await (this as any).publicGetCurrencies ();
+        const currenciesResponse = await this.publicGetCurrencies ();
         const currencies = this.safeValue (currenciesResponse, 'currencies');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -330,7 +332,7 @@ export default class buda extends Exchange {
          * @param {object} params extra parameters specific to the buda api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies ();
+        const response = await this.publicGetCurrencies ();
         //
         //     {
         //         "currencies":[
@@ -417,8 +419,8 @@ export default class buda extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const request = { 'currency': currency['id'] };
-            const withdrawResponse = await (this as any).publicGetCurrenciesCurrencyFeesWithdrawal (request);
-            const depositResponse = await (this as any).publicGetCurrenciesCurrencyFeesDeposit (request);
+            const withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
+            const depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
             withdrawFees[code] = this.parseTransactionFee (withdrawResponse['fee']);
             depositFees[code] = this.parseTransactionFee (depositResponse['fee']);
             info[code] = {
@@ -448,7 +450,7 @@ export default class buda extends Exchange {
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name buda#fetchTicker
@@ -462,7 +464,7 @@ export default class buda extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetMarketsMarketTicker (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketTicker (this.extend (request, params));
         //
         //     {
         //         "ticker":{
@@ -528,7 +530,7 @@ export default class buda extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchTrades
@@ -551,7 +553,7 @@ export default class buda extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // 50 max
         }
-        const response = await (this as any).publicGetMarketsMarketTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         //
         //     { trades: {      market_id:   "ETH-BTC",
         //                      timestamp:    null,
@@ -605,7 +607,7 @@ export default class buda extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOrderBook
@@ -620,12 +622,12 @@ export default class buda extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetMarketsMarketOrderBook (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketOrderBook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'order_book');
         return this.parseOrderBook (orderbook, market['symbol']);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOHLCV
@@ -648,7 +650,7 @@ export default class buda extends Exchange {
             'from': since / 1000,
             'to': this.seconds (),
         };
-        const response = await (this as any).publicGetTvHistory (this.extend (request, params));
+        const response = await this.publicGetTvHistory (this.extend (request, params));
         return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
@@ -676,11 +678,11 @@ export default class buda extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetBalances (params);
+        const response = await this.privateGetBalances (params);
         return this.parseBalance (response);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOrder
@@ -693,12 +695,12 @@ export default class buda extends Exchange {
         const request = {
             'id': parseInt (id),
         };
-        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOrders
@@ -718,12 +720,12 @@ export default class buda extends Exchange {
             'market': market['id'],
             'per': limit,
         };
-        const response = await (this as any).privateGetMarketsMarketOrders (this.extend (request, params));
+        const response = await this.privateGetMarketsMarketOrders (this.extend (request, params));
         const orders = this.safeValue (response, 'orders');
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchOpenOrders
@@ -740,7 +742,7 @@ export default class buda extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchClosedOrders
@@ -757,7 +759,7 @@ export default class buda extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name buda#createOrder
@@ -771,23 +773,23 @@ export default class buda extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        side = (side === 'buy') ? 'Bid' : 'Ask';
+        const requestSide = (side === 'buy') ? 'Bid' : 'Ask';
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
             'price_type': type,
-            'type': side,
+            'type': requestSide,
             'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {
             request['limit'] = this.priceToPrecision (symbol, price);
         }
-        const response = await (this as any).privatePostMarketsMarketOrders (this.extend (request, params));
+        const response = await this.privatePostMarketsMarketOrders (this.extend (request, params));
         const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name buda#cancelOrder
@@ -802,7 +804,7 @@ export default class buda extends Exchange {
             'id': parseInt (id),
             'state': 'canceling',
         };
-        const response = await (this as any).privatePutOrdersId (this.extend (request, params));
+        const response = await this.privatePutOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'order');
         return this.parseOrder (order);
     }
@@ -908,7 +910,7 @@ export default class buda extends Exchange {
         return this.safeValue (fiats, code, false);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name buda#fetchDepositAddress
@@ -925,7 +927,7 @@ export default class buda extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
+        const response = await this.privateGetCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
         const receiveAddresses = this.safeValue (response, 'receive_addresses');
         const addressPool = [];
         for (let i = 1; i < receiveAddresses.length; i++) {
@@ -950,7 +952,7 @@ export default class buda extends Exchange {
         };
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name buda#createDepositAddress
@@ -967,7 +969,7 @@ export default class buda extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
+        const response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend (request, params));
         const address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
         return {
             'currency': code,
@@ -1027,7 +1029,7 @@ export default class buda extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchDeposits
@@ -1047,12 +1049,12 @@ export default class buda extends Exchange {
             'currency': currency['id'],
             'per': limit,
         };
-        const response = await (this as any).privateGetCurrenciesCurrencyDeposits (this.extend (request, params));
+        const response = await this.privateGetCurrenciesCurrencyDeposits (this.extend (request, params));
         const deposits = this.safeValue (response, 'deposits');
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name buda#fetchWithdrawals
@@ -1072,12 +1074,12 @@ export default class buda extends Exchange {
             'currency': currency['id'],
             'per': limit,
         };
-        const response = await (this as any).privateGetCurrenciesCurrencyWithdrawals (this.extend (request, params));
+        const response = await this.privateGetCurrenciesCurrencyWithdrawals (this.extend (request, params));
         const withdrawals = this.safeValue (response, 'withdrawals');
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name buda#withdraw
@@ -1100,7 +1102,7 @@ export default class buda extends Exchange {
                 'target_address': address,
             },
         };
-        const response = await (this as any).privatePostCurrenciesCurrencyWithdrawals (this.extend (request, params));
+        const response = await this.privatePostCurrenciesCurrencyWithdrawals (this.extend (request, params));
         const withdrawal = this.safeValue (response, 'withdrawal');
         return this.parseTransaction (withdrawal);
     }
@@ -1109,7 +1111,7 @@ export default class buda extends Exchange {
         return this.microseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
@@ -1126,11 +1128,11 @@ export default class buda extends Exchange {
             const components = [ method, '/api/' + this.version + '/' + request ];
             if (body) {
                 const base64Body = this.stringToBase64 (body);
-                components.push (this.decode (base64Body));
+                components.push (base64Body);
             }
             components.push (nonce);
             const message = components.join (' ');
-            const signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha384');
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), sha384);
             headers = {
                 'X-SBTC-APIKEY': this.apiKey,
                 'X-SBTC-SIGNATURE': signature,

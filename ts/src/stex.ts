@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/stex.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, BadSymbol, DDoSProtection, InvalidOrder, AccountSuspended } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -308,7 +309,7 @@ export default class stex extends Exchange {
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     {
         //         "success":true,
@@ -392,7 +393,7 @@ export default class stex extends Exchange {
         const request = {
             'code': 'ALL',
         };
-        const response = await (this as any).publicGetCurrencyPairsListCode (this.extend (request, params));
+        const response = await this.publicGetCurrencyPairsListCode (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -497,7 +498,7 @@ export default class stex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name stex#fetchTicker
@@ -511,7 +512,7 @@ export default class stex extends Exchange {
         const request = {
             'currencyPairId': market['id'],
         };
-        const response = await (this as any).publicGetTickerCurrencyPairId (this.extend (request, params));
+        const response = await this.publicGetTickerCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -566,7 +567,7 @@ export default class stex extends Exchange {
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await (this as any).publicGetPing (params);
+        const response = await this.publicGetPing (params);
         //
         //     {
         //         "success": true,
@@ -585,7 +586,7 @@ export default class stex extends Exchange {
         return this.parse8601 (this.safeString (serverDatetime, 'date'));
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOrderBook
@@ -604,7 +605,7 @@ export default class stex extends Exchange {
             request['limit_bids'] = limit; // returns all if set to 0, default 100
             request['limit_asks'] = limit; // returns all if set to 0, default 100
         }
-        const response = await (this as any).publicGetOrderbookCurrencyPairId (this.extend (request, params));
+        const response = await this.publicGetOrderbookCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -707,7 +708,7 @@ export default class stex extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTicker (params);
+        const response = await this.publicGetTicker (params);
         //
         //     {
         //         "success":true,
@@ -778,7 +779,7 @@ export default class stex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOHLCV
@@ -814,7 +815,7 @@ export default class stex extends Exchange {
             request['timeStart'] = this.parseToInt (since / 1000);
             request['timeEnd'] = this.sum (request['timeStart'], timerange);
         }
-        const response = await (this as any).publicGetChartCurrencyPairIdCandlesType (this.extend (request, params));
+        const response = await this.publicGetChartCurrencyPairIdCandlesType (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -884,7 +885,7 @@ export default class stex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchTrades
@@ -912,7 +913,7 @@ export default class stex extends Exchange {
             request['sort'] = 'ASC'; // needed to make the from param work
             request['from'] = this.parseToInt (since / 1000);
         }
-        const response = await (this as any).publicGetTradesCurrencyPairId (this.extend (request, params));
+        const response = await this.publicGetTradesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -931,7 +932,7 @@ export default class stex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTradingFee (symbol, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}) {
         /**
          * @method
          * @name stex#fetchTradingFee
@@ -945,7 +946,7 @@ export default class stex extends Exchange {
         const request = {
             'currencyPairId': market['id'],
         };
-        const response = await (this as any).tradingGetFeesCurrencyPairId (this.extend (request, params));
+        const response = await this.tradingGetFeesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -992,7 +993,7 @@ export default class stex extends Exchange {
          */
         await this.loadMarkets ();
         // await this.loadAccounts ();
-        const response = await (this as any).profileGetWallets (params);
+        const response = await this.profileGetWallets (params);
         //
         //     {
         //         "success": true,
@@ -1169,7 +1170,7 @@ export default class stex extends Exchange {
         return this.safeOrder (result, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name stex#createOrder
@@ -1197,7 +1198,7 @@ export default class stex extends Exchange {
             'price': parseFloat (this.priceToPrecision (symbol, price)), // required
             // 'trigger_price': 123.45 // required for STOP_LIMIT_BUY or STOP_LIMIT_SELL
         };
-        const response = await (this as any).tradingPostOrdersCurrencyPairId (this.extend (request, params));
+        const response = await this.tradingPostOrdersCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1221,7 +1222,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOrder
@@ -1234,7 +1235,7 @@ export default class stex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).tradingGetOrderOrderId (this.extend (request, params));
+        const response = await this.tradingGetOrderOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1262,7 +1263,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchClosedOrder (id, symbol: string = undefined, params = {}) {
+    async fetchClosedOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchClosedOrder
@@ -1276,7 +1277,7 @@ export default class stex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).reportsGetOrdersOrderId (this.extend (request, params));
+        const response = await this.reportsGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1320,7 +1321,7 @@ export default class stex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOrderTrades
@@ -1336,7 +1337,7 @@ export default class stex extends Exchange {
         return order['trades'];
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOpenOrders
@@ -1362,7 +1363,7 @@ export default class stex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1388,7 +1389,7 @@ export default class stex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#cancelOrder
@@ -1402,7 +1403,7 @@ export default class stex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await (this as any).tradingDeleteOrderOrderId (this.extend (request, params));
+        const response = await this.tradingDeleteOrderOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1480,7 +1481,7 @@ export default class stex extends Exchange {
             request['currencyPairId'] = market['id'];
             method = 'tradingDeleteOrdersCurrencyPairId';
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1494,7 +1495,7 @@ export default class stex extends Exchange {
         return response;
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchMyTrades
@@ -1523,7 +1524,7 @@ export default class stex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).reportsGetTradesCurrencyPairId (this.extend (request, params));
+        const response = await this.reportsGetTradesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1544,7 +1545,7 @@ export default class stex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name stex#createDepositAddress
@@ -1562,7 +1563,7 @@ export default class stex extends Exchange {
             // The list of protocols can be obtained from the /public/currencies/{currencyId}
             // 'protocol_id': 10,
         };
-        const response = await (this as any).profilePostWalletsCurrencyId (this.extend (request, params));
+        const response = await this.profilePostWalletsCurrencyId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1627,7 +1628,7 @@ export default class stex extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name stex#fetchDepositAddress
@@ -1652,7 +1653,7 @@ export default class stex extends Exchange {
         const request = {
             'walletId': walletId,
         };
-        const response = await (this as any).profileGetWalletsWalletId (this.extend (request, params));
+        const response = await this.profileGetWalletsWalletId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1718,7 +1719,7 @@ export default class stex extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + api + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
@@ -1868,7 +1869,7 @@ export default class stex extends Exchange {
         };
     }
 
-    async fetchDeposit (id, code = undefined, params = {}) {
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchDeposit
@@ -1882,7 +1883,7 @@ export default class stex extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).profileGetDepositsId (this.extend (request, params));
+        const response = await this.profileGetDepositsId (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -1919,7 +1920,7 @@ export default class stex extends Exchange {
         return this.parseTransaction (data);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchDeposits
@@ -1943,7 +1944,7 @@ export default class stex extends Exchange {
         if (since !== undefined) {
             request['timeStart'] = since;
         }
-        const response = await (this as any).profileGetDeposits (this.extend (request, params));
+        const response = await this.profileGetDeposits (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1977,7 +1978,7 @@ export default class stex extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchWithdrawal
@@ -1991,7 +1992,7 @@ export default class stex extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await (this as any).profileGetWithdrawalsId (this.extend (request, params));
+        const response = await this.profileGetWithdrawalsId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2035,7 +2036,7 @@ export default class stex extends Exchange {
         return this.parseTransaction (data);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchWithdrawals
@@ -2059,7 +2060,7 @@ export default class stex extends Exchange {
         if (since !== undefined) {
             request['timeStart'] = since;
         }
-        const response = await (this as any).profileGetWithdrawals (this.extend (request, params));
+        const response = await this.profileGetWithdrawals (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2104,7 +2105,7 @@ export default class stex extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name stex#transfer
@@ -2136,7 +2137,7 @@ export default class stex extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' transfer() only allows transfers of referal to spot and between a walletId and funding');
         }
-        const response = await (this as any)[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //  profilePostReferralBonusTransferCurrencyId
         //     {
@@ -2340,7 +2341,7 @@ export default class stex extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name stex#withdraw
@@ -2373,7 +2374,7 @@ export default class stex extends Exchange {
             request['protocol_id'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).profilePostWithdraw (this.extend (request, params));
+        const response = await this.profilePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2490,7 +2491,7 @@ export default class stex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     {
         //         "success": true,

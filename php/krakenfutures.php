@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\krakenfutures as Exchange;
 
 class krakenfutures extends Exchange {
 
@@ -292,7 +293,7 @@ class krakenfutures extends Exchange {
             $symbol = $id;
             $split = explode('_', $id);
             $splitMarket = $this->safe_string($split, 1);
-            $baseId = str_replace('usd', '', $splitMarket);
+            $baseId = mb_substr($splitMarket, 0, strlen($splitMarket) - 3 - 0);
             $quoteId = 'usd'; // always USD
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
@@ -385,7 +386,7 @@ class krakenfutures extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * Fetches a list of open orders in a $market
          * @param {string} $symbol Unified $market $symbol
@@ -433,7 +434,7 @@ class krakenfutures extends Exchange {
         return $this->parse_order_book($response['orderBook'], $symbol, $timestamp);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         //
@@ -543,7 +544,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -612,7 +613,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * @descriptions Fetch a $history of filled trades that this account has made
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -778,7 +779,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @param {string} $symbol market $symbol
@@ -803,7 +804,7 @@ class krakenfutures extends Exchange {
         if (($type === 'stp' || $type === 'take_profit') && $stopPrice === null) {
             throw new ArgumentsRequired($this->id . ' createOrder requires $params->stopPrice when $type is ' . $type);
         }
-        if ($stopPrice !== null) {
+        if ($stopPrice !== null && $type !== 'take_profit') {
             $type = 'stp';
         } elseif ($postOnly) {
             $type = 'postOnly';
@@ -863,7 +864,7 @@ class krakenfutures extends Exchange {
         return $this->parse_order($sendStatus);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * Edit an open $order on the exchange
          * @param {string} $id $order $id
@@ -892,7 +893,7 @@ class krakenfutures extends Exchange {
         return array_merge(array( 'info' => $response ), $order);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * @param {string} $id Order $id
          * @param {string|null} $symbol Not used by Krakenfutures
@@ -910,7 +911,7 @@ class krakenfutures extends Exchange {
         return array_merge(array( 'info' => $response ), $order);
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * Cancels all orders on the exchange, including trigger orders
          * @param {str} $symbol Unified market $symbol
@@ -925,7 +926,7 @@ class krakenfutures extends Exchange {
         return $response;
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Gets all open $orders, including trigger $orders, for an account from the exchange api
          * @param {string} $symbol Unified $market $symbol
@@ -1319,7 +1320,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -1570,7 +1571,7 @@ class krakenfutures extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1610,7 +1611,7 @@ class krakenfutures extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * Fetches current contract trading positions
          * @param {[string]} $symbols List of unified $symbols
@@ -1640,7 +1641,7 @@ class krakenfutures extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
-    public function parse_positions($response, $symbols = null, $params = array ()) {
+    public function parse_positions($response, ?array $symbols = null, $params = array ()) {
         $result = array();
         $positions = $this->safe_value($response, 'openPositions');
         for ($i = 0; $i < count($positions); $i++) {
@@ -1706,7 +1707,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetInstruments ($params);
         //
@@ -1872,7 +1873,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out($code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array ()) {
         /**
          * transfer from futures wallet to spot wallet
          * @param {str} $code Unified currency $code
@@ -1883,7 +1884,7 @@ class krakenfutures extends Exchange {
         return $this->transfer($code, $amount, 'future', 'spot', $params);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfers currencies between sub-accounts
          * @param {string} $code Unified $currency $code
@@ -1967,7 +1968,11 @@ class krakenfutures extends Exchange {
         }
         $url = $this->urls['api'][$api] . $query;
         if ($api === 'private' || $access === 'private') {
-            $auth = $postData . '/api/' . $endpoint; // 1
+            $auth = $postData . '/api/';
+            if ($api !== 'private') {
+                $auth .= $api . '/';
+            }
+            $auth .= $endpoint; // 1
             $hash = $this->hash($this->encode($auth), 'sha256', 'binary'); // 2
             $secret = base64_decode($this->secret); // 3
             $signature = $this->hmac($hash, $secret, 'sha512', 'base64'); // 4-5

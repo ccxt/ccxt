@@ -2,9 +2,9 @@
 // @ts-nocheck
 // eslint-disable-next-line
 import { functions } from '../../../../ccxt.js';
-import { Precise } from '../../../base/Precise.js'
+import Precise from '../../../base/Precise.js'
 import assert from 'assert';
-const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS} = functions;
+const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
 // numberToString
 
@@ -35,6 +35,9 @@ assert (decimalToPrecision ('12.3456', TRUNCATE, 3, DECIMAL_PLACES) === '12.345'
 assert (decimalToPrecision ('12.3456', TRUNCATE, 2, DECIMAL_PLACES) === '12.34');
 assert (decimalToPrecision ('12.3456', TRUNCATE, 1, DECIMAL_PLACES) === '12.3');
 assert (decimalToPrecision ('12.3456', TRUNCATE, 0, DECIMAL_PLACES) === '12');
+// ['12.3456',    TRUNCATE,  -1, DECIMAL_PLACES,  '10'],   // not yet supported
+// ['123.456',    TRUNCATE,  -2, DECIMAL_PLACES,  '120'],  // not yet supported
+// ['123.456',    TRUNCATE,  -3, DECIMAL_PLACES,  '100'],  // not yet supported
 
 assert (decimalToPrecision ('0.0000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.0000001');
 assert (decimalToPrecision ('0.00000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.00000001');
@@ -93,6 +96,17 @@ assert (decimalToPrecision ('12.3456', ROUND, 3, DECIMAL_PLACES) === '12.346');
 assert (decimalToPrecision ('12.3456', ROUND, 2, DECIMAL_PLACES) === '12.35');
 assert (decimalToPrecision ('12.3456', ROUND, 1, DECIMAL_PLACES) === '12.3');
 assert (decimalToPrecision ('12.3456', ROUND, 0, DECIMAL_PLACES) === '12');
+
+// todo: 
+// ['9.999',     ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '9.999'],
+// ['9.999',     ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '10'],
+// ['9.999',     ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '10.00'],
+// ['99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '100.00'],
+// ['-99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO, '-100.00'],
+
+// ['12.3456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '10'],  // not yet supported
+// ['123.456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '120'],  // not yet supported
+// ['123.456',    ROUND,  -2, DECIMAL_PLACES,    NO_PADDING,  '100'],  // not yet supported
 
 // a problematic case in PHP
 assert (decimalToPrecision ('10000', ROUND, 6, DECIMAL_PLACES) === '10000');
@@ -368,3 +382,9 @@ assert (!Precise.stringLe ('3.1415', '-2'));
 assert (Precise.stringLe ('-3.1415', '-2'));
 assert (Precise.stringLe ('3.1415', '3.1415'));
 assert (Precise.stringLe ('3.1415', '3.14150000000000000000001'));
+
+// todo
+// $this->assertSame (0,   Exchange::sum ());
+// $this->assertSame (2,   Exchange::sum (2));
+// $this->assertSame (432, Exchange::sum (2, 30, 400));
+// $this->assertSame (439, Exchange::sum (2, null, [88], 30, '7', 400, null));

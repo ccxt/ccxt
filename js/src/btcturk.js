@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class btcturk extends Exchange {
     describe() {
@@ -769,7 +770,7 @@ export default class btcturk extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    parseOrder(order, market) {
+    parseOrder(order, market = undefined) {
         //
         // fetchOrders / fetchOpenOrders
         //     {
@@ -900,7 +901,7 @@ export default class btcturk extends Exchange {
             headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': this.hmac(this.encode(auth), secret, 'sha256', 'base64'),
+                'X-Signature': this.hmac(this.encode(auth), secret, sha256, 'base64'),
                 'Content-Type': 'application/json',
             };
         }

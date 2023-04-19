@@ -5,11 +5,12 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import { ROUND_UP, ROUND_DOWN } from './number.js';
+import { asFloat } from './type.js';
 import { NotSupported } from '../errors.js';
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
 const parseTimeframe = (timeframe) => {
-    const amount = timeframe.slice(0, -1);
+    const amount = asFloat(timeframe.slice(0, -1));
     const unit = timeframe.slice(-1);
     let scale = undefined;
     if (unit === 'y') {

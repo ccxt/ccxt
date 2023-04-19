@@ -4,6 +4,8 @@
 import zbRest from '../zb.js';
 import { ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,7 +35,7 @@ export default class zb extends zbRest {
         });
     }
 
-    async watchPublic (url, messageHash, symbol, method, limit = undefined, params = {}) {
+    async watchPublic (url, messageHash, symbol, method, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = market['spot'] ? 'spot' : 'contract';
@@ -68,7 +70,7 @@ export default class zb extends zbRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;
@@ -124,7 +126,7 @@ export default class zb extends zbRest {
         }, market);
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client: Client, message, subscription) {
         //
         // spot ticker
         //
@@ -178,7 +180,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -197,7 +199,7 @@ export default class zb extends zbRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message, subscription) {
+    handleOHLCV (client: Client, message, subscription) {
         //
         // snapshot update
         //    {
@@ -244,7 +246,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let messageHash = undefined;
@@ -262,7 +264,7 @@ export default class zb extends zbRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client: Client, message, subscription) {
         // contract trades
         // {
         //     "channel":"BTC_USDT.Trade",
@@ -329,7 +331,7 @@ export default class zb extends zbRest {
         client.resolve (array, channel);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         if (limit !== undefined) {
             if ((limit !== 5) && (limit !== 10)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, or 10');
@@ -384,7 +386,7 @@ export default class zb extends zbRest {
         }, market);
     }
 
-    handleOrderBook (client, message, subscription) {
+    handleOrderBook (client: Client, message, subscription) {
         // spot snapshot
         //
         //     {
@@ -474,7 +476,7 @@ export default class zb extends zbRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         // {
         //     channel: 'BTC_USDT.Depth',
@@ -508,7 +510,7 @@ export default class zb extends zbRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //
         //     {
@@ -579,7 +581,7 @@ export default class zb extends zbRest {
         return message;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         //
         // { errorCode: 10020, errorMsg: "action param can't be empty" }
         // { errorCode: 10015, errorMsg: '无效的签名(1002)' }

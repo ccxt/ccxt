@@ -80,7 +80,7 @@ class coinex extends \ccxt\async\coinex {
         return $requestId;
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //  spot
         //
@@ -238,7 +238,7 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function handle_balance($client, $message) {
+    public function handle_balance(Client $client, $message) {
         //
         //     {
         //         "method" => "asset.update",
@@ -274,7 +274,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($this->balance, $messageHash);
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "method" => "deals.update",
@@ -342,7 +342,7 @@ class coinex extends \ccxt\async\coinex {
         ), $market);
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         method => 'kline.update',
@@ -375,7 +375,7 @@ class coinex extends \ccxt\async\coinex {
         $client->resolve ($this->ohlcvs, $messageHash);
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
@@ -388,7 +388,7 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function watch_tickers($symbols = null, $params = array ()) {
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
@@ -423,7 +423,7 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
@@ -456,7 +456,7 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
@@ -498,14 +498,14 @@ class coinex extends \ccxt\async\coinex {
                 'params' => is_array($watchOrderBookSubscriptions) ? array_values($watchOrderBookSubscriptions) : array(),
             );
             $this->options['watchOrderBookSubscriptions'] = $watchOrderBookSubscriptions;
-            $subscriptionHash = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)));
+            $subscriptionHash = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)), 'sha256');
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $request));
             return $orderbook->limit ();
         }) ();
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -566,7 +566,7 @@ class coinex extends \ccxt\async\coinex {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         "method" => "depth.update",
@@ -620,38 +620,11 @@ class coinex extends \ccxt\async\coinex {
             $currentOrderBook['datetime'] = $this->iso8601($timestamp);
             $this->orderbooks[$symbol] = $currentOrderBook;
         }
-        // $this->check_order_book_checksum($this->orderbooks[$symbol]);
+        // $this->checkOrderBookChecksum ($this->orderbooks[$symbol]);
         $client->resolve ($this->orderbooks[$symbol], $messageHash);
     }
 
-    public function check_order_book_checksum($orderBook) {
-        $asks = $this->safe_value($orderBook, 'asks', array());
-        $bids = $this->safe_value($orderBook, 'bids', array());
-        $string = '';
-        $bidsLength = count($bids);
-        for ($i = 0; $i < $bidsLength; $i++) {
-            $bid = $bids[$i];
-            if ($i !== 0) {
-                $string .= ':';
-            }
-            $string .= $bid[0] . ':' . $bid[1];
-        }
-        $asksLength = count($asks);
-        for ($i = 0; $i < $asksLength; $i++) {
-            $ask = $asks[$i];
-            if ($bidsLength !== 0) {
-                $string .= ':';
-            }
-            $string .= $ask[0] . ':' . $ask[1];
-        }
-        $signedString = $this->hash($string, 'cr32', 'hex');
-        $checksum = $this->safe_string($orderBook, 'checksum');
-        if ($checksum !== $signedString) {
-            throw new ExchangeError($this->id . ' watchOrderBook () $checksum failed');
-        }
-    }
-
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -680,7 +653,7 @@ class coinex extends \ccxt\async\coinex {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         //  spot
         //
@@ -948,7 +921,7 @@ class coinex extends \ccxt\async\coinex {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($error));
@@ -970,7 +943,7 @@ class coinex extends \ccxt\async\coinex {
         return $this->handle_subscription_status($client, $message);
     }
 
-    public function handle_authentication_message($client, $message) {
+    public function handle_authentication_message(Client $client, $message) {
         //
         //     {
         //         error => null,
@@ -987,7 +960,7 @@ class coinex extends \ccxt\async\coinex {
         return $message;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         $id = $this->safe_string($message, 'id');
         $subscription = $this->safe_value($client->subscriptions, $id);
         if ($subscription !== null) {

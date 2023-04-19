@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcalpha.js';
 import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -150,7 +152,7 @@ export default class btcalpha extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetPairs (params);
+        const response = await this.publicGetPairs (params);
         //
         //    [
         //        {
@@ -240,7 +242,7 @@ export default class btcalpha extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTicker (params);
+        const response = await this.publicGetTicker (params);
         //
         //    [
         //        {
@@ -260,7 +262,7 @@ export default class btcalpha extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchTicker
@@ -275,7 +277,7 @@ export default class btcalpha extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
         //    {
         //        timestamp: '1674658.445272',
@@ -334,7 +336,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOrderBook
@@ -353,7 +355,7 @@ export default class btcalpha extends Exchange {
             request['limit_sell'] = limit;
             request['limit_buy'] = limit;
         }
-        const response = await (this as any).publicGetOrderbookPairName (this.extend (request, params));
+        const response = await this.publicGetOrderbookPairName (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol'], undefined, 'buy', 'sell', 'price', 'amount');
     }
 
@@ -418,7 +420,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchTrades
@@ -439,11 +441,11 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await (this as any).publicGetExchanges (this.extend (request, params));
+        const trades = await this.publicGetExchanges (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchDeposits
@@ -459,7 +461,7 @@ export default class btcalpha extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await (this as any).privateGetDeposits (params);
+        const response = await this.privateGetDeposits (params);
         //
         //     [
         //         {
@@ -473,7 +475,7 @@ export default class btcalpha extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchWithdrawals
@@ -491,7 +493,7 @@ export default class btcalpha extends Exchange {
             currency = this.currency (code);
             request['currency_id'] = currency['id'];
         }
-        const response = await (this as any).privateGetWithdraws (this.extend (request, params));
+        const response = await this.privateGetWithdraws (this.extend (request, params));
         //
         //     [
         //         {
@@ -583,7 +585,7 @@ export default class btcalpha extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOHLCV
@@ -607,7 +609,7 @@ export default class btcalpha extends Exchange {
         if (since !== undefined) {
             request['since'] = this.parseToInt (since / 1000);
         }
-        const response = await (this as any).publicGetChartsPairTypeChart (this.extend (request, params));
+        const response = await this.publicGetChartsPairTypeChart (this.extend (request, params));
         //
         //     [
         //         {"time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624},
@@ -641,7 +643,7 @@ export default class btcalpha extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetWallets (params);
+        const response = await this.privateGetWallets (params);
         return this.parseBalance (response);
     }
 
@@ -727,7 +729,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#createOrder
@@ -748,7 +750,7 @@ export default class btcalpha extends Exchange {
             'amount': amount,
             'price': this.priceToPrecision (symbol, price),
         };
-        const response = await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         if (!response['success']) {
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         }
@@ -760,7 +762,7 @@ export default class btcalpha extends Exchange {
         });
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#cancelOrder
@@ -773,11 +775,11 @@ export default class btcalpha extends Exchange {
         const request = {
             'order': id,
         };
-        const response = await (this as any).privatePostOrderCancel (this.extend (request, params));
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOrder
@@ -790,11 +792,11 @@ export default class btcalpha extends Exchange {
         const request = {
             'id': id,
         };
-        const order = await (this as any).privateGetOrderId (this.extend (request, params));
+        const order = await this.privateGetOrderId (this.extend (request, params));
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOrders
@@ -815,11 +817,11 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const orders = await (this as any).privateGetOrdersOwn (this.extend (request, params));
+        const orders = await this.privateGetOrdersOwn (this.extend (request, params));
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchOpenOrders
@@ -836,7 +838,7 @@ export default class btcalpha extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchClosedOrders
@@ -853,7 +855,7 @@ export default class btcalpha extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#fetchMyTrades
@@ -873,7 +875,7 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await (this as any).privateGetExchangesOwn (this.extend (request, params));
+        const trades = await this.privateGetExchangesOwn (this.extend (request, params));
         return this.parseTrades (trades, undefined, since, limit);
     }
 
@@ -881,7 +883,7 @@ export default class btcalpha extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.urlencode (this.keysort (this.omit (params, this.extractParams (path))));
         let url = this.urls['api']['rest'] + '/';
         if (path !== 'charts/{pair}/{type}/chart/') {
@@ -904,7 +906,7 @@ export default class btcalpha extends Exchange {
                 url += '?' + query;
             }
             headers['X-KEY'] = this.apiKey;
-            headers['X-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret));
+            headers['X-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             headers['X-NONCE'] = this.nonce ().toString ();
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -1,10 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
+import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -136,7 +138,7 @@ export default class btcturk extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetServerExchangeinfo (params);
+        const response = await this.publicGetServerExchangeinfo (params);
         //
         //    {
         //        "data": {
@@ -289,7 +291,7 @@ export default class btcturk extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetUsersBalances (params);
+        const response = await this.privateGetUsersBalances (params);
         //
         //     {
         //       "data": [
@@ -309,7 +311,7 @@ export default class btcturk extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOrderBook
@@ -324,7 +326,7 @@ export default class btcturk extends Exchange {
         const request = {
             'pairSymbol': market['id'],
         };
-        const response = await (this as any).publicGetOrderbook (this.extend (request, params));
+        const response = await this.publicGetOrderbook (this.extend (request, params));
         //     {
         //       "data": {
         //         "timestamp": 1618827901241,
@@ -401,12 +403,12 @@ export default class btcturk extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetTicker (params);
+        const response = await this.publicGetTicker (params);
         const tickers = this.safeValue (response, 'data');
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name btcturk#fetchTicker
@@ -483,7 +485,7 @@ export default class btcturk extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchTrades
@@ -503,7 +505,7 @@ export default class btcturk extends Exchange {
         if (limit !== undefined) {
             request['last'] = limit;
         }
-        const response = await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     {
         //       "data": [
@@ -546,7 +548,7 @@ export default class btcturk extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOHLCV
@@ -586,7 +588,7 @@ export default class btcturk extends Exchange {
                 request['from'] = this.parseToInt (until / 1000) - limitSeconds;
             }
         }
-        const response = await (this as any).graphGetKlinesHistory (this.extend (request, params));
+        const response = await this.graphGetKlinesHistory (this.extend (request, params));
         //
         //    {
         //        "s": "ok",
@@ -625,7 +627,7 @@ export default class btcturk extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
         const results = [];
         const timestamp = this.safeValue (ohlcvs, 't');
         const high = this.safeValue (ohlcvs, 'h');
@@ -649,7 +651,7 @@ export default class btcturk extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#createOrder
@@ -678,12 +680,12 @@ export default class btcturk extends Exchange {
         } else if (!('newClientOrderId' in params)) {
             request['newClientOrderId'] = this.uuid ();
         }
-        const response = await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#cancelOrder
@@ -696,10 +698,10 @@ export default class btcturk extends Exchange {
         const request = {
             'id': id,
         };
-        return await (this as any).privateDeleteOrder (this.extend (request, params));
+        return await this.privateDeleteOrder (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOpenOrders
@@ -717,14 +719,14 @@ export default class btcturk extends Exchange {
             market = this.market (symbol);
             request['pairSymbol'] = market['id'];
         }
-        const response = await (this as any).privateGetOpenOrders (this.extend (request, params));
+        const response = await this.privateGetOpenOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const bids = this.safeValue (data, 'bids', []);
         const asks = this.safeValue (data, 'asks', []);
         return this.parseOrders (this.arrayConcat (bids, asks), market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchOrders
@@ -747,7 +749,7 @@ export default class btcturk extends Exchange {
         if (since !== undefined) {
             request['startTime'] = Math.floor (since / 1000);
         }
-        const response = await (this as any).privateGetAllOrders (this.extend (request, params));
+        const response = await this.privateGetAllOrders (this.extend (request, params));
         // {
         //   "data": [
         //     {
@@ -782,7 +784,7 @@ export default class btcturk extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market) {
+    parseOrder (order, market = undefined) {
         //
         // fetchOrders / fetchOpenOrders
         //     {
@@ -849,7 +851,7 @@ export default class btcturk extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcturk#fetchMyTrades
@@ -865,7 +867,7 @@ export default class btcturk extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await (this as any).privateGetUsersTransactionsTrade ();
+        const response = await this.privateGetUsersTransactionsTrade ();
         //
         //     {
         //       "data": [
@@ -895,7 +897,7 @@ export default class btcturk extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
@@ -915,7 +917,7 @@ export default class btcturk extends Exchange {
             headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': this.hmac (this.encode (auth), secret, 'sha256', 'base64'),
+                'X-Signature': this.hmac (this.encode (auth), secret, sha256, 'base64'),
                 'Content-Type': 'application/json',
             };
         }
