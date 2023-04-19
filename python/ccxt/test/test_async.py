@@ -218,14 +218,7 @@ class testMainClass(baseMainTestClass):
         self.testFiles = {}
         properties = list(exchange.has.keys())
         properties.append('loadMarkets')
-        for i in range(0, len(properties)):
-            propertyName = properties[i]
-            await set_test_file(self, propertyName)
-        # errors tests
-        error_hierarchyKeys = list(errorsHierarchy.keys())
-        for i in range(0, len(error_hierarchyKeys)):
-            errorName = error_hierarchyKeys[i]
-            await set_test_error_file(self, errorName)
+        await set_test_files(self, properties)
 
     def expand_settings(self, exchange, symbol):
         exchangeId = exchange.id
@@ -275,10 +268,10 @@ class testMainClass(baseMainTestClass):
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 
-    def pad_end(self, message, size):
+    def add_padding(self, message, size):
         # has to be transpilable
         res = ''
-        missingSpace = size - len(message)
+        missingSpace = size - len(message) - 0  # - 0 is added just to trick transpile to treat the .length string for php
         if missingSpace > 0:
             for i in range(0, missingSpace):
                 res += ' '
@@ -299,11 +292,11 @@ class testMainClass(baseMainTestClass):
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
         if skipMessage:
             if self.info:
-                dump(self.ljust(skipMessage, 25), exchange.id, methodNameInTest)
+                dump(self.add_padding(skipMessage, 25), exchange.id, methodNameInTest)
             return
         argsStringified = '(' + ','.join(args) + ')'
         if self.info:
-            dump(self.ljust('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
+            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
             result = await call_method(self.testFiles, methodNameInTest, exchange, args)
@@ -360,7 +353,7 @@ class testMainClass(baseMainTestClass):
         # promises.append(testThrottle())
         await asyncio.gather(*promises)
         if self.info:
-            dump(self.ljust('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
+            dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
 
     async def load_exchange(self, exchange):
         markets = await exchange.load_markets()
@@ -650,7 +643,7 @@ class testMainClass(baseMainTestClass):
             raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
         else:
             if self.info:
-                dump(self.ljust('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
+                dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
     async def start_test(self, exchange, symbol):
         # we don't need to test aliases

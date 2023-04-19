@@ -5,10 +5,13 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 include_once 'vendor/autoload.php';
+use React\Async;
+use React\Promise;
 
 ini_set('memory_limit', '512M');
 define ('is_sync', stripos(__FILE__, '_async') === false);
-$filetered_args = array_map (function ($x) { return !stripos($x,'--');} , $argv);
+$filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
+$exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
 $exchangeSymbol = null; // this should be different than JS
 
 function snake_case ($methodName) {
@@ -26,12 +29,12 @@ class baseMainTestClass {
 }
 
 define('rootDir', __DIR__ . '/../../');
-define('envVars', []);
+define('envVars', $_ENV);
 define('ext', 'php');
 define('httpsAgent', null);
 
 function cli_argument_bool ($arg) {
-    return in_array($arg, $argv);
+    return in_array($arg, $GLOBALS['argv']);
 }
 
 function get_test_name($methodName) {
@@ -87,25 +90,27 @@ function set_exchange_prop ($exchange, $prop, $value) {
 }
 
 function init_exchange ($exchangeId, $args) {
-    $exchangeName = '\\ccxt\\' . (is_sync ? '' : 'async\\') . $id;
-    return new $exchangeId($args);
+    $exchangeClassString = '\\ccxt\\' . (is_sync ? '' : 'async\\') . $exchangeId;
+    return new $exchangeClassString($args);
 }
 
 function set_test_files ($holderClass, $properties) {
-    $skiped = ['test_throttle'];
-    foreach (glob(__DIR__ . '/' . (is_sync ? 'sync' : 'async') . '/test_*.php') as $filename) {
-        $basename = basename($filename);
-        if (!in_array($basename, $skiped)) {
-            include_once $filename;
+    return Async\async (function() use ($holderClass, $properties){
+        $skiped = ['test_throttle'];
+        foreach (glob(__DIR__ . '/' . (is_sync ? 'sync' : 'async') . '/test_*.php') as $filename) {
+            $basename = basename($filename);
+            if (!in_array($basename, $skiped)) {
+                include_once $filename;
+            }
         }
-    }
-    $allfuncs = get_defined_functions()['user'];
-    foreach ($allfuncs as $fName) {
-        if (stripos($fName, 'ccxt\\test_')!==false) {
-            $nameWithoutNs = str_replace('ccxt\\', '', $fName);
-            $holderClass->testFiles[$nameWithoutNs] = $fName;
+        $allfuncs = get_defined_functions()['user'];
+        foreach ($allfuncs as $fName) {
+            if (stripos($fName, 'ccxt\\test_')!==false) {
+                $nameWithoutNs = str_replace('ccxt\\', '', $fName);
+                $holderClass->testFiles[$nameWithoutNs] = $fName;
+            }
         }
-    }
+    })();
 }
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
@@ -117,8 +122,6 @@ function set_test_files ($holderClass, $properties) {
 use Exception; // a common import
 
 use ccxt\AuthenticationError;
-use React\Async;
-use React\Promise;
 
 class testMainClass extends baseMainTestClass {
 
@@ -149,16 +152,7 @@ class testMainClass extends baseMainTestClass {
             $this->testFiles = array();
             $properties = is_array($exchange->has) ? array_keys($exchange->has) : array();
             $properties[] = 'loadMarkets';
-            for ($i = 0; $i < count($properties); $i++) {
-                $propertyName = $properties[$i];
-                Async\await(set_test_file (this, $propertyName));
-            }
-            // errors tests
-            $error_hierarchyKeys = is_array(errorsHierarchy) ? array_keys(errorsHierarchy) : array();
-            for ($i = 0; $i < count($error_hierarchyKeys); $i++) {
-                $errorName = $error_hierarchyKeys[$i];
-                Async\await(set_test_error_file (this, $errorName));
-            }
+            Async\await(set_test_files ($this, $properties));
         }) ();
     }
 
@@ -220,10 +214,10 @@ class testMainClass extends baseMainTestClass {
         $this->checkedPublicTests = array();
     }
 
-    public function pad_end($message, $size) {
+    public function add_padding($message, $size) {
         // has to be transpilable
         $res = '';
-        $missingSpace = $size - count($message);
+        $missingSpace = $size - strlen($message) - 0; // - 0 is added just to trick transpile to treat the .length string for php
         if ($missingSpace > 0) {
             for ($i = 0; $i < $missingSpace; $i++) {
                 $res .= ' ';
@@ -250,13 +244,13 @@ class testMainClass extends baseMainTestClass {
             }
             if ($skipMessage) {
                 if ($this->info) {
-                    dump (str_pad(this, $skipMessage, 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest);
+                    dump ($this->add_padding($skipMessage, 25), $exchange->id, $methodNameInTest);
                 }
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
             if ($this->info) {
-                dump (str_pad(this, '[INFO:TESTING]', 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest, $argsStringified);
+                dump ($this->add_padding('[INFO:TESTING]', 25), $exchange->id, $methodNameInTest, $argsStringified);
             }
             $result = null;
             try {
@@ -326,7 +320,7 @@ class testMainClass extends baseMainTestClass {
             // $promises[] = testThrottle ();
             Async\await(Promise\all($promises));
             if ($this->info) {
-                dump (str_pad(this, '[INFO:PUBLIC_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+                dump ($this->add_padding('[INFO:PUBLIC_TESTS_DONE]', 25), $exchange->id);
             }
         }) ();
     }
@@ -665,7 +659,7 @@ class testMainClass extends baseMainTestClass {
                 throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
             } else {
                 if ($this->info) {
-                    dump (str_pad(this, '[INFO:PRIVATE_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+                    dump ($this->add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), $exchange->id);
                 }
             }
         }) ();
@@ -688,5 +682,5 @@ class testMainClass extends baseMainTestClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-$promise = (new testMainClass())->init($selected_exchange, $exchangeSymbol);
+$promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
 Async\await($promise);

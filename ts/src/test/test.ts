@@ -91,7 +91,7 @@ async function setTestFiles (holderClass, properties) {
         const filePathWoExt = __dirname + '/Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+            holderClass.testFiles[name] = await importTestFile (filePathWoExt);
         }
     }
     // errors tests
@@ -101,7 +101,7 @@ async function setTestFiles (holderClass, properties) {
         const filePathWoExt = __dirname + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+            holderClass.testFiles[name] = await importTestFile (filePathWoExt);
         }
     }
 }
@@ -196,10 +196,10 @@ export default class testMainClass extends baseMainTestClass {
         this.checkedPublicTests = {};
     }
 
-    padEnd (message, size) {
+    addPadding (message, size) {
         // has to be transpilable
         let res = '';
-        const missingSpace = size - message.length;
+        const missingSpace = size - message.length - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if (missingSpace > 0) {
             for (let i = 0; i < missingSpace; i++) {
                 res += ' ';
@@ -225,13 +225,13 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (skipMessage) {
             if (this.info) {
-                dump (this.padEnd (skipMessage, 25), exchange.id, methodNameInTest);
+                dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
             }
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
         if (this.info) {
-            dump (this.padEnd ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
         }
         let result = null;
         try {
@@ -297,7 +297,7 @@ export default class testMainClass extends baseMainTestClass {
         // promises.push (testThrottle ());
         await Promise.all (promises);
         if (this.info) {
-            dump (this.padEnd ('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
+            dump (this.addPadding ('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
         }
     }
 
@@ -630,7 +630,7 @@ export default class testMainClass extends baseMainTestClass {
             throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
             if (this.info) {
-                dump (this.padEnd ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
+                dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
             }
         }
     }
