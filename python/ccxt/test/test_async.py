@@ -219,17 +219,13 @@ class testMainClass(baseMainTestClass):
         properties = list(exchange.has.keys())
         properties.append('loadMarkets')
         for i in range(0, len(properties)):
-            property = properties[i]
-            filePath = test_file_path_without_extension(property)
-            if io_file_exists(filePath + '.' + ext):
-                self.testFiles[property] = await import_test_file(filePath)
+            propertyName = properties[i]
+            await set_test_file(self, propertyName)
         # errors tests
         error_hierarchyKeys = list(errorsHierarchy.keys())
         for i in range(0, len(error_hierarchyKeys)):
             errorName = error_hierarchyKeys[i]
-            filePath = error_test_file_path_without_extension(errorName)
-            if io_file_exists(filePath + '.' + ext):
-                self.testFiles[errorName] = await import_test_file(filePath)
+            await set_test_error_file(self, errorName)
 
     def expand_settings(self, exchange, symbol):
         exchangeId = exchange.id
@@ -361,7 +357,7 @@ class testMainClass(baseMainTestClass):
             testArgs = tests[testName]
             promises.append(self.test_safe(testName, exchange, testArgs, True))
         # todo - not yet ready in other langs too
-        # promises.append(test_throttle())
+        # promises.append(testThrottle())
         await asyncio.gather(*promises)
         if self.info:
             dump(self.ljust('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)

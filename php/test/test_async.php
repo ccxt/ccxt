@@ -11,20 +11,6 @@ define ('is_sync', stripos(__FILE__, '_async') === false);
 $filetered_args = array_map (function ($x) { return !stripos($x,'--');} , $argv);
 $exchangeSymbol = null; // this should be different than JS
 
-foreach (glob(__DIR__ . '/' . (is_sync ? 'sync' : 'async') . '/test_*.php') as $filename) {
-    $basename = basename($filename);
-    if (!in_array($basename, ['test_throttle.php'])) {
-        include_once $filename;
-    }
-}
-$allfuncs = get_defined_functions()['user'];
-$testFuncs = [];
-foreach ($allfuncs as $fName) {
-    if (stripos($fName, 'ccxt\\test_')!==false) {
-        $nameWithoutNs = str_replace('ccxt\\', '', $fName);
-        $testFuncs[$nameWithoutNs] = $fName;
-    }
-}
 function snake_case ($methodName) {
     return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
 }
@@ -105,19 +91,20 @@ function init_exchange ($exchangeId, $args) {
     return new $exchangeId($args);
 }
 
-function setTestFile (holderClass, name) {
-    const filePathWoExt = __dirname + '/Exchange/test.' + name;
-    if (ioFileExists (filePathWoExt + '.' + ext)) {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+function set_test_files ($holderClass) {
+    $skiped = ['test_throttle'];
+    foreach (glob(__DIR__ . '/' . (is_sync ? 'sync' : 'async') . '/test_*.php') as $filename) {
+        $basename = basename($filename);
+        if (!in_array($basename, $skiped)) {
+            include_once $filename;
+        }
     }
-}
-
-function setTestErrorFile (holderClass, name) {
-    const filePathWoExt = __dirname + '/base/errors/test.' + name;
-    if (ioFileExists (filePathWoExt + '.' + ext)) {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+    $allfuncs = get_defined_functions()['user'];
+    foreach ($allfuncs as $fName) {
+        if (stripos($fName, 'ccxt\\test_')!==false) {
+            $nameWithoutNs = str_replace('ccxt\\', '', $fName);
+            $holderClass->testFiles[$nameWithoutNs] = $fName;
+        }
     }
 }
 // *********************************
@@ -163,20 +150,14 @@ class testMainClass extends baseMainTestClass {
             $properties = is_array($exchange->has) ? array_keys($exchange->has) : array();
             $properties[] = 'loadMarkets';
             for ($i = 0; $i < count($properties); $i++) {
-                $property = $properties[$i];
-                $filePath = test_file_path_without_extension ($property);
-                if (io_file_exists ($filePath . '.' . ext)) {
-                    $this->testFiles[$property] = Async\await(import_test_file ($filePath));
-                }
+                $propertyName = $properties[$i];
+                Async\await(set_test_file (this, $propertyName));
             }
             // errors tests
             $error_hierarchyKeys = is_array(errorsHierarchy) ? array_keys(errorsHierarchy) : array();
             for ($i = 0; $i < count($error_hierarchyKeys); $i++) {
                 $errorName = $error_hierarchyKeys[$i];
-                $filePath = error_test_file_path_without_extension ($errorName);
-                if (io_file_exists ($filePath . '.' . ext)) {
-                    $this->testFiles[$errorName] = Async\await(import_test_file ($filePath));
-                }
+                Async\await(set_test_error_file (this, $errorName));
             }
         }) ();
     }
@@ -342,7 +323,7 @@ class testMainClass extends baseMainTestClass {
                 $promises[] = $this->test_safe($testName, $exchange, $testArgs, true);
             }
             // todo - not yet ready in other langs too
-            // $promises[] = test_throttle ();
+            // $promises[] = testThrottle ();
             Async\await(Promise\all($promises));
             if ($this->info) {
                 dump (str_pad(this, '[INFO:PUBLIC_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);

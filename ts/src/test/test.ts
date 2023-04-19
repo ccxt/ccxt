@@ -84,19 +84,25 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js')) as any)['default'];
 }
 
-async function setTestFile (holderClass, name) {
-    const filePathWoExt = __dirname + '/Exchange/test.' + name;
-    if (ioFileExists (filePathWoExt + '.' + ext)) {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+async function setTestFiles (holderClass) {
+    // exchange tests
+    for (let i = 0; i < properties.length; i++) {
+        const name = properties[i];
+        const filePathWoExt = __dirname + '/Exchange/test.' + name;
+        if (ioFileExists (filePathWoExt + '.' + ext)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+        }
     }
-}
-
-async function setTestErrorFile (holderClass, name) {
-    const filePathWoExt = __dirname + '/base/errors/test.' + name;
-    if (ioFileExists (filePathWoExt + '.' + ext)) {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+    // errors tests
+    const errorHierarchyKeys = Object.keys (errorsHierarchy);
+    for (let i = 0; i < errorHierarchyKeys.length; i++) {
+        const name = errorHierarchyKeys[i];
+        const filePathWoExt = __dirname + '/base/errors/test.' + name;
+        if (ioFileExists (filePathWoExt + '.' + ext)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            holderClass.testFiles[property] = await importTestFile (filePathWoExt);
+        }
     }
 }
 
@@ -129,16 +135,7 @@ export default class testMainClass extends baseMainTestClass {
         this.testFiles = {};
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
-        for (let i = 0; i < properties.length; i++) {
-            const propertyName = properties[i];
-            await setTestFile (this, propertyName);
-        }
-        // errors tests
-        const errorHierarchyKeys = Object.keys (errorsHierarchy);
-        for (let i = 0; i < errorHierarchyKeys.length; i++) {
-            const errorName = errorHierarchyKeys[i];
-            await setTestErrorFile (this, errorName);
-        }
+        await setTestFiles (this, propertyName);
     }
 
     expandSettings (exchange, symbol) {
