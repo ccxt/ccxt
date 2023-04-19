@@ -8,35 +8,30 @@ import { Agent } from 'https';
 import HttpsProxyAgent from 'https-proxy-agent'
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../ccxt.js';
-//
+
+// js specific codes //
 const __dirname = fileURLToPath (new URL ('.', import.meta.url));
 
-// ----------------------------------------------------------------------------
-const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
-const verbose = process.argv.includes ('--verbose') || false;
-const debug = process.argv.includes ('--debug') || false;
-const sandbox = process.argv.includes ('--sandbox') || false;
-const privateTest = process.argv.includes ('--private') || false;
-const privateOnly = process.argv.includes ('--privateOnly') || false;
-const info = process.argv.includes ('--info') || false;
-const ext = import.meta.url.split ('.')[1];
-// ----------------------------------------------------------------------------
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
 process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) });
 
-const enableRateLimit = true;
-const httpsAgent = new Agent ({
-    'ecdhCurve': 'auto',
-});
+const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
 
 import errorsHierarchy from '../base/errorHierarchy.js';
 const AuthenticationError = ccxt.AuthenticationError;
 
-// non-transpiled commons
+
+// non-transpiled part, but shared names among langs
+class baseMainTestClass {}
+
 const rootDir = __dirname + '/../../../';
 const envVars = process.env;
+const ext = import.meta.url.split ('.')[1];
+const httpsAgent = new Agent ({ 'ecdhCurve': 'auto' });
 
-class baseMainTestClass {}
+function cliArgumentBool (arg) {
+    return process.argv.includes (arg) || false;
+}
 
 function get_test_name (str) {
     return str;
@@ -55,12 +50,12 @@ function ioFileRead (path, decode = true) {
     return decode ? JSON.parse (content) : content;
 }
 
-function exceptionMessage (exc) {
-    return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 500);
-}
-
 async function callMethod (testFiles, methodName, exchange, args) {
     return await testFiles[methodName](exchange, ... args);
+}
+
+function exceptionMessage (exc) {
+    return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 500);
 }
 
 function addProxy (exchange, httpProxy) {
@@ -107,16 +102,17 @@ async function testThrottle () {
 export default class testMainClass extends baseMainTestClass {
 
     async init (exchangeId, symbol) {
-
+        //
+        this.info = cliArgumentBool ('--info');
         const symbolStr = symbol !== undefined ? symbol : 'all';
         console.log ('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
-
+        //
         const args = {
-            httpsAgent: httpsAgent,
-            verbose: verbose,
-            enableRateLimit: enableRateLimit,
-            debug: debug,
-            timeout: 20000,
+            'httpsAgent': httpsAgent,
+            'verbose': cliArgumentBool ('--verbose'),
+            'enableRateLimit': true,
+            'debug': cliArgumentBool ('--debug'),
+            'timeout': 20000,
         };
         const exchange = initExchange (exchangeId, args);
         await this.importFiles (exchange);
@@ -234,13 +230,13 @@ export default class testMainClass extends baseMainTestClass {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
         if (skipMessage) {
-            if (info) {
+            if (this.info) {
                 dump (this.padEnd (skipMessage, 25), exchange.id, methodNameInTest);
             }
             return;
         }
         const argsStringified = '(' + args.join (',') + ')';
-        if (info) {
+        if (this.info) {
             dump (this.padEnd ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
         }
         let result = null;
@@ -306,7 +302,7 @@ export default class testMainClass extends baseMainTestClass {
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
         await Promise.all (promises);
-        if (info) {
+        if (this.info) {
             dump (this.padEnd ('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
         }
     }
@@ -524,7 +520,7 @@ export default class testMainClass extends baseMainTestClass {
         if (swapSymbol !== undefined) {
             dump ('Selected SWAP SYMBOL:', swapSymbol);
         }
-        if (!privateOnly) {
+        if (!cliArgumentBool ('--privateOnly')) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 exchange.options['type'] = 'spot';
                 await this.runPublicTests (exchange, spotSymbol);
@@ -534,7 +530,7 @@ export default class testMainClass extends baseMainTestClass {
                 await this.runPublicTests (exchange, swapSymbol);
             }
         }
-        if (privateTest || privateOnly) {
+        if (cliArgumentBool ('--private') || cliArgumentBool ('--privateOnly')) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 exchange.options['defaultType'] = 'spot';
                 await this.runPrivateTests (exchange, spotSymbol);
@@ -639,7 +635,7 @@ export default class testMainClass extends baseMainTestClass {
         if (errors.length > 0) {
             throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
-            if (info) {
+            if (this.info) {
                 dump (this.padEnd ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
             }
         }
@@ -650,7 +646,7 @@ export default class testMainClass extends baseMainTestClass {
         if (exchange.alias) {
             return;
         }
-        if (sandbox || getExchangeProp (exchange, 'sandbox')) {
+        if (cliArgumentBool ('--sandbox') || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
         await this.loadExchange (exchange);

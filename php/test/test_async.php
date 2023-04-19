@@ -6,6 +6,54 @@ date_default_timezone_set('UTC');
 
 include_once 'vendor/autoload.php';
 
+ini_set('memory_limit', '512M');
+define ('is_sync', stripos(__FILE__, '_async') === false);
+$filetered_args = array_map (function ($x) { return !stripos($x,'--');} , $argv);
+$exchangeSymbol = null; // this should be different than JS
+
+foreach (glob(__DIR__ . '/' . (is_sync ? 'sync' : 'async') . '/test_*.php') as $filename) {
+    $basename = basename($filename);
+    if (!in_array($basename, ['test_throttle.php'])) {
+        include_once $filename;
+    }
+}
+$allfuncs = get_defined_functions()['user'];
+$testFuncs = [];
+foreach ($allfuncs as $fName) {
+    if (stripos($fName, 'ccxt\\test_')!==false) {
+        $nameWithoutNs = str_replace('ccxt\\', '', $fName);
+        $testFuncs[$nameWithoutNs] = $fName;
+    }
+}
+function snake_case ($methodName) {
+    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
+}
+//define('testFiles', $testFuncs);
+
+// non-transpiled part, but shared names among langs
+class baseMainTestClass {
+    public $testFiles = [];
+    public $skippedMethods = [];
+    public $checkedPublicTests = [];
+    public $publicTests = [];
+    public $info = false;
+}
+
+define('rootDir', __DIR__ . '/../../');
+define('envVars', []);
+define('ext', 'php');
+define('httpsAgent', null);
+
+function cli_argument_bool ($arg) {
+    return in_array($arg, $argv);
+}
+
+function get_test_name($methodName) {
+    $snake_cased = snake_case($methodName);
+    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
+    return 'test_' . $snake_cased;
+}
+
 function dump(...$s) {
     $args = array_map(function ($arg) {
         if (is_array($arg) || is_object($arg)) {
@@ -15,97 +63,6 @@ function dump(...$s) {
         }
     }, func_get_args());
     echo implode(' ', $args) . "\n";
-}
-
-ini_set('memory_limit', '512M');
-
-$exchanges = null;
-
-// $shortopts = '';
-// $longopts = array (
-//     "nonce::", // '::' means optional, ':' means required
-// );
-
-// $options = getopt ($shortopts, $longopts);
-// var_dump ($options);
-// exit ();
-
-# first we filter the args
-$verbose = in_array('--verbose', $argv);
-$args = $argv;
-
-$exchangeSymbol = $nonPrefixedArgs[3] ?? null;
-define ('exchangeSymbol', $nonPrefixedArgs[3] ?? null);
-define ('sandbox', in_array('--sandbox', $args));
-define ('privateTest', in_array('--private', $args));
-define ('privateOnly', in_array('--privateOnly', $args));
-define ('info', in_array('--info', $args));
-
-define ('is_sync', stripos(__FILE__, '_async') === false);
-
-//-----------------------------------------------------------------------------
-foreach (Exchange::$exchanges as $id) {
-    if (in_array($id, $args)) {
-        $exchangeName = '\\ccxt\\async\\' . $id;
-        $selected_exchange = new $exchangeName();
-                            // httpsAgent,
-                            // verbose,
-                            // enableRateLimit,
-                            // debug,
-                            // timeout,
-    }
-}
-
-if (!$selected_exchange) {
-    throw new \Exception('No exchange specified');
-}
-
-var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange->id, 'symbol'=> $exchangeSymbol || 'all' ], '\n');
-
-function snake_case ($methodName) {
-    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
-}
-function get_test_name($methodName) {
-    $snake_cased = snake_case($methodName);
-    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
-    return 'test_' . $snake_cased;
-}
-define('rootDir', __DIR__ . '/../../');
-
-if (is_sync) {
-    foreach (glob(__DIR__ . '/sync/test_*.php') as $filename) {
-        $basename = basename($filename);
-        if (!in_array($basename, ['test_throttle.php'])) {
-            include_once $filename;
-        }
-    }
-}
-
-if (!is_sync) {
-    foreach (glob(__DIR__ . '/async/test_*.php') as $filename) {
-        $basename = basename($filename);
-        if (!in_array($basename, ['test_throttle.php'])) {
-            include_once $filename;
-        }
-    }
-}
-
-$allfuncs = get_defined_functions()['user'];
-$testFuncs = [];
-foreach ($allfuncs as $fName) {
-    if (stripos($fName, 'ccxt\\test_')!==false) {
-        $nameWithoutNs = str_replace('ccxt\\', '', $fName);
-        $testFuncs[$nameWithoutNs] = $fName;
-    }
-}
-define('testFiles', $testFuncs);
-define('envVars', []);
-
-// non-transpiled commons
-class baseMainTestClass {
-    public $skippedMethods = [];
-    public $checkedPublicTests = [];
-    public $publicTests = [];
 }
 
 function io_file_exists($path) {
@@ -135,16 +92,30 @@ function exit_script() {
     exit(0);
 }
 
-function reqCredentials ($exchange) {
-    return $exchange->requiredCredenials;
-}
-
 function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
     return property_exists ($exchange, $prop) ? $exchange->{$prop} : $defaultValue;
 }
 
 function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{$prop} = $value;
+}
+
+function init_exchange ($exchangeId, $args) {
+    $exchangeName = '\\ccxt\\' . (is_sync ? '' : 'async\\') . $id;
+    return new $exchangeId($args);
+}
+
+function test_file_path_without_extension ($methodName) {
+    return __dirname + '/Exchange/test.' + $methodName;
+}
+
+function error_test_file_path_without_extension ($errorName) {
+    return  __dirname + '/base/errors/test.' + $errorName;
+}
+
+function import_test_file ($filePath) {
+    // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+    return (await import (pathToFileURL (filePath + '.js')) as any)['default'];
 }
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
@@ -161,10 +132,49 @@ use React\Promise;
 
 class testMainClass extends baseMainTestClass {
 
-    public function init($exchange, $symbol) {
-        return Async\async(function () use ($exchange, $symbol) {
+    public function init($exchangeId, $symbol) {
+        return Async\async(function () use ($exchangeId, $symbol) {
+            //
+            $this->info = cli_argument_bool ('--info');
+            $symbolStr = $symbol !== null ? $symbol : 'all';
+            var_dump ('\nTESTING ', ext, array( 'exchange' => $exchangeId, 'symbol' => $symbolStr ), '\n');
+            //
+            $args = array(
+                'httpsAgent' => httpsAgent,
+                'verbose' => cli_argument_bool ('--verbose'),
+                'enableRateLimit' => true,
+                'debug' => cli_argument_bool ('--debug'),
+                'timeout' => 20000,
+            );
+            $exchange = init_exchange ($exchangeId, $args);
+            Async\await($this->import_files($exchange));
             $this->expand_settings($exchange, $symbol);
             Async\await($this->start_test($exchange, $symbol));
+        }) ();
+    }
+
+    public function import_files($exchange) {
+        return Async\async(function () use ($exchange) {
+            // $exchange tests
+            $this->testFiles = array();
+            $properties = is_array($exchange->has) ? array_keys($exchange->has) : array();
+            $properties[] = 'loadMarkets';
+            for ($i = 0; $i < count($properties); $i++) {
+                $property = $properties[$i];
+                $filePath = test_file_path_without_extension ($property);
+                if (io_file_exists ($filePath . '.' . ext)) {
+                    $this->testFiles[$property] = Async\await(import_test_file ($filePath));
+                }
+            }
+            // errors tests
+            $error_hierarchyKeys = is_array(errorsHierarchy) ? array_keys(errorsHierarchy) : array();
+            for ($i = 0; $i < count($error_hierarchyKeys); $i++) {
+                $errorName = $error_hierarchyKeys[$i];
+                $filePath = error_test_file_path_without_extension ($errorName);
+                if (io_file_exists ($filePath . '.' . ext)) {
+                    $this->testFiles[$errorName] = Async\await(import_test_file ($filePath));
+                }
+            }
         }) ();
     }
 
@@ -199,7 +209,7 @@ class testMainClass extends baseMainTestClass {
         for ($i = 0; $i < count($objkeys); $i++) {
             $credential = $objkeys[$i];
             $isRequired = $reqCreds[$credential];
-            if ($isRequired && get_exchange_prop($exchange, $credential) === null) {
+            if ($isRequired && get_exchange_prop ($exchange, $credential) === null) {
                 $fullKey = $exchangeId . '_' . $credential;
                 $credentialEnvName = strtoupper($fullKey); // example => KRAKEN_APIKEY
                 $credentialValue = (is_array(envVars) && array_key_exists($credentialEnvName, envVars)) ? envVars[$credentialEnvName] : null;
@@ -215,11 +225,11 @@ class testMainClass extends baseMainTestClass {
         // others
         if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
             dump ('[SKIPPED] exchange', $exchangeId);
-            exit_script();
+            exit_script ();
         }
         if ($exchange->alias) {
             dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
-            exit_script();
+            exit_script ();
         }
         //
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
@@ -251,29 +261,29 @@ class testMainClass extends baseMainTestClass {
                 $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
             } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
                 $skipMessage = '[INFO:SKIPPED_TEST]';
-            } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
+            } elseif (!(is_array($this->testFiles) && array_key_exists($methodNameInTest, $this->testFiles))) {
                 $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
             }
             if ($skipMessage) {
-                if (info) {
+                if ($this->info) {
                     dump (str_pad(this, $skipMessage, 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest);
                 }
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
-            if (info) {
+            if ($this->info) {
                 dump (str_pad(this, '[INFO:TESTING]', 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest, $argsStringified);
             }
             $result = null;
             try {
-                $result = Async\await(call_method ($methodNameInTest, $exchange, $args));
+                $result = Async\await(call_method ($this->testFiles, $methodNameInTest, $exchange, $args));
                 if ($isPublic) {
                     $this->checkedPublicTests[$methodNameInTest] = true;
                 }
             } catch (Exception $e) {
                 $isAuthError = ($e instanceof AuthenticationError);
                 if (!($isPublic && $isAuthError)) {
-                    dump ('ERROR:', exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
+                    dump ('ERROR:', exception_message ($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;
                 }
             }
@@ -329,9 +339,9 @@ class testMainClass extends baseMainTestClass {
                 $promises[] = $this->test_safe($testName, $exchange, $testArgs, true);
             }
             // todo - not yet ready in other langs too
-            // $promises[] = test_throttle();
+            // $promises[] = test_throttle ();
             Async\await(Promise\all($promises));
-            if (info) {
+            if ($this->info) {
                 dump (str_pad(this, '[INFO:PUBLIC_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
             }
         }) ();
@@ -375,7 +385,7 @@ class testMainClass extends baseMainTestClass {
             $exchangeSpecificSymbols = $exchange->symbols;
             for ($i = 0; $i < count($exchangeSpecificSymbols); $i++) {
                 $symbol = $exchangeSpecificSymbols[$i];
-                if ($exchange->inArray($symbol, $symbols)) {
+                if ($exchange->in_array($symbol, $symbols)) {
                     $resultSymbols[] = $symbol;
                 }
             }
@@ -533,7 +543,7 @@ class testMainClass extends baseMainTestClass {
             $spotSymbol = null;
             $swapSymbol = null;
             if ($providedSymbol !== null) {
-                $market = $exchange->market($providedSymbol);
+                $market = $exchange->market ($providedSymbol);
                 if ($market['spot']) {
                     $spotSymbol = $providedSymbol;
                 } else {
@@ -553,7 +563,7 @@ class testMainClass extends baseMainTestClass {
             if ($swapSymbol !== null) {
                 dump ('Selected SWAP SYMBOL:', $swapSymbol);
             }
-            if (!privateOnly) {
+            if (!cli_argument_bool ('--privateOnly')) {
                 if ($exchange->has['spot'] && $spotSymbol !== null) {
                     $exchange->options['type'] = 'spot';
                     Async\await($this->run_public_tests($exchange, $spotSymbol));
@@ -563,7 +573,7 @@ class testMainClass extends baseMainTestClass {
                     Async\await($this->run_public_tests($exchange, $swapSymbol));
                 }
             }
-            if (privateTest || privateOnly) {
+            if (cli_argument_bool ('--private') || cli_argument_bool ('--privateOnly')) {
                 if ($exchange->has['spot'] && $spotSymbol !== null) {
                     $exchange->options['defaultType'] = 'spot';
                     Async\await($this->run_private_tests($exchange, $spotSymbol));
@@ -670,7 +680,7 @@ class testMainClass extends baseMainTestClass {
             if (strlen($errors) > 0) {
                 throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
             } else {
-                if (info) {
+                if ($this->info) {
                     dump (str_pad(this, '[INFO:PRIVATE_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
                 }
             }
@@ -683,7 +693,7 @@ class testMainClass extends baseMainTestClass {
             if ($exchange->alias) {
                 return;
             }
-            if (sandbox || get_exchange_prop ($exchange, 'sandbox')) {
+            if (cli_argument_bool ('--sandbox') || get_exchange_prop ($exchange, 'sandbox')) {
                 $exchange->set_sandbox_mode(true);
             }
             Async\await($this->load_exchange($exchange));
@@ -694,5 +704,5 @@ class testMainClass extends baseMainTestClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-$promise = (new testMainClass())->init($selected_exchange, $exchangeSymbol); // Async\coroutine(
-//Async\await($promise);
+$promise = (new testMainClass())->init($selected_exchange, $exchangeSymbol);
+Async\await($promise);
