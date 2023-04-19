@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class tokocrypto extends tokocrypto$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -668,8 +667,8 @@ class tokocrypto extends tokocrypto$1 {
             const symbol = base + '/' + quote;
             const filters = this.safeValue(market, 'filters', []);
             const filtersByType = this.indexBy(filters, 'filterType');
-            const status = this.safeString2(market, 'status', 'contractStatus');
-            let active = (status === 'TRADING');
+            const status = this.safeString(market, 'spotTradingEnable');
+            let active = (status === '1');
             const permissions = this.safeValue(market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
                 if (permissions[j] === 'TRD_GRP_003') {
@@ -1890,8 +1889,7 @@ class tokocrypto extends tokocrypto$1 {
         };
         const endTime = this.safeInteger2(params, 'until', 'endTime');
         if (since !== undefined) {
-            const startTime = parseInt(since);
-            request['startTime'] = startTime;
+            request['startTime'] = since;
         }
         if (endTime !== undefined) {
             request['endTime'] = endTime;

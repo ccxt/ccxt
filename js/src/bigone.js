@@ -11,7 +11,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bigone extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -436,7 +435,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const timestamp = this.safeInteger(data, 'timestamp');
+        const timestamp = this.safeInteger(data, 'Timestamp');
         return this.parseToInt(timestamp / 1000000);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -856,11 +855,11 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        side = (side === 'buy') ? 'BID' : 'ASK';
+        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
         const uppercaseType = type.toUpperCase();
         const request = {
             'asset_pair_name': market['id'],
-            'side': side,
+            'side': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
             // 'price': this.priceToPrecision (symbol, price), // order price, string, required
             'type': uppercaseType,
@@ -1129,7 +1128,7 @@ export default class bigone extends Exchange {
     }
     nonce() {
         const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
-        return this.microseconds() * 1000 + exchangeTimeCorrection;
+        return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));

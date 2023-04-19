@@ -61,7 +61,7 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function handle_ticker($client, $message, $subscription) {
+    public function handle_ticker(Client $client, $message, $subscription) {
         //
         //     array(
         //         0, // channelID
@@ -123,7 +123,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve ($result, $messageHash);
     }
 
-    public function handle_trades($client, $message, $subscription) {
+    public function handle_trades(Client $client, $message, $subscription) {
         //
         //     array(
         //         0, // channelID
@@ -154,7 +154,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function handle_ohlcv($client, $message, $subscription) {
+    public function handle_ohlcv(Client $client, $message, $subscription) {
         //
         //     array(
         //         216, // channelID
@@ -237,7 +237,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -249,7 +249,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -270,7 +270,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -295,7 +295,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -369,7 +369,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function handle_heartbeat($client, $message) {
+    public function handle_heartbeat(Client $client, $message) {
         //
         // every second (approx) if no other updates are sent
         //
@@ -379,7 +379,7 @@ class kraken extends \ccxt\async\kraken {
         $client->resolve ($message, $event);
     }
 
-    public function handle_order_book($client, $message, $subscription) {
+    public function handle_order_book(Client $client, $message, $subscription) {
         //
         // first $message (snapshot)
         //
@@ -545,7 +545,7 @@ class kraken extends \ccxt\async\kraken {
         return $timestamp;
     }
 
-    public function handle_system_status($client, $message) {
+    public function handle_system_status(Client $client, $message) {
         //
         // todo => answer the question whether handleSystemStatus should be renamed
         // and unified for any usage pattern that
@@ -585,7 +585,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_private($name, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_private($name, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($name, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
@@ -614,7 +614,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple trades made by the user
@@ -628,7 +628,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function handle_my_trades($client, $message, $subscription = null) {
+    public function handle_my_trades(Client $client, $message, $subscription = null) {
         //
         //     array(
         //         array(
@@ -778,7 +778,7 @@ class kraken extends \ccxt\async\kraken {
         );
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.kraken.com/websockets/#message-openOrders
@@ -793,7 +793,7 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
-    public function handle_orders($client, $message, $subscription = null) {
+    public function handle_orders(Client $client, $message, $subscription = null) {
         //
         //     array(
         //         array(
@@ -1046,7 +1046,7 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         // public
         //
@@ -1080,7 +1080,7 @@ class kraken extends \ccxt\async\kraken {
         // }
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         $errorMessage => 'Currency pair not in ISO 4217-A3 format foobar',
@@ -1110,7 +1110,7 @@ class kraken extends \ccxt\async\kraken {
         return true;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(Client $client, $message) {
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             $channelId = $this->safe_string($message, 0);
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());

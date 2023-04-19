@@ -10,7 +10,6 @@ import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, Auth
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bittrex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1405,7 +1404,7 @@ export default class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {
@@ -1490,7 +1489,7 @@ export default class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {

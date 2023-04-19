@@ -5,6 +5,9 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
@@ -81,7 +84,7 @@ class coinex(ccxt.async_support.coinex):
         self.options['requestId'] = requestId
         return requestId
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Client, message):
         #
         #  spot
         #
@@ -233,7 +236,7 @@ class coinex(ccxt.async_support.coinex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client, message):
+    def handle_balance(self, client: Client, message):
         #
         #     {
         #         "method": "asset.update",
@@ -267,7 +270,7 @@ class coinex(ccxt.async_support.coinex):
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "method": "deals.update",
@@ -331,7 +334,7 @@ class coinex(ccxt.async_support.coinex):
             'fee': None,
         }, market)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Client, message):
         #
         #     {
         #         method: 'kline.update',
@@ -361,7 +364,7 @@ class coinex(ccxt.async_support.coinex):
             self.ohlcvs.append(candle)
         client.resolve(self.ohlcvs, messageHash)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         """
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -371,7 +374,7 @@ class coinex(ccxt.async_support.coinex):
         """
         return await self.watch_tickers([symbol], params)
 
-    async def watch_tickers(self, symbols=None, params={}):
+    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -401,7 +404,7 @@ class coinex(ccxt.async_support.coinex):
             return self.filter_by_array(self.tickers, 'symbol', symbols)
         return await self.watch_tickers(symbols, params)
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
         see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
@@ -431,7 +434,7 @@ class coinex(ccxt.async_support.coinex):
         trades = await self.watch(url, messageHash, request, subscriptionHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
         see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
@@ -474,7 +477,7 @@ class coinex(ccxt.async_support.coinex):
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, request)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -526,7 +529,7 @@ class coinex(ccxt.async_support.coinex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Client, message):
         #
         #     {
         #         "method": "depth.update",
@@ -581,7 +584,7 @@ class coinex(ccxt.async_support.coinex):
         # self.checkOrderBookChecksum(self.orderbooks[symbol])
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         await self.authenticate(params)
         messageHash = 'orders'
@@ -605,7 +608,7 @@ class coinex(ccxt.async_support.coinex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message):
         #
         #  spot
         #
@@ -867,7 +870,7 @@ class coinex(ccxt.async_support.coinex):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         error = self.safe_value(message, 'error')
         if error is not None:
             raise ExchangeError(self.id + ' ' + self.json(error))
@@ -886,7 +889,7 @@ class coinex(ccxt.async_support.coinex):
             return handler(client, message)
         return self.handle_subscription_status(client, message)
 
-    def handle_authentication_message(self, client, message):
+    def handle_authentication_message(self, client: Client, message):
         #
         #     {
         #         error: null,
@@ -901,7 +904,7 @@ class coinex(ccxt.async_support.coinex):
             future.resolve(True)
         return message
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message):
         id = self.safe_string(message, 'id')
         subscription = self.safe_value(client.subscriptions, id)
         if subscription is not None:

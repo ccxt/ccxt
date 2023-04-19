@@ -6,7 +6,6 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class btcex extends btcex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -321,7 +320,9 @@ class btcex extends btcex$1 {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
-            'commonCurrencies': {},
+            'commonCurrencies': {
+                'ALT': 'ArchLoot',
+            },
         });
     }
     async fetchMarkets(params = {}) {
@@ -1676,14 +1677,14 @@ class btcex extends btcex$1 {
         const notionalString = Precise["default"].stringMul(markPrice, size);
         const unrealisedPnl = this.safeString(position, 'floating_profit_loss');
         const initialMarginString = this.safeString(position, 'initial_margin');
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealisedPnl, initialMarginString), '100');
         const marginType = this.safeString(position, 'margin_type');
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString)),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -1697,11 +1698,12 @@ class btcex extends btcex$1 {
             'marginRatio': this.parseNumber(riskLevel),
             'liquidationPrice': this.safeNumber(position, 'liquid_price'),
             'markPrice': this.parseNumber(markPrice),
+            'lastPrice': undefined,
             'collateral': this.parseNumber(collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchPosition(symbol, params = {}) {
         await this.signIn();

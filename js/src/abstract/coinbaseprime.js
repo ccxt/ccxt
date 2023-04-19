@@ -6,5 +6,6 @@
 
 // -------------------------------------------------------------------------------
 import _coinbasepro from '../coinbasepro.js';
-export default class coinbasepro extends _coinbasepro {
+class coinbasepro extends _coinbasepro {
 }
+export default coinbasepro;

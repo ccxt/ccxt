@@ -8,7 +8,6 @@ var browser = require('../static_dependencies/fflake/browser.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bittrex extends bittrex$1 {
     describe() {
         return this.deepExtend(super.describe(), {

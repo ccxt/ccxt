@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\bitfinex2 as Exchange;
 
 class bitfinex2 extends Exchange {
 
@@ -324,6 +325,9 @@ class bitfinex2 extends Exchange {
                     'margin' => 'margin',
                     'derivatives' => 'margin',
                     'future' => 'margin',
+                ),
+                'withdraw' => array(
+                    'includeFee' => false,
                 ),
             ),
             'exceptions' => array(
@@ -812,7 +816,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+    public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -957,7 +961,7 @@ class bitfinex2 extends Exchange {
         return $currencyId;
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
@@ -1069,7 +1073,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
@@ -1136,7 +1140,7 @@ class bitfinex2 extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -1235,7 +1239,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -1273,7 +1277,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_trades($trades, $market, null, $limit);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 100, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1443,7 +1447,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an $order on the exchange
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -1604,7 +1608,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open $orders
          * @param {string|null} $symbol unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
@@ -1619,7 +1623,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_orders($orders);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
@@ -1649,7 +1653,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_open_order($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open $order by it's $id
          * @param {string} $id $order $id
@@ -1668,7 +1672,7 @@ class bitfinex2 extends Exchange {
         return $order;
     }
 
-    public function fetch_closed_order($id, $symbol = null, $params = array ()) {
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open $order by it's $id
          * @param {string} $id $order $id
@@ -1687,7 +1691,7 @@ class bitfinex2 extends Exchange {
         return $order;
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string|null} $symbol unified $market $symbol
@@ -1748,7 +1752,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
@@ -1816,7 +1820,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
          * @param {string} $id order $id
@@ -1841,7 +1845,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
          * @param {string|null} $symbol unified $market $symbol
@@ -1871,7 +1875,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_deposit_address($code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
          * @param {string} $code unified currency $code of the currency for the deposit address
@@ -1885,7 +1889,7 @@ class bitfinex2 extends Exchange {
         return $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1946,10 +1950,14 @@ class bitfinex2 extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'SUCCESS' => 'ok',
+            'COMPLETED' => 'ok',
             'ERROR' => 'failed',
             'FAILURE' => 'failed',
             'CANCELED' => 'canceled',
-            'COMPLETED' => 'ok',
+            'PENDING APPROVAL' => 'pending',
+            'PENDING' => 'pending',
+            'PENDING REVIEW' => 'pending',
+            'PENDING CANCELLATION' => 'pending',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -2031,7 +2039,7 @@ class bitfinex2 extends Exchange {
                 $feeCost = Precise::string_abs($feeCost);
             }
             $amount = $this->safe_number($data, 5);
-            $id = $this->safe_value($data, 0);
+            $id = $this->safe_string($data, 0);
             $status = 'ok';
             if ($id === 0) {
                 $id = null;
@@ -2202,7 +2210,7 @@ class bitfinex2 extends Exchange {
         return $result;
     }
 
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
@@ -2258,7 +2266,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2278,7 +2286,7 @@ class bitfinex2 extends Exchange {
         $currencyNetwork = $this->safe_value($currencyNetworks, $network);
         $networkId = $this->safe_string($currencyNetwork, 'id');
         if ($networkId === null) {
-            throw new ArgumentsRequired($this->id . " fetchDepositAddress() could not find a $network for '" . $code . "'. You can specify it by providing the 'network' value inside $params");
+            throw new ArgumentsRequired($this->id . " withdraw() could not find a $network for '" . $code . "'. You can specify it by providing the 'network' value inside $params");
         }
         $wallet = $this->safe_string($params, 'wallet', 'exchange');  // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         $params = $this->omit($params, 'network', 'wallet');
@@ -2290,6 +2298,11 @@ class bitfinex2 extends Exchange {
         );
         if ($tag !== null) {
             $request['payment_id'] = $tag;
+        }
+        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $includeFee = $this->safe_value($withdrawOptions, 'includeFee', false);
+        if ($includeFee) {
+            $request['fee_deduct'] = 1;
         }
         $response = $this->privatePostAuthWWithdraw (array_merge($request, $params));
         //
@@ -2341,7 +2354,7 @@ class bitfinex2 extends Exchange {
         ));
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @param {[string]|null} $symbols list of unified market $symbols
@@ -2515,7 +2528,7 @@ class bitfinex2 extends Exchange {
         );
     }
 
-    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string|null} $code unified $currency $code, default is null

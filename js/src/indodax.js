@@ -10,7 +10,6 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, Orde
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class indodax extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

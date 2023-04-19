@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class currencycom extends currencycom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1854,10 +1853,11 @@ class currencycom extends currencycom$1 {
         const unrealizedProfit = this.safeNumber(position, 'upl');
         const marginCoeff = this.safeString(position, 'margin');
         const leverage = Precise["default"].stringDiv('1', marginCoeff);
-        return {
+        return this.safePosition({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
             'entryPrice': entryPrice,
@@ -1870,6 +1870,7 @@ class currencycom extends currencycom$1 {
             'marginMode': undefined,
             'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -1878,7 +1879,7 @@ class currencycom extends currencycom$1 {
             'marginRatio': undefined,
             'info': position,
             'id': undefined,
-        };
+        });
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((httpCode === 418) || (httpCode === 429)) {

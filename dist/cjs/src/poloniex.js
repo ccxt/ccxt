@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class poloniex extends poloniex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -244,36 +243,112 @@ class poloniex extends poloniex$1 {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'You may only place orders that reduce your position.': errors.InvalidOrder,
-                    'Invalid order number, or you are not the person who placed the order.': errors.OrderNotFound,
-                    'Permission denied': errors.PermissionDenied,
-                    'Permission denied.': errors.PermissionDenied,
-                    'Connection timed out. Please try again.': errors.RequestTimeout,
-                    'Internal error. Please try again.': errors.ExchangeNotAvailable,
-                    'Currently in maintenance mode.': errors.OnMaintenance,
-                    'Order not found, or you are not the person who placed it.': errors.OrderNotFound,
-                    'Invalid API key/secret pair.': errors.AuthenticationError,
-                    'Please do not make more than 8 API calls per second.': errors.RateLimitExceeded,
-                    'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.': errors.RateLimitExceeded,
-                    'Rate must be greater than zero.': errors.InvalidOrder,
-                    'Invalid currency pair.': errors.BadSymbol,
-                    'Invalid currencyPair parameter.': errors.BadSymbol,
-                    'Trading is disabled in this market.': errors.BadSymbol,
-                    'Invalid orderNumber parameter.': errors.OrderNotFound,
-                    'Order is beyond acceptable bounds.': errors.InvalidOrder,
-                    'This account is closed.': errors.AccountSuspended, // {"error":"This account is closed."}
+                    // General
+                    '500': errors.ExchangeNotAvailable,
+                    '603': errors.RequestTimeout,
+                    '601': errors.BadRequest,
+                    '415': errors.ExchangeError,
+                    '602': errors.ArgumentsRequired,
+                    // Accounts
+                    '21604': errors.BadRequest,
+                    '21600': errors.AuthenticationError,
+                    '21605': errors.AuthenticationError,
+                    '21102': errors.ExchangeError,
+                    '21100': errors.AuthenticationError,
+                    '21704': errors.AuthenticationError,
+                    '21700': errors.BadRequest,
+                    '21705': errors.BadRequest,
+                    '21707': errors.ExchangeError,
+                    '21708': errors.BadRequest,
+                    '21601': errors.AccountSuspended,
+                    '21711': errors.ExchangeError,
+                    '21709': errors.InsufficientFunds,
+                    '250000': errors.ExchangeError,
+                    '250001': errors.BadRequest,
+                    '250002': errors.BadRequest,
+                    '250003': errors.BadRequest,
+                    '250004': errors.BadRequest,
+                    '250005': errors.InsufficientFunds,
+                    '250008': errors.BadRequest,
+                    '250012': errors.ExchangeError,
+                    // Trading
+                    '21110': errors.BadRequest,
+                    '10040': errors.BadSymbol,
+                    '10060': errors.ExchangeError,
+                    '10020': errors.BadSymbol,
+                    '10041': errors.BadSymbol,
+                    '21340': errors.OnMaintenance,
+                    '21341': errors.InvalidOrder,
+                    '21342': errors.InvalidOrder,
+                    '21343': errors.InvalidOrder,
+                    '21351': errors.AccountSuspended,
+                    '21352': errors.BadSymbol,
+                    '21353': errors.PermissionDenied,
+                    '21354': errors.PermissionDenied,
+                    '24106': errors.BadRequest,
+                    '24201': errors.ExchangeNotAvailable,
+                    // Orders
+                    '21301': errors.OrderNotFound,
+                    '21302': errors.ExchangeError,
+                    '21304': errors.ExchangeError,
+                    '21305': errors.OrderNotFound,
+                    '21307': errors.ExchangeError,
+                    '21309': errors.InvalidOrder,
+                    '21310': errors.InvalidOrder,
+                    '21311': errors.InvalidOrder,
+                    '21312': errors.InvalidOrder,
+                    '21314': errors.InvalidOrder,
+                    '21315': errors.InvalidOrder,
+                    '21317': errors.InvalidOrder,
+                    '21319': errors.InvalidOrder,
+                    '21320': errors.InvalidOrder,
+                    '21321': errors.InvalidOrder,
+                    '21322': errors.InvalidOrder,
+                    '21324': errors.BadRequest,
+                    '21327': errors.InvalidOrder,
+                    '21328': errors.InvalidOrder,
+                    '21330': errors.InvalidOrder,
+                    '21335': errors.InvalidOrder,
+                    '21336': errors.InvalidOrder,
+                    '21337': errors.InvalidOrder,
+                    '21344': errors.InvalidOrder,
+                    '21345': errors.InvalidOrder,
+                    '21346': errors.InvalidOrder,
+                    '21348': errors.InvalidOrder,
+                    '21347': errors.InvalidOrder,
+                    '21349': errors.InvalidOrder,
+                    '21350': errors.InvalidOrder,
+                    '21355': errors.ExchangeError,
+                    '21356': errors.BadRequest,
+                    '24101': errors.BadSymbol,
+                    '24102': errors.InvalidOrder,
+                    '24103': errors.InvalidOrder,
+                    '24104': errors.InvalidOrder,
+                    '24105': errors.InvalidOrder,
+                    '25020': errors.InvalidOrder,
+                    // Smartorders
+                    '25000': errors.InvalidOrder,
+                    '25001': errors.InvalidOrder,
+                    '25002': errors.InvalidOrder,
+                    '25003': errors.ExchangeError,
+                    '25004': errors.InvalidOrder,
+                    '25005': errors.ExchangeError,
+                    '25006': errors.InvalidOrder,
+                    '25007': errors.InvalidOrder,
+                    '25008': errors.InvalidOrder,
+                    '25009': errors.ExchangeError,
+                    '25010': errors.PermissionDenied,
+                    '25011': errors.InvalidOrder,
+                    '25012': errors.ExchangeError,
+                    '25013': errors.OrderNotFound,
+                    '25014': errors.OrderNotFound,
+                    '25015': errors.OrderNotFound,
+                    '25016': errors.ExchangeError,
+                    '25017': errors.ExchangeError,
+                    '25018': errors.BadRequest,
+                    '25019': errors.BadSymbol, // Invalid symbol
                 },
-                'broad': {
-                    'Total must be at least': errors.InvalidOrder,
-                    'This account is frozen': errors.AccountSuspended,
-                    'This account is locked.': errors.AccountSuspended,
-                    'Not enough': errors.InsufficientFunds,
-                    'Nonce must be greater': errors.InvalidNonce,
-                    'You have already called cancelOrder': errors.CancelPending,
-                    'Amount must be at least': errors.InvalidOrder,
-                    'is either completed or does not exist': errors.OrderNotFound,
-                    'Error pulling ': errors.ExchangeError, // {"error":"Error pulling order book"}
-                },
+                'broad': {},
             },
         });
     }
@@ -712,7 +787,7 @@ class poloniex extends poloniex$1 {
         const marketId = this.safeString(trade, 'symbol');
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
-        const side = this.safeStringLower(trade, 'side');
+        const side = this.safeStringLower2(trade, 'side', 'takerSide');
         let fee = undefined;
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
@@ -801,7 +876,7 @@ class poloniex extends poloniex$1 {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const response = await this.privateGetTrades(this.extend(request, params));
         //
@@ -1547,42 +1622,27 @@ class poloniex extends poloniex$1 {
         const response = await this.privatePostAccountsTransfer(this.extend(request, params));
         //
         //    {
-        //        success: '1',
-        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
         return this.parseTransfer(response, currency);
     }
-    parseTransferStatus(status) {
-        const statuses = {
-            '1': 'ok',
-        };
-        return this.safeString(statuses, status, status);
-    }
     parseTransfer(transfer, currency = undefined) {
         //
         //    {
-        //        success: '1',
-        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
-        const message = this.safeString(transfer, 'message');
-        const words = message.split(' ');
-        const amount = this.safeNumber(words, 1);
-        const currencyId = this.safeString(words, 2);
-        const fromAccountId = this.safeString(words, 4);
-        const toAccountId = this.safeString(words, 6);
-        const accountsById = this.safeValue(this.options, 'accountsById', {});
         return {
             'info': transfer,
-            'id': undefined,
+            'id': this.safeString(transfer, 'transferId'),
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': this.safeCurrencyCode(currencyId, currency),
-            'amount': amount,
-            'fromAccount': this.safeString(accountsById, fromAccountId),
-            'toAccount': this.safeString(accountsById, toAccountId),
-            'status': this.parseOrderStatus(this.safeString(transfer, 'success', 'failed')),
+            'currency': this.safeString(currency, 'id'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1630,7 +1690,7 @@ class poloniex extends poloniex$1 {
         await this.loadMarkets();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds();
-        const start = (since !== undefined) ? parseInt((since / 1000).toString()) : now - 10 * year;
+        const start = (since !== undefined) ? this.parseToInt(since / 1000) : now - 10 * year;
         const request = {
             'start': start,
             'end': now, // UNIX timestamp, required
@@ -2034,11 +2094,17 @@ class poloniex extends poloniex$1 {
         if (response === undefined) {
             return;
         }
-        // {"error":"Permission denied."}
-        if ('error' in response) {
-            const message = response['error'];
+        //
+        //     {
+        //         "code" : 21709,
+        //         "message" : "Low available balance"
+        //     }
+        //
+        if ('code' in response) {
+            const code = response['code'];
+            const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }

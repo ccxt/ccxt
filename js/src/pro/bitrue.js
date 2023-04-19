@@ -9,7 +9,6 @@ import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ArgumentsRequired } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitrue extends bitrueRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -21,7 +20,7 @@ export default class bitrue extends bitrueRest {
                 'watchTrades': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {

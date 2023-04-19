@@ -7,7 +7,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class probit extends probit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -15,6 +14,7 @@ class probit extends probit$1 {
             'name': 'ProBit',
             'countries': ['SC', 'KR'],
             'rateLimit': 50,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -1052,21 +1052,21 @@ class probit extends probit$1 {
     parseOrder(order, market = undefined) {
         //
         //     {
-        //         id: string,
-        //         user_id: string,
-        //         market_id: string,
+        //         id,
+        //         user_id,
+        //         market_id,
         //         type: 'orderType',
         //         side: 'side',
-        //         quantity: string,
-        //         limit_price: string,
+        //         quantity,
+        //         limit_price,
         //         time_in_force: 'timeInForce',
-        //         filled_cost: string,
-        //         filled_quantity: string,
-        //         open_quantity: string,
-        //         cancelled_quantity: string,
+        //         filled_cost,
+        //         filled_quantity,
+        //         open_quantity,
+        //         cancelled_quantity,
         //         status: 'orderStatus',
         //         time: 'date',
-        //         client_order_id: string,
+        //         client_order_id,
         //     }
         //
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
@@ -1180,21 +1180,21 @@ class probit extends probit$1 {
         //
         //     {
         //         data: {
-        //             id: string,
-        //             user_id: string,
-        //             market_id: string,
+        //             id,
+        //             user_id,
+        //             market_id,
         //             type: 'orderType',
         //             side: 'side',
-        //             quantity: string,
-        //             limit_price: string,
+        //             quantity,
+        //             limit_price,
         //             time_in_force: 'timeInForce',
-        //             filled_cost: string,
-        //             filled_quantity: string,
-        //             open_quantity: string,
-        //             cancelled_quantity: string,
+        //             filled_cost,
+        //             filled_quantity,
+        //             open_quantity,
+        //             cancelled_quantity,
         //             status: 'orderStatus',
         //             time: 'date',
-        //             client_order_id: string,
+        //             client_order_id,
         //         }
         //     }
         //

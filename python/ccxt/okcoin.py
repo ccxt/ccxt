@@ -5,6 +5,9 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1156,7 +1159,7 @@ class okcoin(Exchange):
                 }
             return result
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1249,7 +1252,7 @@ class okcoin(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1280,7 +1283,7 @@ class okcoin(Exchange):
         #
         return self.parse_ticker(response)
 
-    def fetch_tickers_by_type(self, type, symbols=None, params={}):
+    def fetch_tickers_by_type(self, type, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         method = type + 'GetInstrumentsTicker'
@@ -1292,7 +1295,7 @@ class okcoin(Exchange):
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1410,7 +1413,7 @@ class okcoin(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1511,7 +1514,7 @@ class okcoin(Exchange):
                 self.safe_number(ohlcv, 'volume'),  # Base Volume
             ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1893,7 +1896,7 @@ class okcoin(Exchange):
             return self.parse_swap_balance(response)
         raise NotSupported(self.id + " fetchBalance does not support the '" + type + "' type(the type must be one of 'account', 'spot', 'futures', 'swap')")
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1974,7 +1977,7 @@ class okcoin(Exchange):
             'side': side,
         })
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2189,7 +2192,7 @@ class okcoin(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2266,7 +2269,7 @@ class okcoin(Exchange):
         #
         return self.parse_order(response)
 
-    def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders_by_state(self, state, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrdersByState() requires a symbol argument')
         self.load_markets()
@@ -2374,7 +2377,7 @@ class okcoin(Exchange):
                     orders = response[0]
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -2394,7 +2397,7 @@ class okcoin(Exchange):
         #  '7': complete（cancelled+fully filled),
         return self.fetch_orders_by_state('6', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2438,7 +2441,7 @@ class okcoin(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2466,7 +2469,7 @@ class okcoin(Exchange):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
         return address
 
-    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -2540,7 +2543,7 @@ class okcoin(Exchange):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2586,7 +2589,7 @@ class okcoin(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -2606,7 +2609,7 @@ class okcoin(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -2883,7 +2886,7 @@ class okcoin(Exchange):
             'fees': fees,
         }, market)
 
-    def parse_my_trades(self, trades, market=None, since=None, limit=None, params={}):
+    def parse_my_trades(self, trades, market=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         grouped = self.group_by(trades, 'trade_id')
         tradeIds = list(grouped.keys())
         result = []
@@ -2898,7 +2901,7 @@ class okcoin(Exchange):
         market = self.safe_market(None, market)
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -3001,7 +3004,7 @@ class okcoin(Exchange):
         #
         return self.parse_my_trades(response, market, since, limit, params)
 
-    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -3020,7 +3023,7 @@ class okcoin(Exchange):
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def fetch_position(self, symbol, params={}):
+    def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
         :param str symbol: unified market symbol of the market the position is held in, default is None
@@ -3225,7 +3228,7 @@ class okcoin(Exchange):
         # todo unify parsePosition/parsePositions
         return response
 
-    def fetch_positions(self, symbols=None, params={}):
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: not used by okcoin fetchPositions
@@ -3297,7 +3300,7 @@ class okcoin(Exchange):
         # todo unify parsePosition/parsePositions
         return response
 
-    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None

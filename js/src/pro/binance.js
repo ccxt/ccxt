@@ -10,7 +10,6 @@ import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 // -----------------------------------------------------------------------------
-// @ts-expect-error
 export default class binance extends binanceRest {
     describe() {
         return this.deepExtend(super.describe(), {

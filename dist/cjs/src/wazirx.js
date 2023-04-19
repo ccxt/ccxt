@@ -6,7 +6,6 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// @ts-expect-error
 class wazirx extends wazirx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -98,15 +97,15 @@ class wazirx extends wazirx$1 {
                         'funds': 1,
                         'historicalTrades': 1,
                         'openOrders': 1,
-                        'order': 1,
-                        'myTrades': 1,
+                        'order': 0.5,
+                        'myTrades': 0.5,
                     },
                     'post': {
-                        'order': 1,
-                        'order/test': 1,
+                        'order': 0.1,
+                        'order/test': 0.5,
                     },
                     'delete': {
-                        'order': 1,
+                        'order': 0.1,
                         'openOrders': 1,
                     },
                 },

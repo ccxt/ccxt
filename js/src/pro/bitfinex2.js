@@ -11,7 +11,6 @@ import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitfinex2 extends bitfinex2Rest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -654,16 +653,16 @@ export default class bitfinex2 extends bitfinex2Rest {
         if (book === undefined) {
             return;
         }
-        const depth = this.safeInteger(subscription, 'len');
+        const depth = 25; // covers the first 25 bids and asks
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            stringArray.push(bids[i][0]);
-            stringArray.push(bids[i][1]);
-            stringArray.push(asks[i][0]);
-            stringArray.push(-asks[i][1]);
+            stringArray.push(this.numberToString(bids[i][0]));
+            stringArray.push(this.numberToString(bids[i][1]));
+            stringArray.push(this.numberToString(asks[i][0]));
+            stringArray.push(this.numberToString(-asks[i][1]));
         }
         const payload = stringArray.join(':');
         const localChecksum = this.crc32(payload, true);

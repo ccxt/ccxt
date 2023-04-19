@@ -1,20 +1,23 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-export default abstract class Exchange extends _Exchange {
-    abstract marketsGetAssetsPublicBeta(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccount(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrders(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersOrderId(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetPositions(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetPositionsSymbol(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountActivitiesActivityType(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrders(params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrders(params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
-    abstract cryptoPublicGetCryptoLatestOrderbooks(params?: {}): Promise<implicitReturnType>;
-    abstract cryptoPublicGetCryptoTrades(params?: {}): Promise<implicitReturnType>;
-    abstract cryptoPublicGetCryptoQuotes(params?: {}): Promise<implicitReturnType>;
-    abstract cryptoPublicGetCryptoLatestQuotes(params?: {}): Promise<implicitReturnType>;
-    abstract cryptoPublicGetCryptoBars(params?: {}): Promise<implicitReturnType>;
-    abstract cryptoPublicGetCryptoSnapshots(params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    marketsGetAssetsPublicBeta(params?: {}): Promise<implicitReturnType>;
+    privateGetAccount(params?: {}): Promise<implicitReturnType>;
+    privateGetOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    privateGetPositions(params?: {}): Promise<implicitReturnType>;
+    privateGetPositionsSymbol(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountActivitiesActivityType(params?: {}): Promise<implicitReturnType>;
+    privatePostOrders(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrders(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    cryptoPublicGetCryptoLatestOrderbooks(params?: {}): Promise<implicitReturnType>;
+    cryptoPublicGetCryptoTrades(params?: {}): Promise<implicitReturnType>;
+    cryptoPublicGetCryptoQuotes(params?: {}): Promise<implicitReturnType>;
+    cryptoPublicGetCryptoLatestQuotes(params?: {}): Promise<implicitReturnType>;
+    cryptoPublicGetCryptoBars(params?: {}): Promise<implicitReturnType>;
+    cryptoPublicGetCryptoSnapshots(params?: {}): Promise<implicitReturnType>;
 }
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

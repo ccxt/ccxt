@@ -5,6 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -343,6 +346,9 @@ class bitfinex2(Exchange):
                     'margin': 'margin',
                     'derivatives': 'margin',
                     'future': 'margin',
+                },
+                'withdraw': {
+                    'includeFee': False,
                 },
             },
             'exceptions': {
@@ -806,7 +812,7 @@ class bitfinex2(Exchange):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -942,7 +948,7 @@ class bitfinex2(Exchange):
             currencyId = transferId
         return currencyId
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1050,7 +1056,7 @@ class bitfinex2(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1114,7 +1120,7 @@ class bitfinex2(Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1209,7 +1215,7 @@ class bitfinex2(Exchange):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1244,7 +1250,7 @@ class bitfinex2(Exchange):
         trades = self.sort_by(response, 1)
         return self.parse_trades(trades, market, None, limit)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit=100, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1399,7 +1405,7 @@ class bitfinex2(Exchange):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
@@ -1547,7 +1553,7 @@ class bitfinex2(Exchange):
         order = self.safe_value(orders, 0)
         return self.parse_order(order, market)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1561,7 +1567,7 @@ class bitfinex2(Exchange):
         orders = self.safe_value(response, 4, [])
         return self.parse_orders(orders)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1588,7 +1594,7 @@ class bitfinex2(Exchange):
         order = self.safe_value(response, 4)
         return self.parse_order(order)
 
-    async def fetch_open_order(self, id, symbol=None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1605,7 +1611,7 @@ class bitfinex2(Exchange):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    async def fetch_closed_order(self, id, symbol=None, params={}):
+    async def fetch_closed_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1622,7 +1628,7 @@ class bitfinex2(Exchange):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1681,7 +1687,7 @@ class bitfinex2(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1745,7 +1751,7 @@ class bitfinex2(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1768,7 +1774,7 @@ class bitfinex2(Exchange):
         response = await self.privatePostAuthROrderSymbolIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1794,7 +1800,7 @@ class bitfinex2(Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1807,7 +1813,7 @@ class bitfinex2(Exchange):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1866,10 +1872,14 @@ class bitfinex2(Exchange):
     def parse_transaction_status(self, status):
         statuses = {
             'SUCCESS': 'ok',
+            'COMPLETED': 'ok',
             'ERROR': 'failed',
             'FAILURE': 'failed',
             'CANCELED': 'canceled',
-            'COMPLETED': 'ok',
+            'PENDING APPROVAL': 'pending',
+            'PENDING': 'pending',
+            'PENDING REVIEW': 'pending',
+            'PENDING CANCELLATION': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1948,7 +1958,7 @@ class bitfinex2(Exchange):
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
-            id = self.safe_value(data, 0)
+            id = self.safe_string(data, 0)
             status = 'ok'
             if id == 0:
                 id = None
@@ -2110,7 +2120,7 @@ class bitfinex2(Exchange):
             result[symbol] = fee
         return result
 
-    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: unified currency code for the currency of the transactions, default is None
@@ -2162,7 +2172,7 @@ class bitfinex2(Exchange):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2182,7 +2192,7 @@ class bitfinex2(Exchange):
         currencyNetwork = self.safe_value(currencyNetworks, network)
         networkId = self.safe_string(currencyNetwork, 'id')
         if networkId is None:
-            raise ArgumentsRequired(self.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
+            raise ArgumentsRequired(self.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params")
         wallet = self.safe_string(params, 'wallet', 'exchange')  # 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         params = self.omit(params, 'network', 'wallet')
         request = {
@@ -2193,6 +2203,10 @@ class bitfinex2(Exchange):
         }
         if tag is not None:
             request['payment_id'] = tag
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        includeFee = self.safe_value(withdrawOptions, 'includeFee', False)
+        if includeFee:
+            request['fee_deduct'] = 1
         response = await self.privatePostAuthWWithdraw(self.extend(request, params))
         #
         #     [
@@ -2240,7 +2254,7 @@ class bitfinex2(Exchange):
             'address': address,
         })
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
@@ -2399,7 +2413,7 @@ class bitfinex2(Exchange):
             'info': item,
         }
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None

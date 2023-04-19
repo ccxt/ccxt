@@ -11,7 +11,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class oceanex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -645,15 +644,12 @@ export default class oceanex extends Exchange {
          * @param {object} params extra parameters specific to the oceanex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        let ids = id;
-        if (!Array.isArray(id)) {
-            ids = [id];
-        }
         await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
+        const ids = [id];
         const request = { 'ids': ids };
         const response = await this.privateGetOrders(this.extend(request, params));
         const data = this.safeValue(response, 'data');

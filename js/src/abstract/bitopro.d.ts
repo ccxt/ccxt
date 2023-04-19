@@ -1,28 +1,31 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-export default abstract class Exchange extends _Exchange {
-    abstract publicGetOrderBookPair(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickers(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTickersPair(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradesPair(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetProvisioningCurrencies(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetProvisioningTradingPairs(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetProvisioningLimitationsAndFees(params?: {}): Promise<implicitReturnType>;
-    abstract publicGetTradingHistoryPair(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetAccountsBalance(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersHistory(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersAllPair(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersTradesPair(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetOrdersPairOrderId(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletWithdrawCurrencySerial(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletWithdrawCurrencyIdId(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletDepositHistoryCurrency(params?: {}): Promise<implicitReturnType>;
-    abstract privateGetWalletWithdrawHistoryCurrency(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrdersPair(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostOrdersBatch(params?: {}): Promise<implicitReturnType>;
-    abstract privatePostWalletWithdrawCurrency(params?: {}): Promise<implicitReturnType>;
-    abstract privatePutOrders(params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersPairId(params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersAll(params?: {}): Promise<implicitReturnType>;
-    abstract privateDeleteOrdersPair(params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    publicGetOrderBookPair(params?: {}): Promise<implicitReturnType>;
+    publicGetTickers(params?: {}): Promise<implicitReturnType>;
+    publicGetTickersPair(params?: {}): Promise<implicitReturnType>;
+    publicGetTradesPair(params?: {}): Promise<implicitReturnType>;
+    publicGetProvisioningCurrencies(params?: {}): Promise<implicitReturnType>;
+    publicGetProvisioningTradingPairs(params?: {}): Promise<implicitReturnType>;
+    publicGetProvisioningLimitationsAndFees(params?: {}): Promise<implicitReturnType>;
+    publicGetTradingHistoryPair(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountsBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersAllPair(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersTradesPair(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersPairOrderId(params?: {}): Promise<implicitReturnType>;
+    privateGetWalletWithdrawCurrencySerial(params?: {}): Promise<implicitReturnType>;
+    privateGetWalletWithdrawCurrencyIdId(params?: {}): Promise<implicitReturnType>;
+    privateGetWalletDepositHistoryCurrency(params?: {}): Promise<implicitReturnType>;
+    privateGetWalletWithdrawHistoryCurrency(params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersPair(params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersBatch(params?: {}): Promise<implicitReturnType>;
+    privatePostWalletWithdrawCurrency(params?: {}): Promise<implicitReturnType>;
+    privatePutOrders(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrdersPairId(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrdersAll(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrdersPair(params?: {}): Promise<implicitReturnType>;
 }
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

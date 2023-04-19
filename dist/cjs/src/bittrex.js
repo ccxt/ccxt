@@ -7,7 +7,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bittrex extends bittrex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1402,7 +1401,7 @@ class bittrex extends bittrex$1 {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {
@@ -1487,7 +1486,7 @@ class bittrex extends bittrex$1 {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {

@@ -3,8 +3,8 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequi
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
-// @ts-expect-error
 export default class wazirx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -96,15 +96,15 @@ export default class wazirx extends Exchange {
                         'funds': 1,
                         'historicalTrades': 1,
                         'openOrders': 1,
-                        'order': 1,
-                        'myTrades': 1,
+                        'order': 0.5,
+                        'myTrades': 0.5,
                     },
                     'post': {
-                        'order': 1,
-                        'order/test': 1,
+                        'order': 0.1,
+                        'order/test': 0.5,
                     },
                     'delete': {
-                        'order': 1,
+                        'order': 0.1,
                         'openOrders': 1,
                     },
                 },
@@ -261,7 +261,7 @@ export default class wazirx extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOHLCV
@@ -315,7 +315,7 @@ export default class wazirx extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOrderBook
@@ -351,7 +351,7 @@ export default class wazirx extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name wazirx#fetchTicker
@@ -422,7 +422,7 @@ export default class wazirx extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchTrades
@@ -622,7 +622,7 @@ export default class wazirx extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOrders
@@ -682,7 +682,7 @@ export default class wazirx extends Exchange {
         return orders;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOpenOrders
@@ -752,7 +752,7 @@ export default class wazirx extends Exchange {
         return await this.privateDeleteOpenOrders (this.extend (request, params));
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#cancelOrder
@@ -775,7 +775,7 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#createOrder
@@ -881,7 +881,7 @@ export default class wazirx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {

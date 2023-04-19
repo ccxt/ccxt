@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bigone extends bigone$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -433,7 +432,7 @@ class bigone extends bigone$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const timestamp = this.safeInteger(data, 'timestamp');
+        const timestamp = this.safeInteger(data, 'Timestamp');
         return this.parseToInt(timestamp / 1000000);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -853,11 +852,11 @@ class bigone extends bigone$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        side = (side === 'buy') ? 'BID' : 'ASK';
+        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
         const uppercaseType = type.toUpperCase();
         const request = {
             'asset_pair_name': market['id'],
-            'side': side,
+            'side': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
             // 'price': this.priceToPrecision (symbol, price), // order price, string, required
             'type': uppercaseType,
@@ -1126,7 +1125,7 @@ class bigone extends bigone$1 {
     }
     nonce() {
         const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
-        return this.microseconds() * 1000 + exchangeTimeCorrection;
+        return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));

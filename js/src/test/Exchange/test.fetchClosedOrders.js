@@ -4,24 +4,19 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// ----------------------------------------------------------------------------
 import assert from 'assert';
-import testOrder from './test.order.js';
-// ----------------------------------------------------------------------------
-export default async (exchange, symbol) => {
+import testOrder from './base/test.order.js';
+import testSharedMethods from './base/test.sharedMethods.js';
+async function testFetchClosedOrders(exchange, symbol) {
     const method = 'fetchClosedOrders';
-    if (exchange.has[method]) {
-        const orders = await exchange[method](symbol);
-        console.log('fetched', orders.length, 'closed orders, testing each');
-        assert(orders instanceof Array);
-        const now = Date.now();
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            testOrder(exchange, order, symbol, now);
-            assert(order.status === 'closed' || order.status === 'canceled');
-        }
+    const orders = await exchange.fetchClosedOrders(symbol);
+    assert(Array.isArray(orders), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(orders));
+    const now = exchange.milliseconds();
+    for (let i = 0; i < orders.length; i++) {
+        const order = orders[i];
+        testOrder(exchange, method, order, symbol, now);
+        assert(exchange.inArray(order['status'], ['closed', 'canceled']), exchange.id + ' ' + method + ' ' + symbol + ' returned an order with status ' + order['status'] + ' (expected "closed" or "canceled")');
     }
-    else {
-        console.log(method + '() is not supported');
-    }
-};
+    testSharedMethods.assertTimestampOrder(exchange, method, symbol, orders);
+}
+export default testFetchClosedOrders;

@@ -11,7 +11,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class delta extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1570,8 +1569,8 @@ export default class delta extends Exchange {
         // 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
         // 'start_time': since * 1000,
         // 'end_time': this.microseconds (),
-        // 'after': string, // after cursor for pagination
-        // 'before': string, // before cursor for pagination
+        // 'after', // after cursor for pagination
+        // 'before', // before cursor for pagination
         // 'page_size': limit, // number of records per page
         };
         let market = undefined;
@@ -1629,8 +1628,8 @@ export default class delta extends Exchange {
         // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
         // 'start_time': since * 1000,
         // 'end_time': this.microseconds (),
-        // 'after': string, // after cursor for pagination
-        // 'before': string, // before cursor for pagination
+        // 'after', // after cursor for pagination
+        // 'before', // before cursor for pagination
         // 'page_size': limit, // number of records per page
         };
         let market = undefined;

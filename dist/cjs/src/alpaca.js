@@ -6,7 +6,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------xs
-// @ts-expect-error
 class alpaca extends alpaca$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -324,7 +323,7 @@ class alpaca extends alpaca$1 {
             request['start'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt(limit);
+            request['limit'] = limit;
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
         const response = await this[method](this.extend(request, params));

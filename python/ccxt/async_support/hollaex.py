@@ -5,6 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -398,7 +401,7 @@ class hollaex(Exchange):
             }
         return result
 
-    async def fetch_order_books(self, symbols=None, limit=None, params={}):
+    async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param [str]|None symbols: not used by hollaex fetchOrderBooks()
@@ -418,7 +421,7 @@ class hollaex(Exchange):
             result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp)
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -455,7 +458,7 @@ class hollaex(Exchange):
         timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -481,7 +484,7 @@ class hollaex(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -508,7 +511,7 @@ class hollaex(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, response, symbols=None, params={}):
+    def parse_tickers(self, response, symbols: Optional[List[str]] = None, params={}):
         result = {}
         keys = list(response.keys())
         for i in range(0, len(keys)):
@@ -575,7 +578,7 @@ class hollaex(Exchange):
             'quoteVolume': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -716,7 +719,7 @@ class hollaex(Exchange):
             }
         return result
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -764,7 +767,7 @@ class hollaex(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, response, market=None, timeframe='1h', since=None, limit=None):
+    def parse_ohlcv(self, response, market=None, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None):
         #
         #     {
         #         "time":"2020-03-02T20:00:00.000Z",
@@ -824,7 +827,7 @@ class hollaex(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_open_order(self, id, symbol=None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -863,7 +866,7 @@ class hollaex(Exchange):
         #
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -877,7 +880,7 @@ class hollaex(Exchange):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -891,7 +894,7 @@ class hollaex(Exchange):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -930,7 +933,7 @@ class hollaex(Exchange):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(order)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -1069,7 +1072,7 @@ class hollaex(Exchange):
             'average': None,
         }, market)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1130,7 +1133,7 @@ class hollaex(Exchange):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1158,7 +1161,7 @@ class hollaex(Exchange):
         #
         return self.parse_order(response)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
@@ -1190,7 +1193,7 @@ class hollaex(Exchange):
         #
         return self.parse_orders(response, market)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -1325,7 +1328,7 @@ class hollaex(Exchange):
         addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
         return self.parse_deposit_addresses(addresses, codes)
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
@@ -1379,7 +1382,7 @@ class hollaex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawal(self, id, code=None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1423,7 +1426,7 @@ class hollaex(Exchange):
         transaction = self.safe_value(data, 0, {})
         return self.parse_transaction(transaction, currency)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
@@ -1570,7 +1573,7 @@ class hollaex(Exchange):
             'fee': fee,
         }
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1625,7 +1628,7 @@ class hollaex(Exchange):
         url = self.urls['api']['rest'] + path
         if api == 'private':
             self.check_required_credentials()
-            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', int((self.timeout / str(1000))))
+            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(self.timeout / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
             expiresString = str(expires)
             auth = method + path + expiresString

@@ -12,7 +12,6 @@ import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class kraken extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -194,6 +193,9 @@ export default class kraken extends Exchange {
                         'Staking/Assets': 3,
                         'Staking/Pending': 3,
                         'Staking/Transactions': 3,
+                        // sub accounts
+                        'CreateSubaccount': 3,
+                        'AccountTransfer': 3,
                     },
                 },
             },

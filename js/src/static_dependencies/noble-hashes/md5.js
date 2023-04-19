@@ -212,8 +212,8 @@ function md51_array(a) {
 class MD5 extends Hash {
     constructor() {
         super(...arguments);
-        this.blockLen = 128;
-        this.outputLen = 32;
+        this.blockLen = 64;
+        this.outputLen = 16;
         this._buffer = new Uint8Array();
     }
     digest() {

@@ -10,7 +10,6 @@ import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.j
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bitflyer extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {

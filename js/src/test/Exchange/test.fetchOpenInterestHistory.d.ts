@@ -1,2 +1,2 @@
-declare function testFetchOpenInterestHistory(exchange: any, symbol: any): Promise<any>;
+declare function testFetchOpenInterestHistory(exchange: any, symbol: any): Promise<void>;
 export default testFetchOpenInterestHistory;

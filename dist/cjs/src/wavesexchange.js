@@ -8,7 +8,6 @@ var crypto = require('./base/functions/crypto.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class wavesexchange extends wavesexchange$1 {
     describe() {
         return this.deepExtend(super.describe(), {

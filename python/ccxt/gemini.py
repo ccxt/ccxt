@@ -5,6 +5,9 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -542,7 +545,7 @@ class gemini(Exchange):
             'info': response,
         }
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -561,7 +564,7 @@ class gemini(Exchange):
         response = self.publicGetV1BookSymbol(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def fetch_ticker_v1(self, symbol, params={}):
+    def fetch_ticker_v1(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -582,7 +585,7 @@ class gemini(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_ticker_v2(self, symbol, params={}):
+    def fetch_ticker_v2(self, symbol: str, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -604,7 +607,7 @@ class gemini(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_ticker_v1_and_v2(self, symbol, params={}):
+    def fetch_ticker_v1_and_v2(self, symbol: str, params={}):
         tickerA = self.fetch_ticker_v1(symbol, params)
         tickerB = self.fetch_ticker_v2(symbol, params)
         return self.deep_extend(tickerA, {
@@ -617,7 +620,7 @@ class gemini(Exchange):
             'info': tickerB['info'],
         })
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -718,7 +721,7 @@ class gemini(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -806,7 +809,7 @@ class gemini(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://docs.gemini.com/rest-api/#trade-history
@@ -1078,7 +1081,7 @@ class gemini(Exchange):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str|None symbol: unified symbol of the market the order was made in
@@ -1115,7 +1118,7 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -1156,7 +1159,7 @@ class gemini(Exchange):
             market = self.market(symbol)  # throws on non-existent symbol
         return self.parse_orders(response, market, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://docs.gemini.com/rest-api/#new-order
@@ -1241,7 +1244,7 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1280,7 +1283,7 @@ class gemini(Exchange):
         #
         return self.parse_order(response)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1303,7 +1306,7 @@ class gemini(Exchange):
         response = self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1357,7 +1360,7 @@ class gemini(Exchange):
             return self.milliseconds()
         return self.seconds()
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
         :param str|None code: not used by gemini.fetchTransactions
@@ -1454,7 +1457,7 @@ class gemini(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
         self.load_markets()
         currency = self.currency(code)
         network = self.safe_string(params, 'network')
@@ -1487,7 +1490,7 @@ class gemini(Exchange):
             }, query)
             payload = self.json(request)
             payload = self.string_to_base64(payload)
-            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha384)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': self.apiKey,
@@ -1525,7 +1528,7 @@ class gemini(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
 
-    def create_deposit_address(self, code, params={}):
+    def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -1547,7 +1550,7 @@ class gemini(Exchange):
             'info': response,
         }
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

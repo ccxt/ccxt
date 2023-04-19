@@ -6,10 +6,10 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Int, OrderSide } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class yobit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -432,7 +432,7 @@ export default class yobit extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOrderBook
@@ -459,7 +459,7 @@ export default class yobit extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOrderBooks
@@ -580,7 +580,7 @@ export default class yobit extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name yobit#fetchTicker
@@ -672,7 +672,7 @@ export default class yobit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchTrades
@@ -767,7 +767,7 @@ export default class yobit extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name yobit#createOrder
@@ -817,7 +817,7 @@ export default class yobit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name yobit#cancelOrder
@@ -969,7 +969,7 @@ export default class yobit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOrder
@@ -1004,7 +1004,7 @@ export default class yobit extends Exchange {
         return this.parseOrder (this.extend ({ 'id': id }, orders[id]));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOpenOrders
@@ -1053,7 +1053,7 @@ export default class yobit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchMyTrades
@@ -1081,7 +1081,7 @@ export default class yobit extends Exchange {
             'pair': market['id'],
         };
         if (limit !== undefined) {
-            request['count'] = parseInt (limit);
+            request['count'] = limit;
         }
         if (since !== undefined) {
             request['since'] = this.parseToInt (since / 1000);
@@ -1116,7 +1116,7 @@ export default class yobit extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as any;
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name yobit#createDepositAddress
@@ -1139,7 +1139,7 @@ export default class yobit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name yobit#fetchDepositAddress
@@ -1176,7 +1176,7 @@ export default class yobit extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name yobit#withdraw
@@ -1208,7 +1208,7 @@ export default class yobit extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {

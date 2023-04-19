@@ -10,7 +10,6 @@ import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class kraken extends krakenRest {
     describe() {
         return this.deepExtend(super.describe(), {

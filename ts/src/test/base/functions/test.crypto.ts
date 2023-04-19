@@ -34,6 +34,7 @@ assert (hash (encode ('sexyfish'), md5, 'hex') === 'c8a35464aa9d5683585786f44d58
 assert (hash (encode (''), sha1, 'hex') === 'da39a3ee5e6b4b0d3255bfef95601890afd80709');
 assert (hash (encode ('nutella'), sha1, 'hex') === 'b3d60a34b744159793c483b067c56d8affc5111a');
 assert (hmac (encode ('hello'), encode ('there'), sha256, 'hex') === '551e1c1ecbce0fe9b643745a376584a6289f5f43a46861b315fac9edc8d52a26');
+assert(hmac(encode('a message'), encode('a secret'), md5, 'hex') === '0bfa503bdbc7358185fcd49b4869e23d');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -56,20 +57,21 @@ assert (equals (ecdsa (privateKey, privateKey, secp256k1, undefined), {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-assert (exchange.hashMessage (privateKey) === '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f');
-
-assert (equals (exchange.signHash ('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', privateKey), {
-    'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
-    's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
-    'v': 27
-}));
-
-assert (equals (exchange.signMessage (privateKey, privateKey), {
-    'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
-    's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
-    'v': 27
-}));
-
+//
+// assert (exchange.hashMessage (privateKey) === '0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f');
+//
+// assert (equals (exchange.signHash ('0x59ea5d98c3500c3729f95cf98aa91663f498518cc401360df2912742c232207f', privateKey), {
+//     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
+//     's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
+//     'v': 27
+// }));
+//
+// assert (equals (exchange.signMessage (privateKey, privateKey), {
+//     'r': '0x6f684aa41c02da83dac3039d8805ddbe79a03b1297e247c7742cab8dfc19d341',
+//     's': '0x62473881674550563cb028ff40a7846fd53620ddf40a20cc1003b8484a109a4a',
+//     'v': 27
+// }));
+//
 // ---------------------------------------------------------------------------------------------------------------------
 
 const pemKeyArray = [

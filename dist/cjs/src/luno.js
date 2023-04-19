@@ -7,7 +7,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class luno extends luno$1 {
     describe() {
         return this.deepExtend(super.describe(), {

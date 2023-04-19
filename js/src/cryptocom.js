@@ -10,7 +10,6 @@ import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-// @ts-expect-error
 export default class cryptocom extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -43,6 +42,8 @@ export default class cryptocom extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
@@ -296,6 +297,17 @@ export default class cryptocom extends Exchange {
                     'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
+                },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
                 },
             },
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
@@ -1151,6 +1163,11 @@ export default class cryptocom extends Exchange {
         };
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision(symbol, price);
+        }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId) {
+            request['client_oid'] = clientOrderId;
+            params = this.omit(params, ['clientOrderId']);
         }
         const postOnly = this.safeValue(params, 'postOnly', false);
         if (postOnly) {
@@ -2443,6 +2460,71 @@ export default class cryptocom extends Exchange {
             }
         }
         return [marginMode, params];
+    }
+    parseDepositWithdrawFee(fee, currency = undefined) {
+        //
+        //    {
+        //        full_name: 'Alchemix',
+        //        default_network: 'ETH',
+        //        network_list: [
+        //          {
+        //            network_id: 'ETH',
+        //            withdrawal_fee: '0.25000000',
+        //            withdraw_enabled: true,
+        //            min_withdrawal_amount: '0.5',
+        //            deposit_enabled: true,
+        //            confirmation_required: '0'
+        //          }
+        //        ]
+        //    }
+        //
+        const networkList = this.safeValue(fee, 'network_list');
+        const networkListLength = networkList.length;
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+        if (networkList !== undefined) {
+            for (let i = 0; i < networkListLength; i++) {
+                const networkInfo = networkList[i];
+                const networkId = this.safeString(networkInfo, 'network_id');
+                const currencyCode = this.safeString(currency, 'code');
+                const networkCode = this.networkIdToCode(networkId, currencyCode);
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
+                };
+                if (networkListLength === 1) {
+                    result['withdraw']['fee'] = this.safeNumber(networkInfo, 'withdrawal_fee');
+                    result['withdraw']['percentage'] = false;
+                }
+            }
+        }
+        return result;
+    }
+    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.v2PrivatePostPrivateGetCurrencyNetworks(params);
+        const data = this.safeValue(response, 'result');
+        const currencyMap = this.safeValue(data, 'currency_map');
+        return this.parseDepositWithdrawFees(currencyMap, codes, 'full_name');
     }
     nonce() {
         return this.milliseconds();

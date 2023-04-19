@@ -8,7 +8,6 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class novadax extends novadax$1 {
     describe() {
         return this.deepExtend(super.describe(), {

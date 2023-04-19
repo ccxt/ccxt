@@ -9,7 +9,6 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequi
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-// @ts-expect-error
 export default class wazirx extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -101,15 +100,15 @@ export default class wazirx extends Exchange {
                         'funds': 1,
                         'historicalTrades': 1,
                         'openOrders': 1,
-                        'order': 1,
-                        'myTrades': 1,
+                        'order': 0.5,
+                        'myTrades': 0.5,
                     },
                     'post': {
-                        'order': 1,
-                        'order/test': 1,
+                        'order': 0.1,
+                        'order/test': 0.5,
                     },
                     'delete': {
-                        'order': 1,
+                        'order': 0.1,
                         'openOrders': 1,
                     },
                 },

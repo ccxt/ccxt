@@ -12,7 +12,6 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class krakenfutures extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -299,7 +298,7 @@ export default class krakenfutures extends Exchange {
             let symbol = id;
             const split = id.split('_');
             const splitMarket = this.safeString(split, 1);
-            const baseId = splitMarket.replace('usd', '');
+            const baseId = splitMarket.slice(0, splitMarket.length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
@@ -815,7 +814,7 @@ export default class krakenfutures extends Exchange {
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder requires params.stopPrice when type is ' + type);
         }
-        if (stopPrice !== undefined) {
+        if (stopPrice !== undefined && type !== 'take_profit') {
             type = 'stp';
         }
         else if (postOnly) {
@@ -1983,7 +1982,11 @@ export default class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
-            const auth = postData + '/api/' + endpoint; // 1
+            let auth = postData + '/api/';
+            if (api !== 'private') {
+                auth += api + '/';
+            }
+            auth += endpoint; // 1
             const hash = this.hash(this.encode(auth), sha256, 'binary'); // 2
             const secret = this.base64ToBinary(this.secret); // 3
             const signature = this.hmac(hash, secret, sha512, 'base64'); // 4-5

@@ -8,7 +8,6 @@
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class luno extends lunoRest {
     describe() {
         return this.deepExtend(super.describe(), {

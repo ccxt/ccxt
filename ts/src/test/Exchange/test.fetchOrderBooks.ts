@@ -1,27 +1,18 @@
 
-// ----------------------------------------------------------------------------
+import assert from 'assert';
+import testOrderBook from './base/test.orderBook.js';
 
-import testOrderBook from './test.orderbook.js';
-
-// ----------------------------------------------------------------------------
-
-export default async (exchange) => {
+async function testFetchOrderBooks (exchange) {
     const method = 'fetchOrderBooks';
-    const randomSymbols = exchange.symbols.slice ().sort (() => 0.5 - Math.random ()).slice (0, 2);
-    const customExchangeParams = ([
-        'yobit',
-        'tidex',
-        'ccex',
-        'liqui',
-        'dsx',
-    ]).reduce ((params, id) => ({ ...params, [id]: [ randomSymbols ] }), {});
-    const args = (exchange.id in customExchangeParams) ? customExchangeParams[exchange.id] : [];
-    if (exchange.has[method]) {
-        const orderbooks = await exchange[method] (...args);
-        Object.entries (orderbooks).forEach (([ symbol, orderbook ]) => {
-            testOrderBook (exchange, orderbook, method, symbol);
-        });
-    } else {
-        console.log (method + '() is not supported');
+    const symbol = exchange.symbols[0];
+    const orderBooks = await exchange.fetchOrderBooks ([ symbol ]);
+    assert (typeof orderBooks === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json (orderBooks));
+    const orderBookKeys = Object.keys (orderBooks);
+    assert (orderBookKeys.length > 0, exchange.id + ' ' + method + ' returned 0 length data');
+    for (let i = 0; i < orderBookKeys.length; i++) {
+        const symbol = orderBookKeys[i];
+        testOrderBook (exchange, method, orderBooks[symbol], symbol);
     }
-};
+}
+
+export default testFetchOrderBooks;

@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\abstract\poloniexfutures as Exchange;
 
 class poloniexfutures extends Exchange {
 
@@ -365,7 +366,7 @@ class poloniexfutures extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
@@ -400,7 +401,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_ticker($this->safe_value($response, 'data', array()), $market);
     }
 
-    public function fetch_tickers($symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
@@ -413,7 +414,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_tickers($this->safe_value($response, 'data', array()), $symbols);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://futures-docs.poloniex.com/#get-full-order-book-$level-2
@@ -497,7 +498,7 @@ class poloniexfutures extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
@@ -603,7 +604,7 @@ class poloniexfutures extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://futures-docs.poloniex.com/#historical-data
@@ -657,7 +658,7 @@ class poloniexfutures extends Exchange {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://futures-docs.poloniex.com/#k-chart
@@ -759,7 +760,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
          * @see https://futures-docs.poloniex.com/#place-an-order
@@ -865,7 +866,7 @@ class poloniexfutures extends Exchange {
         );
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
          * @see https://futures-docs.poloniex.com/#cancel-an-order
@@ -904,7 +905,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function fetch_positions($symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
          * @see https://futures-docs.poloniex.com/#get-position-list
@@ -1055,7 +1056,7 @@ class poloniexfutures extends Exchange {
         );
     }
 
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
          * @see https://futures-docs.poloniex.com/#get-funding-history
@@ -1127,7 +1128,7 @@ class poloniexfutures extends Exchange {
         return $fees;
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
          * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
@@ -1186,7 +1187,7 @@ class poloniexfutures extends Exchange {
         return $result;
     }
 
-    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches a list of $orders placed on the exchange
          * @see https://futures-docs.poloniex.com/#get-$order-list
@@ -1289,7 +1290,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @see https://futures-docs.poloniex.com/#get-order-list
@@ -1306,7 +1307,7 @@ class poloniexfutures extends Exchange {
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://futures-docs.poloniex.com/#get-order-list
@@ -1323,7 +1324,7 @@ class poloniexfutures extends Exchange {
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order($id = null, $symbol = null, $params = array ()) {
+    public function fetch_order($id = null, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1521,7 +1522,7 @@ class poloniexfutures extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
          * @see https://futures-docs.poloniex.com/#get-premium-index
@@ -1568,7 +1569,7 @@ class poloniexfutures extends Exchange {
         );
     }
 
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
          * @see https://futures-docs.poloniex.com/#get-fills

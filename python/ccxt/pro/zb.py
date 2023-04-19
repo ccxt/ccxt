@@ -5,6 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.client import Client
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
@@ -36,7 +38,7 @@ class zb(ccxt.async_support.zb):
             },
         })
 
-    async def watch_public(self, url, messageHash, symbol, method, limit=None, params={}):
+    async def watch_public(self, url, messageHash, symbol, method, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         type = 'spot' if market['spot'] else 'contract'
@@ -66,7 +68,7 @@ class zb(ccxt.async_support.zb):
             subscription['limit'] = limit
         return await self.watch(url, messageHash, message, messageHash, subscription)
 
-    async def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol: str, params={}):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = None
@@ -119,7 +121,7 @@ class zb(ccxt.async_support.zb):
             'info': ticker,
         }, market)
 
-    def handle_ticker(self, client, message, subscription):
+    def handle_ticker(self, client: Client, message, subscription):
         #
         # spot ticker
         #
@@ -171,7 +173,7 @@ class zb(ccxt.async_support.zb):
         client.resolve(ticker, channel)
         return message
 
-    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         if market['spot']:
@@ -186,7 +188,7 @@ class zb(ccxt.async_support.zb):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message, subscription):
+    def handle_ohlcv(self, client: Client, message, subscription):
         #
         # snapshot update
         #    {
@@ -230,7 +232,7 @@ class zb(ccxt.async_support.zb):
             client.resolve(stored, channel)
         return message
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = None
@@ -245,7 +247,7 @@ class zb(ccxt.async_support.zb):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client, message, subscription):
+    def handle_trades(self, client: Client, message, subscription):
         # contract trades
         # {
         #     "channel":"BTC_USDT.Trade",
@@ -307,7 +309,7 @@ class zb(ccxt.async_support.zb):
         self.trades[symbol] = array
         client.resolve(array, channel)
 
-    async def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         if limit is not None:
             if (limit != 5) and (limit != 10):
                 raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, or 10')
@@ -357,7 +359,7 @@ class zb(ccxt.async_support.zb):
             'info': trade,
         }, market)
 
-    def handle_order_book(self, client, message, subscription):
+    def handle_order_book(self, client: Client, message, subscription):
         # spot snapshot
         #
         #     {
@@ -444,7 +446,7 @@ class zb(ccxt.async_support.zb):
             self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, channel)
 
-    def handle_order_book_message(self, client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message, orderbook):
         #
         # {
         #     channel: 'BTC_USDT.Depth',
@@ -474,7 +476,7 @@ class zb(ccxt.async_support.zb):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Client, message):
         #
         #
         #     {
@@ -542,7 +544,7 @@ class zb(ccxt.async_support.zb):
                 return method(client, message, subscription)
         return message
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message):
         #
         # {errorCode: 10020, errorMsg: "action param can't be empty"}
         # {errorCode: 10015, errorMsg: '无效的签名(1002)'}

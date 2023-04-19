@@ -7,7 +7,6 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class lykke extends lykke$1 {
     describe() {
         return this.deepExtend(super.describe(), {

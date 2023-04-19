@@ -3,10 +3,10 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 
-// @ts-expect-error
 export default class alpaca extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -305,7 +305,7 @@ export default class alpaca extends Exchange {
         return markets;
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchTrades
@@ -326,7 +326,7 @@ export default class alpaca extends Exchange {
             request['start'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt (limit);
+            request['limit'] = limit;
         }
         const method = this.safeString (this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
         const response = await this[method] (this.extend (request, params));
@@ -351,7 +351,7 @@ export default class alpaca extends Exchange {
         return this.parseTrades (symbolTrades, market, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOrderBook
@@ -411,7 +411,7 @@ export default class alpaca extends Exchange {
         return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOHLCV
@@ -496,7 +496,7 @@ export default class alpaca extends Exchange {
         ];
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#createOrder
@@ -584,7 +584,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#cancelOrder
@@ -607,7 +607,7 @@ export default class alpaca extends Exchange {
         return this.safeValue (response, 'message', {});
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOrder
@@ -626,7 +626,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOpenOrders
@@ -791,7 +791,7 @@ export default class alpaca extends Exchange {
         }, market);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const versions = this.safeValue (this.options, 'versions');
         const version = this.safeString (versions, api);
         let endpoint = '/' + this.implodeParams (path, params);

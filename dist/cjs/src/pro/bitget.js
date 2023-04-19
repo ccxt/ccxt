@@ -8,7 +8,6 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bitget extends bitget$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -415,6 +414,7 @@ class bitget extends bitget$1 {
             storedOrderBook = this.safeValue(this.orderbooks, symbol);
             if (storedOrderBook === undefined) {
                 storedOrderBook = this.countedOrderBook({});
+                storedOrderBook['symbol'] = symbol;
             }
             const asks = this.safeValue(rawOrderBook, 'asks', []);
             const bids = this.safeValue(rawOrderBook, 'bids', []);

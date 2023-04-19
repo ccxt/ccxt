@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class hollaex extends hollaex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1707,7 +1706,7 @@ class hollaex extends hollaex$1 {
         const url = this.urls['api']['rest'] + path;
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', parseInt((this.timeout / 1000).toString()));
+            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(this.timeout / 1000));
             const expires = this.sum(this.seconds(), defaultExpires);
             const expiresString = expires.toString();
             let auth = method + path + expiresString;

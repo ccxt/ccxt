@@ -5,6 +5,9 @@
 
 from ccxt.base.exchange import Exchange
 import math
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -30,6 +33,7 @@ class probit(Exchange):
             'name': 'ProBit',
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 50,  # ms
+            'pro': True,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -504,7 +508,7 @@ class probit(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -531,7 +535,7 @@ class probit(Exchange):
         dataBySide = self.group_by(data, 'side')
         return self.parse_order_book(dataBySide, market['symbol'], None, 'buy', 'sell', 'price', 'quantity')
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -563,7 +567,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -641,7 +645,7 @@ class probit(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
@@ -687,7 +691,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -842,7 +846,7 @@ class probit(Exchange):
                 timestamp = self.sum(timestamp, duration)
             return self.iso8601(timestamp * 1000)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -925,7 +929,7 @@ class probit(Exchange):
             self.safe_number(ohlcv, 'base_volume'),
         ]
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
@@ -945,7 +949,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
@@ -972,7 +976,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1008,21 +1012,21 @@ class probit(Exchange):
     def parse_order(self, order, market=None):
         #
         #     {
-        #         id: string,
-        #         user_id: string,
-        #         market_id: string,
+        #         id,
+        #         user_id,
+        #         market_id,
         #         type: 'orderType',
         #         side: 'side',
-        #         quantity: string,
-        #         limit_price: string,
+        #         quantity,
+        #         limit_price,
         #         time_in_force: 'timeInForce',
-        #         filled_cost: string,
-        #         filled_quantity: string,
-        #         open_quantity: string,
-        #         cancelled_quantity: string,
+        #         filled_cost,
+        #         filled_quantity,
+        #         open_quantity,
+        #         cancelled_quantity,
         #         status: 'orderStatus',
         #         time: 'date',
-        #         client_order_id: string,
+        #         client_order_id,
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -1071,7 +1075,7 @@ class probit(Exchange):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1122,21 +1126,21 @@ class probit(Exchange):
         #
         #     {
         #         data: {
-        #             id: string,
-        #             user_id: string,
-        #             market_id: string,
+        #             id,
+        #             user_id,
+        #             market_id,
         #             type: 'orderType',
         #             side: 'side',
-        #             quantity: string,
-        #             limit_price: string,
+        #             quantity,
+        #             limit_price,
         #             time_in_force: 'timeInForce',
-        #             filled_cost: string,
-        #             filled_quantity: string,
-        #             open_quantity: string,
-        #             cancelled_quantity: string,
+        #             filled_cost,
+        #             filled_quantity,
+        #             open_quantity,
+        #             cancelled_quantity,
         #             status: 'orderStatus',
         #             time: 'date',
-        #             client_order_id: string,
+        #             client_order_id,
         #         }
         #     }
         #
@@ -1150,7 +1154,7 @@ class probit(Exchange):
             order['remaining'] = None
         return order
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1186,7 +1190,7 @@ class probit(Exchange):
             'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code, params={}):
+    def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1254,7 +1258,7 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

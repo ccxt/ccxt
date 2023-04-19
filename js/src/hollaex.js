@@ -11,7 +11,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class hollaex extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1710,7 +1709,7 @@ export default class hollaex extends Exchange {
         const url = this.urls['api']['rest'] + path;
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', parseInt((this.timeout / 1000).toString()));
+            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(this.timeout / 1000));
             const expires = this.sum(this.seconds(), defaultExpires);
             const expiresString = expires.toString();
             let auth = method + path + expiresString;

@@ -5,10 +5,11 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class bitvavo extends bitvavoRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -54,7 +55,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name bitvavo#watchTicker
@@ -66,7 +67,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchPublic ('ticker24h', symbol, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         //     {
         //         event: 'ticker24h',
@@ -103,7 +104,7 @@ export default class bitvavo extends bitvavoRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchTrades
@@ -123,7 +124,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //     {
         //         event: 'trade',
@@ -151,7 +152,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchOHLCV
@@ -189,7 +190,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: Client, message) {
         //
         //     {
         //         event: 'candle',
@@ -231,7 +232,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchOrderBook
@@ -284,7 +285,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    handleOrderBookMessage (client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
         //         event: 'book',
@@ -307,7 +308,7 @@ export default class bitvavo extends bitvavoRest {
         return orderbook;
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         //     {
         //         event: 'book',
@@ -362,7 +363,7 @@ export default class bitvavo extends bitvavoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client, message) {
+    handleOrderBookSnapshot (client: Client, message) {
         //
         //     {
         //         action: 'getBook',
@@ -404,7 +405,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
@@ -413,7 +414,7 @@ export default class bitvavo extends bitvavoRest {
         this.orderbooks[symbol] = this.orderBook ({}, limit);
     }
 
-    handleOrderBookSubscriptions (client, message, marketIds) {
+    handleOrderBookSubscriptions (client: Client, message, marketIds) {
         const name = 'book';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString (marketIds, i);
@@ -429,7 +430,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchOrders
@@ -467,7 +468,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitvavo#watchMyTrades
@@ -505,7 +506,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         //
         //     {
         //         event: 'order',
@@ -541,7 +542,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (this.orders, messageHash);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client: Client, message) {
         //
         //     {
         //         event: 'fill',
@@ -571,7 +572,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         event: 'subscribed',
@@ -620,7 +621,7 @@ export default class bitvavo extends bitvavoRest {
         return future;
     }
 
-    handleAuthenticationMessage (client, message) {
+    handleAuthenticationMessage (client: Client, message) {
         //
         //     {
         //         event: 'authenticate',
@@ -642,7 +643,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         //
         //     {
         //         event: 'subscribed',

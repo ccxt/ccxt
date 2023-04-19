@@ -10,7 +10,6 @@ import { BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class coinbasepro extends coinbaseproRest {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -679,6 +678,7 @@ export default class coinbasepro extends coinbaseproRest {
             this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
+            orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else if (type === 'l2update') {

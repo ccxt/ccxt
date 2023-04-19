@@ -8,14 +8,13 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// @ts-expect-error
 class phemex extends phemex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'phemex',
             'name': 'Phemex',
             'countries': ['CN'],
-            'rateLimit': 100,
+            'rateLimit': 120.5,
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -84,6 +83,7 @@ class phemex extends phemex$1 {
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test': {
                     'v1': 'https://testnet-api.phemex.com/v1',
+                    'v2': 'https://testnet-api.phemex.com/',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
@@ -121,128 +121,128 @@ class phemex extends phemex$1 {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'cfg/v2/products',
-                        'cfg/fundingRates',
-                        'products',
-                        'nomics/trades',
-                        'md/kline',
-                        'md/v2/kline/list',
-                        'md/v2/kline',
-                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                    ],
+                    'get': {
+                        'cfg/v2/products': 5,
+                        'cfg/fundingRates': 5,
+                        'products': 5,
+                        'nomics/trades': 5,
+                        'md/kline': 5,
+                        'md/v2/kline/list': 5,
+                        'md/v2/kline': 5,
+                        'md/v2/kline/last': 5, // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'md/orderbook',
-                        'md/trade',
-                        'md/ticker/24hr',
-                        'md/ticker/24hr/all',
-                        'md/spot/ticker/24hr',
-                        'md/spot/ticker/24hr/all',
-                        'exchange/public/products', // contracts only
-                    ],
+                    'get': {
+                        'md/orderbook': 5,
+                        'md/trade': 5,
+                        'md/ticker/24hr': 5,
+                        'md/ticker/24hr/all': 5,
+                        'md/spot/ticker/24hr': 5,
+                        'md/spot/ticker/24hr/all': 5,
+                        'exchange/public/products': 5, // contracts only
+                    },
                 },
                 'v2': {
-                    'get': [
-                        'md/v2/orderbook',
-                        'md/v2/trade',
-                        'md/v2/ticker/24hr',
-                        'md/v2/ticker/24hr/all', // ?id=<id>
-                    ],
+                    'get': {
+                        'md/v2/orderbook': 5,
+                        'md/v2/trade': 5,
+                        'md/v2/ticker/24hr': 5,
+                        'md/v2/ticker/24hr/all': 5, // ?id=<id>
+                    },
                 },
                 'private': {
-                    'get': [
+                    'get': {
                         // spot
-                        'spot/orders/active',
-                        // 'spot/orders/active', // ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders',
-                        'spot/wallets',
-                        'exchange/spot/order',
-                        'exchange/spot/order/trades',
-                        'exchange/order/v2/orderList',
-                        'exchange/order/v2/tradingList',
+                        'spot/orders/active': 1,
+                        // 'spot/orders/active': 5, // ?symbol=<symbol>&clOrDID=<clOrdID>
+                        'spot/orders': 1,
+                        'spot/wallets': 5,
+                        'exchange/spot/order': 5,
+                        'exchange/spot/order/trades': 5,
+                        'exchange/order/v2/orderList': 5,
+                        'exchange/order/v2/tradingList': 5,
                         // swap
-                        'accounts/accountPositions',
-                        'g-accounts/accountPositions',
-                        'accounts/positions',
-                        'api-data/futures/funding-fees',
-                        'api-data/g-futures/funding-fees',
-                        'api-data/futures/orders',
-                        'api-data/g-futures/orders',
-                        'api-data/futures/orders/by-order-id',
-                        'api-data/g-futures/orders/by-order-id',
-                        'api-data/futures/trades',
-                        'api-data/g-futures/trades',
-                        'api-data/futures/trading-fees',
-                        'api-data/g-futures/trading-fees',
-                        'g-orders/activeList',
-                        'orders/activeList',
-                        'exchange/order/list',
-                        'exchange/order',
-                        // 'exchange/order', // ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
-                        'exchange/order/trade',
-                        'phemex-user/users/children',
-                        'phemex-user/wallets/v2/depositAddress',
-                        'phemex-user/wallets/tradeAccountDetail',
-                        'phemex-user/order/closedPositionList',
-                        'exchange/margins/transfer',
-                        'exchange/wallets/confirm/withdraw',
-                        'exchange/wallets/withdrawList',
-                        'exchange/wallets/depositList',
-                        'exchange/wallets/v2/depositAddress',
-                        'api-data/spots/funds',
-                        'assets/convert',
+                        'accounts/accountPositions': 1,
+                        'g-accounts/accountPositions': 1,
+                        'accounts/positions': 25,
+                        'api-data/futures/funding-fees': 5,
+                        'api-data/g-futures/funding-fees': 5,
+                        'api-data/futures/orders': 5,
+                        'api-data/g-futures/orders': 5,
+                        'api-data/futures/orders/by-order-id': 5,
+                        'api-data/g-futures/orders/by-order-id': 5,
+                        'api-data/futures/trades': 5,
+                        'api-data/g-futures/trades': 5,
+                        'api-data/futures/trading-fees': 5,
+                        'api-data/g-futures/trading-fees': 5,
+                        'g-orders/activeList': 1,
+                        'orders/activeList': 1,
+                        'exchange/order/list': 5,
+                        'exchange/order': 5,
+                        // 'exchange/order': 5, // ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
+                        'exchange/order/trade': 5,
+                        'phemex-user/users/children': 5,
+                        'phemex-user/wallets/v2/depositAddress': 5,
+                        'phemex-user/wallets/tradeAccountDetail': 5,
+                        'phemex-user/order/closedPositionList': 5,
+                        'exchange/margins/transfer': 5,
+                        'exchange/wallets/confirm/withdraw': 5,
+                        'exchange/wallets/withdrawList': 5,
+                        'exchange/wallets/depositList': 5,
+                        'exchange/wallets/v2/depositAddress': 5,
+                        'api-data/spots/funds': 5,
+                        'assets/convert': 5,
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/futures/sub-accounts/transfer',
-                        'assets/quote', // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                    ],
-                    'post': [
+                        'assets/transfer': 5,
+                        'assets/spots/sub-accounts/transfer': 5,
+                        'assets/futures/sub-accounts/transfer': 5,
+                        'assets/quote': 5, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                    },
+                    'post': {
                         // spot
-                        'spot/orders',
+                        'spot/orders': 1,
                         // swap
-                        'orders',
-                        'g-orders',
-                        'positions/assign',
-                        'exchange/wallets/transferOut',
-                        'exchange/wallets/transferIn',
-                        'exchange/margins',
-                        'exchange/wallets/createWithdraw',
-                        'exchange/wallets/cancelWithdraw',
-                        'exchange/wallets/createWithdrawAddress',
+                        'orders': 1,
+                        'g-orders': 1,
+                        'positions/assign': 5,
+                        'exchange/wallets/transferOut': 5,
+                        'exchange/wallets/transferIn': 5,
+                        'exchange/margins': 5,
+                        'exchange/wallets/createWithdraw': 5,
+                        'exchange/wallets/cancelWithdraw': 5,
+                        'exchange/wallets/createWithdrawAddress': 5,
                         // transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer',
-                        'assets/futures/sub-accounts/transfer',
-                        'assets/universal-transfer',
-                        'assets/convert',
-                    ],
-                    'put': [
+                        'assets/transfer': 5,
+                        'assets/spots/sub-accounts/transfer': 5,
+                        'assets/futures/sub-accounts/transfer': 5,
+                        'assets/universal-transfer': 5,
+                        'assets/convert': 5,
+                    },
+                    'put': {
                         // spot
-                        'spot/orders',
+                        'spot/orders': 1,
                         // swap
-                        'orders/replace',
-                        'g-orders/replace',
-                        'positions/leverage',
-                        'g-positions/leverage',
-                        'g-positions/switch-pos-mode-sync',
-                        'positions/riskLimit', // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
-                    ],
-                    'delete': [
+                        'orders/replace': 1,
+                        'g-orders/replace': 1,
+                        'positions/leverage': 5,
+                        'g-positions/leverage': 5,
+                        'g-positions/switch-pos-mode-sync': 5,
+                        'positions/riskLimit': 5, // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                    },
+                    'delete': {
                         // spot
-                        'spot/orders',
-                        'spot/orders/all',
-                        // 'spot/orders', // ?symbol=<symbol>&clOrdID=<clOrdID>
+                        'spot/orders': 2,
+                        'spot/orders/all': 2,
+                        // 'spot/orders': 5, // ?symbol=<symbol>&clOrdID=<clOrdID>
                         // swap
-                        'orders/cancel',
-                        'orders',
-                        'orders/all',
-                        'g-orders/cancel',
-                        'g-orders',
-                        'g-orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                    ],
+                        'orders/cancel': 1,
+                        'orders': 1,
+                        'orders/all': 3,
+                        'g-orders/cancel': 1,
+                        'g-orders': 1,
+                        'g-orders/all': 3, // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                    },
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -587,8 +587,11 @@ class phemex extends phemex$1 {
         //
         //     {
         //         "symbol":"sBTCUSDT",
+        //         "code":1001,
         //         "displaySymbol":"BTC / USDT",
         //         "quoteCurrency":"USDT",
+        //         "priceScale":8,
+        //         "ratioScale":8,
         //         "pricePrecision":2,
         //         "type":"Spot",
         //         "baseCurrency":"BTC",
@@ -609,8 +612,11 @@ class phemex extends phemex$1 {
         //         "baseQtyPrecision":6,
         //         "quoteQtyPrecision":2,
         //         "status":"Listed",
-        //         "tipOrderQty":20
-        //     }
+        //         "tipOrderQty":2,
+        //         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //         "leverage":5
+        //         "valueScale":8,
+        //     },
         //
         const type = this.safeStringLower(market, 'type');
         const id = this.safeString(market, 'symbol');
@@ -647,9 +653,9 @@ class phemex extends phemex$1 {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'priceScale': 8,
-            'valueScale': 8,
-            'ratioScale': 8,
+            'priceScale': this.safeInteger(market, 'priceScale'),
+            'valueScale': this.safeInteger(market, 'valueScale'),
+            'ratioScale': this.safeInteger(market, 'ratioScale'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -691,9 +697,9 @@ class phemex extends phemex$1 {
         //         "data":{
         //             "ratioScale":8,
         //             "currencies":[
-        //                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        //                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        //                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        //                 {"code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        //                 {"code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        //                 {"code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
         //             ],
         //             "products":[
         //                 {
@@ -719,8 +725,11 @@ class phemex extends phemex$1 {
         //                 },
         //                 {
         //                     "symbol":"sBTCUSDT",
+        //                     "code":1001,
         //                     "displaySymbol":"BTC / USDT",
         //                     "quoteCurrency":"USDT",
+        //                     "priceScale":8,
+        //                     "ratioScale":8,
         //                     "pricePrecision":2,
         //                     "type":"Spot",
         //                     "baseCurrency":"BTC",
@@ -739,7 +748,11 @@ class phemex extends phemex$1 {
         //                     "defaultMakerFee":"0.001",
         //                     "defaultMakerFeeEr":100000,
         //                     "baseQtyPrecision":6,
-        //                     "quoteQtyPrecision":2
+        //                     "quoteQtyPrecision":2,
+        //                     "status":"Listed",
+        //                     "tipOrderQty":2,
+        //                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        //                     "leverage":5
         //                 },
         //             ],
         //             "riskLimits":[
@@ -801,8 +814,10 @@ class phemex extends phemex$1 {
         const v2ProductsData = this.safeValue(v2Products, 'data', {});
         const products = this.safeValue(v2ProductsData, 'products', []);
         const riskLimits = this.safeValue(v2ProductsData, 'riskLimits', []);
+        const currencies = this.safeValue(v2ProductsData, 'currencies', []);
         const riskLimitsById = this.indexBy(riskLimits, 'symbol');
         const v1ProductsById = this.indexBy(v1ProductsData, 'symbol');
+        const currenciesByCode = this.indexBy(currencies, 'currency');
         const result = [];
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
@@ -816,6 +831,10 @@ class phemex extends phemex$1 {
                 market = this.parseSwapMarket(market);
             }
             else {
+                const baseCurrency = this.safeString(market, 'baseCurrency');
+                const currencyValues = this.safeValue(currenciesByCode, baseCurrency, {});
+                const valueScale = this.safeString(currencyValues, 'valueScale', '8');
+                market = this.extend(market, { 'valueScale': valueScale });
                 market = this.parseSpotMarket(market);
             }
             result.push(market);
@@ -984,10 +1003,8 @@ class phemex extends phemex$1 {
         const precise = new Precise["default"](stringN);
         precise.decimals = precise.decimals - scale;
         precise.reduce();
-        const stringValue = precise.toString();
-        const floatValue = parseFloat(stringValue);
-        const floatString = floatValue.toString();
-        return parseInt(floatString);
+        const preciseString = precise.toString();
+        return this.parseToInt(preciseString);
     }
     toEv(amount, market = undefined) {
         if ((amount === undefined) || (market === undefined)) {
@@ -1403,6 +1420,67 @@ class phemex extends phemex$1 {
         //         "orderID": "b63bc982-be3a-45e0-8974-43d6375fb626",
         //         "clOrdID": "uuid-1577463487504",
         //         "execStatus": "MakerFill"
+        //     }
+        // perpetual
+        //     {
+        //         "accountID": 9328670003,
+        //         "action": "New",
+        //         "actionBy": "ByUser",
+        //         "actionTimeNs": 1666858780876924611,
+        //         "addedSeq": 77751555,
+        //         "apRp": "0",
+        //         "bonusChangedAmountRv": "0",
+        //         "bpRp": "0",
+        //         "clOrdID": "c0327a7d-9064-62a9-28f6-2db9aaaa04e0",
+        //         "closedPnlRv": "0",
+        //         "closedSize": "0",
+        //         "code": 0,
+        //         "cumFeeRv": "0",
+        //         "cumQty": "0",
+        //         "cumValueRv": "0",
+        //         "curAccBalanceRv": "1508.489893982237",
+        //         "curAssignedPosBalanceRv": "24.62786650928",
+        //         "curBonusBalanceRv": "0",
+        //         "curLeverageRr": "-10",
+        //         "curPosSide": "Buy",
+        //         "curPosSize": "0.043",
+        //         "curPosTerm": 1,
+        //         "curPosValueRv": "894.0689",
+        //         "curRiskLimitRv": "1000000",
+        //         "currency": "USDT",
+        //         "cxlRejReason": 0,
+        //         "displayQty": "0.003",
+        //         "execFeeRv": "0",
+        //         "execID": "00000000-0000-0000-0000-000000000000",
+        //         "execPriceRp": "20723.7",
+        //         "execQty": "0",
+        //         "execSeq": 77751555,
+        //         "execStatus": "New",
+        //         "execValueRv": "0",
+        //         "feeRateRr": "0",
+        //         "leavesQty": "0.003",
+        //         "leavesValueRv": "63.4503",
+        //         "message": "No error",
+        //         "ordStatus": "New",
+        //         "ordType": "Market",
+        //         "orderID": "fa64c6f2-47a4-4929-aab4-b7fa9bbc4323",
+        //         "orderQty": "0.003",
+        //         "pegOffsetValueRp": "0",
+        //         "posSide": "Long",
+        //         "priceRp": "21150.1",
+        //         "relatedPosTerm": 1,
+        //         "relatedReqNum": 11,
+        //         "side": "Buy",
+        //         "slTrigger": "ByMarkPrice",
+        //         "stopLossRp": "0",
+        //         "stopPxRp": "0",
+        //         "symbol": "BTCUSDT",
+        //         "takeProfitRp": "0",
+        //         "timeInForce": "ImmediateOrCancel",
+        //         "tpTrigger": "ByLastPrice",
+        //         "tradeType": "Amend",
+        //         "transactTimeNs": 1666858780881545305,
+        //         "userID": 932867
         //     }
         //
         // swap - USDT
@@ -1900,12 +1978,13 @@ class phemex extends phemex$1 {
             clientOrderId = undefined;
         }
         const marketId = this.safeString(order, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const price = this.fromEp(this.safeString(order, 'priceEp'), market);
         const amount = this.fromEv(this.safeString(order, 'baseQtyEv'), market);
         const remaining = this.omitZero(this.fromEv(this.safeString(order, 'leavesBaseQtyEv'), market));
         const filled = this.fromEv(this.safeString2(order, 'cumBaseQtyEv', 'cumBaseValueEv'), market);
-        const cost = this.fromEv(this.safeString2(order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
+        const cost = this.fromEr(this.safeString2(order, 'cumQuoteValueEv', 'quoteQtyEv'), market);
         const average = this.fromEp(this.safeString(order, 'avgPriceEp'), market);
         const status = this.parseOrderStatus(this.safeString(order, 'ordStatus'));
         const side = this.safeStringLower(order, 'side');
@@ -2140,13 +2219,13 @@ class phemex extends phemex$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        side = this.capitalize(side);
+        const requestSide = this.capitalize(side);
         type = this.capitalize(type);
         const reduceOnly = this.safeValue(params, 'reduceOnly');
         const request = {
             // common
             'symbol': market['id'],
-            'side': side,
+            'side': requestSide,
             'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             // 'stopPxEp': this.toEp (stopPx, market), // for conditional orders
             // 'priceEp': this.toEp (price, market), // required for limit orders
@@ -2427,15 +2506,15 @@ class phemex extends phemex$1 {
         }
         params = this.omit(params, ['stopPx', 'stopPrice']);
         let method = 'privatePutSpotOrders';
-        if (market['inverse']) {
-            method = 'privatePutOrdersReplace';
-        }
-        else if (isUSDTSettled) {
+        if (isUSDTSettled) {
             method = 'privatePutGOrdersReplace';
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+        }
+        else if (market['swap']) {
+            method = 'privatePutOrdersReplace';
         }
         const response = await this[method](this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
@@ -2470,15 +2549,15 @@ class phemex extends phemex$1 {
             request['orderID'] = id;
         }
         let method = 'privateDeleteSpotOrders';
-        if (market['inverse']) {
-            method = 'privateDeleteOrdersCancel';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersCancel';
             const posSide = this.safeString(params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+        }
+        else if (market['swap']) {
+            method = 'privateDeleteOrdersCancel';
         }
         const response = await this[method](this.extend(request, params));
         const data = this.safeValue(response, 'data', {});
@@ -2505,11 +2584,11 @@ class phemex extends phemex$1 {
         };
         const market = this.market(symbol);
         let method = 'privateDeleteSpotOrdersAll';
-        if (market['inverse']) {
-            method = 'privateDeleteOrdersAll';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersAll';
+        }
+        else if (market['swap']) {
+            method = 'privateDeleteOrdersAll';
         }
         request['symbol'] = market['id'];
         return await this[method](this.extend(request, params));
@@ -2581,12 +2660,12 @@ class phemex extends phemex$1 {
             'symbol': market['id'],
         };
         let method = 'privateGetSpotOrders';
-        if (market['inverse']) {
-            method = 'privateGetExchangeOrderList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             request['currency'] = market['settle'];
             method = 'privateGetExchangeOrderV2OrderList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetExchangeOrderList';
         }
         if (since !== undefined) {
             request['start'] = since;
@@ -2605,6 +2684,7 @@ class phemex extends phemex$1 {
          * @name phemex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -2617,11 +2697,11 @@ class phemex extends phemex$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         let method = 'privateGetSpotOrders';
-        if (market['inverse']) {
-            method = 'privateGetOrdersActiveList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             method = 'privateGetGOrdersActiveList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetOrdersActiveList';
         }
         const request = {
             'symbol': market['id'],
@@ -2666,12 +2746,12 @@ class phemex extends phemex$1 {
             'symbol': market['id'],
         };
         let method = 'privateGetExchangeSpotOrder';
-        if (market['inverse']) {
-            method = 'privateGetExchangeOrderList';
-        }
-        else if (market['settle'] === 'USDT') {
+        if (market['settle'] === 'USDT') {
             request['currency'] = market['settle'];
             method = 'privateGetExchangeOrderV2OrderList';
+        }
+        else if (market['swap']) {
+            method = 'privateGetExchangeOrderList';
         }
         if (since !== undefined) {
             request['start'] = since;
@@ -2751,14 +2831,16 @@ class phemex extends phemex$1 {
             }
         }
         const request = {};
+        if (limit !== undefined) {
+            limit = Math.min(200, limit);
+            request['limit'] = limit;
+        }
         if (market['settle'] === 'USDT') {
             request['currency'] = 'USDT';
             request['offset'] = 0;
-            limit = 200;
-            if (limit !== undefined) {
-                limit = Math.min(200, limit);
+            if (limit === undefined) {
+                request['limit'] = 200;
             }
-            request['limit'] = limit;
         }
         else {
             request['symbol'] = market['id'];
@@ -3334,9 +3416,8 @@ class phemex extends phemex$1 {
             }
         }
         const unrealizedPnl = Precise["default"].stringMul(Precise["default"].stringMul(priceDiff, contracts), contractSizeString);
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealizedPnl, initialMarginString), '100');
         const marginRatio = Precise["default"].stringDiv(maintenanceMarginString, collateral);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3348,8 +3429,10 @@ class phemex extends phemex$1 {
             'collateral': this.parseNumber(collateral),
             'notional': this.parseNumber(notionalString),
             'markPrice': this.parseNumber(markPriceString),
+            'lastPrice': undefined,
             'entryPrice': this.parseNumber(entryPriceString),
             'timestamp': undefined,
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentageString),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -3359,8 +3442,8 @@ class phemex extends phemex$1 {
             'marginMode': undefined,
             'side': side,
             'hedged': false,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

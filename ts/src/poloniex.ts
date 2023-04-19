@@ -2,14 +2,14 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class poloniex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -245,35 +245,112 @@ export default class poloniex extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    'You may only place orders that reduce your position.': InvalidOrder,
-                    'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
-                    'Permission denied': PermissionDenied,
-                    'Permission denied.': PermissionDenied,
-                    'Connection timed out. Please try again.': RequestTimeout,
-                    'Internal error. Please try again.': ExchangeNotAvailable,
-                    'Currently in maintenance mode.': OnMaintenance,
-                    'Order not found, or you are not the person who placed it.': OrderNotFound,
-                    'Invalid API key/secret pair.': AuthenticationError,
-                    'Please do not make more than 8 API calls per second.': RateLimitExceeded,
-                    'This IP has been temporarily throttled. Please ensure your requests are valid and try again in one minute.': RateLimitExceeded,
-                    'Rate must be greater than zero.': InvalidOrder, // {"error":"Rate must be greater than zero."}
-                    'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
-                    'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
-                    'Trading is disabled in this market.': BadSymbol, // {"error":"Trading is disabled in this market."}
-                    'Invalid orderNumber parameter.': OrderNotFound,
-                    'Order is beyond acceptable bounds.': InvalidOrder, // {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
-                    'This account is closed.': AccountSuspended, // {"error":"This account is closed."}
+                    // General
+                    '500': ExchangeNotAvailable, // Internal System Error
+                    '603': RequestTimeout, // Internal Request Timeout
+                    '601': BadRequest, // Invalid Parameter
+                    '415': ExchangeError, // System Error
+                    '602': ArgumentsRequired, // Missing Required Parameters
+                    // Accounts
+                    '21604': BadRequest, // Invalid UserId
+                    '21600': AuthenticationError, // Account Not Found
+                    '21605': AuthenticationError, // Invalid Account Type
+                    '21102': ExchangeError, // Invalid Currency
+                    '21100': AuthenticationError, // Invalid account
+                    '21704': AuthenticationError, // Missing UserId and/or AccountId
+                    '21700': BadRequest, // Error updating accounts
+                    '21705': BadRequest, // Invalid currency type
+                    '21707': ExchangeError, // Internal accounts Error
+                    '21708': BadRequest, // Currency not available to User
+                    '21601': AccountSuspended, // Account locked. Contact support
+                    '21711': ExchangeError, // Currency locked. Contact support
+                    '21709': InsufficientFunds, // Insufficient balance
+                    '250000': ExchangeError, // Transfer error. Try again later
+                    '250001': BadRequest, // Invalid toAccount for transfer
+                    '250002': BadRequest, // Invalid fromAccount for transfer
+                    '250003': BadRequest, // Invalid transfer amount
+                    '250004': BadRequest, // Transfer is not supported
+                    '250005': InsufficientFunds, // Insufficient transfer balance
+                    '250008': BadRequest, // Invalid transfer currency
+                    '250012': ExchangeError, // Futures account is not valid
+                    // Trading
+                    '21110': BadRequest, // Invalid quote currency
+                    '10040': BadSymbol, // Invalid symbol
+                    '10060': ExchangeError, // Symbol setup error
+                    '10020': BadSymbol, // Invalid currency
+                    '10041': BadSymbol, // Symbol frozen for trading
+                    '21340': OnMaintenance, // No order creation/cancelation is allowed as Poloniex is in Maintenane Mode
+                    '21341': InvalidOrder, // Post-only orders (type as LIMIT_MAKER) allowed as Poloniex is in Post Only Mode
+                    '21342': InvalidOrder, // Price is higher than highest bid as Poloniex is in Maintenance Mode
+                    '21343': InvalidOrder, // Price is lower than lowest bid as Poloniex is in Maintenance Mode
+                    '21351': AccountSuspended, // Trading for this account is frozen. Contact support
+                    '21352': BadSymbol, // Trading for this currency is frozen
+                    '21353': PermissionDenied, // Trading for US customers is not supported
+                    '21354': PermissionDenied, // Account needs to be verified via email before trading is enabled. Contact support
+                    '24106': BadRequest, // Invalid market depth
+                    '24201': ExchangeNotAvailable, // Service busy. Try again later
+                    // Orders
+                    '21301': OrderNotFound, // Order not found
+                    '21302': ExchangeError, // Batch cancel order error
+                    '21304': ExchangeError, // Order is filled
+                    '21305': OrderNotFound, // Order is canceled
+                    '21307': ExchangeError, // Error during Order Cancelation
+                    '21309': InvalidOrder, // Order price must be greater than 0
+                    '21310': InvalidOrder, // Order price must be less than max price
+                    '21311': InvalidOrder, // Order price must be greater than min price
+                    '21312': InvalidOrder, // Client orderId already exists
+                    '21314': InvalidOrder, // Max limit of open orders (2000) exceeded
+                    '21315': InvalidOrder, // Client orderId exceeded max length of 17 digits
+                    '21317': InvalidOrder, // Amount must be greater than 0
+                    '21319': InvalidOrder, // Invalid order side
+                    '21320': InvalidOrder, // Invalid order type
+                    '21321': InvalidOrder, // Invalid timeInForce value
+                    '21322': InvalidOrder, // Amount is less than minAmount trade limit
+                    '21324': BadRequest, // Invalid account type
+                    '21327': InvalidOrder, // Order pice must be greater than 0
+                    '21328': InvalidOrder, // Order quantity must be greater than 0
+                    '21330': InvalidOrder, // Quantity is less than minQuantity trade limit
+                    '21335': InvalidOrder, // Invalid priceScale for this symbol
+                    '21336': InvalidOrder, // Invalid quantityScale for this symbol
+                    '21337': InvalidOrder, // Invalid amountScale for this symbol
+                    '21344': InvalidOrder, // Value of limit param is greater than max value of 100
+                    '21345': InvalidOrder, // Value of limit param value must be greater than 0
+                    '21346': InvalidOrder, // Order Id must be of type Long
+                    '21348': InvalidOrder, // Order type must be LIMIT_MAKER
+                    '21347': InvalidOrder, // Stop price must be greater than 0
+                    '21349': InvalidOrder, // Order value is too large
+                    '21350': InvalidOrder, // Amount must be greater than 1 USDT
+                    '21355': ExchangeError, // Interval between startTime and endTime in trade/order history has exceeded 7 day limit
+                    '21356': BadRequest, // Order size would cause too much price movement. Reduce order size.
+                    '24101': BadSymbol, // Invalid symbol
+                    '24102': InvalidOrder, // Invalid K-line type
+                    '24103': InvalidOrder, // Invalid endTime
+                    '24104': InvalidOrder, // Invalid amount
+                    '24105': InvalidOrder, // Invalid startTime
+                    '25020': InvalidOrder, // No active kill switch
+                    // Smartorders
+                    '25000': InvalidOrder, // Invalid userId
+                    '25001': InvalidOrder, // Invalid parameter
+                    '25002': InvalidOrder, // Invalid userId.
+                    '25003': ExchangeError, // Unable to place order
+                    '25004': InvalidOrder, // Client orderId already exists
+                    '25005': ExchangeError, // Unable to place smart order
+                    '25006': InvalidOrder, // OrderId and clientOrderId already exists
+                    '25007': InvalidOrder, // Invalid orderid
+                    '25008': InvalidOrder, // Both orderId and clientOrderId are required
+                    '25009': ExchangeError, // Failed to cancel order
+                    '25010': PermissionDenied, // Unauthorized to cancel order
+                    '25011': InvalidOrder, // Failed to cancel due to invalid paramters
+                    '25012': ExchangeError, // Failed to cancel
+                    '25013': OrderNotFound, // Failed to cancel as orders were not found
+                    '25014': OrderNotFound, // Failed to cancel as smartorders were not found
+                    '25015': OrderNotFound, // Failed to cancel as no orders exist
+                    '25016': ExchangeError, // Failed to cancel as unable to release funds
+                    '25017': ExchangeError, // No orders were canceled
+                    '25018': BadRequest, // Invalid accountType
+                    '25019': BadSymbol, // Invalid symbol
                 },
                 'broad': {
-                    'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
-                    'This account is frozen': AccountSuspended, // {"error":"This account is frozen for trading."} || {"error":"This account is frozen."}
-                    'This account is locked.': AccountSuspended, // {"error":"This account is locked."}
-                    'Not enough': InsufficientFunds,
-                    'Nonce must be greater': InvalidNonce,
-                    'You have already called cancelOrder': CancelPending, // {"error":"You have already called cancelOrder, moveOrder, or cancelReplace on this order. Please wait for that call's response."}
-                    'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
-                    'is either completed or does not exist': OrderNotFound, // {"error":"Order 587957810791 is either completed or does not exist."}
-                    'Error pulling ': ExchangeError, // {"error":"Error pulling order book"}
                 },
             },
         });
@@ -310,7 +387,7 @@ export default class poloniex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOHLCV
@@ -627,7 +704,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name poloniex#fetchTicker
@@ -723,7 +800,7 @@ export default class poloniex extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const side = this.safeStringLower (trade, 'side');
+        const side = this.safeStringLower2 (trade, 'side', 'takerSide');
         let fee = undefined;
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
@@ -754,7 +831,7 @@ export default class poloniex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchTrades
@@ -790,7 +867,7 @@ export default class poloniex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchMyTrades
@@ -814,7 +891,7 @@ export default class poloniex extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = parseInt (limit);
+            request['limit'] = limit;
         }
         const response = await this.privateGetTrades (this.extend (request, params));
         //
@@ -995,7 +1072,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOpenOrders
@@ -1043,7 +1120,7 @@ export default class poloniex extends Exchange {
         return this.parseOrders (response, market, since, limit, extension);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#createOrder
@@ -1115,7 +1192,7 @@ export default class poloniex extends Exchange {
         return [ request, params ];
     }
 
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#editOrder
@@ -1153,7 +1230,7 @@ export default class poloniex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#cancelOrder
@@ -1215,7 +1292,7 @@ export default class poloniex extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrder
@@ -1256,14 +1333,14 @@ export default class poloniex extends Exchange {
         });
     }
 
-    async fetchOrderStatus (id, symbol: string = undefined, params = {}) {
+    async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
         await this.loadMarkets ();
         const orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         const indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
     }
 
-    async fetchOrderTrades (id, symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrderTrades
@@ -1391,7 +1468,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrderBook
@@ -1448,7 +1525,7 @@ export default class poloniex extends Exchange {
         } as any;
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name poloniex#createDepositAddress
@@ -1498,7 +1575,7 @@ export default class poloniex extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDepositAddress
@@ -1548,7 +1625,7 @@ export default class poloniex extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name poloniex#transfer
@@ -1575,48 +1652,32 @@ export default class poloniex extends Exchange {
         const response = await this.privatePostAccountsTransfer (this.extend (request, params));
         //
         //    {
-        //        success: '1',
-        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
         return this.parseTransfer (response, currency);
     }
 
-    parseTransferStatus (status) {
-        const statuses = {
-            '1': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     parseTransfer (transfer, currency = undefined) {
         //
         //    {
-        //        success: '1',
-        //        message: 'Transferred 1.00000000 USDT from exchange to lending account.'
+        //        "transferId" : "168041074"
         //    }
         //
-        const message = this.safeString (transfer, 'message');
-        const words = message.split (' ');
-        const amount = this.safeNumber (words, 1);
-        const currencyId = this.safeString (words, 2);
-        const fromAccountId = this.safeString (words, 4);
-        const toAccountId = this.safeString (words, 6);
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
         return {
             'info': transfer,
-            'id': undefined,
+            'id': this.safeString (transfer, 'transferId'),
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': amount,
-            'fromAccount': this.safeString (accountsById, fromAccountId),
-            'toAccount': this.safeString (accountsById, toAccountId),
-            'status': this.parseOrderStatus (this.safeString (transfer, 'success', 'failed')),
+            'currency': this.safeString (currency, 'id'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#withdraw
@@ -1658,11 +1719,11 @@ export default class poloniex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchTransactionsHelper (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactionsHelper (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
-        const start = (since !== undefined) ? parseInt ((since / 1000).toString ()) : now - 10 * year;
+        const start = (since !== undefined) ? this.parseToInt (since / 1000) : now - 10 * year;
         const request = {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
@@ -1742,7 +1803,7 @@ export default class poloniex extends Exchange {
         return response;
     }
 
-    async fetchTransactions (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchTransactions
@@ -1767,7 +1828,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchWithdrawals
@@ -1788,7 +1849,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDepositWithdrawFees
@@ -1833,7 +1894,7 @@ export default class poloniex extends Exchange {
         return this.parseDepositWithdrawFees (data, codes);
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         //
         //         {
         //             "1CR": {
@@ -1915,7 +1976,7 @@ export default class poloniex extends Exchange {
         return depositWithdrawFee;
     }
 
-    async fetchDeposits (code: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDeposits
@@ -2030,7 +2091,7 @@ export default class poloniex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'];
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
@@ -2075,11 +2136,17 @@ export default class poloniex extends Exchange {
         if (response === undefined) {
             return;
         }
-        // {"error":"Permission denied."}
-        if ('error' in response) {
-            const message = response['error'];
+        //
+        //     {
+        //         "code" : 21709,
+        //         "message" : "Low available balance"
+        //     }
+        //
+        if ('code' in response) {
+            const code = response['code'];
+            const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

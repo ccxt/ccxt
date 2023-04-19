@@ -8,7 +8,6 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class huobi extends huobi$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -4215,7 +4214,8 @@ class huobi extends huobi$1 {
                 throw new errors.NotSupported(this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(orderType === 'market', orderType === 'limit-maker', params);
         if (postOnly) {
             orderType = 'limit-maker';
         }
@@ -4326,7 +4326,7 @@ class huobi extends huobi$1 {
             //     optimal_5_ioc
             //     optimal_10_ioc
             //     optimal_20_ioc
-            //     opponent_fok // FOR order using the BBO price
+            //     opponent_fok // FOK order using the BBO price
             //     optimal_5_fok
             //     optimal_10_fok
             //     optimal_20_fok
@@ -4370,7 +4370,8 @@ class huobi extends huobi$1 {
             throw new errors.NotSupported(this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
         params = this.omit(params, ['sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price']);
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
         }
@@ -6109,7 +6110,7 @@ class huobi extends huobi$1 {
         const maintenanceMarginPercentage = Precise["default"].stringDiv(adjustmentFactor, leverage);
         const maintenanceMargin = Precise["default"].stringMul(maintenanceMarginPercentage, notional);
         const marginRatio = Precise["default"].stringDiv(maintenanceMargin, collateral);
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -6124,6 +6125,7 @@ class huobi extends huobi$1 {
             'marginMode': marginMode,
             'notional': this.parseNumber(notional),
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': this.parseNumber(intialMarginPercentage),
@@ -6132,7 +6134,8 @@ class huobi extends huobi$1 {
             'marginRatio': this.parseNumber(marginRatio),
             'timestamp': undefined,
             'datetime': undefined,
-        };
+            'lastUpdateTimestamp': undefined,
+        });
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**

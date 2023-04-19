@@ -8,7 +8,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class buda extends buda$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -754,12 +753,12 @@ class buda extends buda$1 {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        side = (side === 'buy') ? 'Bid' : 'Ask';
+        const requestSide = (side === 'buy') ? 'Bid' : 'Ask';
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
             'price_type': type,
-            'type': side,
+            'type': requestSide,
             'amount': this.amountToPrecision(symbol, amount),
         };
         if (type === 'limit') {

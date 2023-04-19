@@ -8,7 +8,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class zonda extends zonda$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1074,7 +1073,7 @@ class zonda extends zonda$1 {
             request['from'] = request['to'] - timerange;
         }
         else {
-            request['from'] = parseInt(since);
+            request['from'] = since;
             request['to'] = this.sum(request['from'], timerange);
         }
         const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution(this.extend(request, params));

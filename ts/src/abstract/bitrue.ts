@@ -8,33 +8,36 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-export default abstract class Exchange extends _Exchange {
-    abstract klinePublicGetPublicJson (params?: {}): Promise<implicitReturnType>;
-    abstract klinePublicGetPublicCurrencyJson (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetPing (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetTime (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetDepth (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetTrades (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetAggTrades (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
-    abstract v1PublicGetMarketKline (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateGetOrder (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateGetAccount (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateGetMyTrades (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateGetEtfNetValueSymbol (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateGetWithdrawHistory (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateGetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivatePostOrder (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivatePostWithdrawCommit (params?: {}): Promise<implicitReturnType>;
-    abstract v1PrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    abstract v2PrivateGetMyTrades (params?: {}): Promise<implicitReturnType>;
-    abstract openPrivatePostPoseidonApiV1ListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract openPrivatePutPoseidonApiV1ListenKeyListenKey (params?: {}): Promise<implicitReturnType>;
-    abstract openPrivateDeletePoseidonApiV1ListenKeyListenKey (params?: {}): Promise<implicitReturnType>;
+interface Exchange {
+    klinePublicGetPublicJson (params?: {}): Promise<implicitReturnType>;
+    klinePublicGetPublicCurrencyJson (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetPing (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetTime (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetDepth (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetTrades (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAggTrades (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetMarketKline (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetOrder (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetAccount (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetMyTrades (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetEtfNetValueSymbol (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetDepositHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostOrder (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostWithdrawCommit (params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
+    v2PrivateGetMyTrades (params?: {}): Promise<implicitReturnType>;
+    openPrivatePostPoseidonApiV1ListenKey (params?: {}): Promise<implicitReturnType>;
+    openPrivatePutPoseidonApiV1ListenKeyListenKey (params?: {}): Promise<implicitReturnType>;
+    openPrivateDeletePoseidonApiV1ListenKeyListenKey (params?: {}): Promise<implicitReturnType>;
 }
+abstract class Exchange extends _Exchange {}
+
+export default Exchange

@@ -10,7 +10,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class kucoinfutures extends kucoin {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -973,12 +972,13 @@ export default class kucoinfutures extends kucoin {
         const crossMode = this.safeValue(position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
         const marginMode = crossMode ? 'cross' : 'isolated';
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'maintenanceMargin': this.safeNumber(position, 'posMaint'),
@@ -993,11 +993,12 @@ export default class kucoinfutures extends kucoin {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': undefined,
             'collateral': this.safeNumber(position, 'maintMargin'),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber(Precise.stringDiv(unrealisedPnl, initialMargin)),
-        };
+            'percentage': undefined,
+        });
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -1079,7 +1080,11 @@ export default class kucoinfutures extends kucoin {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue(params, 'postOnly', false);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', false, params);
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
         const hidden = this.safeValue(params, 'hidden');
         if (postOnly && (hidden !== undefined)) {
             throw new BadRequest(this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');

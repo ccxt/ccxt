@@ -11,7 +11,6 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../ba
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class bittrex extends bittrexRest {
     describe() {
         return this.deepExtend(super.describe(), {

@@ -237,7 +237,7 @@ class Client {
                 arrayBuffer = index.utf8.decode(message);
             }
             else {
-                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset));
+                arrayBuffer = new Uint8Array(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
             }
             if (this.gunzip) {
                 arrayBuffer = browser.gunzipSync(arrayBuffer);
@@ -265,7 +265,12 @@ class Client {
             this.log(new Date(), 'onMessage JSON.parse', e);
             // reset with a json encoding error ?
         }
-        this.onMessageCallback(this, message);
+        try {
+            this.onMessageCallback(this, message);
+        }
+        catch (error) {
+            this.reject(error);
+        }
     }
 }
 

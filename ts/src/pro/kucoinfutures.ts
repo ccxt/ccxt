@@ -3,10 +3,11 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class kucoinfutures extends kucoinfuturesRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -131,7 +132,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
-    async watchTicker (symbol, params = {}) {
+    async watchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchTicker
@@ -152,7 +153,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.subscribe (url, messageHash, topic, undefined, params);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: Client, message) {
         //
         // market/tickerV2
         //
@@ -181,7 +182,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchTrades
@@ -206,7 +207,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: Client, message) {
         //
         //    {
         //        type: 'message',
@@ -242,7 +243,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchOrderBook (symbol, limit = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchOrderBook
@@ -306,7 +307,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: Client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -366,7 +367,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return cache.length;
     }
 
-    handleOrderBookSubscription (client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -376,7 +377,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         // but not before, because otherwise we cannot synchronize the feed
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message) {
         //
         //     {
         //         id: '1578090438322',
@@ -393,7 +394,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    handleSystemStatus (client, message) {
+    handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -407,7 +408,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchOrders
@@ -505,7 +506,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }, market);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: Client, message) {
         const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsOrder (data);
@@ -557,7 +558,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.subscribe (url, messageHash, topic, subscription, this.extend (request, params));
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: Client, message) {
         //
         //    {
         //        id: '6375553193027a0001f6566f',
@@ -586,7 +587,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleBalanceSubscription (client, message, subscription) {
+    handleBalanceSubscription (client: Client, message, subscription) {
         this.spawn (this.fetchBalanceSnapshot, client, message);
     }
 
@@ -643,7 +644,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleSubject (client, message) {
+    handleSubject (client: Client, message) {
         //
         //    {
         //        type: 'message',
@@ -684,17 +685,17 @@ export default class kucoinfutures extends kucoinfuturesRest {
         };
     }
 
-    handlePong (client, message) {
+    handlePong (client: Client, message) {
         // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message) {
         return message;
     }
 
-    handleMessage (client, message) {
+    handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             const type = this.safeString (message, 'type');
             const methods = {

@@ -9,7 +9,6 @@ var totp = require('./base/functions/totp.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class deribit extends deribit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -2255,14 +2254,14 @@ class deribit extends deribit$1 {
         const initialMarginString = this.safeString(position, 'initial_margin');
         const notionalString = this.safeString(position, 'size_currency');
         const maintenanceMarginString = this.safeString(position, 'maintenance_margin');
-        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(unrealizedPnl, initialMarginString), '100');
         const currentTime = this.milliseconds();
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': currentTime,
             'datetime': this.iso8601(currentTime),
+            'lastUpdateTimestamp': undefined,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringMul(Precise["default"].stringDiv(initialMarginString, notionalString), '100')),
             'maintenanceMargin': this.parseNumber(maintenanceMarginString),
@@ -2276,11 +2275,12 @@ class deribit extends deribit$1 {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estimated_liquidation_price'),
             'markPrice': this.safeNumber(position, 'mark_price'),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': undefined,
             'side': side,
-            'percentage': this.parseNumber(percentage),
-        };
+            'percentage': undefined,
+        });
     }
     async fetchPosition(symbol, params = {}) {
         /**

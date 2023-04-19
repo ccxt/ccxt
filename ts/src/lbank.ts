@@ -5,12 +5,13 @@ import Exchange from './abstract/lbank.js';
 import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { rsa } from './base/functions/rsa.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
-// @ts-expect-error
 export default class lbank extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -279,7 +280,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
          * @name lbank#fetchTicker
@@ -333,7 +334,7 @@ export default class lbank extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol, limit = 60, params = {}) {
+    async fetchOrderBook (symbol: string, limit = 60, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrderBook
@@ -388,7 +389,7 @@ export default class lbank extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchTrades
@@ -406,7 +407,7 @@ export default class lbank extends Exchange {
             'size': 100,
         };
         if (since !== undefined) {
-            request['time'] = parseInt (since);
+            request['time'] = since;
         }
         if (limit !== undefined) {
             request['size'] = limit;
@@ -436,7 +437,7 @@ export default class lbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name lbank#fetchOHLCV
@@ -596,7 +597,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name lbank#createOrder
@@ -631,7 +632,7 @@ export default class lbank extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank#cancelOrder
@@ -651,7 +652,7 @@ export default class lbank extends Exchange {
         return response;
     }
 
-    async fetchOrder (id, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrder
@@ -678,7 +679,7 @@ export default class lbank extends Exchange {
         }
     }
 
-    async fetchOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchOrders
@@ -704,7 +705,7 @@ export default class lbank extends Exchange {
         return this.parseOrders (data, undefined, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: any = undefined, limit: any = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lbank#fetchClosedOrders
@@ -727,7 +728,7 @@ export default class lbank extends Exchange {
         return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as any;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lbank#withdraw
@@ -811,7 +812,7 @@ export default class lbank extends Exchange {
         return pem + '-----END PRIVATE KEY-----';
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"
@@ -826,7 +827,7 @@ export default class lbank extends Exchange {
                 'api_key': this.apiKey,
             }, params));
             const queryString = this.rawencode (query);
-            const message = this.hash (this.encode (queryString), sha256).toUpperCase ();
+            const message = this.hash (this.encode (queryString), md5).toUpperCase ();
             const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
             if (cacheSecretAsPem) {

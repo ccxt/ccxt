@@ -8,7 +8,6 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 class bithumb extends bithumb$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -161,6 +160,7 @@ class bithumb extends bithumb$1 {
                 },
             },
             'commonCurrencies': {
+                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },

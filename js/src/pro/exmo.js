@@ -10,7 +10,6 @@ import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
-// @ts-expect-error
 export default class exmo extends exmoRest {
     describe() {
         return this.deepExtend(super.describe(), {

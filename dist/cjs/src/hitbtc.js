@@ -7,7 +7,6 @@ var number = require('./base/functions/number.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// @ts-expect-error
 class hitbtc extends hitbtc$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -224,6 +223,9 @@ class hitbtc extends hitbtc$1 {
                     'spot': 'trading',
                     'trade': 'trading',
                     'trading': 'trading',
+                },
+                'withdraw': {
+                    'includeFee': false,
                 },
             },
             'commonCurrencies': {
@@ -1436,6 +1438,11 @@ class hitbtc extends hitbtc$1 {
             request['currency'] += network; // when network the currency need to be changed to currency + network
             params = this.omit(params, 'network');
         }
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
+        const includeFee = this.safeValue(withdrawOptions, 'includeFee', false);
+        if (includeFee) {
+            request['includeFee'] = true;
+        }
         const response = await this.privatePostAccountCryptoWithdraw(this.extend(request, params));
         //
         //     {
@@ -1467,7 +1474,7 @@ class hitbtc extends hitbtc$1 {
             else if (Object.keys(query).length) {
                 body = this.json(query);
             }
-            const payload = this.encode(this.apiKey + ':' + this.secret);
+            const payload = this.apiKey + ':' + this.secret;
             const auth = this.stringToBase64(payload);
             headers = {
                 'Authorization': 'Basic ' + auth,
