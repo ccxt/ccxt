@@ -1,5 +1,5 @@
 import Exchange from './abstract/probit.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class probit extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -23,7 +23,7 @@ export default class probit extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     costToPrecision(symbol: any, cost: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;

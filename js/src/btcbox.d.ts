@@ -1,5 +1,5 @@
 import Exchange from './abstract/btcbox.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class btcbox extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;
@@ -9,7 +9,7 @@ export default class btcbox extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;

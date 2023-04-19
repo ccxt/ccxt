@@ -1126,7 +1126,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1732,7 +1732,7 @@ class poloniex extends Exchange {
             Async\await($this->load_markets());
             $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
             $now = $this->seconds();
-            $start = ($since !== null) ? intval(($since / (string) 1000)) : $now - 10 * $year;
+            $start = ($since !== null) ? $this->parse_to_int($since / 1000) : $now - 10 * $year;
             $request = array(
                 'start' => $start, // UNIX timestamp, required
                 'end' => $now, // UNIX timestamp, required

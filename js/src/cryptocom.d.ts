@@ -1,5 +1,5 @@
 import Exchange from './abstract/cryptocom.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class cryptocom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any>;
@@ -15,7 +15,7 @@ export default class cryptocom extends Exchange {
     parseSpotBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

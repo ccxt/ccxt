@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class mexc extends Exchange {
     describe(): any;
     fetchStatus(params?: {}): Promise<{
@@ -25,7 +25,7 @@ export default class mexc extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<any>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     createSpotOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<any>;
     createSwapOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;

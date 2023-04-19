@@ -1748,7 +1748,7 @@ class coinex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1804,12 +1804,12 @@ class coinex extends Exchange {
                     }
                 } else {
                     $method = 'perpetualPrivatePostOrderPut' . $this->capitalize($type);
-                    $side = ($side === 'buy') ? 2 : 1;
+                    $requestSide = ($side === 'buy') ? 2 : 1;
                     if ($stopPrice !== null) {
                         $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
                         $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price;
                         $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                        $request['side'] = $side;
+                        $request['side'] = $requestSide;
                         if ($type === 'limit') {
                             $method = 'perpetualPrivatePostOrderPutStopLimit';
                             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1838,7 +1838,7 @@ class coinex extends Exchange {
                             $method = 'perpetualPrivatePostOrderCloseLimit';
                             $request['position_id'] = $positionId;
                         } else {
-                            $request['side'] = $side;
+                            $request['side'] = $requestSide;
                         }
                         $request['price'] = $this->price_to_precision($symbol, $price);
                         $request['amount'] = $this->amount_to_precision($symbol, $amount);
@@ -1847,7 +1847,7 @@ class coinex extends Exchange {
                             $method = 'perpetualPrivatePostOrderCloseMarket';
                             $request['position_id'] = $positionId;
                         } else {
-                            $request['side'] = $side;
+                            $request['side'] = $requestSide;
                             $request['amount'] = $this->amount_to_precision($symbol, $amount);
                         }
                     }

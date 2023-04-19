@@ -1,5 +1,5 @@
 import Exchange from './abstract/huobijp.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class huobijp extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -61,7 +61,7 @@ export default class huobijp extends Exchange {
     fetchOpenOrdersV2(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;
@@ -70,7 +70,7 @@ export default class huobijp extends Exchange {
         status: any;
         symbol: string;
         type: any;
-        side: any;
+        side: OrderSide;
         price: any;
         amount: any;
         filled: any;

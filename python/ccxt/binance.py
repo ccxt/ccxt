@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import json
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1591,6 +1592,9 @@ class binance(Exchange):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+        see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       # spot
+        see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    # swap
+        see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   # future
         :param dict params: extra parameters specific to the binance api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1610,6 +1614,7 @@ class binance(Exchange):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1776,6 +1781,10 @@ class binance(Exchange):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for binance
+        see https://binance-docs.github.io/apidocs/spot/en/#exchange-information         # spot
+        see https://binance-docs.github.io/apidocs/futures/en/#exchange-information      # swap
+        see https://binance-docs.github.io/apidocs/delivery/en/#exchange-information     # future
+        see https://binance-docs.github.io/apidocs/voptions/en/#exchange-information     # option
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
@@ -2163,9 +2172,10 @@ class binance(Exchange):
                 'min': self.safe_number(filter, 'minQty'),
                 'max': self.safe_number(filter, 'maxQty'),
             }
-        if 'MIN_NOTIONAL' in filtersByType:
-            filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
+        if ('MIN_NOTIONAL' in filtersByType) or ('NOTIONAL' in filtersByType):  # notional added in 12/04/23 to spot testnet
+            filter = self.safe_value_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {})
             entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
+            entry['limits']['cost']['max'] = self.safe_number(filter, 'maxNotional')
         return entry
 
     def parse_balance_helper(self, entry):
@@ -2256,6 +2266,14 @@ class binance(Exchange):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data                  # spot
+        see https://binance-docs.github.io/apidocs/spot/en/#query-cross-margin-account-details-user_data   # cross margin
+        see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-account-info-user_data   # isolated margin
+        see https://binance-docs.github.io/apidocs/spot/en/#lending-account-user_data                      # lending
+        see https://binance-docs.github.io/apidocs/spot/en/#funding-wallet-user_data                       # funding
+        see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            # swap
+        see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              # future
+        see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           # option
         :param dict params: extra parameters specific to the binance api endpoint
         :param str|None params['type']: 'future', 'delivery', 'savings', 'funding', or 'spot'
         :param str|None params['marginMode']: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
@@ -2533,6 +2551,10 @@ class binance(Exchange):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://binance-docs.github.io/apidocs/spot/en/#order-book      # spot
+        see https://binance-docs.github.io/apidocs/futures/en/#order-book   # swap
+        see https://binance-docs.github.io/apidocs/delivery/en/#order-book  # future
+        see https://binance-docs.github.io/apidocs/voptions/en/#order-book  # option
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the binance api endpoint
@@ -2712,6 +2734,7 @@ class binance(Exchange):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
+        see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -2734,6 +2757,9 @@ class binance(Exchange):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
+        see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
+        see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2757,6 +2783,9 @@ class binance(Exchange):
     def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
+        see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker        # spot
+        see https://binance-docs.github.io/apidocs/futures/en/#symbol-order-book-ticker     # swap
+        see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    # future
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2784,6 +2813,9 @@ class binance(Exchange):
     def fetch_last_prices(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the last price for multiple markets
+        see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         # spot
+        see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       # swap
+        see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     # future
         :param [str]|None symbols: unified symbols of the markets to fetch the last prices
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2878,6 +2910,9 @@ class binance(Exchange):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
+        see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
+        see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -3247,10 +3282,28 @@ class binance(Exchange):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+         * Default fetchTradesMethod
+        see https://binance-docs.github.io/apidocs/spot/en/#compressed-aggregate-trades-list        # publicGetAggTrades(spot)
+        see https://binance-docs.github.io/apidocs/futures/en/#compressed-aggregate-trades-list     # fapiPublicGetAggTrades(swap)
+        see https://binance-docs.github.io/apidocs/delivery/en/#compressed-aggregate-trades-list    # dapiPublicGetAggTrades(future)
+        see https://binance-docs.github.io/apidocs/voptions/en/#recent-trades-list                  # eapiPublicGetTrades(option)
+         * Other fetchTradesMethod
+        see https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list                      # publicGetTrades(spot)
+        see https://binance-docs.github.io/apidocs/futures/en/#recent-trades-list                   # fapiPublicGetTrades(swap)
+        see https://binance-docs.github.io/apidocs/delivery/en/#recent-trades-list                  # dapiPublicGetTrades(future)
+        see https://binance-docs.github.io/apidocs/spot/en/#old-trade-lookup-market_data            # publicGetHistoricalTrades(spot)
+        see https://binance-docs.github.io/apidocs/future/en/#old-trade-lookup-market_data          # fapiPublicGetHistoricalTrades(swap)
+        see https://binance-docs.github.io/apidocs/delivery/en/#old-trade-lookup-market_data        # dapiPublicGetHistoricalTrades(future)
+        see https://binance-docs.github.io/apidocs/voptions/en/#old-trade-lookup-market_data        # eapiPublicGetHistoricalTrades(option)
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
+        :param int|None since: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+        :param int|None limit: default 500, max 1000
         :param dict params: extra parameters specific to the binance api endpoint
+        :param int|None params['until']: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+        :param int|None params['fetchTradesMethod']: 'publicGetAggTrades'(spot default), 'fapiPublicGetAggTrades'(swap default), 'dapiPublicGetAggTrades'(future default), 'eapiPublicGetTrades'(option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int|None params['fromId']: trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         self.load_markets()
@@ -3263,6 +3316,7 @@ class binance(Exchange):
             # 'limit': 500,     # default = 500, maximum = 1000
         }
         method = self.safe_string(self.options, 'fetchTradesMethod')
+        method = self.safe_string_2(params, 'fetchTradesMethod', 'method', method)
         if method is None:
             if market['option']:
                 method = 'eapiPublicGetTrades'
@@ -3278,8 +3332,12 @@ class binance(Exchange):
                 # https://github.com/ccxt/ccxt/issues/6400
                 # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 request['endTime'] = self.sum(since, 3600000)
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                request['endTime'] = until
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
+        params = self.omit(params, ['until', 'fetchTradesMethod'])
         #
         # Caveats:
         # - default limit(500) applies only if no other parameters set, trades up
@@ -3715,7 +3773,7 @@ class binance(Exchange):
             'trades': fills,
         }, market)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

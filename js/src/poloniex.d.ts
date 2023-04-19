@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class poloniex extends Exchange {
     describe(): any;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -19,7 +19,7 @@ export default class poloniex extends Exchange {
     parseOrderType(status: any): string;
     parseOpenOrders(orders: any, market: any, result: any): any;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     orderRequest(symbol: any, type: any, side: any, amount: any, request: any, price?: any, params?: {}): any[];
     editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;

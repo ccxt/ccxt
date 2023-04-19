@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class gate extends Exchange {
     describe(): any;
     setSandboxMode(enable: any): void;
@@ -224,7 +224,7 @@ export default class gate extends Exchange {
             cost: number;
         };
     };
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     editOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;

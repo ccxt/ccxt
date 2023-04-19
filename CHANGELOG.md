@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.64 (2023-04-14)
+
+### 3.0.63 (2023-04-14)
+
+### 3.0.62 (2023-04-12)
+
+
+### Bug Fixes
+
+* **bybit:** createMarketBuyOrderRequiresPrice ([4948630](https://github.com/ccxt/ccxt/commit/494863020a07bb2fe707acebba41049b714ee77e))
+
+### 3.0.61 (2023-04-11)
+
+### 3.0.60 (2023-04-10)
+
+### 3.0.59 (2023-04-10)
+
+### 3.0.58 (2023-04-09)
+
+### 3.0.57 (2023-04-09)
+
+### 3.0.56 (2023-04-06)
+
+### 3.0.55 (2023-04-06)
+
 ### 3.0.54 (2023-04-05)
 
 ### 3.0.53 (2023-04-04)

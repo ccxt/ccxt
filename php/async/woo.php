@@ -147,6 +147,8 @@ class woo extends Exchange {
                             'funding_rate_history' => 1,
                             'futures' => 1,
                             'futures/{symbol}' => 1,
+                            'orderbook/{symbol}' => 1,
+                            'kline' => 1,
                         ),
                     ),
                     'private' => array(
@@ -155,8 +157,6 @@ class woo extends Exchange {
                             'order/{oid}' => 1,
                             'client/order/{client_order_id}' => 1,
                             'orders' => 1,
-                            'orderbook/{symbol}' => 1,
-                            'kline' => 1,
                             'client/trade/{tid}' => 1,
                             'order/{oid}/trades' => 1,
                             'client/trades' => 1,
@@ -722,7 +722,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1159,7 +1159,7 @@ class woo extends Exchange {
                 $limit = min ($limit, 1000);
                 $request['max_level'] = $limit;
             }
-            $response = Async\await($this->v1PrivateGetOrderbookSymbol (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetOrderbookSymbol (array_merge($request, $params)));
             //
             // {
             //   success => true,
@@ -1201,7 +1201,7 @@ class woo extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1000);
             }
-            $response = Async\await($this->v1PrivateGetKline (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetKline (array_merge($request, $params)));
             // {
             //     success => true,
             //     rows => array(

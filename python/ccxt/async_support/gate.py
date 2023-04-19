@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2984,7 +2985,7 @@ class gate(Exchange):
             },
         }
 
-    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol

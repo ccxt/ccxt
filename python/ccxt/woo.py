@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -151,6 +152,8 @@ class woo(Exchange):
                             'funding_rate_history': 1,
                             'futures': 1,
                             'futures/{symbol}': 1,
+                            'orderbook/{symbol}': 1,
+                            'kline': 1,
                         },
                     },
                     'private': {
@@ -159,8 +162,6 @@ class woo(Exchange):
                             'order/{oid}': 1,
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
                             'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
@@ -701,7 +702,7 @@ class woo(Exchange):
             }
         return result
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1092,7 +1093,7 @@ class woo(Exchange):
         if limit is not None:
             limit = min(limit, 1000)
             request['max_level'] = limit
-        response = self.v1PrivateGetOrderbookSymbol(self.extend(request, params))
+        response = self.v1PublicGetOrderbookSymbol(self.extend(request, params))
         #
         # {
         #   success: True,
@@ -1130,7 +1131,7 @@ class woo(Exchange):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        response = self.v1PrivateGetKline(self.extend(request, params))
+        response = self.v1PublicGetKline(self.extend(request, params))
         # {
         #     success: True,
         #     rows: [

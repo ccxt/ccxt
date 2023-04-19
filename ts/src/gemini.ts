@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1213,7 +1213,7 @@ export default class gemini extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async createOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name gemini#createOrder
@@ -1582,7 +1582,7 @@ export default class gemini extends Exchange {
             }, query);
             let payload = this.json (request);
             payload = this.stringToBase64 (payload);
-            const signature = this.hmac (payload, this.encode (this.secret), sha384);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,

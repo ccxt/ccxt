@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -969,7 +970,7 @@ class upbit(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in

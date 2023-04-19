@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1673,7 +1674,7 @@ class coinex(Exchange):
             'info': order,
         }, market)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1724,12 +1725,12 @@ class coinex(Exchange):
                     request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
             else:
                 method = 'perpetualPrivatePostOrderPut' + self.capitalize(type)
-                side = 2 if (side == 'buy') else 1
+                requestSide = 2 if (side == 'buy') else 1
                 if stopPrice is not None:
                     request['stop_price'] = self.price_to_precision(symbol, stopPrice)
                     request['stop_type'] = self.safe_integer(params, 'stop_type', 1)  # 1: triggered by the latest transaction, 2: mark price, 3: index price
                     request['amount'] = self.amount_to_precision(symbol, amount)
-                    request['side'] = side
+                    request['side'] = requestSide
                     if type == 'limit':
                         method = 'perpetualPrivatePostOrderPutStopLimit'
                         request['price'] = self.price_to_precision(symbol, price)
@@ -1753,7 +1754,7 @@ class coinex(Exchange):
                         method = 'perpetualPrivatePostOrderCloseLimit'
                         request['position_id'] = positionId
                     else:
-                        request['side'] = side
+                        request['side'] = requestSide
                     request['price'] = self.price_to_precision(symbol, price)
                     request['amount'] = self.amount_to_precision(symbol, amount)
                 elif type == 'market' and stopPrice is None:
@@ -1761,7 +1762,7 @@ class coinex(Exchange):
                         method = 'perpetualPrivatePostOrderCloseMarket'
                         request['position_id'] = positionId
                     else:
-                        request['side'] = side
+                        request['side'] = requestSide
                         request['amount'] = self.amount_to_precision(symbol, amount)
         else:
             method = 'privatePostOrder' + self.capitalize(type)

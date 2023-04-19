@@ -1,5 +1,5 @@
 import Exchange from './abstract/lbank2.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class lbank2 extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -21,7 +21,7 @@ export default class lbank2 extends Exchange {
     };
     fetchTradingFee(symbol: string, params?: {}): Promise<{}>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;

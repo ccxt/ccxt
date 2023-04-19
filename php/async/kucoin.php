@@ -409,6 +409,7 @@ class kucoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BIFI' => 'BIFIF',
                 'EDGE' => 'DADI', // https://github.com/ccxt/ccxt/issues/5756
                 'HOT' => 'HOTNOW',
                 'TRY' => 'Trias',
@@ -1434,7 +1435,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function create_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * Create an order on the exchange

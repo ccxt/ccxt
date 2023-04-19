@@ -1,5 +1,5 @@
 import Exchange from './abstract/cex.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class cex extends Exchange {
     describe(): any;
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
@@ -16,7 +16,7 @@ export default class cex extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<{
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
         id: string;
         info: any;
         clientOrderId: any;

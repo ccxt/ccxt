@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.kucoin import kucoin
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import PermissionDenied
@@ -973,7 +974,7 @@ class kucoinfutures(kucoin):
             'percentage': None,
         })
 
-    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         see https://docs.kucoin.com/futures/#place-an-order

@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 import math
 import json
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -423,6 +424,7 @@ class kucoin(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
                 'HOT': 'HOTNOW',
                 'TRY': 'Trias',
@@ -1375,7 +1377,7 @@ class kucoin(Exchange):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol

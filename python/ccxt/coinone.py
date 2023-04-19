@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -469,7 +470,7 @@ class coinone(Exchange):
         completeOrders = self.safe_value(response, 'completeOrders', [])
         return self.parse_trades(completeOrders, market, since, limit)
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy

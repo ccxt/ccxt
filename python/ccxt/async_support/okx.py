@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import asyncio
 import hashlib
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2023,7 +2024,7 @@ class okx(Exchange):
         #
         return self.parse_balance_by_type(marketType, response)
 
-    async def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -3667,10 +3668,10 @@ class okx(Exchange):
             'dest': '4',  # 2 = OKCoin International, 3 = OKX 4 = others
             'amt': self.number_to_string(amount),
         }
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ETH>ERC20 alias
+        network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         if network is not None:
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string(networks, network.upper(), network)  # handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network
             params = self.omit(params, 'network')
         fee = self.safe_string(params, 'fee')

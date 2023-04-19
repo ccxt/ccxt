@@ -1,5 +1,5 @@
 import Exchange from './abstract/stex.js';
-import { Int } from './base/types.js';
+import { Int, OrderSide } from './base/types.js';
 export default class stex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
@@ -25,7 +25,7 @@ export default class stex extends Exchange {
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): any;
-    createOrder(symbol: string, type: any, side: any, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchClosedOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

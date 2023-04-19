@@ -19,7 +19,7 @@ export default class bitrue extends bitrueRest {
                 'watchTrades': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': false,
             },
             'urls': {

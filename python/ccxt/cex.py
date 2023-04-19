@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import json
+from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -713,7 +714,7 @@ class cex(Exchange):
             }
         return result
 
-    def create_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
