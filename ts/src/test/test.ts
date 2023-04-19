@@ -197,7 +197,7 @@ export default class testMainClass extends baseMainTestClass {
         const methodNameInTest = get_test_name (methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
-            return;
+            return undefined;
         }
         let skipMessage = undefined;
         const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
@@ -212,7 +212,7 @@ export default class testMainClass extends baseMainTestClass {
             if (info) {
                 dump (this.padEnd(skipMessage, 25), exchange.id, methodNameInTest);
             }
-            return;
+            return undefined;
         }
         const argsStringified = '(' + args.join (',') + ')';
         if (info) {
