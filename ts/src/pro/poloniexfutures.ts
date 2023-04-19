@@ -110,8 +110,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
             token = await this.getPublicToken ();
         }
         const url = this.urls['api']['ws'] + '?token=' + token;
+        const milliseconds = this.numberToString (this.milliseconds ());
         const subscribe = {
-            'id': this.milliseconds () + name + symbol,   // ID is a unique string to mark the request which is same as the id property of ack.
+            'id': milliseconds + name + symbol,   // ID is a unique string to mark the request which is same as the id property of ack.
             'type': 'subscribe',
             'topic': name,                                // Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
             'privateChannel': isPrivate,                  // Adopt the private channel or not. Set as false by default.
