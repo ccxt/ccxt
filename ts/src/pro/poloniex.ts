@@ -74,7 +74,7 @@ export default class poloniex extends poloniexRest {
                 },
             },
             'streaming': {
-                'keepAlive': 30000,
+                'keepAlive': 15000,
                 'ping': this.ping,
             },
         });
@@ -285,7 +285,7 @@ export default class poloniex extends poloniexRest {
         await this.loadMarkets ();
         const name = 'orders';
         await this.authenticate ();
-        const symbols = (symbol === undefined) ? [] : [ symbol ];
+        const symbols = (symbol === undefined) ? undefined : [ symbol ];
         const orders = await this.subscribe (name, true, symbols, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -628,6 +628,7 @@ export default class poloniex extends poloniexRest {
                 orders.append (previousOrder);
                 client.resolve (orders, messageHash);
             }
+            client.resolve (orders, 'orders');
         }
         return message;
     }
