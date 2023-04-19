@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.9.8'
+__version__ = '3.0.72'
 
 # ----------------------------------------------------------------------------
 
@@ -123,6 +123,7 @@ from ccxt.coinex import coinex                                        # noqa: F4
 from ccxt.coinfalcon import coinfalcon                                # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
+from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.currencycom import currencycom                              # noqa: F401
@@ -180,6 +181,7 @@ from ccxt.wavesexchange import wavesexchange                          # noqa: F4
 from ccxt.wazirx import wazirx                                        # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
+from ccxt.xt import xt                                                # noqa: F401
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zb import zb                                                # noqa: F401
@@ -236,6 +238,7 @@ exchanges = [
     'coinfalcon',
     'coinmate',
     'coinone',
+    'coinsph',
     'coinspot',
     'cryptocom',
     'currencycom',
@@ -293,6 +296,7 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
+    'xt',
     'yobit',
     'zaif',
     'zb',
