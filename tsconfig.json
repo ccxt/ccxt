@@ -102,11 +102,10 @@
     "strictNullChecks":false
   },
   "include": [
-    "ts/**/*",
+    "ts/**/*"
   ],
   "exclude": [
     "node_modules",
-    "./ts/src/static_dependencies/**/*.cjs",
-    "/ts/src/test/base/functions/test.binanceMarkets.ts"
+    "./ts/src/static_dependencies/**/*.cjs"
   ]
 }
