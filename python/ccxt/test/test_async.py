@@ -51,15 +51,7 @@ parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
 parser.parse_args(namespace=argv)
 
 
-token_bucket = argv.token_bucket
-sandbox = argv.sandbox
-privateOnly = argv.privateOnly
-privateTest = argv.private
-verbose = argv.verbose
-nonce = argv.nonce
-exchangeName = argv.exchange
-exchangeSymbol = argv.symbol
-info = argv.info
+token_bucket = argv.token_bucket  # don't remove this variable, it's used several lines below in is_synchronous definition
 
 # ------------------------------------------------------------------------------
 
@@ -69,18 +61,14 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 
 # ------------------------------------------------------------------------------
 
-
-# ------------------------------------------------------------------------------
-
-# print an error string
-def dump_error(*args):
-    string = ' '.join([str(arg) for arg in args])
-    print(string)
-    sys.stderr.write(string + "\n")
-    sys.stderr.flush()
-
-
 Error = Exception
+
+# # print an error string
+# def dump_error(*args):
+#     string = ' '.join([str(arg) for arg in args])
+#     print(string)
+#     sys.stderr.write(string + "\n")
+#     sys.stderr.flush()
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
@@ -107,8 +95,9 @@ def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
 def cli_argument_bool (arg):
-    return getattr(argv, arg) if hasattr(argv, arg) else False
-
+    arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
+    arg_exists_hyphen =  getattr(argv, '--' + arg) if hasattr(argv, '--' + arg) else False
+    return arg_exists or arg_exists_hyphen
 
 def get_test_name(methodName):
     snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()  # snake_case
@@ -652,4 +641,4 @@ class testMainClass(baseMainTestClass):
 
 
 if __name__ == '__main__':
-    asyncio.run(testMainClass().init(exchange, exchangeSymbol))
+    asyncio.run(testMainClass().init(argv.exchange, argv.symbol))
