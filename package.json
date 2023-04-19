@@ -93,6 +93,7 @@
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
     "https-proxy-agent": "^5.0.1",
+    "jest": "^29.5.0",
     "ololog": "1.1.155",
     "replace-in-file": "^6.3.5"
   },

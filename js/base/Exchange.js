@@ -253,6 +253,7 @@ module.exports = class Exchange {
         this.headers = {}
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
+        this.forcedProxy = ''
         this.origin = '*' // CORS origin
         // underlying properties
         this.minFundingAddressLength = 1 // used in checkAddress
@@ -2042,8 +2043,9 @@ module.exports = class Exchange {
             await this.throttle (cost, path, customExpireInterval, customPriority);
         }
         this.lastRestRequestTimestamp = this.milliseconds ();
+        const forcedProxy = this.isUsingForcedProxy(params)?this.forcedProxy:"";
         const request = this.sign (path, api, method, params, headers, body);
-        return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+        return await this.fetch (forcedProxy + request['url'], request['method'], request['headers'], request['body']);
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
