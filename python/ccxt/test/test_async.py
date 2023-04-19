@@ -50,9 +50,6 @@ parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
 parser.parse_args(namespace=argv)
 
-
-token_bucket = argv.token_bucket  # don't remove this variable, it's used several lines below in is_synchronous definition
-
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
@@ -84,7 +81,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 class baseMainTestClass():
     pass
 
-is_synchronous = ('token_' + 'bucket') in locals()  # to trick transpiler regexes, we have to: A) divide "token" and "bucket"; B) dont use word "a s y n c" together in the code
+is_synchronous = 'async' not in os.path.basename(__file__)
 
 rootDir = current_dir + '/../../../'
 envVars = os.environ
@@ -96,8 +93,11 @@ def dump(*args):
 
 def cli_argument_bool (arg):
     arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
-    arg_exists_hyphen =  getattr(argv, '--' + arg) if hasattr(argv, '--' + arg) else False
-    return arg_exists or arg_exists_hyphen
+    with_hyphen = '--' + arg
+    arg_exists_with_hyphen =  getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
+    without_hyphen = arg.replace('--', '')
+    arg_exists_wo_hyphen =  getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
+    return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
 
 def get_test_name(methodName):
     snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()  # snake_case
@@ -152,7 +152,7 @@ def init_exchange (exchangeId, args):
     return getattr(ccxt, exchangeId)(args)
 
 
-def set_test_files (holderClass, properties):
+async def set_test_files (holderClass, properties):
     skip_tests = ['test_throttle']
     setattr (holderClass, 'testFiles', {})
     syncAsync = 'async' if not is_synchronous else 'sync'
@@ -336,6 +336,8 @@ class testMainClass(baseMainTestClass):
         await asyncio.gather(*promises)
         if self.info:
             dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
+        if not is_synchronous:
+            await exchange.close()
 
     async def load_exchange(self, exchange):
         markets = await exchange.load_markets()
