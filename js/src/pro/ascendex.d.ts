@@ -1,0 +1,32 @@
+import ascendexRest from '../ascendex.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class ascendex extends ascendexRest {
+    describe(): any;
+    watchPublic(messageHash: any, params?: {}): Promise<any>;
+    watchPrivate(channel: any, messageHash: any, params?: {}): Promise<any>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleOHLCV(client: Client, message: any): any;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleTrades(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBookSnapshot(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    handleOrderBookSnapshot(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: any): void;
+    handleDelta(bookside: any, delta: any): void;
+    handleDeltas(bookside: any, deltas: any): void;
+    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
+    watchBalance(params?: {}): Promise<any>;
+    handleBalance(client: Client, message: any): void;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleOrder(client: Client, message: any): void;
+    parseWsOrder(order: any, market?: any): any;
+    handleErrorMessage(client: Client, message: any): boolean;
+    handleAuthenticate(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    handleOrderBookSubscription(client: Client, message: any): void;
+    pong(client: any, message: any): Promise<void>;
+    handlePing(client: Client, message: any): void;
+    authenticate(url: any, params?: {}): any;
+}
