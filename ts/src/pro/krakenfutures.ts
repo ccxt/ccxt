@@ -49,7 +49,6 @@ export default class krakenfutures extends krakenfuturesRest {
             },
             'streaming': {
                 'keepAlive': 60000,
-                'ping': this.ping,
             },
         });
     }
@@ -1280,11 +1279,5 @@ export default class krakenfutures extends krakenfuturesRest {
             }
         }
         return message;
-    }
-
-    ping (client: Client) {
-        return {
-            'event': 'ping',
-        };
     }
 }
