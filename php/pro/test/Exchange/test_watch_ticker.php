@@ -11,7 +11,8 @@ function test_watch_ticker($exchange, $symbol) {
         'cex',
         'ripio',
         'mexc',
-        'woo'
+        'woo',
+        'alpaca'
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {

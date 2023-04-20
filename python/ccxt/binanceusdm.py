@@ -29,7 +29,8 @@ class binanceusdm(binance):
                 'createStopMarketOrder': True,
             },
             'options': {
-                'defaultType': 'future',
+                'fetchMarkets': ['linear'],
+                'defaultSubType': 'linear',
                 # https://www.binance.com/en/support/faq/360033162192
                 # tier amount, maintenance margin, initial margin
                 'leverageBrackets': None,
@@ -38,10 +39,10 @@ class binanceusdm(binance):
             },
         })
 
-    def transfer_in(self, code, amount, params={}):
+    def transfer_in(self, code: str, amount, params={}):
         # transfer from spot wallet to usdm futures wallet
         return self.futuresTransfer(code, amount, 1, params)
 
-    def transfer_out(self, code, amount, params={}):
+    def transfer_out(self, code: str, amount, params={}):
         # transfer from usdm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 2, params)
