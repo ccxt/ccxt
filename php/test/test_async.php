@@ -21,6 +21,7 @@ class baseMainTestClass {
     public $checkedPublicTests = [];
     public $publicTests = [];
     public $info = false;
+    public $cliArgs = [];
 }
 
 define ('is_synchronous', stripos(__FILE__, '_async') === false);

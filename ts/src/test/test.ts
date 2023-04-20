@@ -37,7 +37,7 @@ function cliArgumentBool (arg) {
     return process.argv.includes (arg) || false;
 }
 
-function get_test_name (str) {
+function getTestName (str) {
     return str;
 }
 
@@ -111,20 +111,34 @@ async function setTestFiles (holderClass, properties) {
 
 export default class testMainClass extends baseMainTestClass {
 
+    parseCliArgs () {
+        const acceptedCliArgs = [
+            'info',
+            'verbose',
+            'debug',
+            'private',
+            'privateOnly',
+            'sandbox',
+        ];
+        this.cliArgs = {};
+        for (let i = 0; i < acceptedCliArgs.length; i++) {
+            const name = acceptedCliArgs[i];
+            this.cliArgs[name] = cliArgumentBool ('--' + name);
+        }
+    }
+
     async init (exchangeId, symbol) {
-        //
-        this.info = cliArgumentBool ('--info');
+        this.parseCliArgs ();
         const symbolStr = symbol !== undefined ? symbol : 'all';
         console.log ('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
-        //
-        const args = {
+        const exchangeArgs = {
+            'verbose': this.cliArgs['verbose'],
+            'debug': this.cliArgs['debug'],
             'httpsAgent': httpsAgent,
-            'verbose': cliArgumentBool ('--verbose'),
             'enableRateLimit': true,
-            'debug': cliArgumentBool ('--debug'),
             'timeout': 20000,
         };
-        const exchange = initExchange (exchangeId, args);
+        const exchange = initExchange (exchangeId, exchangeArgs);
         await this.importFiles (exchange);
         this.expandSettings (exchange, symbol);
         await this.startTest (exchange, symbol);
@@ -209,7 +223,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testMethod (methodName, exchange, args, isPublic) {
-        const methodNameInTest = get_test_name (methodName);
+        const methodNameInTest = getTestName (methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
             return;
@@ -514,7 +528,7 @@ export default class testMainClass extends baseMainTestClass {
         if (swapSymbol !== undefined) {
             dump ('Selected SWAP SYMBOL:', swapSymbol);
         }
-        if (!cliArgumentBool ('--privateOnly')) {
+        if (!this.cliArgs['privateOnly']) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 exchange.options['type'] = 'spot';
                 await this.runPublicTests (exchange, spotSymbol);
@@ -524,7 +538,7 @@ export default class testMainClass extends baseMainTestClass {
                 await this.runPublicTests (exchange, swapSymbol);
             }
         }
-        if (cliArgumentBool ('--private') || cliArgumentBool ('--privateOnly')) {
+        if (this.cliArgs['private'] || this.cliArgs['privateOnly']) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 exchange.options['defaultType'] = 'spot';
                 await this.runPrivateTests (exchange, spotSymbol);
@@ -640,7 +654,7 @@ export default class testMainClass extends baseMainTestClass {
         if (exchange.alias) {
             return;
         }
-        if (cliArgumentBool ('--sandbox') || getExchangeProp (exchange, 'sandbox')) {
+        if (this.cliArgs['--sandbox'] || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
         await this.loadExchange (exchange);
