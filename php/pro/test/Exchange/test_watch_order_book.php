@@ -18,7 +18,9 @@ function test_watch_order_book($exchange, $symbol) {
         'cex', // requires authentication for watch_order_book
         'ripio',
         'gopax', // requires authentication for watch_order_book
+        'woo',
         'luno', // requires authentication for watch_order_book
+        'alpaca', // requires auth
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {
