@@ -1,24 +1,24 @@
 // ----------------------------------------------------------------------------
 
-/* eslint-disable */
 import fs from 'fs';
 import assert from 'assert';
 import { Agent } from 'https';
-import HttpsProxyAgent from 'https-proxy-agent'
+import HttpsProxyAgent from 'https-proxy-agent';
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../ccxt.js';
+import errorsHierarchy from '../base/errorHierarchy.js';
+
 
 // js specific codes //
 const __dirname = fileURLToPath (new URL ('.', import.meta.url));
-
-process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
-process.on ('unhandledRejection', (e: any) => { console.log (e, e.stack); process.exit (1) });
-
-const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
-
-import errorsHierarchy from '../base/errorHierarchy.js';
+process.on ('uncaughtException', (e) => {
+    console.log (e, e.stack); process.exit (1);
+});
+process.on ('unhandledRejection', (e: any) => {
+    console.log (e, e.stack); process.exit (1);
+});
+const [ processPath, , exchangeId = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
-
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
@@ -32,9 +32,7 @@ class baseMainTestClass {
     checkedPublicTests = {};
     testFiles = {};
     publicTests = {};
-
 }
-
 const rootDir = __dirname + '/../../../';
 const envVars = process.env;
 const ext = import.meta.url.split ('.')[1];
@@ -62,7 +60,7 @@ function ioFileRead (path, decode = true) {
 }
 
 async function callMethod (testFiles, methodName, exchange, args) {
-    return await testFiles[methodName](exchange, ... args);
+    return await testFiles[methodName] (exchange, ...args);
 }
 
 function exceptionMessage (exc) {
@@ -121,7 +119,6 @@ async function setTestFiles (holderClass, properties) {
 // ***** AUTO-TRANSPILER-START *****
 
 export default class testMainClass extends baseMainTestClass {
-
     parseCliArgs () {
         this.info = false;
         this.verbose = false;
@@ -280,12 +277,12 @@ export default class testMainClass extends baseMainTestClass {
         const tests = {
             'loadMarkets': [],
             'fetchCurrencies': [],
-            'fetchTicker': [symbol],
-            'fetchTickers': [symbol],
-            'fetchOHLCV': [symbol],
-            'fetchTrades': [symbol],
-            'fetchOrderBook': [symbol],
-            'fetchL2OrderBook': [symbol],
+            'fetchTicker': [ symbol ],
+            'fetchTickers': [ symbol ],
+            'fetchOHLCV': [ symbol ],
+            'fetchTrades': [ symbol ],
+            'fetchOrderBook': [ symbol ],
+            'fetchL2OrderBook': [ symbol ],
             'fetchOrderBooks': [],
             'fetchBidsAsks': [],
             'fetchStatus': [],
@@ -296,12 +293,12 @@ export default class testMainClass extends baseMainTestClass {
         if (isSpot) {
             tests['fetchCurrencies'] = [];
         } else {
-            tests['fetchFundingRates'] = [symbol];
-            tests['fetchFundingRate'] = [symbol];
-            tests['fetchFundingRateHistory'] = [symbol];
-            tests['fetchIndexOHLCV'] = [symbol];
-            tests['fetchMarkOHLCV'] = [symbol];
-            tests['fetchPremiumIndexOHLCV'] = [symbol];
+            tests['fetchFundingRates'] = [ symbol ];
+            tests['fetchFundingRate'] = [ symbol ];
+            tests['fetchFundingRateHistory'] = [ symbol ];
+            tests['fetchIndexOHLCV'] = [ symbol ];
+            tests['fetchMarkOHLCV'] = [ symbol ];
+            tests['fetchPremiumIndexOHLCV'] = [ symbol ];
         }
         this.publicTests = tests;
         const testNames = Object.keys (tests);
@@ -391,7 +388,7 @@ export default class testMainClass extends baseMainTestClass {
 
     getExchangeCode (exchange, codes = undefined) {
         if (codes === undefined) {
-            codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT'];
+            codes = [ 'BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT' ];
         }
         const code = codes[0];
         for (let i = 0; i < codes.length; i++) {
@@ -403,8 +400,8 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     getMarketsFromExchange (exchange, spot = true) {
-        let res = {};
-        let markets = exchange.markets;
+        const res = {};
+        const markets = exchange.markets;
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -535,14 +532,14 @@ export default class testMainClass extends baseMainTestClass {
         if (!this.privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 if (this.info) {
-                    dump('[INFO:SPOT TESTS]')
+                    dump ('[INFO:SPOT TESTS]');
                 }
                 exchange.options['type'] = 'spot';
                 await this.runPublicTests (exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
                 if (this.info) {
-                    dump('[INFO:SWAP TESTS]')
+                    dump ('[INFO:SWAP TESTS]');
                 }
                 exchange.options['type'] = 'swap';
                 await this.runPublicTests (exchange, swapSymbol);
@@ -573,65 +570,65 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
         const tests = {
-            'signIn': [exchange],
-            'fetchBalance': [exchange],
-            'fetchAccounts': [exchange],
-            'fetchTransactionFees': [exchange],
-            'fetchTradingFees': [exchange],
-            'fetchStatus': [exchange],
-            'fetchOrders': [exchange, symbol],
-            'fetchOpenOrders': [exchange, symbol],
-            'fetchClosedOrders': [exchange, symbol],
-            'fetchMyTrades': [exchange, symbol],
-            'fetchLeverageTiers': [exchange, symbol],
-            'fetchLedger': [exchange, code],
-            'fetchTransactions': [exchange, code],
-            'fetchDeposits': [exchange, code],
-            'fetchWithdrawals': [exchange, code],
-            'fetchBorrowRates': [exchange, code],
-            'fetchBorrowRate': [exchange, code],
-            'fetchBorrowInterest': [exchange, code, symbol],
-            'addMargin': [exchange, symbol],
-            'reduceMargin': [exchange, symbol],
-            'setMargin': [exchange, symbol],
-            'setMarginMode': [exchange, symbol],
-            'setLeverage': [exchange, symbol],
-            'cancelAllOrders': [exchange, symbol],
-            'cancelOrder': [exchange, symbol],
-            'cancelOrders': [exchange, symbol],
-            'fetchCanceledOrders': [exchange, symbol],
-            'fetchClosedOrder': [exchange, symbol],
-            'fetchOpenOrder': [exchange, symbol],
-            'fetchOrder': [exchange, symbol],
-            'fetchOrderTrades': [exchange, symbol],
-            'fetchPosition': [exchange, symbol],
-            'fetchDeposit': [exchange, code],
-            'createDepositAddress': [exchange, code],
-            'fetchDepositAddress': [exchange, code],
-            'fetchDepositAddresses': [exchange, code],
-            'fetchDepositAddressesByNetwork': [exchange, code],
-            'editOrder': [exchange, symbol],
-            'fetchBorrowRateHistory': [exchange, symbol],
-            'fetchBorrowRatesPerSymbol': [exchange, symbol],
-            'fetchLedgerEntry': [exchange, code],
-            'fetchWithdrawal': [exchange, code],
-            'transfer': [exchange, code],
-            'withdraw': [exchange, code],
+            'signIn': [ exchange ],
+            'fetchBalance': [ exchange ],
+            'fetchAccounts': [ exchange ],
+            'fetchTransactionFees': [ exchange ],
+            'fetchTradingFees': [ exchange ],
+            'fetchStatus': [ exchange ],
+            'fetchOrders': [ exchange, symbol ],
+            'fetchOpenOrders': [ exchange, symbol ],
+            'fetchClosedOrders': [ exchange, symbol ],
+            'fetchMyTrades': [ exchange, symbol ],
+            'fetchLeverageTiers': [ exchange, symbol ],
+            'fetchLedger': [ exchange, code ],
+            'fetchTransactions': [ exchange, code ],
+            'fetchDeposits': [ exchange, code ],
+            'fetchWithdrawals': [ exchange, code ],
+            'fetchBorrowRates': [ exchange, code ],
+            'fetchBorrowRate': [ exchange, code ],
+            'fetchBorrowInterest': [ exchange, code, symbol ],
+            'addMargin': [ exchange, symbol ],
+            'reduceMargin': [ exchange, symbol ],
+            'setMargin': [ exchange, symbol ],
+            'setMarginMode': [ exchange, symbol ],
+            'setLeverage': [ exchange, symbol ],
+            'cancelAllOrders': [ exchange, symbol ],
+            'cancelOrder': [ exchange, symbol ],
+            'cancelOrders': [ exchange, symbol ],
+            'fetchCanceledOrders': [ exchange, symbol ],
+            'fetchClosedOrder': [ exchange, symbol ],
+            'fetchOpenOrder': [ exchange, symbol ],
+            'fetchOrder': [ exchange, symbol ],
+            'fetchOrderTrades': [ exchange, symbol ],
+            'fetchPosition': [ exchange, symbol ],
+            'fetchDeposit': [ exchange, code ],
+            'createDepositAddress': [ exchange, code ],
+            'fetchDepositAddress': [ exchange, code ],
+            'fetchDepositAddresses': [ exchange, code ],
+            'fetchDepositAddressesByNetwork': [ exchange, code ],
+            'editOrder': [ exchange, symbol ],
+            'fetchBorrowRateHistory': [ exchange, symbol ],
+            'fetchBorrowRatesPerSymbol': [ exchange, symbol ],
+            'fetchLedgerEntry': [ exchange, code ],
+            'fetchWithdrawal': [ exchange, code ],
+            'transfer': [ exchange, code ],
+            'withdraw': [ exchange, code ],
         };
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
         if (isSpot) {
-            tests['fetchCurrencies'] = [exchange, symbol];
+            tests['fetchCurrencies'] = [ exchange, symbol ];
         } else {
             // derivatives only
-            tests['fetchPositions'] = [exchange, [symbol]];
-            tests['fetchPosition'] = [exchange, symbol];
-            tests['fetchPositionRisk'] = [exchange, symbol];
-            tests['setPositionMode'] = [exchange, symbol];
-            tests['setMarginMode'] = [exchange, symbol];
-            tests['fetchOpenInterestHistory'] = [exchange, symbol];
-            tests['fetchFundingRateHistory'] = [exchange, symbol];
-            tests['fetchFundingHistory'] = [exchange, symbol];
+            tests['fetchPositions'] = [ exchange, [ symbol ] ];
+            tests['fetchPosition'] = [ exchange, symbol ];
+            tests['fetchPositionRisk'] = [ exchange, symbol ];
+            tests['setPositionMode'] = [ exchange, symbol ];
+            tests['setMarginMode'] = [ exchange, symbol ];
+            tests['fetchOpenInterestHistory'] = [ exchange, symbol ];
+            tests['fetchFundingRateHistory'] = [ exchange, symbol ];
+            tests['fetchFundingHistory'] = [ exchange, symbol ];
         }
         const combinedPublicPrivateTests = exchange.deepExtend (this.publicTests, tests);
         const testNames = Object.keys (combinedPublicPrivateTests);
@@ -670,8 +667,7 @@ export default class testMainClass extends baseMainTestClass {
         await this.loadExchange (exchange);
         await this.testExchange (exchange, symbol);
     }
-};
-
+}
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
 (new testMainClass ()).init (exchangeId, exchangeSymbol);
