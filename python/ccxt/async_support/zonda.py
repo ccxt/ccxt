@@ -5,8 +5,10 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadSymbol
@@ -17,7 +19,9 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class zonda(Exchange):
@@ -201,52 +205,52 @@ class zonda(Exchange):
                     'tierBased': False,
                 },
                 'fiat': {
-                    'maker': 0.30 / 100,
-                    'taker': 0.43 / 100,
+                    'maker': self.parse_number('0.0030'),
+                    'taker': self.parse_number('0.0043'),
                     'percentage': True,
                     'tierBased': True,
                     'tiers': {
                         'taker': [
-                            [0.0043, 0],
-                            [0.0042, 1250],
-                            [0.0041, 3750],
-                            [0.0040, 7500],
-                            [0.0039, 10000],
-                            [0.0038, 15000],
-                            [0.0037, 20000],
-                            [0.0036, 25000],
-                            [0.0035, 37500],
-                            [0.0034, 50000],
-                            [0.0033, 75000],
-                            [0.0032, 100000],
-                            [0.0031, 150000],
-                            [0.0030, 200000],
-                            [0.0029, 250000],
-                            [0.0028, 375000],
-                            [0.0027, 500000],
-                            [0.0026, 625000],
-                            [0.0025, 875000],
+                            [self.parse_number('0.0043'), self.parse_number('0')],
+                            [self.parse_number('0.0042'), self.parse_number('1250')],
+                            [self.parse_number('0.0041'), self.parse_number('3750')],
+                            [self.parse_number('0.0040'), self.parse_number('7500')],
+                            [self.parse_number('0.0039'), self.parse_number('10000')],
+                            [self.parse_number('0.0038'), self.parse_number('15000')],
+                            [self.parse_number('0.0037'), self.parse_number('20000')],
+                            [self.parse_number('0.0036'), self.parse_number('25000')],
+                            [self.parse_number('0.0035'), self.parse_number('37500')],
+                            [self.parse_number('0.0034'), self.parse_number('50000')],
+                            [self.parse_number('0.0033'), self.parse_number('75000')],
+                            [self.parse_number('0.0032'), self.parse_number('100000')],
+                            [self.parse_number('0.0031'), self.parse_number('150000')],
+                            [self.parse_number('0.0030'), self.parse_number('200000')],
+                            [self.parse_number('0.0029'), self.parse_number('250000')],
+                            [self.parse_number('0.0028'), self.parse_number('375000')],
+                            [self.parse_number('0.0027'), self.parse_number('500000')],
+                            [self.parse_number('0.0026'), self.parse_number('625000')],
+                            [self.parse_number('0.0025'), self.parse_number('875000')],
                         ],
                         'maker': [
-                            [0.0030, 0],
-                            [0.0029, 1250],
-                            [0.0028, 3750],
-                            [0.0028, 7500],
-                            [0.0027, 10000],
-                            [0.0026, 15000],
-                            [0.0025, 20000],
-                            [0.0025, 25000],
-                            [0.0024, 37500],
-                            [0.0023, 50000],
-                            [0.0023, 75000],
-                            [0.0022, 100000],
-                            [0.0021, 150000],
-                            [0.0021, 200000],
-                            [0.0020, 250000],
-                            [0.0019, 375000],
-                            [0.0018, 500000],
-                            [0.0018, 625000],
-                            [0.0017, 875000],
+                            [self.parse_number('0.0030'), self.parse_number('0')],
+                            [self.parse_number('0.0029'), self.parse_number('1250')],
+                            [self.parse_number('0.0028'), self.parse_number('3750')],
+                            [self.parse_number('0.0028'), self.parse_number('7500')],
+                            [self.parse_number('0.0027'), self.parse_number('10000')],
+                            [self.parse_number('0.0026'), self.parse_number('15000')],
+                            [self.parse_number('0.0025'), self.parse_number('20000')],
+                            [self.parse_number('0.0025'), self.parse_number('25000')],
+                            [self.parse_number('0.0024'), self.parse_number('37500')],
+                            [self.parse_number('0.0023'), self.parse_number('50000')],
+                            [self.parse_number('0.0023'), self.parse_number('75000')],
+                            [self.parse_number('0.0022'), self.parse_number('100000')],
+                            [self.parse_number('0.0021'), self.parse_number('150000')],
+                            [self.parse_number('0.0021'), self.parse_number('200000')],
+                            [self.parse_number('0.0020'), self.parse_number('250000')],
+                            [self.parse_number('0.0019'), self.parse_number('375000')],
+                            [self.parse_number('0.0018'), self.parse_number('500000')],
+                            [self.parse_number('0.0018'), self.parse_number('625000')],
+                            [self.parse_number('0.0017'), self.parse_number('875000')],
                         ],
                     },
                 },
@@ -392,14 +396,14 @@ class zonda(Exchange):
             })
         return result
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str|None symbol: not used by zonda fetchOpenOrders
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -447,6 +451,7 @@ class zonda(Exchange):
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_string(order, 'rate'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'filled': None,
@@ -456,14 +461,14 @@ class zonda(Exchange):
             'trades': None,
         }, market)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {}
@@ -524,13 +529,13 @@ class zonda(Exchange):
         response = await self.v1_01PrivateGetBalancesBITBAYBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -607,12 +612,12 @@ class zonda(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -635,12 +640,12 @@ class zonda(Exchange):
         stats = self.safe_value(response, 'stats')
         return self.parse_ticker(stats, market)
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.v1_01PublicGetTradingStats(params)
@@ -661,14 +666,14 @@ class zonda(Exchange):
         items = self.safe_value(response, 'items')
         return self.parse_tickers(items, symbols)
 
-    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str|None code: unified currency code, default is None
         :param int|None since: timestamp in ms of the earliest ledger entry, default is None
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         balanceCurrencies = []
         if code is not None:
@@ -957,34 +962,28 @@ class zonda(Exchange):
         timestamp = self.safe_integer(item, 'time')
         balance = self.safe_value(item, 'balance', {})
         currencyId = self.safe_string(balance, 'currency')
-        code = self.safe_currency_code(currencyId)
         change = self.safe_value(item, 'change', {})
-        amount = self.safe_number(change, 'total')
+        amount = self.safe_string(change, 'total')
         direction = 'in'
-        if amount < 0:
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
-            amount = -amount
-        id = self.safe_string(item, 'historyId')
+            amount = Precise.string_neg(amount)
         # there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
-        # that can be used to enrich the transfers with txid, address etc(you need to use info.detailId as a parameter)
-        referenceId = self.safe_string(item, 'detailId')
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
+        # that can be used to enrich the transfers with txid, address etc(you need to use info.detailId parameter)
         fundsBefore = self.safe_value(item, 'fundsBefore', {})
-        before = self.safe_number(fundsBefore, 'total')
         fundsAfter = self.safe_value(item, 'fundsAfter', {})
-        after = self.safe_number(fundsAfter, 'total')
         return {
             'info': item,
-            'id': id,
+            'id': self.safe_string(item, 'historyId'),
             'direction': direction,
             'account': None,
-            'referenceId': referenceId,
+            'referenceId': self.safe_string(item, 'detailId'),
             'referenceAccount': None,
-            'type': type,
-            'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
+            'currency': self.safe_currency_code(currencyId),
+            'amount': self.parse_number(amount),
+            'before': self.safe_number(fundsBefore, 'total'),
+            'after': self.safe_number(fundsAfter, 'total'),
             'status': 'ok',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1034,7 +1033,7 @@ class zonda(Exchange):
             self.safe_number(first, 'v'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1042,14 +1041,14 @@ class zonda(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
             'symbol': tradingSymbol,
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1574709092000,  # unix timestamp in milliseconds, required
             # 'to': 1574709092000,  # unix timestamp in milliseconds, required
         }
@@ -1061,7 +1060,7 @@ class zonda(Exchange):
             request['to'] = self.milliseconds()
             request['from'] = request['to'] - timerange
         else:
-            request['from'] = int(since)
+            request['from'] = since
             request['to'] = self.sum(request['from'], timerange)
         response = await self.v1_01PublicGetTradingCandleHistorySymbolResolution(self.extend(request, params))
         #
@@ -1151,7 +1150,7 @@ class zonda(Exchange):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1174,7 +1173,7 @@ class zonda(Exchange):
         items = self.safe_value(response, 'items')
         return self.parse_trades(items, market, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1183,7 +1182,7 @@ class zonda(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1294,13 +1293,13 @@ class zonda(Exchange):
             'clientOrderId': None,
         })
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         side = self.safe_string(params, 'side')
         if side is None:
@@ -1350,13 +1349,13 @@ class zonda(Exchange):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the zonda api endpoint
         :param str|None params['walletId']: Wallet id to filter deposit adresses.
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1386,7 +1385,7 @@ class zonda(Exchange):
         fetch deposit addresses for multiple currencies and chain types
         :param [str]|None codes: zonda does not support filtering filtering by multiple codes and will ignore self parameter.
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: a list of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         response = await self.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses(params)
@@ -1406,7 +1405,7 @@ class zonda(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_addresses(data, codes)
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -1414,7 +1413,7 @@ class zonda(Exchange):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1514,7 +1513,7 @@ class zonda(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1522,7 +1521,7 @@ class zonda(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the zonda api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)

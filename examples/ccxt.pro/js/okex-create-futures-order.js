@@ -1,7 +1,7 @@
 'use strict';
 
-const ccxtpro = require ('ccxt.pro')
-    , exchange = new ccxtpro.okex ({
+const ccxt = require ('ccxt')
+    , exchange = new ccxt.okex ({
         apiKey: 'YOUR_API_KEY',
         secret: 'YOUR_API_SECRET',
         password: 'YOUR_API_PASSWORD',
@@ -15,7 +15,7 @@ const ccxtpro = require ('ccxt.pro')
     , type = '1' // 1 open long, 2 open short, 3 close long, 4 close short for futures
     , order_type = '4' // 0 = limit order, 4 = market order
 
-console.log ('CCXT Pro Version: ', ccxtpro.version)
+console.log ('CCXT Pro Version: ', ccxt.version)
 
 async function main () {
 
