@@ -1452,10 +1452,10 @@ export default class cex extends Exchange {
                 cost = quoteAmount;
                 average = Precise.stringDiv (orderAmount, cost);
             } else {
-                const ta = this.safeString (order, 'ta:' + quoteId, 0);
-                const tta = this.safeString (order, 'tta:' + quoteId, 0);
-                const fa = this.safeString (order, 'fa:' + quoteId, 0);
-                const tfa = this.safeString (order, 'tfa:' + quoteId, 0);
+                const ta = this.safeString (order, 'ta:' + quoteId, '0');
+                const tta = this.safeString (order, 'tta:' + quoteId, '0');
+                const fa = this.safeString (order, 'fa:' + quoteId, '0');
+                const tfa = this.safeString (order, 'tfa:' + quoteId, '0');
                 if (side === 'sell') {
                     cost = Precise.stringAdd (Precise.stringAdd (ta, tta), Precise.stringAdd (fa, tfa));
                 } else {
