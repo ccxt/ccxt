@@ -2847,10 +2847,13 @@ export default class Exchange {
     }
 
     safeCurrency (currencyId?: string, currency: any = undefined) {
+        if (currencyId === undefined && currency === undefined) {
+            return undefined;
+        }
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
+        if ((currency !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;

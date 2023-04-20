@@ -181,7 +181,7 @@ export default class testMainClass extends baseMainTestClass {
         this.checkedPublicTests = {};
     }
 
-    padEnd (message, size) {
+    padEnd (message: string, size) {
         // has to be transpilable
         let res = '';
         const missingSpace = size - message.length;
