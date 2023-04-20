@@ -115,6 +115,13 @@ function set_test_files ($holderClass, $properties) {
     })();
 }
 
+function close($exchange) {
+    return Async\async (function() {
+        //stub
+        return true;
+    })();
+}
+
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 
@@ -153,6 +160,7 @@ class testMainClass extends baseMainTestClass {
             Async\await($this->import_files($exchange));
             $this->expand_settings($exchange, $symbol);
             Async\await($this->start_test($exchange, $symbol));
+            Async\await(close ($exchange));
         }) ();
     }
 
@@ -504,7 +512,8 @@ class testMainClass extends baseMainTestClass {
                 $marketsArrayForCurrentCode = $exchange->filter_by($currentTypeMarkets, 'base', $currentCode);
                 $indexedMkts = $exchange->index_by($marketsArrayForCurrentCode, 'symbol');
                 $symbolsArrayForCurrentCode = is_array($indexedMkts) ? array_keys($indexedMkts) : array();
-                if (strlen($symbolsArrayForCurrentCode)) {
+                $symbolsLength = count($symbolsArrayForCurrentCode);
+                if ($symbolsLength) {
                     $symbol = $this->get_test_symbol($exchange, $spot, $symbolsArrayForCurrentCode);
                     break;
                 }

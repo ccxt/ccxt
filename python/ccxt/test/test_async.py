@@ -167,6 +167,8 @@ async def set_test_files(holderClass, properties):
             imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name)
             holderClass.testFiles[name] = imp  # getattr(imp, finalName)
 
+async def close(exchange):
+    await exchange.close()
 
 # *********************************
 # ***** AUTO-TRANSPILER-START *****
@@ -205,6 +207,7 @@ class testMainClass(baseMainTestClass):
         await self.import_files(exchange)
         self.expand_settings(exchange, symbol)
         await self.start_test(exchange, symbol)
+        await close(exchange)
 
     async def import_files(self, exchange):
         # exchange tests
@@ -499,7 +502,8 @@ class testMainClass(baseMainTestClass):
                 marketsArrayForCurrentCode = exchange.filter_by(currentTypeMarkets, 'base', currentCode)
                 indexedMkts = exchange.index_by(marketsArrayForCurrentCode, 'symbol')
                 symbolsArrayForCurrentCode = list(indexedMkts.keys())
-                if len(symbolsArrayForCurrentCode):
+                symbolsLength = len(symbolsArrayForCurrentCode)
+                if symbolsLength:
                     symbol = self.get_test_symbol(exchange, spot, symbolsArrayForCurrentCode)
                     break
         # if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'

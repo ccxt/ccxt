@@ -115,6 +115,10 @@ async function setTestFiles (holderClass, properties) {
     }
 }
 
+async function close (exchange) {
+    return exchange.close ();
+}
+
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 
@@ -143,7 +147,7 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         this.expandSettings (exchange, symbol);
         await this.startTest (exchange, symbol);
-        await exchange.close ();
+        await close (exchange);
     }
 
     async importFiles (exchange) {
