@@ -4,9 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 import json
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -21,6 +24,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -62,6 +66,8 @@ class bitrue(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -260,6 +266,10 @@ class bitrue(Exchange):
                     'TRC20': 'TRX',
                     'TRON': 'TRX',
                 },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
             },
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
@@ -356,7 +366,7 @@ class bitrue(Exchange):
         """
         the latest known information on the availability of the exchange API
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = self.v1PublicGetPing(params)
         #
@@ -731,13 +741,13 @@ class bitrue(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -808,12 +818,12 @@ class bitrue(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -851,7 +861,7 @@ class bitrue(Exchange):
             raise ExchangeError(self.id + ' fetchTicker() could not find the ticker for ' + market['symbol'])
         return self.parse_ticker(ticker, market)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -859,13 +869,13 @@ class bitrue(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'scale': self.timeframes[timeframe],
+            'scale': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
@@ -911,12 +921,12 @@ class bitrue(Exchange):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def fetch_bids_asks(self, symbols=None, params={}):
+    def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
@@ -932,12 +942,12 @@ class bitrue(Exchange):
         response = getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         request = {
@@ -978,6 +988,8 @@ class bitrue(Exchange):
     def parse_trade(self, trade, market=None):
         #
         # aggregate trades
+        #  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
+        #  - Trades are aggregated by timestamp, price, and side. But "m" is always True. Use method above if side of trades matter
         #
         #     {
         #         "a": 26129,         # Aggregate tradeId
@@ -985,8 +997,8 @@ class bitrue(Exchange):
         #         "q": "4.70443515",  # Quantity
         #         "f": 27781,         # First tradeId
         #         "l": 27781,         # Last tradeId
-        #         "T": 1498793709153,  # Timestamp
-        #         "m": True,          # Was the buyer the maker?
+        #         "T": 1498793709153,  # Timestamp of *Api-call* not trade!
+        #         "m": True,          # Was the buyer the maker?  # Always True -> ignore it and leave side None
         #         "M": True           # Was the trade the best price match?
         #     }
         #
@@ -996,7 +1008,7 @@ class bitrue(Exchange):
         #         "id": 28457,
         #         "price": "4.00000100",
         #         "qty": "12.00000000",
-        #         "time": 1499865549590,
+        #         "time": 1499865549590,  # Actual timestamp of trade
         #         "isBuyerMaker": True,
         #         "isBestMatch": True
         #     }
@@ -1023,19 +1035,16 @@ class bitrue(Exchange):
         amountString = self.safe_string_2(trade, 'q', 'qty')
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
+        orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string_2(trade, 't', 'a')
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
         side = None
-        orderId = self.safe_string(trade, 'orderId')
-        if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-        elif 'isBuyerMaker' in trade:
-            side = 'sell' if trade['isBuyerMaker'] else 'buy'
-        elif 'side' in trade:
-            side = self.safe_string_lower(trade, 'side')
-        else:
-            if 'isBuyer' in trade:
-                side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
+        buyerMaker = self.safe_value(trade, 'isBuyerMaker')  # ignore "m" until Bitrue fixes api
+        isBuyer = self.safe_value(trade, 'isBuyer')
+        if buyerMaker is not None:
+            side = 'sell' if buyerMaker else 'buy'
+        if isBuyer is not None:
+            side = 'buy' if isBuyer else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1043,10 +1052,9 @@ class bitrue(Exchange):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
             }
         takerOrMaker = None
-        if 'isMaker' in trade:
-            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
-        if 'maker' in trade:
-            takerOrMaker = 'maker' if trade['maker'] else 'taker'
+        isMaker = self.safe_value_2(trade, 'isMaker', 'maker')
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1063,7 +1071,7 @@ class bitrue(Exchange):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1214,6 +1222,7 @@ class bitrue(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1224,7 +1233,7 @@ class bitrue(Exchange):
             'trades': fills,
         }, market)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1233,7 +1242,7 @@ class bitrue(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1275,12 +1284,12 @@ class bitrue(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -1298,14 +1307,14 @@ class bitrue(Exchange):
         response = self.v1PrivateGetOrder(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -1347,14 +1356,14 @@ class bitrue(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -1388,13 +1397,13 @@ class bitrue(Exchange):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -1423,14 +1432,14 @@ class bitrue(Exchange):
         #
         return self.parse_order(response, market)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         method = self.safe_string(self.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades')
         if (symbol is None) and (method == 'v2PrivateGetMyTrades'):
@@ -1472,14 +1481,14 @@ class bitrue(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
@@ -1538,14 +1547,14 @@ class bitrue(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
@@ -1716,7 +1725,7 @@ class bitrue(Exchange):
             'fee': fee,
         }
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1724,7 +1733,7 @@ class bitrue(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1771,6 +1780,57 @@ class bitrue(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #   {
+        #       coin: 'adx',
+        #       coinFulName: 'Ambire AdEx',
+        #       chains: ['BSC'],
+        #       chainDetail: [[Object]]
+        #   }
+        #
+        chainDetails = self.safe_value(fee, 'chainDetail', [])
+        chainDetailLength = len(chainDetails)
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        if chainDetailLength != 0:
+            for i in range(0, chainDetailLength):
+                chainDetail = chainDetails[i]
+                networkId = self.safe_string(chainDetail, 'chain')
+                currencyCode = self.safe_string(currency, 'code')
+                networkCode = self.network_id_to_code(networkId, currencyCode)
+                result['networks'][networkCode] = {
+                    'deposit': {'fee': None, 'percentage': None},
+                    'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
+                }
+                if chainDetailLength == 1:
+                    result['withdraw']['fee'] = self.safe_number(chainDetail, 'withdrawFee')
+                    result['withdraw']['percentage'] = False
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.v1PublicGetExchangeInfo(params)
+        coins = self.safe_value(response, 'coins')
+        return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version, access = api
         url = self.urls['api'][version] + '/' + self.implode_params(path, params)
@@ -1782,7 +1842,7 @@ class bitrue(Exchange):
                 'timestamp': self.nonce(),
                 'recvWindow': recvWindow,
             }, params))
-            signature = self.hmac(self.encode(query), self.encode(self.secret))
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
