@@ -78,6 +78,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # non-transpiled part, but shared names among langs
 
+
 class baseMainTestClass():
     pass
 
@@ -86,7 +87,7 @@ is_synchronous = 'async' not in os.path.basename(__file__)
 
 rootDir = current_dir + '/../../../'
 envVars = os.environ
-ext  = 'py'
+ext = 'py'
 httpsAgent = None
 
 
@@ -97,9 +98,9 @@ def dump(*args):
 def cli_argument_bool(arg):
     arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
     with_hyphen = '--' + arg
-    arg_exists_with_hyphen =  getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
+    arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
     without_hyphen = arg.replace('--', '')
-    arg_exists_wo_hyphen =  getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
+    arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
     return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
 
 
