@@ -1,6 +1,5 @@
 // ----------------------------------------------------------------------------
 
-// @ts-nocheck
 /* eslint-disable */
 import fs from 'fs';
 import assert from 'assert';
@@ -13,7 +12,7 @@ import ccxt from '../../ccxt.js';
 const __dirname = fileURLToPath (new URL ('.', import.meta.url));
 
 process.on ('uncaughtException',  (e) => { console.log (e, e.stack); process.exit (1) });
-process.on ('unhandledRejection', (e) => { console.log (e, e.stack); process.exit (1) });
+process.on ('unhandledRejection', (e: any) => { console.log (e, e.stack); process.exit (1) });
 
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter ((x) => !x.startsWith ('--'));
 
@@ -22,7 +21,19 @@ const AuthenticationError = ccxt.AuthenticationError;
 
 
 // non-transpiled part, but shared names among langs
-class baseMainTestClass {}
+class baseMainTestClass {
+    info = cliArgumentBool ('--info');
+    verbose = cliArgumentBool ('--verbose');
+    debug = cliArgumentBool ('--debug');
+    privateTest = cliArgumentBool ('--private');
+    privateTestOnly = cliArgumentBool ('--privateOnly');
+    sandbox = cliArgumentBool ('--sandbox');
+    skippedMethods = {};
+    checkedPublicTests = {};
+    testFiles = {};
+    publicTests = {};
+
+}
 
 const rootDir = __dirname + '/../../../';
 const envVars = process.env;
@@ -60,7 +71,7 @@ function exceptionMessage (exc) {
 
 function addProxy (exchange, httpProxy) {
     // add real proxy agent
-    exchange.agent = new HttpsProxyAgent (httpProxy);
+    exchange.agent = HttpsProxyAgent (httpProxy);
 }
 
 function exitScript () {
@@ -81,7 +92,7 @@ function initExchange (exchangeId, args) {
 
 async function importTestFile (filePath) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-    return (await import (pathToFileURL (filePath + '.js')) as any)['default'];
+    return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
 async function setTestFiles (holderClass, properties) {
@@ -112,12 +123,12 @@ async function setTestFiles (holderClass, properties) {
 export default class testMainClass extends baseMainTestClass {
 
     parseCliArgs () {
-        this.info = cliArgumentBool ('--info');
-        this.verbose = cliArgumentBool ('--verbose');
-        this.debug = cliArgumentBool ('--debug');
-        this.privateTest = cliArgumentBool ('--private');
-        this.privateTestOnly = cliArgumentBool ('--privateOnly');
-        this.sandbox = cliArgumentBool ('--sandbox');
+        this.info = false;
+        this.verbose = false;
+        this.debug = false;
+        this.privateTest = false;
+        this.privateTestOnly = false;
+        this.sandbox = false;
     }
 
     async init (exchangeId, symbol) {
