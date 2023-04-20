@@ -5722,7 +5722,7 @@ export default class huobi extends Exchange {
             let hostnames = this.safeValue (this.urls['hostnames'], type);
             if (typeof hostnames !== 'string') {
                 hostnames = this.safeValue (hostnames, levelOneNestedPath);
-                if ((typeof hostname !== 'string') && (levelTwoNestedPath !== undefined)) {
+                if ((typeof hostnames !== 'string') && (levelTwoNestedPath !== undefined)) {
                     hostnames = this.safeValue (hostnames, levelTwoNestedPath);
                 }
             }
