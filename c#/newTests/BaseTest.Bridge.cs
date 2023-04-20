@@ -30,8 +30,18 @@ public class Helper
 
 public partial class BaseTest
 {
-    public static void Assert(bool condition, object message2 = null)
+    public static void Assert(object condition2, object message2 = null)
     {
+        var condition = true;
+        // var condition = (bool)condition2;
+        if (condition2 == null)
+        {
+            condition = false;
+        }
+        else if (condition2.GetType() == typeof(bool))
+        {
+            condition = (bool)condition2;
+        }
         var message = message2?.ToString();
         if (!condition)
         {
@@ -44,7 +54,7 @@ public partial class BaseTest
         }
     }
 
-    public static void assert(bool condition, object message) => Assert(condition, message);
+    public static void assert(object condition, object message) => Assert(condition, message);
 }
 
 public partial class BaseTest
@@ -61,23 +71,18 @@ public partial class BaseTest
 
     // public Main.Precise Precise = Main.Precise;
     // initialize methods used here; (improve this later)
-    public string numberToString(object a)
-    {
-        return this.exchange.numberToString(a);
-    }
-    public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null)
-    {
-        return this.exchange.decimalToPrecision(a, b, c, d, e);
-    }
 }
 
 public partial class BaseTest
 {
 
     // bridges to make auxiliary methods available in tests
-
+    public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null) => Exchange.DecimalToPrecision(a, b, c, d, e);
+    public virtual string numberToString(object number) => Exchange.NumberToString(number);
     public static Task<List<object>> promiseAll(object a) => Main.Exchange.PromiseAll(a);
     public static object getValue(object a, object b) => Exchange.GetValue(a, b);
+
+    public static int getIndexOf(object a, object b) => Exchange.getIndexOf(a, b);
     public static object getArrayLength(object a) => Exchange.getArrayLength(a);
     public static bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);
     public static bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
@@ -85,6 +90,7 @@ public partial class BaseTest
     public static bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
     public static object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
     public static object add(object a, object b) => Exchange.add(a, b);
+    public static object multiply(object a, object b) => Exchange.multiply(a, b);
     public static object subtract(object a, object b) => Exchange.subtract(a, b);
     public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);

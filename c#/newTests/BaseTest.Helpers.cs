@@ -1,66 +1,119 @@
 using Main;
+using System.Globalization;
+using System.Reflection;
 namespace Tests;
+using dict = Dictionary<string, object>;
 
-public partial class BaseTest
+public partial class testMainClass : BaseTest
 {
+    public static SharedMethods testSharedMethods = new SharedMethods();
     public Exchange exchange = new Exchange();
+    public string rootDir = Tests.ccxtBaseDir + "/";
+    public object skipMethods = null;
+    public object skippedMethods = null;
+    public object publicTests = null;
+    public object checkedPublicTests = null;
+    public bool sandbox = false;
+    public object envVars = null;
+    public dict testFiles = new dict();
+    public bool privateOnly = Tests.privateOnly;
+    public bool privateTest = Tests.privateTests;
+    public bool info = Tests.info;
 
-    public partial class baseMainTestClass
+
+    public class AuthenticationError : Exchange.AuthenticationError
     {
-        public string rootDir = "./../../";
-        public object skipMethods = null;
-        public object skippedMethods = null;
-        public object publicTests = null;
-        public object checkedPublicTests = null;
-        public bool sandbox = false;
-        public object envVars = null;
-        public object testFiles = null;
-        public bool privateOnly = Tests.privateOnly;
-        public bool privateTest = Tests.privateTests;
-        public bool info = Tests.info;
 
-        public class AuthenticationError : Exchange.AuthenticationError
+    }
+
+
+    public testMainClass()
+    {
+        initEnv();
+        fillTestFiles();
+
+    }
+
+    void fillTestFiles()
+    {
+        var hasDict = this.exchange.has as dict;
+        var hasKeys = hasDict.Keys;
+        foreach (var key in hasKeys)
         {
-
+            var testFilePath = rootDir + "c#/newTests/Generated/Exchange/test." + key + ".cs";
+            if (ioFileExists(testFilePath))
+            {
+                var methodName = "test" + key.Substring(0, 1).ToUpper() + key.Substring(1);
+                var testMethod = this.GetType().GetMethod(methodName);
+                testFiles[methodName] = testMethod;
+            }
         }
+    }
 
-        public static void dump(params object[] values)
+    void initEnv()
+    {
+        var vars = Environment.GetEnvironmentVariables();
+        var parsedObject = new Dictionary<string, object>();
+        for (var i = 0; i < vars.Count; i++)
         {
-            Console.WriteLine(string.Join(" ", values));
+            var key = vars.Keys.Cast<string>().ElementAt(i);
+            var value = vars[key];
+            parsedObject[key] = value;
         }
+        envVars = parsedObject;
+    }
 
-        public static bool ioFileExists(object path2)
+    public static void dump(params object[] values)
+    {
+        Console.WriteLine(string.Join(" ", values));
+    }
+
+    public static bool ioFileExists(object path2)
+    {
+        var path = path2 as string;
+        var exists = System.IO.File.Exists(path);
+        return exists;
+    }
+
+    public static object ioFileRead(object path2)
+    {
+        var path = path2 as string;
+        var text = System.IO.File.ReadAllText(path);
+        return JsonHelper.Deserialize(text);
+    }
+
+    public async Task<object> callMethod(object methodName, object exchange, params object[] args)
+    {
+        var argsWithExchange = new List<object> { exchange };
+        foreach (var arg in args)
         {
-            var path = path2 as string;
-            var exists = System.IO.File.Exists(path);
-            return exists;
+            // compensate ... spread operator in c#
+            if (arg.GetType() == typeof(List<object>))
+            {
+                argsWithExchange.AddRange(arg as List<object>);
+                continue;
+            }
+            argsWithExchange.Add(arg);
         }
+        var method = testFiles[methodName as string] as MethodInfo;
+        var res = method.Invoke(exchange, argsWithExchange.ToArray());
+        await ((Task)res);
+        return null;
+    }
 
-        public static object ioFileRead(object path2)
-        {
-            var path = path2 as string;
-            var text = System.IO.File.ReadAllText(path);
-            return JsonHelper.Deserialize(text);
-        }
+    public static void addProxy(object exchange, object proxy)
+    {
+        // exchange.GetType().GetProperty("proxy").SetValue(exchange, proxy);
+    }
 
-        public static async Task<object> callMethod(object methodName, object exchange, params object[] args)
-        {
-            var method = exchange.GetType().GetMethod(methodName as string);
-            var result = await (Task<object>)method.Invoke(exchange, args);
-            return result;
-        }
+    public static void exitScript()
+    {
+        Environment.Exit(0);
+    }
 
-        public static void addProxy(object exchange, object proxy)
-        {
-            // exchange.GetType().GetProperty("proxy").SetValue(exchange, proxy);
-        }
-
-        public static void exitScript()
-        {
-            Environment.Exit(0);
-        }
-
-        public static object getExchangeProp(object exchange, object prop, object defaultValue = null)
+    public static object getExchangeProp(object exchange, object prop, object defaultValue = null)
+    {
+        try
         {
             var value = exchange.GetType().GetProperty(prop as string).GetValue(exchange);
             if (value == null)
@@ -69,19 +122,40 @@ public partial class BaseTest
             }
             return value;
         }
+        catch (Exception)
+        {
+            return defaultValue;
+        }
 
-        public static void setExchangeProp(object exchange, object prop, object value)
+    }
+
+    public static void setExchangeProp(object exchange, object prop, object value)
+    {
+        try
         {
             exchange.GetType().GetProperty(prop as string).SetValue(exchange, value);
         }
-
-        public void add_proxy(Exchange exchange, object http_proxy)
+        catch (Exception)
         {
-            exchange.proxy = http_proxy as string;
+            // do nothing
         }
+    }
 
-        public string get_test_name(object str) => str as string;
+    public void add_proxy(Exchange exchange, object http_proxy)
+    {
+        exchange.proxy = http_proxy as string;
+    }
 
-        public string exceptionMessage(object exc) => exc as string;
+    public string get_test_name(object str2)
+    {
+        var str = (string)str2;
+        return "test" + char.ToUpper(str[0]) + str.Substring(1);
+    }
+
+    public string exceptionMessage(object exc) => exc as string;
+
+    public partial class SharedMethods
+    {
+        // stub, the actual content is generated inside Generated/Exchange
     }
 }

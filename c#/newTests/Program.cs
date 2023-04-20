@@ -15,6 +15,8 @@ public class Tests
 
     public static string exchangesPath = ccxtBaseDir + "/exchanges.json";
 
+    public static string skipTestsPath = ccxtBaseDir + "/skip-tests.json";
+
     public static string keysPath = ccxtBaseDir + "/keys.json";
 
     public static nestedDict exchanges = new nestedDict();
@@ -27,7 +29,7 @@ public class Tests
     public static bool sandbox = false;
     public static bool privateTests = false;
     public static bool privateOnly = false;
-    public static bool baseTests = true;
+    public static bool baseTests = false;
     public static bool info = false;
 
     public static BaseTest tests = new BaseTest();
@@ -62,11 +64,6 @@ public class Tests
         }
     }
 
-    static async Task<bool> YourMethodName()
-    {
-        return true;
-    }
-
     static void ReadConfig()
     {
         var file = File.ReadAllText(exchangesPath);
@@ -75,21 +72,16 @@ public class Tests
         List<string> strings = ids.Select(s => (string)s).ToList();
         exchangesId = strings;
 
-        // var keysFile = File.ReadAllText(keysPath);
-        // dict keys = Exchange.JsonHelper.Deserialize(keysFile);
-        // nestedDict parsedKey = new nestedDict();
-        // foreach (var key in keys)
-        // {
-        //     var exchangeId = key.Key;
-        //     var exchangeKeys = (dict)key.Value;
-        //     parsedKey[exchangeId] = exchangeKeys;
-        // }
-        // exchanges = keys;
-        var x = 1;
-        var teste = typeof(Tests).GetMethod("YourMethodName", BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(null, new object[] { });
-        var res = (Task<bool>)typeof(Tests).GetMethod("YourMethodName", BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(null, new object[] { });
-        res.Wait();
-        Console.WriteLine(res.Result);
+        var keysFile = File.ReadAllText(keysPath);
+        dict keys = JsonHelper.Deserialize(keysFile) as dict;
+        nestedDict parsedKey = new nestedDict();
+        foreach (var key in keys)
+        {
+            var exchangeId = key.Key;
+            var exchangeKeys = (dict)key.Value;
+            parsedKey[exchangeId] = exchangeKeys;
+        }
+        exchanges = parsedKey;
     }
 
     static void CheckIfShouldSkip(Exchange exchange)
@@ -109,8 +101,13 @@ public class Tests
 
         if (baseTests)
             RunBaseTests();
-        else
-            CheckIfShouldSkip(exchange);
+        // else
+        //     // CheckIfShouldSkip(exchange);
+        var baseInstance = new BaseTest();
+        var instance = Exchange.MagicallyCreateInstance(exchangeId);
+        var testClass = new testMainClass();
+        // instance.verbose = true;
+        testClass.init(instance, symbol).Wait();
     }
 
     static void RunBaseTests()
@@ -121,15 +118,5 @@ public class Tests
         Helper.Green(" [C#] Precision tests passed");
         // tests.CryptoTests();
         // Helper.Green(" [C#] Crypto tests passed");
-    }
-
-    public static Exchange MagicallyCreateInstance(string className)
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-
-        var type = assembly.GetTypes()
-            .First(t => t.Name == className);
-
-        return Activator.CreateInstance(type) as Exchange;
     }
 }
