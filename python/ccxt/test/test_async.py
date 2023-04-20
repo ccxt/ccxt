@@ -81,6 +81,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 class baseMainTestClass():
     pass
 
+
 is_synchronous = 'async' not in os.path.basename(__file__)
 
 rootDir = current_dir + '/../../../'
@@ -88,8 +89,10 @@ envVars = os.environ
 ext  = 'py'
 httpsAgent = None
 
+
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
+
 
 def cli_argument_bool (arg):
     arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
@@ -98,6 +101,7 @@ def cli_argument_bool (arg):
     without_hyphen = arg.replace('--', '')
     arg_exists_wo_hyphen =  getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
     return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
+
 
 def get_test_name(methodName):
     snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()  # snake_case
@@ -177,20 +181,32 @@ from ccxt.base.errors import AuthenticationError
 
 class testMainClass(baseMainTestClass):
 
+    def parse_cli_args(self):
+        acceptedCliArgs = [
+            'info',
+            'verbose',
+            'debug',
+            'private',
+            'privateOnly',
+            'sandbox',
+        ]
+        self.cliArgs = {}
+        for i in range(0, len(acceptedCliArgs)):
+            name = acceptedCliArgs[i]
+            self.cliArgs[name] = cli_argument_bool('--' + name)
+
     async def init(self, exchangeId, symbol):
-        #
-        self.info = cli_argument_bool('--info')
+        self.parse_cli_args()
         symbolStr = symbol is not symbol if None else 'all'
         print('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
-        #
-        args = {
+        exchangeArgs = {
+            'verbose': self.cliArgs['verbose'],
+            'debug': self.cliArgs['debug'],
             'httpsAgent': httpsAgent,
-            'verbose': cli_argument_bool('--verbose'),
             'enableRateLimit': True,
-            'debug': cli_argument_bool('--debug'),
             'timeout': 20000,
         }
-        exchange = init_exchange(exchangeId, args)
+        exchange = init_exchange(exchangeId, exchangeArgs)
         await self.import_files(exchange)
         self.expand_settings(exchange, symbol)
         await self.start_test(exchange, symbol)
@@ -521,14 +537,14 @@ class testMainClass(baseMainTestClass):
             dump('Selected SPOT SYMBOL:', spotSymbol)
         if swapSymbol is not None:
             dump('Selected SWAP SYMBOL:', swapSymbol)
-        if not cli_argument_bool('--privateOnly'):
+        if not self.cliArgs['privateOnly']:
             if exchange.has['spot'] and spotSymbol is not None:
                 exchange.options['type'] = 'spot'
                 await self.run_public_tests(exchange, spotSymbol)
             if exchange.has['swap'] and swapSymbol is not None:
                 exchange.options['type'] = 'swap'
                 await self.run_public_tests(exchange, swapSymbol)
-        if cli_argument_bool('--private') or cli_argument_bool('--privateOnly'):
+        if self.cliArgs['private'] or self.cliArgs['privateOnly']:
             if exchange.has['spot'] and spotSymbol is not None:
                 exchange.options['defaultType'] = 'spot'
                 await self.run_private_tests(exchange, spotSymbol)
@@ -631,7 +647,7 @@ class testMainClass(baseMainTestClass):
         # we don't need to test aliases
         if exchange.alias:
             return
-        if cli_argument_bool('--sandbox') or get_exchange_prop(exchange, 'sandbox'):
+        if self.cliArgs['--sandbox'] or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         await self.load_exchange(exchange)
         await self.test_exchange(exchange, symbol)
