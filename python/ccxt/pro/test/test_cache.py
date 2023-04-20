@@ -11,7 +11,7 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxt.pro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
 
 
 def equals(a, b):
@@ -269,8 +269,8 @@ outsideLimit = 5
 limited = cache.getLimit(symbol, outsideLimit)
 limited2 = cache.getLimit(None, outsideLimit)
 
-assert 1 == limited
-assert 2 == limited2
+assert limited == 1
+assert limited2 == 2
 
 
 # ----------------------------------------------------------------------------
