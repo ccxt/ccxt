@@ -297,7 +297,6 @@ export default class binance extends binanceRest {
         const isTestnetSpot = client.url.indexOf ('testnet') > 0;
         const isSpot = client.url.indexOf ('/stream.binance.') > 0;
         const marketType = (isTestnetSpot || isSpot) ? 'spot' : 'contract';
-
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
