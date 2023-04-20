@@ -274,11 +274,8 @@ class binance(ccxt.async_support.binance):
         #         ]
         #     }
         #
-        # A better way to check type is through self.market(message['s']) (but is 10x more expensive)
-        # Implies spot / margin
-        isTestnetSpot = "testnet" in client.url  # 'wss://testnet.binance.vision/ws'
-        isSpot = "/stream.binance" in client.url  # 'wss://stream.binance.com:9443/ws'
-        marketType = "spot" if (isTestnetSpot or isSpot) else "contract"
+        index = client.url.find('/stream')
+        marketType = 'spot' if (index >= 0) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
