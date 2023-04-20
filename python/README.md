@@ -21,7 +21,9 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Join the CCXT x Gate.io Campaign: Win 100% Trading Fee Discount and VIP Upgrade on Gate.io](https://user-images.githubusercontent.com/1294454/226325169-42b98991-5111-4053-b220-16cc3e978795.jpg)](https://github.com/ccxt/ccxt/issues/17273)
+[![Join the CCXT x Gate.io Campaign: Win 100% Trading Fee Discount and VIP Upgrade on Gate.io](https://user-images.githubusercontent.com/1294454/233369442-eff6bee8-daab-4fcf-93d1-88563908bc12.jpg)](https://github.com/ccxt/ccxt/issues/17273)
+
+
 
 
 ## See Also
