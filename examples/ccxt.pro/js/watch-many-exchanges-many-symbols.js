@@ -1,8 +1,8 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro');
+const ccxt = require ('../../../ccxt');
 
-console.log ('CCXT Pro Version:', ccxtpro.version)
+console.log ('CCXT Version:', ccxt.version)
 
 
 async function watchTickerLoop (exchange, symbol) {
@@ -21,7 +21,7 @@ async function watchTickerLoop (exchange, symbol) {
 }
 
 async function exchangeLoop (exchangeId, symbols) {
-    const exchange = new ccxtpro[exchangeId]()
+     const exchange = new ccxt.pro[exchangeId]()
     await exchange.loadMarkets ()
     const loops = symbols.map (symbol => watchTickerLoop (exchange, symbol))
     await Promise.all (loops)

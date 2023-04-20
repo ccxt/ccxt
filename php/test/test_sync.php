@@ -1,43 +1,20 @@
 <?php
-
 namespace ccxt;
+
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 include_once 'vendor/autoload.php';
-include_once 'test_trade.php';
-include_once 'test_order.php';
-include_once 'test_ohlcv.php';
-include_once 'test_position.php';
-include_once 'test_transaction.php';
-include_once 'test_account.php';
 
-function style($s, $style) {
-    return $style . $s . "\033[0m";
-}
-function green($s) {
-    return style($s, "\033[92m");
-}
-function blue($s) {
-    return style($s, "\033[94m");
-}
-function yellow($s) {
-    return style($s, "\033[93m");
-}
-function red($s) {
-    return style($s, "\033[91m");
-}
-function pink($s) {
-    return style($s, "\033[95m");
-}
-function bold($s) {
-    return style($s, "\033[1m");
-}
-function underline($s) {
-    return style($s, "\033[4m");
-}
-function dump($s) {
-    echo implode(' ', func_get_args()) . "\n";
+function dump(...$s) {
+    $args = array_map(function ($arg) {
+        if (is_array($arg) || is_object($arg)) {
+            return json_encode($arg);
+        } else {
+            return $arg;
+        }
+    }, func_get_args());
+    echo implode(' ', $args) . "\n";
 }
 
 ini_set('memory_limit', '512M');
@@ -54,480 +31,649 @@ $exchanges = null;
 // exit ();
 
 # first we filter the args
-$verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
-$args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
+$verbose = in_array('--verbose', $argv);
+$args = $argv;
+
+$exchangeSymbol = $nonPrefixedArgs[3] ?? null;
+define ('exchangeSymbol', $nonPrefixedArgs[3] ?? null);
+define ('sandbox', in_array('--sandbox', $args));
+define ('privateTest', in_array('--private', $args));
+define ('privateOnly', in_array('--privateOnly', $args));
+define ('info', in_array('--info', $args));
+
+define ('is_sync', stripos(__FILE__, '_async') === false);
 
 //-----------------------------------------------------------------------------
-
 foreach (Exchange::$exchanges as $id) {
-    $exchange = '\\ccxt\\' . $id;
-    $exchanges[$id] = new $exchange();
+    if (in_array($id, $args)) {
+        $exchangeName = '\\ccxt\\' . $id;
+        $selected_exchange = new $exchangeName();
+                            // httpsAgent,
+                            // verbose,
+                            // enableRateLimit,
+                            // debug,
+                            // timeout,
+    }
 }
 
-$keys_global = './keys.json';
-$keys_local = './keys.local.json';
-$keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
+if (!$selected_exchange) {
+    throw new \Exception('No exchange specified');
+}
 
-var_dump($keys_file);
+var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange->id, 'symbol'=> $exchangeSymbol || 'all' ], '\n');
 
-$config = json_decode(file_get_contents($keys_file), true);
+function snake_case ($methodName) {
+    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
+}
+function get_test_name($methodName) {
+    $snake_cased = snake_case($methodName);
+    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
+    return 'test_' . $snake_cased;
+}
+define('rootDir', __DIR__ . '/../../');
 
-foreach ($config as $id => $params) {
-    foreach ($params as $key => $value) {
-        if (array_key_exists($id, $exchanges)) {
-            if (property_exists($exchanges[$id], $key)) {
-                $exchanges[$id]->$key = is_array($exchanges[$id]->$key) ? array_replace_recursive($exchanges[$id]->$key, $value) : $value;
+if (is_sync) {
+    foreach (glob(__DIR__ . '/sync/test_*.php') as $filename) {
+        $basename = basename($filename);
+        if (!in_array($basename, ['test_throttle.php'])) {
+            include_once $filename;
+        }
+    }
+}
+
+if (!is_sync) {
+    foreach (glob(__DIR__ . '/async/test_*.php') as $filename) {
+        $basename = basename($filename);
+        if (!in_array($basename, ['test_throttle.php'])) {
+            include_once $filename;
+        }
+    }
+}
+
+$allfuncs = get_defined_functions()['user'];
+$testFuncs = [];
+foreach ($allfuncs as $fName) {
+    if (stripos($fName, 'ccxt\\test_')!==false) {
+        $nameWithoutNs = str_replace('ccxt\\', '', $fName);
+        $testFuncs[$nameWithoutNs] = $fName;
+    }
+}
+define('testFiles', $testFuncs);
+define('envVars', []);
+
+// non-transpiled commons
+class baseMainTestClass {
+    public $skippedMethods = [];
+    public $checkedPublicTests = [];
+    public $publicTests = [];
+}
+
+function io_file_exists($path) {
+    return file_exists($path);
+}
+
+function io_file_read($path, $decode = true) {
+    $content = file_get_contents($path);
+    return $decode ? json_decode($content, true) : $content;
+}
+
+function call_method($methodName, $exchange, $args) {
+    return testFiles[$methodName]($exchange, ... $args);
+}
+
+function exception_message ($exc) {
+    $inner_message = $exc->getMessage();
+    return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
+}
+
+function add_proxy ($exchange, $http_proxy) {
+    // just add a simple redirect through proxy
+    $exchange->proxy = $http_proxy;
+}
+
+function exit_script() {
+    exit(0);
+}
+
+function reqCredentials ($exchange) {
+    return $exchange->requiredCredenials;
+}
+
+function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
+    return property_exists ($exchange, $prop) ? $exchange->{$prop} : $defaultValue;
+}
+
+function set_exchange_prop ($exchange, $prop, $value) {
+    $exchange->{$prop} = $value;
+}
+// *********************************
+// ***** AUTO-TRANSPILER-START *****
+;
+
+// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
+// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
+
+use Exception; // a common import
+
+
+class testMainClass extends baseMainTestClass {
+
+    public function init($exchange, $symbol) {
+        $this->expand_settings($exchange, $symbol);
+        $this->start_test($exchange, $symbol);
+    }
+
+    public function expand_settings($exchange, $symbol) {
+        $exchangeId = $exchange->id;
+        $keysGlobal = rootDir . 'keys.json';
+        $keysLocal = rootDir . 'keys.local.json';
+        $keysGlobalExists = io_file_exists ($keysGlobal);
+        $keysLocalExists = io_file_exists ($keysLocal);
+        $globalSettings = $keysGlobalExists ? io_file_read ($keysGlobal) : array();
+        $localSettings = $keysLocalExists ? io_file_read ($keysLocal) : array();
+        $allSettings = $exchange->deep_extend($globalSettings, $localSettings);
+        $exchangeSettings = $exchange->safe_value($allSettings, $exchangeId, array());
+        if ($exchangeSettings) {
+            $settingKeys = is_array($exchangeSettings) ? array_keys($exchangeSettings) : array();
+            for ($i = 0; $i < count($settingKeys); $i++) {
+                $key = $settingKeys[$i];
+                if ($exchangeSettings[$key]) {
+                    $existing = get_exchange_prop ($exchange, $key, array());
+                    set_exchange_prop ($exchange, $key, $exchange->deep_extend($existing, $exchangeSettings[$key]));
+                }
+            }
+            // support simple $proxy
+            $proxy = get_exchange_prop ($exchange, 'httpProxy');
+            if ($proxy) {
+                add_proxy ($exchange, $proxy);
             }
         }
-    }
-}
-
-$exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
-
-function test_ticker($exchange, $symbol) {
-    $method = 'fetchTicker';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $ticker = $exchange->{$method}($symbol);
-        dump(green($exchange->id), green($symbol), 'ticker:', implode(' ', array(
-            $ticker['datetime'],
-            'high: ' . $ticker['high'],
-            'low: ' . $ticker['low'],
-            'bid: ' . $ticker['bid'],
-            'ask: ' . $ticker['ask'],
-            'volume: ' . $ticker['quoteVolume'], )));
-    } else {
-        dump(green($symbol), $method . '() is not supported');
-    }
-}
-
-function test_order_book($exchange, $symbol) {
-    $method = 'fetchOrderBook';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $orderbook = $exchange->{$method}($symbol);
-        dump(green($exchange->id), green($symbol), 'order book:', implode(' ', array(
-            $orderbook['datetime'],
-            'bid: '       . @$orderbook['bids'][0][0],
-            'bidVolume: ' . @$orderbook['bids'][0][1],
-            'ask: '       . @$orderbook['asks'][0][0],
-            'askVolume: ' . @$orderbook['asks'][0][1])));
-    } else {
-        dump(green($symbol), $method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_trades($exchange, $symbol) {
-    $method = 'fetchTrades';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $trades = $exchange->{$method}($symbol);
-        if (count($trades) > 0) {
-            test_trade($exchange, $trades[0], $symbol, time() * 1000);
-        }
-        dump(green($symbol), 'fetched', green(count($trades)), 'trades');
-    } else {
-        dump(green($symbol), $method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_orders($exchange, $symbol) {
-    $method = 'fetchOrders';
-    if ($exchange->has[$method]) {
-        $skipped_exchanges = array (
-            'bitmart',
-            'rightbtc',
-        );
-        if (in_array($exchange->id, $skipped_exchanges)) {
-            dump(green($symbol), $method . '() skipped');
-            return;
-        }
-        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $orders = $exchange->{$method}($symbol);
-        foreach ($orders as $order) {
-            test_order($exchange, $order, $symbol, time() * 1000);
-        }
-        dump(green($symbol), 'fetched', green(count($orders)), 'orders');
-    } else {
-        dump(green($symbol), $method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_positions($exchange, $symbol) {
-    $method = 'fetchPositions';
-    if ($exchange->has[$method]) {
-        $skipped_exchanges = array (
-        );
-        if (in_array($exchange->id, $skipped_exchanges)) {
-            dump(green($symbol), $method . '() skipped');
-            return;
-        }
-
-        // without symbol
-        dump(green($exchange->id), 'executing ' . $method . '()');
-        $positions = $exchange->{$method}();
-        foreach ($positions as $position) {
-            test_position($exchange, $position, null, time() * 1000);
-        }
-        dump(green($symbol), 'fetched', green(count($positions)), 'positions');
-
-        // with symbol
-        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $positions = $exchange->{$method}(array($symbol));
-        foreach ($positions as $position) {
-            test_position($exchange, $position, $symbol, time() * 1000);
-        }
-        dump(green($symbol), 'fetched', green(count($positions)), 'positions');
-    } else {
-        dump(green($symbol), $method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-
-function test_closed_orders($exchange, $symbol) {
-    $method = 'fetchClosedOrders';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $orders = $exchange->{$method}($symbol);
-        foreach ($orders as $order) {
-            test_order($exchange, $order, $symbol, time() * 1000);
-            assert($order['status'] === 'closed' || $order['status'] === 'canceled');
-        }
-        dump(green($symbol), 'fetched', green(count($orders)), 'closed orders');
-    } else {
-        dump(green($symbol), $method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_open_orders($exchange, $symbol) {
-    $method = 'fetchOpenOrders';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
-        $orders = $exchange->{$method}($symbol);
-        foreach ($orders as $order) {
-            test_order($exchange, $order, $symbol, time() * 1000);
-            assert($order['status'] === 'open');
-        }
-        dump(green($symbol), 'fetched', green(count($orders)), 'open orders');
-    } else {
-        dump(green($symbol), $method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_transactions($exchange, $code) {
-    $method = 'fetchTransactions';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id), green($code), 'executing ' . $method . '()');
-        $transactions = $exchange->{$method}($code);
-        foreach ($transactions as $transaction) {
-            test_transaction($exchange, $transaction, $code, time() * 1000);
-        }
-        dump(green($code), 'fetched', green(count($transactions)), 'transactions');
-    } else {
-        dump(green($code), $method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_ohlcvs($exchange, $symbol) {
-    $ignored_exchanges = array(
-        'cex',
-        'okex',
-        'okexusd',
-    );
-    if (in_array($exchange->id, $ignored_exchanges)) {
-        return;
-    }
-    $method = 'fetchOHLCV';
-    if ($exchange->has[$method]) {
-        $timeframes = $exchange->timeframes ? $exchange->timeframes : array('1d' => '1d');
-        $exchange_has_one_minute_timeframe = array_key_exists('1m', $timeframes);
-        $timeframe = $exchange_has_one_minute_timeframe ? '1m' : array_keys($timeframes)[0];
-        $limit = 10;
-        $duration = $exchange->parse_timeframe($timeframe);
-        $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
-        dump(green($exchange->id), green($symbol), 'testing ' . $method . '()');
-        $ohlcvs = $exchange->{$method}($symbol, $timeframe, $since, $limit);
-        foreach ($ohlcvs as $ohlcv) {
-            test_ohlcv($exchange, $ohlcv, $symbol, time() * 1000);
-        }
-        dump(green($symbol), 'fetched', green(count($ohlcvs)), 'ohlcvs');
-    } else {
-        dump(green($symbol), 'fetchOHLCV() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_symbol($exchange, $symbol, $code) {
-    $method = 'fetchTicker';
-    if ($exchange->has[$method]) {
-        test_ticker($exchange, $symbol);
-    }
-    if ($exchange->id === 'coinmarketcap') {
-        dump(var_export($exchange->fetchGlobal()));
-    } else {
-        test_order_book($exchange, $symbol);
-        test_trades($exchange, $symbol);
-        test_ohlcvs($exchange, $symbol);
-        if ($exchange->check_required_credentials(false)) {
-            if ($exchange->has['signIn']) {
-                $exchange->sign_in();
+        // credentials
+        $reqCreds = get_exchange_prop ($exchange, 're' . 'quiredCredentials'); // dont glue the r-e-q-u-$i-r-e phrase, because leads to messed up transpilation
+        $objkeys = is_array($reqCreds) ? array_keys($reqCreds) : array();
+        for ($i = 0; $i < count($objkeys); $i++) {
+            $credential = $objkeys[$i];
+            $isRequired = $reqCreds[$credential];
+            if ($isRequired && get_exchange_prop($exchange, $credential) === null) {
+                $fullKey = $exchangeId . '_' . $credential;
+                $credentialEnvName = strtoupper($fullKey); // example => KRAKEN_APIKEY
+                $credentialValue = (is_array(envVars) && array_key_exists($credentialEnvName, envVars)) ? envVars[$credentialEnvName] : null;
+                if ($credentialValue) {
+                    set_exchange_prop ($exchange, $credential, $credentialValue);
+                }
             }
-            test_orders($exchange, $symbol);
-            test_closed_orders($exchange, $symbol);
-            test_open_orders($exchange, $symbol);
-            test_transactions($exchange, $code);
-            $balance = $exchange->fetch_balance();
-            var_dump($balance);
         }
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_accounts($exchange) {
-    $method = 'fetchAccounts';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id), 'executing ' . $method . '()');
-        $accounts = $exchange->{$method}();
-        foreach ($accounts as $account) {
-            test_account($exchange, $account, $method);
+        // skipped tests
+        $skippedFile = rootDir . 'skip-tests.json';
+        $skippedSettings = io_file_read ($skippedFile);
+        $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
+        // others
+        if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
+            dump ('[SKIPPED] exchange', $exchangeId);
+            exit_script();
         }
-        dump(green($exchange->id), 'fetched', green(count($accounts)), 'accounts');
-    } else {
-        dump(green($exchange->id), $method . '() is not supported');
+        if ($exchange->alias) {
+            dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
+            exit_script();
+        }
+        //
+        $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
+        $this->checkedPublicTests = array();
     }
-}
 
-function load_exchange($exchange) {
-    global $verbose;
-    $markets = $exchange->load_markets();
-    $exchange->verbose = $verbose;
-    // $exchange->verbose = true;
-    $symbols = array_keys($markets);
-    dump(green($exchange->id), green(count($symbols)), 'symbols:', implode(', ', $symbols));
-}
+    public function pad_end($message, $size) {
+        // has to be transpilable
+        $res = '';
+        $missingSpace = $size - count($message);
+        if ($missingSpace > 0) {
+            for ($i = 0; $i < $missingSpace; $i++) {
+                $res .= ' ';
+            }
+        }
+        return $message . $res;
+    }
 
-function try_all_proxies($exchange, $proxies) {
-
-    $index = array_search($exchange->proxy, $proxies);
-    $current_proxy = ($index >= 0) ? $index : 0;
-    $max_retries = count($proxies);
-
-    for ($i = 0; $i < $max_retries; $i++) {
+    public function test_method($methodName, $exchange, $args, $isPublic) {
+        $methodNameInTest = get_test_name ($methodName);
+        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in $exchange)
+        if (!$isPublic && (is_array($this->checkedPublicTests) && array_key_exists($methodNameInTest, $this->checkedPublicTests)) && ($methodName !== 'fetchCurrencies')) {
+            return;
+        }
+        $skipMessage = null;
+        $isFetchOhlcvEmulated = ($methodName === 'fetchOHLCV' && $exchange->has['fetchOHLCV'] === 'emulated'); // todo => remove emulation from base
+        if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
+            $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
+        } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
+            $skipMessage = '[INFO:SKIPPED_TEST]';
+        } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
+            $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
+        }
+        if ($skipMessage) {
+            if (info) {
+                dump (str_pad(this, $skipMessage, 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest);
+            }
+            return;
+        }
+        $argsStringified = '(' . implode(',', $args) . ')';
+        if (info) {
+            dump (str_pad(this, '[INFO:TESTING]', 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest, $argsStringified);
+        }
+        $result = null;
         try {
-            $exchange->proxy = $proxies[$current_proxy];
-
-            // add random origin to proxied requests
-            if (strlen($exchange->proxy) > 0) {
-                $exchange->origin = $exchange->uuid();
+            $result = call_method ($methodNameInTest, $exchange, $args);
+            if ($isPublic) {
+                $this->checkedPublicTests[$methodNameInTest] = true;
             }
-
-            $current_proxy = (++$current_proxy) % count($proxies);
-
-            load_exchange($exchange);
-            test_exchange($exchange);
-            break;
-        } catch (\ccxt\RequestTimeout $e) {
-            dump(yellow('[Timeout Error] ' . $e->getMessage() . ' (ignoring)'));
-        } catch (\ccxt\DDoSProtection $e) {
-            dump(yellow('[DDoS Protection Error] ' . $e->getMessage() . ' (ignoring)'));
-        } catch (\ccxt\AuthenticationError $e) {
-            dump(yellow('[Authentication Error] ' . $e->getMessage() . ' (ignoring)'));
-        } catch (\ccxt\ExchangeNotAvailable $e) {
-            dump(yellow('[Exchange Not Available] ' . $e->getMessage() . ' (ignoring)'));
-        } catch (\ccxt\NotSupported $e) {
-            dump(yellow('[Not Supported] ' . $e->getMessage() . ' (ignoring)'));
-        } catch (\ccxt\NetworkError $e) {
-            dump(yellow('[Network Error] ' . $e->getMessage() . ' (ignoring)'));
-        } catch (\ccxt\ExchangeError $e) {
-            dump(yellow('[Exchange Error] ' . $e->getMessage() . ' (ignoring)'));
         } catch (Exception $e) {
-            dump(red('[Error] ' . $e->getMessage()));
-        }
-    }
-}
-
-function get_test_symbol($exchange, $symbols) {
-    $symbol = null;
-    foreach ($symbols as $s) {
-        $market = $exchange->safe_value($exchange->markets, $s);
-        if ($market !== null) {
-            $active = $exchange->safe_value($market, 'active');
-            if ($active || $active === null) {
-                $symbol = $s;
-                break;
+            $isAuthError = ($e instanceof AuthenticationError);
+            if (!($isPublic && $isAuthError)) {
+                dump ('ERROR:', exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
+                throw $e;
             }
         }
+        return $result;
     }
-    return $symbol;
-}
 
-function get_test_code($exchange, $codes) {
-    $code = $codes[0];
-    for ($i = 0; $i < count($codes); $i++) {
-        if (array_key_exists($codes[$i], $exchange->currencies)) {
-            $code = $codes[$i];
-        }
-    }
-    return $code;
-}
-
-$common_codes = array(
-    'BTC',
-    'ETH',
-    'XRP',
-    'LTC',
-    'BCH',
-    'EOS',
-    'BNB',
-    'BSV',
-    'USDT',
-    'ATOM',
-    'BAT',
-    'BTG',
-    'DASH',
-    'DOGE',
-    'ETC',
-    'IOTA',
-    'LSK',
-    'MKR',
-    'NEO',
-    'PAX',
-    'QTUM',
-    'TRX',
-    'TUSD',
-    'USD',
-    'USDC',
-    'WAVES',
-    'XEM',
-    'XMR',
-    'ZEC',
-    'ZRX',
-);
-
-$common_symbols = array(
-    'BTC/USD',
-    'BTC/USDT',
-    'BTC/CNY',
-    'BTC/EUR',
-    'BTC/ETH',
-    'ETH/BTC',
-    'ETH/USDT',
-    'BTC/JPY',
-    'LTC/BTC',
-    'USD/SLL',
-    'EUR/USD',
-);
-
-function get_test_symbol_and_code($exchange, $symbols, $codes) {
-
-    $code = get_test_code($exchange, $codes);
-
-    $symbol = get_test_symbol($exchange, $symbols);
-
-    if ($symbol === null) {
-        $markets = array_values($exchange->markets);
-        foreach ($codes as $code) {
-            $activeMarkets = array_filter($markets, function($market) use ($exchange, $code) {
-                return $market['base'] === $code;
-            });
-            if (count($activeMarkets)) {
-                $activeSymbols = array_map(function($market) {
-                    return $market['symbol'];
-                }, $activeMarkets);
-                $symbol = get_test_symbol($exchange, $activeSymbols);
-                break;
-            }
+    public function test_safe($methodName, $exchange, $args, $isPublic) {
+        try {
+            $this->test_method($methodName, $exchange, $args, $isPublic);
+            return true;
+        } catch (Exception $e) {
+            return false;
         }
     }
 
-    if ($symbol === null) {
-        $markets = array_values($exchange->markets);
-        $activeMarkets = array_filter($markets, function($market) use ($exchange) {
-            return !$exchange->safe_value($market, 'active', false);
-        });
-        $activeSymbols = array_map(function($market) {
-            return $market['symbol'];
-        }, $activeMarkets);
-        $symbol = get_test_symbol($exchange, $activeSymbols);
+    public function run_public_tests($exchange, $symbol) {
+        $tests = array(
+            'loadMarkets' => array(),
+            'fetchCurrencies' => array(),
+            'fetchTicker' => [$symbol],
+            'fetchTickers' => [$symbol],
+            'fetchOHLCV' => [$symbol],
+            'fetchTrades' => [$symbol],
+            'fetchOrderBook' => [$symbol],
+            'fetchL2OrderBook' => [$symbol],
+            'fetchOrderBooks' => array(),
+            'fetchBidsAsks' => array(),
+            'fetchStatus' => array(),
+            'fetchTime' => array(),
+        );
+        $market = $exchange->market ($symbol);
+        $isSpot = $market['spot'];
+        if ($isSpot) {
+            $tests['fetchCurrencies'] = array();
+        } else {
+            $tests['fetchFundingRates'] = [$symbol];
+            $tests['fetchFundingRate'] = [$symbol];
+            $tests['fetchFundingRateHistory'] = [$symbol];
+            $tests['fetchIndexOHLCV'] = [$symbol];
+            $tests['fetchMarkOHLCV'] = [$symbol];
+            $tests['fetchPremiumIndexOHLCV'] = [$symbol];
+        }
+        $this->publicTests = $tests;
+        $testNames = is_array($tests) ? array_keys($tests) : array();
+        $promises = array();
+        for ($i = 0; $i < count($testNames); $i++) {
+            $testName = $testNames[$i];
+            $testArgs = $tests[$testName];
+            $promises[] = $this->test_safe($testName, $exchange, $testArgs, true);
+        }
+        // todo - not yet ready in other langs too
+        // $promises[] = test_throttle();
+        $promises;
+        if (info) {
+            dump (str_pad(this, '[INFO:PUBLIC_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+        }
     }
 
-    if ($symbol === null) {
-        $symbol = get_test_symbol($exchange, $exchange->symbols);
-    }
-
-    if ($symbol === null) {
-        $symbol = $exchange->symbols[0];
-    }
-
-    return array($symbol, $code);
-}
-
-function test_exchange($exchange) {
-
-    global $common_symbols, $common_codes;
-
-    list($symbol, $code) = get_test_symbol_and_code($exchange, $common_symbols, $common_codes);
-
-    if (strpos($symbol, '.d') === false) {
-        dump(green('SYMBOL:'), green($symbol));
-        dump(green('CODE:'), green($code));
-        test_symbol($exchange, $symbol, $code);
-    }
-
-    test_accounts($exchange);
-}
-
-$proxies = array(
-    '',
-    'https://cors-anywhere.herokuapp.com/',
-);
-
-$main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
-    if (count($args) > 1) {
-        if ($exchanges[$args[1]]) {
-            $id = $args[1];
-            $exchange = $exchanges[$id];
-
-            $exchange_config = $exchange->safe_value($config, $id, array());
-            $skip = $exchange->safe_value($exchange_config, 'skip', false);
-            if ($skip) {
-                dump(red('[Skipped] ' . $id));
-                exit();
+    public function load_exchange($exchange) {
+        $markets = $exchange->load_markets();
+        assert (gettype($exchange->markets) === 'array', '.markets is not an object');
+        assert (gettype($exchange->symbols) === 'array' && array_keys($exchange->symbols) === array_keys(array_keys($exchange->symbols)), '.symbols is not an array');
+        $symbolsLength = count($exchange->symbols);
+        $marketKeys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
+        $marketKeysLength = count($marketKeys);
+        assert ($symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
+        assert ($marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
+        assert ($symbolsLength === $marketKeysLength, 'number of .symbols is not equal to the number of .markets');
+        $symbols = array(
+            'BTC/CNY',
+            'BTC/USD',
+            'BTC/USDT',
+            'BTC/EUR',
+            'BTC/ETH',
+            'ETH/BTC',
+            'BTC/JPY',
+            'ETH/EUR',
+            'ETH/JPY',
+            'ETH/CNY',
+            'ETH/USD',
+            'LTC/CNY',
+            'DASH/BTC',
+            'DOGE/BTC',
+            'BTC/AUD',
+            'BTC/PLN',
+            'USD/SLL',
+            'BTC/RUB',
+            'BTC/UAH',
+            'LTC/BTC',
+            'EUR/USD',
+        );
+        $resultSymbols = array();
+        $exchangeSpecificSymbols = $exchange->symbols;
+        for ($i = 0; $i < count($exchangeSpecificSymbols); $i++) {
+            $symbol = $exchangeSpecificSymbols[$i];
+            if ($exchange->inArray($symbol, $symbols)) {
+                $resultSymbols[] = $symbol;
             }
-
-            dump(green('EXCHANGE:'), green($exchange->id));
-
-            if (count($args) > 2) {
-                load_exchange($exchange);
-                $code = get_test_code($exchange, $common_codes);
-                test_symbol($exchange, $args[2], $code);
+        }
+        $resultMsg = '';
+        $resultLength = count($resultSymbols);
+        $exchangeSymbolsLength = count($exchange->symbols);
+        if ($resultLength > 0) {
+            if ($exchangeSymbolsLength > $resultLength) {
+                $resultMsg = implode(', ', $resultSymbols) . ' . more...';
             } else {
-                try_all_proxies($exchange, $proxies);
+                $resultMsg = implode(', ', $resultSymbols);
+            }
+        }
+        dump ('Exchange loaded', $exchangeSymbolsLength, 'symbols', $resultMsg);
+    }
+
+    public function get_test_symbol($exchange, $isSpot, $symbols) {
+        $symbol = null;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $s = $symbols[$i];
+            $market = $exchange->safe_value($exchange->markets, $s);
+            if ($market !== null) {
+                $active = $exchange->safe_value($market, 'active');
+                if ($active || ($active === null)) {
+                    $symbol = $s;
+                    break;
+                }
+            }
+        }
+        return $symbol;
+    }
+
+    public function get_exchange_code($exchange, $codes = null) {
+        if ($codes === null) {
+            $codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT'];
+        }
+        $code = $codes[0];
+        for ($i = 0; $i < count($codes); $i++) {
+            if (is_array($exchange->currencies) && array_key_exists($codes[$i], $exchange->currencies)) {
+                return $codes[$i];
+            }
+        }
+        return $code;
+    }
+
+    public function get_markets_from_exchange($exchange, $spot = true) {
+        $res = array();
+        $markets = $exchange->markets;
+        $keys = is_array($markets) ? array_keys($markets) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $market = $markets[$key];
+            if ($spot && $market['spot']) {
+                $res[$market['symbol']] = $market;
+            } elseif (!$spot && !$market['spot']) {
+                $res[$market['symbol']] = $market;
+            }
+        }
+        return $res;
+    }
+
+    public function get_valid_symbol($exchange, $spot = true) {
+        $currentTypeMarkets = $this->get_markets_from_exchange($exchange, $spot);
+        $codes = array(
+            'BTC',
+            'ETH',
+            'XRP',
+            'LTC',
+            'BCH',
+            'EOS',
+            'BNB',
+            'BSV',
+            'USDT',
+            'ATOM',
+            'BAT',
+            'BTG',
+            'DASH',
+            'DOGE',
+            'ETC',
+            'IOTA',
+            'LSK',
+            'MKR',
+            'NEO',
+            'PAX',
+            'QTUM',
+            'TRX',
+            'TUSD',
+            'USD',
+            'USDC',
+            'WAVES',
+            'XEM',
+            'XMR',
+            'ZEC',
+            'ZRX',
+        );
+        $spotSymbols = array(
+            'BTC/USD',
+            'BTC/USDT',
+            'BTC/CNY',
+            'BTC/EUR',
+            'BTC/ETH',
+            'ETH/BTC',
+            'ETH/USD',
+            'ETH/USDT',
+            'BTC/JPY',
+            'LTC/BTC',
+            'ZRX/WETH',
+            'EUR/USD',
+        );
+        $swapSymbols = array(
+            'BTC/USDT:USDT',
+            'BTC/USD:USD',
+            'ETH/USDT:USDT',
+            'ETH/USD:USD',
+            'LTC/USDT:USDT',
+            'DOGE/USDT:USDT',
+            'ADA/USDT:USDT',
+            'BTC/USD:BTC',
+            'ETH/USD:ETH',
+        );
+        $targetSymbols = $spot ? $spotSymbols : $swapSymbols;
+        $symbol = $this->get_test_symbol($exchange, $spot, $targetSymbols);
+        // if symbols wasn't found from above hardcoded list, then try to locate any $symbol which has our target hardcoded 'base' code
+        if ($symbol === null) {
+            for ($i = 0; $i < count($codes); $i++) {
+                $currentCode = $codes[$i];
+                $marketsArrayForCurrentCode = $exchange->filter_by($currentTypeMarkets, 'base', $currentCode);
+                $indexedMkts = $exchange->index_by($marketsArrayForCurrentCode, 'symbol');
+                $symbolsArrayForCurrentCode = is_array($indexedMkts) ? array_keys($indexedMkts) : array();
+                if (strlen($symbolsArrayForCurrentCode)) {
+                    $symbol = $this->get_test_symbol($exchange, $spot, $symbolsArrayForCurrentCode);
+                    break;
+                }
+            }
+        }
+        // if there wasn't found any $symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
+        if ($symbol === null) {
+            $activeMarkets = $exchange->filter_by($currentTypeMarkets, 'active', true);
+            $activeSymbols = is_array($activeMarkets) ? array_keys($activeMarkets) : array();
+            $symbol = $this->get_test_symbol($exchange, $spot, $activeSymbols);
+        }
+        if ($symbol === null) {
+            $values = is_array($currentTypeMarkets) ? array_values($currentTypeMarkets) : array();
+            $first = $values[0];
+            if ($first !== null) {
+                $symbol = $first['symbol'];
+            }
+        }
+        return $symbol;
+    }
+
+    public function test_exchange($exchange, $providedSymbol = null) {
+        $spotSymbol = null;
+        $swapSymbol = null;
+        if ($providedSymbol !== null) {
+            $market = $exchange->market($providedSymbol);
+            if ($market['spot']) {
+                $spotSymbol = $providedSymbol;
+            } else {
+                $swapSymbol = $providedSymbol;
             }
         } else {
-            echo $args[1] . " not found.\n";
+            if ($exchange->has['spot']) {
+                $spotSymbol = $this->get_valid_symbol($exchange, true);
+            }
+            if ($exchange->has['swap']) {
+                $swapSymbol = $this->get_valid_symbol($exchange, false);
+            } 
         }
-    } else {
-        foreach ($exchanges as $id => $exchange) {
-            try_all_proxies($exchange, $proxies);
+        if ($spotSymbol !== null) {
+            dump ('Selected SPOT SYMBOL:', $spotSymbol);
+        }
+        if ($swapSymbol !== null) {
+            dump ('Selected SWAP SYMBOL:', $swapSymbol);
+        }
+        if (!privateOnly) {
+            if ($exchange->has['spot'] && $spotSymbol !== null) {
+                $exchange->options['type'] = 'spot';
+                $this->run_public_tests($exchange, $spotSymbol);
+            }
+            if ($exchange->has['swap'] && $swapSymbol !== null) {
+                $exchange->options['type'] = 'swap';
+                $this->run_public_tests($exchange, $swapSymbol);
+            }
+        }
+        if (privateTest || privateOnly) {
+            if ($exchange->has['spot'] && $spotSymbol !== null) {
+                $exchange->options['defaultType'] = 'spot';
+                $this->run_private_tests($exchange, $spotSymbol);
+            }
+            if ($exchange->has['swap'] && $swapSymbol !== null) {
+                $exchange->options['defaultType'] = 'swap';
+                $this->run_private_tests($exchange, $swapSymbol);
+            }
         }
     }
-};
 
-$main();
+    public function run_private_tests($exchange, $symbol) {
+        if (!$exchange->check_required_credentials(false)) {
+            dump ('[Skipping private $tests]', 'Keys not found');
+            return;
+        }
+        $code = $this->get_exchange_code($exchange);
+        // if ($exchange->extendedTest) {
+        //     test ('InvalidNonce', $exchange, $symbol);
+        //     test ('OrderNotFound', $exchange, $symbol);
+        //     test ('InvalidOrder', $exchange, $symbol);
+        //     test ('InsufficientFunds', $exchange, $symbol, balance); // danger zone - won't execute with non-empty balance
+        // }
+        $tests = array(
+            'signIn' => [$exchange],
+            'fetchBalance' => [$exchange],
+            'fetchAccounts' => [$exchange],
+            'fetchTransactionFees' => [$exchange],
+            'fetchTradingFees' => [$exchange],
+            'fetchStatus' => [$exchange],
+            'fetchOrders' => [$exchange, $symbol],
+            'fetchOpenOrders' => [$exchange, $symbol],
+            'fetchClosedOrders' => [$exchange, $symbol],
+            'fetchMyTrades' => [$exchange, $symbol],
+            'fetchLeverageTiers' => [$exchange, $symbol],
+            'fetchLedger' => [$exchange, $code],
+            'fetchTransactions' => [$exchange, $code],
+            'fetchDeposits' => [$exchange, $code],
+            'fetchWithdrawals' => [$exchange, $code],
+            'fetchBorrowRates' => [$exchange, $code],
+            'fetchBorrowRate' => [$exchange, $code],
+            'fetchBorrowInterest' => [$exchange, $code, $symbol],
+            'addMargin' => [$exchange, $symbol],
+            'reduceMargin' => [$exchange, $symbol],
+            'setMargin' => [$exchange, $symbol],
+            'setMarginMode' => [$exchange, $symbol],
+            'setLeverage' => [$exchange, $symbol],
+            'cancelAllOrders' => [$exchange, $symbol],
+            'cancelOrder' => [$exchange, $symbol],
+            'cancelOrders' => [$exchange, $symbol],
+            'fetchCanceledOrders' => [$exchange, $symbol],
+            'fetchClosedOrder' => [$exchange, $symbol],
+            'fetchOpenOrder' => [$exchange, $symbol],
+            'fetchOrder' => [$exchange, $symbol],
+            'fetchOrderTrades' => [$exchange, $symbol],
+            'fetchPosition' => [$exchange, $symbol],
+            'fetchDeposit' => [$exchange, $code],
+            'createDepositAddress' => [$exchange, $code],
+            'fetchDepositAddress' => [$exchange, $code],
+            'fetchDepositAddresses' => [$exchange, $code],
+            'fetchDepositAddressesByNetwork' => [$exchange, $code],
+            'editOrder' => [$exchange, $symbol],
+            'fetchBorrowRateHistory' => [$exchange, $symbol],
+            'fetchBorrowRatesPerSymbol' => [$exchange, $symbol],
+            'fetchLedgerEntry' => [$exchange, $code],
+            'fetchWithdrawal' => [$exchange, $code],
+            'transfer' => [$exchange, $code],
+            'withdraw' => [$exchange, $code],
+        );
+        $market = $exchange->market ($symbol);
+        $isSpot = $market['spot'];
+        if ($isSpot) {
+            $tests['fetchCurrencies'] = [$exchange, $symbol];
+        } else {
+            // derivatives only
+            $tests['fetchPositions'] = [$exchange, [$symbol]];
+            $tests['fetchPosition'] = [$exchange, $symbol];
+            $tests['fetchPositionRisk'] = [$exchange, $symbol];
+            $tests['setPositionMode'] = [$exchange, $symbol];
+            $tests['setMarginMode'] = [$exchange, $symbol];
+            $tests['fetchOpenInterestHistory'] = [$exchange, $symbol];
+            $tests['fetchFundingRateHistory'] = [$exchange, $symbol];
+            $tests['fetchFundingHistory'] = [$exchange, $symbol];
+        }
+        $combinedPublicPrivateTests = $exchange->deep_extend($this->publicTests, $tests);
+        $testNames = is_array($combinedPublicPrivateTests) ? array_keys($combinedPublicPrivateTests) : array();
+        $promises = array();
+        for ($i = 0; $i < count($testNames); $i++) {
+            $testName = $testNames[$i];
+            $testArgs = $combinedPublicPrivateTests[$testName];
+            $promises[] = $this->test_safe($testName, $exchange, $testArgs, false);
+        }
+        $results = $promises;
+        $errors = array();
+        for ($i = 0; $i < count($testNames); $i++) {
+            $testName = $testNames[$i];
+            $success = $results[$i];
+            if (!$success) {
+                $errors[] = $testName;
+            }
+        }
+        if (strlen($errors) > 0) {
+            throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
+        } else {
+            if (info) {
+                dump (str_pad(this, '[INFO:PRIVATE_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+            }
+        }
+    }
+
+    public function start_test($exchange, $symbol) {
+        // we don't need to test aliases
+        if ($exchange->alias) {
+            return;
+        }
+        if (sandbox || get_exchange_prop ($exchange, 'sandbox')) {
+            $exchange->set_sandbox_mode(true);
+        }
+        $this->load_exchange($exchange);
+        $this->test_exchange($exchange, $symbol);
+    }
+}
+
+// ***** AUTO-TRANSPILER-END *****
+// *******************************
+$promise = (new testMainClass())->init($selected_exchange, $exchangeSymbol); // Async\coroutine(
+//Async\await($promise);

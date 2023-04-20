@@ -1,14 +1,14 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro');
+const ccxt = require ('../../../ccxt');
 
-console.log ('CCXT Pro Version:', ccxtpro.version)
+console.log ('CCXT Version:', ccxt.version)
 
 
 async function main() {
     let ohlcvs = {}
     const symbol = 'BTC/USDT'
-    const exchange = new ccxtpro.binance ({ 'newUpdates': true })
+     const exchange = new ccxt.pro.binance ({ 'newUpdates': true })
     await exchange.loadMarkets ()
     const market = exchange.market (symbol)
     const timeframe = '1m'

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from asyncio import gather, run
-import ccxtpro
+import ccxt.pro
 from pprint import pprint
 
 
@@ -25,7 +25,7 @@ async def watch_ticker_continuously(exchange, symbol):
 
 
 async def watch_tickers_continuously(exchange_id, overrides, symbols):
-    exchange_class = getattr(ccxtpro, exchange_id)
+    exchange_class = getattr(ccxt.pro, exchange_id)
     exchange = exchange_class(overrides)
     coroutines = [watch_ticker_continuously(exchange, symbol) for symbol in symbols]
     await gather(*coroutines)
