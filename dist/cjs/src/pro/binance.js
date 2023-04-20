@@ -284,8 +284,10 @@ class binance extends binance$1 {
         //         ]
         //     }
         //
-        const index = client.url.indexOf('/stream');
-        const marketType = (index >= 0) ? 'spot' : 'contract';
+        const isTestnetSpot = client.url.indexOf('testnet') > 0;
+        const isSpotMainNet = client.url.indexOf('/stream.binance.') > 0;
+        const isSpot = isTestnetSpot || isSpotMainNet;
+        const marketType = isSpot ? 'spot' : 'contract';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
