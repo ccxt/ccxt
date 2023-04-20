@@ -152,7 +152,11 @@ public partial class testMainClass : BaseTest
         return "test" + char.ToUpper(str[0]) + str.Substring(1);
     }
 
-    public string exceptionMessage(object exc) => exc as string;
+    public string exceptionMessage(object exc)
+    {
+        var e = exc as Exception;
+        return e.Message;
+    }
 
     public partial class SharedMethods
     {
