@@ -483,7 +483,8 @@ export default class testMainClass extends baseMainTestClass {
                 const marketsArrayForCurrentCode = exchange.filterBy (currentTypeMarkets, 'base', currentCode);
                 const indexedMkts = exchange.indexBy (marketsArrayForCurrentCode, 'symbol');
                 const symbolsArrayForCurrentCode = Object.keys (indexedMkts);
-                if (symbolsArrayForCurrentCode.length) {
+                const symbolsLength = symbolsArrayForCurrentCode.length;
+                if (symbolsLength) {
                     symbol = this.getTestSymbol (exchange, spot, symbolsArrayForCurrentCode);
                     break;
                 }
