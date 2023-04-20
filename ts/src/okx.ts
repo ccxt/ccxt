@@ -5053,7 +5053,7 @@ export default class okx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
-            throw new NotSupported (this.id + ' setLeverage () leverage should be between 1 and 125');
+            throw new BadRequest (this.id + ' setLeverage () leverage should be between 1 and 125');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
