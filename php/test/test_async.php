@@ -21,12 +21,11 @@ class baseMainTestClass {
     public $checkedPublicTests = [];
     public $publicTests = [];
     public $info = false;
-    public $cliArgInfo = false;
-    public $cliArgVerbose = false;
-    public $cliArgDebug = false;
-    public $cliArgPrivate = false;
-    public $cliArgPrivateOnly = false;
-    public $cliArgSandbox = false;
+    public $verbose = false;
+    public $debug = false;
+    public $privateTest = false;
+    public $privateTestOnly = false;
+    public $sandbox = false;
 }
 
 define ('is_synchronous', stripos(__FILE__, '_async') === false);
@@ -130,19 +129,12 @@ use ccxt\AuthenticationError;
 class testMainClass extends baseMainTestClass {
 
     public function parse_cli_args() {
-        $acceptedCliArgs = array(
-            'info',
-            'verbose',
-            'debug',
-            'private',
-            'privateOnly',
-            'sandbox',
-        );
-        $this->cliArgs = array();
-        for ($i = 0; $i < count($acceptedCliArgs); $i++) {
-            $name = $acceptedCliArgs[$i];
-            $this->cliArgs[$name] = cli_argument_bool ('--' . $name);
-        }
+        $this->info = cli_argument_bool ('--info');
+        $this->verbose = cli_argument_bool ('--verbose');
+        $this->debug = cli_argument_bool ('--debug');
+        $this->privateTest = cli_argument_bool ('--private');
+        $this->privateTestOnly = cli_argument_bool ('--privateOnly');
+        $this->sandbox = cli_argument_bool ('--sandbox');
     }
 
     public function init($exchangeId, $symbol) {
@@ -151,8 +143,8 @@ class testMainClass extends baseMainTestClass {
             $symbolStr = $symbol !== null ? $symbol : 'all';
             var_dump ('\nTESTING ', ext, array( 'exchange' => $exchangeId, 'symbol' => $symbolStr ), '\n');
             $exchangeArgs = array(
-                'verbose' => $this->cliArgs['verbose'],
-                'debug' => $this->cliArgs['debug'],
+                'verbose' => $this->verbose,
+                'debug' => $this->debug,
                 'httpsAgent' => httpsAgent,
                 'enableRateLimit' => true,
                 'timeout' => 20000,
@@ -559,7 +551,7 @@ class testMainClass extends baseMainTestClass {
             if ($swapSymbol !== null) {
                 dump ('Selected SWAP SYMBOL:', $swapSymbol);
             }
-            if (!$this->cliArgs['privateOnly']) {
+            if (!$this->privateTestOnly) {
                 if ($exchange->has['spot'] && $spotSymbol !== null) {
                     $exchange->options['type'] = 'spot';
                     Async\await($this->run_public_tests($exchange, $spotSymbol));
@@ -569,7 +561,7 @@ class testMainClass extends baseMainTestClass {
                     Async\await($this->run_public_tests($exchange, $swapSymbol));
                 }
             }
-            if ($this->cliArgs['private'] || $this->cliArgs['privateOnly']) {
+            if ($this->privateTest || $this->privateTestOnly) {
                 if ($exchange->has['spot'] && $spotSymbol !== null) {
                     $exchange->options['defaultType'] = 'spot';
                     Async\await($this->run_private_tests($exchange, $spotSymbol));
@@ -689,7 +681,7 @@ class testMainClass extends baseMainTestClass {
             if ($exchange->alias) {
                 return;
             }
-            if ($this->cliArgs['--sandbox'] || get_exchange_prop ($exchange, 'sandbox')) {
+            if ($this->sandbox || get_exchange_prop ($exchange, 'sandbox')) {
                 $exchange->set_sandbox_mode(true);
             }
             Async\await($this->load_exchange($exchange));
