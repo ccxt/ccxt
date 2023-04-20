@@ -1105,7 +1105,7 @@ class phemex(Exchange):
             if not self.in_array(limit, possibleLimitValues):
                 limit = 100
             request['limit'] = limit
-        method = 'publicGetMdKline'
+        method = 'publicGetMdV2Kline'
         if market['linear'] or market['settle'] == 'USDT':
             method = 'publicGetMdV2KlineLast'
         response = getattr(self, method)(self.extend(request, params))
