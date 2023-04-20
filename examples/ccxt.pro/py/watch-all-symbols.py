@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxtpro
+import ccxt.pro
 
 
 async def loop(exchange, symbol, n):
@@ -23,7 +23,7 @@ async def loop(exchange, symbol, n):
 
 
 async def main():
-    exchange = ccxtpro.kraken()
+    exchange = ccxt.pro.kraken()
     await exchange.load_markets()
     markets = list(exchange.markets.values())
     symbols = [market['symbol'] for market in markets if not market['darkpool']]

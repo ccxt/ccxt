@@ -1,21 +1,21 @@
 <?php
 
-namespace ccxtpro;
+$root = dirname(dirname(dirname(dirname(__FILE__))));
+include $root . '/ccxt.php';
 
-require_once 'vendor/autoload.php';
 
 $config = array('enableRateLimit' => true);
-$binance = new binance($config);
-$bittrex = new bittrex($config);
+$binance = new \ccxt\pro\binance($config);
+$bittrex = new \ccxt\pro\bittrex($config);
 $symbol = "BTC/USDT";
 
-function loop($exchange, $symbol) {
+$loop = function($exchange, $symbol) {
+    echo 'got inside' . PHP_EOL;
     for ($i = 0; $i < 5; $i++) {
         $ticker = yield $exchange->watch_ticker($symbol);
         print_ticker($ticker, $exchange->id, $symbol);
     }
-    $exchange::get_kernel()->stop();
-}
+};
 
 function print_ticker($ticker, $exchange_name, $symbol) {
     $bid = $ticker['bid'];
@@ -23,5 +23,5 @@ function print_ticker($ticker, $exchange_name, $symbol) {
     echo "$exchange_name $symbol - bid: $bid <> ask: $ask" . PHP_EOL;
 }
 
-$bittrex::execute_and_run(loop($bittrex, $symbol));
-$binance::execute_and_run(loop($binance, $symbol));
+\React\Async\coroutine($loop, $bittrex, $symbol);
+\React\Async\coroutine($loop, $binance, $symbol);

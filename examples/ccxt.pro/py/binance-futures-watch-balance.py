@@ -1,5 +1,5 @@
 import ccxt
-import ccxtpro
+import ccxt.pro
 import asyncio
 
 from pprint import pprint
@@ -21,7 +21,7 @@ async def print_balance(exchange, market_type):
 
 
 async def main():
-    exchange = ccxtpro.binance({
+    exchange = ccxt.pro.binance({
         "apiKey": "",
         "secret": "",
         'emableRateLimit': True,

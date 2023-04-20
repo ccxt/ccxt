@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro');
+const ccxt = require ('../../../ccxt');
 
 async function watchOrderBook (exchange, symbol) {
     while (true) {
@@ -16,7 +16,7 @@ async function watchOrderBook (exchange, symbol) {
 }
 
 async function watchExchange (exchangeId, symbols) {
-    const exchange = new ccxtpro[exchangeId] ()
+     const exchange = new ccxt.pro[exchangeId] ()
     await exchange.loadMarkets ()
     await Promise.all (symbols.map (symbol => watchOrderBook (exchange, symbol)))
 }
