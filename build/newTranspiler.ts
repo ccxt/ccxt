@@ -513,7 +513,7 @@ class NewTranspiler {
         // Exchange tests
         // this.transpileExchangeTestsToCsharp();
 
-        this.transpileBaseMethods (exchangeBase)
+        // this.transpileBaseMethods (exchangeBase)
 
         // this.transpileErrorHierarchy ({ tsFilename })
 
@@ -643,7 +643,7 @@ class NewTranspiler {
         const jsFile = './ts/src/test/base/functions/test.crypto.ts';
         const csharpFile = `${outDir}/Crypto.cs`;
 
-        log.magenta ('Transpiling from', (jsFile as any).yellow)
+        log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
         const csharp = this.transpiler.transpileCSharpByPath(jsFile);
         let content = csharp.content;
@@ -770,7 +770,7 @@ class NewTranspiler {
     }
 
     transpileMainTest(files) {
-        log.magenta ('Transpiling from', files.tsFile.yellow)
+        log.magenta ('[csharp] Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync (files.tsFile).toString ();
 
         ts = this.regexAll (ts, [
@@ -782,12 +782,15 @@ class NewTranspiler {
 
         const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
         const csharp = this.transpiler.transpileCSharp(mainContent);
-        let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
+        // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
+        let contentIndentend = csharp.content;
+
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
             [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
             [ /throw new Error/g, 'throw new Exception' ],
+            [/class testMainClass : baseMainTestClass/g, 'public partial class testMainClass : BaseTest'],
         ])
 
         const file = [
@@ -795,11 +798,7 @@ class NewTranspiler {
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
-            '',
-            'public partial class BaseTest',
-            '{',
             contentIndentend,
-            '}',
         ].join('\n')
 
         overwriteFile (files.csharpFile, file);
@@ -853,7 +852,7 @@ class NewTranspiler {
             contentIndentend = this.regexAll (contentIndentend, [
                 [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 [ /throw new Error/g, 'throw new Exception' ],
-                [/void function/g, 'void']
+                [ /void function/g, 'void']
             ])
             const fileHeaders = [
                 'using Main;',
@@ -861,7 +860,7 @@ class NewTranspiler {
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',
-                'public partial class BaseTest',
+                'public partial class testMainClass : BaseTest',
                 '{',
             ]
             let csharp: string;
@@ -877,13 +876,17 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             } else {
+                contentIndentend = this.regexAll (contentIndentend, [
+                    [ /public void/g, 'public static void' ], // make tests static
+                    [ /async public Task/g, 'async static public Task' ], // make tests static
+                ])
                 csharp = [
                     ...fileHeaders,
                     contentIndentend,
                     '}',
                 ].join('\n');
             }
-            log.magenta ('Transpiling from', paths[idx])
+            log.magenta ('[csharp] Transpiling from', paths[idx])
             overwriteFile (tests[idx].csharpFile, csharp);
         });
     }

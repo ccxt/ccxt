@@ -5,7 +5,7 @@ export default async ({transpilerConfig, files}) => {
 
     const result = [];
     for (const filePath of files) {
-        log.blue('[worker] Transpiling', filePath);
+        log.blue('[worker][csharp] Transpiling', filePath);
         const transpiled = transpiler.transpileCSharpByPath(filePath);
         result.push(transpiled);
     }
