@@ -21,7 +21,12 @@ class baseMainTestClass {
     public $checkedPublicTests = [];
     public $publicTests = [];
     public $info = false;
-    public $cliArgs = [];
+    public $cliArgInfo = false;
+    public $cliArgVerbose = false;
+    public $cliArgDebug = false;
+    public $cliArgPrivate = false;
+    public $cliArgPrivateOnly = false;
+    public $cliArgSandbox = false;
 }
 
 define ('is_synchronous', stripos(__FILE__, '_async') === false);
