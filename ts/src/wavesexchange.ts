@@ -1217,15 +1217,19 @@ export default class wavesexchange extends Exchange {
         const amount = this.numberToString (market['precision']['amount']);
         const precisionPrice = this.numberToString (market['precision']['price']);
         const difference = Precise.stringSub (amount, precisionPrice);
-        return this.parseToInt (parseFloat (this.toPrecision (price, Precise.stringSub (wavesPrecision, difference))));
+        const precision = Precise.stringSub (wavesPrecision, difference);
+        const pricePrecision = this.toPrecision (price, precision).toString ();
+        return this.parseToInt (parseFloat (pricePrecision));
     }
 
     customAmountToPrecision (symbol, amount) {
-        return this.parseToInt (parseFloat (this.toPrecision (amount, this.numberToString (this.markets[symbol]['precision']['amount']))));
+        const amountPrecision = this.toPrecision (amount, this.numberToString (this.markets[symbol]['precision']['amount'])).toString ();
+        return this.parseToInt (parseFloat (amountPrecision));
     }
 
     currencyToPrecision (code, amount, networkCode = undefined) {
-        return this.parseToInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
+        const amountPrecision = this.toPrecision (amount, this.currencies[code]['precision']).toString ();
+        return this.parseToInt (parseFloat (amountPrecision));
     }
 
     fromPrecision (amount, scale) {
