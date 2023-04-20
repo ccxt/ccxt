@@ -1,14 +1,13 @@
-"use strict";
-
 // ----------------------------------------------------------------------------
 // Usage: node run-tests [--php] [--js] [--python] [exchange] [symbol]
 
 // ----------------------------------------------------------------------------
 
-const fs = require ('fs')
-    , log = require ('ololog').handleNodeErrors ().unlimited
-    , ansi = require ('ansicolor').nice
-    , { spawn, execSync } = require ('child_process')
+import fs from 'fs'
+import ansi from 'ansicolor'
+import log from 'ololog'
+import {spawn} from 'child_process'
+ansi.nice
 
 // ----------------------------------------------------------------------------
 
@@ -16,6 +15,7 @@ const [,, ...args] = process.argv
 
 const keys = {
 
+    '--ts': false,      // run TypeScript tests only
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
@@ -42,8 +42,9 @@ if (!exchanges.length) {
         log.bright.red ('\n\tNo', 'exchanges.json'.white, 'found, please run', 'npm run build'.white, 'to generate it!\n')
         process.exit (1)
     }
-
-    exchanges = require ('./exchanges.json').ws
+    let exchangesFile =  fs.readFileSync('./exchanges.json');
+    exchangesFile = JSON.parse(exchangesFile)
+    exchanges = exchangesFile.ws
 }
 
 // ----------------------------------------------------------------------------
@@ -129,14 +130,17 @@ const testExchange = async (exchange) => {
     // run tests for all/selected languages (in parallel)
 
     const args = [exchange, ... (symbol === 'all') ? [] : [ symbol ]]
-        , allTests = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/pro/test/test.js',           ...args] },
+        , allTestsWithoutTs = [
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/pro/test/test.js',           ...args] },
             { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/pro/test/test_async.py',       ...args] },
             { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/pro/test/test_async.py',       ...args] },
             { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/pro/test/test.php',         ...args] }
         ]
+        , allTests = allTestsWithoutTs.concat([
+            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/pro/test/test.ts',           ...args] },  
+        ])
         , selectedTests  = allTests.filter (t => keys[t.key])
-        , scheduledTests = selectedTests.length ? selectedTests : allTests
+        , scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
         , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , stalled        = completeTests.find (test => test.stalled)

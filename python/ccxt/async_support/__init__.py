@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.7.104'
+__version__ = '3.0.72'
 
 # -----------------------------------------------------------------------------
 
@@ -103,6 +103,7 @@ from ccxt.async_support.coinex import coinex                                    
 from ccxt.async_support.coinfalcon import coinfalcon                            # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
+from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
 from ccxt.async_support.currencycom import currencycom                          # noqa: F401
@@ -126,6 +127,7 @@ from ccxt.async_support.independentreserve import independentreserve            
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
 from ccxt.async_support.itbit import itbit                                      # noqa: F401
 from ccxt.async_support.kraken import kraken                                    # noqa: F401
+from ccxt.async_support.krakenfutures import krakenfutures                      # noqa: F401
 from ccxt.async_support.kucoin import kucoin                                    # noqa: F401
 from ccxt.async_support.kucoinfutures import kucoinfutures                      # noqa: F401
 from ccxt.async_support.kuna import kuna                                        # noqa: F401
@@ -151,7 +153,6 @@ from ccxt.async_support.poloniexfutures import poloniexfutures                  
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.ripio import ripio                                      # noqa: F401
 from ccxt.async_support.stex import stex                                        # noqa: F401
-from ccxt.async_support.therock import therock                                  # noqa: F401
 from ccxt.async_support.tidex import tidex                                      # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -160,6 +161,7 @@ from ccxt.async_support.wavesexchange import wavesexchange                      
 from ccxt.async_support.wazirx import wazirx                                    # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
+from ccxt.async_support.xt import xt                                            # noqa: F401
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
 from ccxt.async_support.zb import zb                                            # noqa: F401
@@ -216,6 +218,7 @@ exchanges = [
     'coinfalcon',
     'coinmate',
     'coinone',
+    'coinsph',
     'coinspot',
     'cryptocom',
     'currencycom',
@@ -239,6 +242,7 @@ exchanges = [
     'indodax',
     'itbit',
     'kraken',
+    'krakenfutures',
     'kucoin',
     'kucoinfutures',
     'kuna',
@@ -264,7 +268,6 @@ exchanges = [
     'probit',
     'ripio',
     'stex',
-    'therock',
     'tidex',
     'timex',
     'tokocrypto',
@@ -273,6 +276,7 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
+    'xt',
     'yobit',
     'zaif',
     'zb',
