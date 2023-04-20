@@ -94,7 +94,7 @@ def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
 
-def cli_argument_bool (arg):
+def cli_argument_bool(arg):
     arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
     with_hyphen = '--' + arg
     arg_exists_with_hyphen =  getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
@@ -152,13 +152,13 @@ def set_exchange_prop(exchange, prop, value):
     setattr(exchange, prop, value)
 
 
-def init_exchange (exchangeId, args):
+def init_exchange(exchangeId, args):
     return getattr(ccxt, exchangeId)(args)
 
 
-async def set_test_files (holderClass, properties):
+async def set_test_files(holderClass, properties):
     skip_tests = ['test_throttle']
-    setattr (holderClass, 'testFiles', {})
+    setattr(holderClass, 'testFiles', {})
     syncAsync = 'async' if not is_synchronous else 'sync'
     for file_path in glob.glob(current_dir + '/' + syncAsync + '/test_*.py'):
         name = os.path.basename(file_path)[:-3]
