@@ -1,0 +1,43 @@
+import mexcRest from '../mexc.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class mexc extends mexcRest {
+    describe(): any;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
+    handleTicker(client: Client, message: any): void;
+    parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
+    watchSpotPublic(channel: any, messageHash: any, params?: {}): Promise<any>;
+    watchSpotPrivate(channel: any, messageHash: any, params?: {}): Promise<any>;
+    watchSwapPublic(channel: any, messageHash: any, requestParams: any, params?: {}): Promise<any>;
+    watchSwapPrivate(messageHash: any, params?: {}): Promise<any>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleOHLCV(client: Client, message: any): void;
+    parseWsOHLCV(ohlcv: any, market?: any): number[];
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    handleOrderBookSubscription(client: Client, message: any): void;
+    getCacheIndex(orderbook: any, cache: any): any;
+    handleOrderBook(client: Client, message: any): void;
+    handleBooksideDelta(bookside: any, bidasks: any): void;
+    handleDelta(orderbook: any, delta: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleTrades(client: Client, message: any): void;
+    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleMyTrade(client: Client, message: any, subscription?: any): void;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleOrder(client: Client, message: any): void;
+    parseWsOrder(order: any, market?: any): any;
+    parseWsOrderStatus(status: any, market?: any): string;
+    parseWsOrderType(type: any): string;
+    parseWsTimeInForce(timeInForce: any): string;
+    watchBalance(params?: {}): Promise<any>;
+    handleBalance(client: Client, message: any): void;
+    authenticate(subscriptionHash: any, params?: {}): Promise<string>;
+    keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
+    handlePong(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): any;
+    ping(client: any): {
+        method: string;
+    };
+}
