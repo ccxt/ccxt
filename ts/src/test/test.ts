@@ -22,12 +22,12 @@ const AuthenticationError = ccxt.AuthenticationError;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
-    info = cliArgumentBool ('--info');
-    verbose = cliArgumentBool ('--verbose');
-    debug = cliArgumentBool ('--debug');
-    privateTest = cliArgumentBool ('--private');
-    privateTestOnly = cliArgumentBool ('--privateOnly');
-    sandbox = cliArgumentBool ('--sandbox');
+    info = false;
+    verbose = false;
+    debug = false;
+    privateTest = false;
+    privateTestOnly = false;
+    sandbox = false;
     skippedMethods = {};
     checkedPublicTests = {};
     testFiles = {};
@@ -42,7 +42,7 @@ function dump (...args) {
     console.log (...args);
 }
 
-function cliArgumentBool (arg) {
+function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
 
@@ -120,12 +120,12 @@ async function setTestFiles (holderClass, properties) {
 
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs () {
-        this.info = false;
-        this.verbose = false;
-        this.debug = false;
-        this.privateTest = false;
-        this.privateTestOnly = false;
-        this.sandbox = false;
+        this.info = getCliArgValue ('--info');
+        this.verbose = getCliArgValue ('--verbose');
+        this.debug = getCliArgValue ('--debug');
+        this.privateTest = getCliArgValue ('--private');
+        this.privateTestOnly = getCliArgValue ('--privateOnly');
+        this.sandbox = getCliArgValue ('--sandbox');
     }
 
     async init (exchangeId, symbol) {

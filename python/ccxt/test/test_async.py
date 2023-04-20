@@ -95,7 +95,7 @@ def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
 
-def cli_argument_bool(arg):
+def get_cli_arg_value(arg):
     arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
     with_hyphen = '--' + arg
     arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
@@ -183,12 +183,12 @@ from ccxt.base.errors import AuthenticationError
 class testMainClass(baseMainTestClass):
 
     def parse_cli_args(self):
-        self.info = cli_argument_bool('--info')
-        self.verbose = cli_argument_bool('--verbose')
-        self.debug = cli_argument_bool('--debug')
-        self.privateTest = cli_argument_bool('--private')
-        self.privateTestOnly = cli_argument_bool('--privateOnly')
-        self.sandbox = cli_argument_bool('--sandbox')
+        self.info = get_cli_arg_value('--info')
+        self.verbose = get_cli_arg_value('--verbose')
+        self.debug = get_cli_arg_value('--debug')
+        self.privateTest = get_cli_arg_value('--private')
+        self.privateTestOnly = get_cli_arg_value('--privateOnly')
+        self.sandbox = get_cli_arg_value('--sandbox')
 
     async def init(self, exchangeId, symbol):
         self.parse_cli_args()
@@ -534,9 +534,13 @@ class testMainClass(baseMainTestClass):
             dump('Selected SWAP SYMBOL:', swapSymbol)
         if not self.privateTestOnly:
             if exchange.has['spot'] and spotSymbol is not None:
+                if self.info:
+                    dump('[INFO:SPOT TESTS]')
                 exchange.options['type'] = 'spot'
                 await self.run_public_tests(exchange, spotSymbol)
             if exchange.has['swap'] and swapSymbol is not None:
+                if self.info:
+                    dump('[INFO:SWAP TESTS]')
                 exchange.options['type'] = 'swap'
                 await self.run_public_tests(exchange, swapSymbol)
         if self.privateTest or self.privateTestOnly:
