@@ -198,6 +198,8 @@ export type IndexType = number | string;
 
 export type Int = number;
 
+export type Boolean = boolean | undefined;
+
 export type OrderSide = 'buy' | 'sell';
 
 export type OrderType = 'limit' | 'market';
