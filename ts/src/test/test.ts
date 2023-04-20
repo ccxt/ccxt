@@ -143,6 +143,7 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         this.expandSettings (exchange, symbol);
         await this.startTest (exchange, symbol);
+        await exchange.close ();
     }
 
     async importFiles (exchange) {
