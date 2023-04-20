@@ -4,9 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import hashlib
 import numbers
+from ccxt.base.types import OrderSide
+from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -20,6 +23,7 @@ from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -31,7 +35,7 @@ class phemex(Exchange):
             'id': 'phemex',
             'name': 'Phemex',
             'countries': ['CN'],  # China
-            'rateLimit': 100,
+            'rateLimit': 120.5,
             'version': 'v1',
             'certified': False,
             'pro': True,
@@ -100,6 +104,7 @@ class phemex(Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg',
                 'test': {
                     'v1': 'https://testnet-api.phemex.com/v1',
+                    'v2': 'https://testnet-api.phemex.com/',
                     'public': 'https://testnet-api.phemex.com/exchange/public',
                     'private': 'https://testnet-api.phemex.com',
                 },
@@ -137,129 +142,128 @@ class phemex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'cfg/v2/products',  # spot + contracts
-                        'cfg/fundingRates',
-                        'products',  # contracts only
-                        'nomics/trades',  # ?market=<symbol>&since=<since>
-                        'md/kline',  # ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
-                        'md/v2/kline/list',  # perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
-                        'md/v2/kline',  # ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                        'md/v2/kline/last',  # perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
-                    ],
+                    'get': {
+                        'cfg/v2/products': 5,  # spot + contracts
+                        'cfg/fundingRates': 5,
+                        'products': 5,  # contracts only
+                        'nomics/trades': 5,  # ?market=<symbol>&since=<since>
+                        'md/kline': 5,  # ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list': 5,  # perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline': 5,  # ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/v2/kline/last': 5,  # perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'md/orderbook',  # ?symbol=<symbol>&id=<id>
-                        'md/trade',  # ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr',  # ?symbol=<symbol>&id=<id>
-                        'md/ticker/24hr/all',  # ?id=<id>
-                        'md/spot/ticker/24hr',  # ?symbol=<symbol>&id=<id>
-                        'md/spot/ticker/24hr/all',  # ?symbol=<symbol>&id=<id>
-                        'exchange/public/products',  # contracts only
-                    ],
+                    'get': {
+                        'md/orderbook': 5,  # ?symbol=<symbol>&id=<id>
+                        'md/trade': 5,  # ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
+                        'md/ticker/24hr/all': 5,  # ?id=<id>
+                        'md/spot/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
+                        'md/spot/ticker/24hr/all': 5,  # ?symbol=<symbol>&id=<id>
+                        'exchange/public/products': 5,  # contracts only
+                    },
                 },
                 'v2': {
-                    'get': [
-                        'md/v2/orderbook',  # ?symbol=<symbol>&id=<id>
-                        'md/v2/trade',  # ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr',  # ?symbol=<symbol>&id=<id>
-                        'md/v2/ticker/24hr/all',  # ?id=<id>
-                    ],
+                    'get': {
+                        'md/v2/orderbook': 5,  # ?symbol=<symbol>&id=<id>
+                        'md/v2/trade': 5,  # ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all': 5,  # ?id=<id>
+                    },
                 },
                 'private': {
-                    'get': [
+                    'get': {
                         # spot
-                        'spot/orders/active',  # ?symbol=<symbol>&orderID=<orderID>
-                        # 'spot/orders/active',  # ?symbol=<symbol>&clOrDID=<clOrdID>
-                        'spot/orders',  # ?symbol=<symbol>
-                        'spot/wallets',  # ?currency=<currency>
-                        'exchange/spot/order',  # ?symbol=<symbol>&ordStatus=<ordStatus1,orderStatus2>ordType=<ordType1,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/spot/order/trades',  # ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'exchange/order/v2/orderList',  # ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
-                        'exchange/order/v2/tradingList',  # ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'spot/orders/active': 1,  # ?symbol=<symbol>&orderID=<orderID>
+                        # 'spot/orders/active': 5,  # ?symbol=<symbol>&clOrDID=<clOrdID>
+                        'spot/orders': 1,  # ?symbol=<symbol>
+                        'spot/wallets': 5,  # ?currency=<currency>
+                        'exchange/spot/order': 5,  # ?symbol=<symbol>&ordStatus=<ordStatus5,orderStatus2>ordType=<ordType5,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/spot/order/trades': 5,  # ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList': 5,  # ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
+                        'exchange/order/v2/tradingList': 5,  # ?symbol=<symbol>&currency=<currency>&execType=<execType>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         # swap
-                        'accounts/accountPositions',  # ?currency=<currency>
-                        'g-accounts/accountPositions',  # ?currency=<currency>
-                        'accounts/positions',  # ?currency=<currency>
-                        'api-data/futures/funding-fees',  # ?symbol=<symbol>
-                        'api-data/g-futures/funding-fees',  # ?symbol=<symbol>
-                        'api-data/futures/orders',  # ?symbol=<symbol>
-                        'api-data/g-futures/orders',  # ?symbol=<symbol>
-                        'api-data/futures/orders/by-order-id',  # ?symbol=<symbol>
-                        'api-data/g-futures/orders/by-order-id',  # ?symbol=<symbol>
-                        'api-data/futures/trades',  # ?symbol=<symbol>
-                        'api-data/g-futures/trades',  # ?symbol=<symbol>
-                        'api-data/futures/trading-fees',  # ?symbol=<symbol>
-                        'api-data/g-futures/trading-fees',  # ?symbol=<symbol>
-                        'g-orders/activeList',  # ?symbol=<symbol>
-                        'orders/activeList',  # ?symbol=<symbol>
-                        'exchange/order/list',  # ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
-                        'exchange/order',  # ?symbol=<symbol>&orderID=<orderID1,orderID2>
-                        # 'exchange/order',  # ?symbol=<symbol>&clOrdID=<clOrdID1,clOrdID2>
-                        'exchange/order/trade',  # ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'phemex-user/users/children',  # ?offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'phemex-user/wallets/v2/depositAddress',  # ?_t=1592722635531&currency=USDT
-                        'phemex-user/wallets/tradeAccountDetail',  # ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
-                        'phemex-user/order/closedPositionList',  # ?currency=USD&limit=10&offset=0&symbol=&withCount=true
-                        'exchange/margins/transfer',  # ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
-                        'exchange/wallets/confirm/withdraw',  # ?code=<withdrawConfirmCode>
-                        'exchange/wallets/withdrawList',  # ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
-                        'exchange/wallets/depositList',  # ?currency=<currency>&offset=<offset>&limit=<limit>
-                        'exchange/wallets/v2/depositAddress',  # ?currency=<currency>
-                        'api-data/spots/funds',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/convert',  # ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'accounts/accountPositions': 1,  # ?currency=<currency>
+                        'g-accounts/accountPositions': 1,  # ?currency=<currency>
+                        'accounts/positions': 25,  # ?currency=<currency>
+                        'api-data/futures/funding-fees': 5,  # ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees': 5,  # ?symbol=<symbol>
+                        'api-data/futures/orders': 5,  # ?symbol=<symbol>
+                        'api-data/g-futures/orders': 5,  # ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id': 5,  # ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id': 5,  # ?symbol=<symbol>
+                        'api-data/futures/trades': 5,  # ?symbol=<symbol>
+                        'api-data/g-futures/trades': 5,  # ?symbol=<symbol>
+                        'api-data/futures/trading-fees': 5,  # ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees': 5,  # ?symbol=<symbol>
+                        'g-orders/activeList': 1,  # ?symbol=<symbol>
+                        'orders/activeList': 1,  # ?symbol=<symbol>
+                        'exchange/order/list': 5,  # ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
+                        'exchange/order': 5,  # ?symbol=<symbol>&orderID=<orderID5,orderID2>
+                        # 'exchange/order': 5,  # ?symbol=<symbol>&clOrdID=<clOrdID5,clOrdID2>
+                        'exchange/order/trade': 5,  # ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'phemex-user/users/children': 5,  # ?offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-user/wallets/v2/depositAddress': 5,  # ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail': 5,  # ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-user/order/closedPositionList': 5,  # ?currency=USD&limit=10&offset=0&symbol=&withCount=true
+                        'exchange/margins/transfer': 5,  # ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'exchange/wallets/confirm/withdraw': 5,  # ?code=<withdrawConfirmCode>
+                        'exchange/wallets/withdrawList': 5,  # ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
+                        'exchange/wallets/depositList': 5,  # ?currency=<currency>&offset=<offset>&limit=<limit>
+                        'exchange/wallets/v2/depositAddress': 5,  # ?currency=<currency>
+                        'api-data/spots/funds': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/convert': 5,  # ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         # transfer
-                        'assets/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/spots/sub-accounts/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/futures/sub-accounts/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
-                        'assets/quote',  # ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
-                        'assets/convert',  # ?fromCurrency=<currency>&toCurrency=<currency>&startTime=<start>&endTime=<end>&limit=<limit>&offset=<offset>
-                    ],
-                    'post': [
+                        'assets/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/spots/sub-accounts/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/futures/sub-accounts/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/quote': 5,  # ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
+                    },
+                    'post': {
                         # spot
-                        'spot/orders',
+                        'spot/orders': 1,
                         # swap
-                        'orders',
-                        'g-orders',
-                        'positions/assign',  # ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
-                        'exchange/wallets/transferOut',
-                        'exchange/wallets/transferIn',
-                        'exchange/margins',
-                        'exchange/wallets/createWithdraw',  # ?otpCode=<otpCode>
-                        'exchange/wallets/cancelWithdraw',
-                        'exchange/wallets/createWithdrawAddress',  # ?otpCode={optCode}
+                        'orders': 1,
+                        'g-orders': 1,
+                        'positions/assign': 5,  # ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
+                        'exchange/wallets/transferOut': 5,
+                        'exchange/wallets/transferIn': 5,
+                        'exchange/margins': 5,
+                        'exchange/wallets/createWithdraw': 5,  # ?otpCode=<otpCode>
+                        'exchange/wallets/cancelWithdraw': 5,
+                        'exchange/wallets/createWithdrawAddress': 5,  # ?otpCode={optCode}
                         # transfer
-                        'assets/transfer',
-                        'assets/spots/sub-accounts/transfer',  # for sub-account only
-                        'assets/futures/sub-accounts/transfer',  # for sub-account only
-                        'assets/universal-transfer',  # for Main account only
-                        'assets/convert',
-                    ],
-                    'put': [
+                        'assets/transfer': 5,
+                        'assets/spots/sub-accounts/transfer': 5,  # for sub-account only
+                        'assets/futures/sub-accounts/transfer': 5,  # for sub-account only
+                        'assets/universal-transfer': 5,  # for Main account only
+                        'assets/convert': 5,
+                    },
+                    'put': {
                         # spot
-                        'spot/orders',  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
+                        'spot/orders': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         # swap
-                        'orders/replace',  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'g-orders/replace',  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
-                        'positions/leverage',  # ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/leverage',  # ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
-                        'g-positions/switch-pos-mode-sync',  # ?symbol=<symbol>&targetPosMode=<targetPosMode>
-                        'positions/riskLimit',  # ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
-                    ],
-                    'delete': [
+                        'orders/replace': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'positions/leverage': 5,  # ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage': 5,  # ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync': 5,  # ?symbol=<symbol>&targetPosMode=<targetPosMode>
+                        'positions/riskLimit': 5,  # ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
+                    },
+                    'delete': {
                         # spot
-                        'spot/orders',  # ?symbol=<symbol>&orderID=<orderID>
-                        'spot/orders/all',  # ?symbol=<symbol>&untriggered=<untriggered>
-                        # 'spot/orders',  # ?symbol=<symbol>&clOrdID=<clOrdID>
+                        'spot/orders': 2,  # ?symbol=<symbol>&orderID=<orderID>
+                        'spot/orders/all': 2,  # ?symbol=<symbol>&untriggered=<untriggered>
+                        # 'spot/orders': 5,  # ?symbol=<symbol>&clOrdID=<clOrdID>
                         # swap
-                        'orders/cancel',  # ?symbol=<symbol>&orderID=<orderID>
-                        'orders',  # ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'orders/all',  # ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        'g-orders/cancel',  # ?symbol=<symbol>&orderID=<orderID>
-                        'g-orders',  # ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
-                        'g-orders/all',  # ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                    ],
+                        'orders/cancel': 1,  # ?symbol=<symbol>&orderID=<orderID>
+                        'orders': 1,  # ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'orders/all': 3,  # ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        'g-orders/cancel': 1,  # ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders': 1,  # ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all': 3,  # ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -414,7 +418,7 @@ class phemex(Exchange):
                     '11125': InvalidOrder,  # TE_BO_CANNOT_CANCEL_BOTP_OR_BOSL_ORDER Details: cannot cancel bracket sl/tp order
                     '11126': InvalidOrder,  # TE_BO_DONOT_SUPPORT_API Details: doesn't support bracket order via API
                     '11128': InvalidOrder,  # TE_BO_INVALID_EXECINST Details: ExecInst value is invalid
-                    '11129': InvalidOrder,  # TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side as position's side
+                    '11129': InvalidOrder,  # TE_BO_MUST_BE_SAME_SIDE_AS_POS Details: bracket order should have the same side's side
                     '11130': InvalidOrder,  # TE_BO_WRONG_SL_TRIGGER_TYPE Details: bracket stop loss order trigger type is invalid
                     '11131': InvalidOrder,  # TE_BO_WRONG_TP_TRIGGER_TYPE Details: bracket take profit order trigger type is invalid
                     '11132': InvalidOrder,  # TE_BO_ABORT_BOSL_DUE_BOTP_CREATE_FAILED Details: cancel bracket stop loss order due failed to create take profit order.
@@ -572,7 +576,7 @@ class phemex(Exchange):
             'valueScale': valueScale,
             'ratioScale': ratioScale,
             'precision': {
-                'amount': self.safe_number(market, 'lotSize'),
+                'amount': self.safe_number_2(market, 'lotSize', 'qtyStepSize'),
                 'price': self.safe_number(market, 'tickSize'),
             },
             'limits': {
@@ -600,8 +604,11 @@ class phemex(Exchange):
         #
         #     {
         #         "symbol":"sBTCUSDT",
+        #         "code":1001,
         #         "displaySymbol":"BTC / USDT",
         #         "quoteCurrency":"USDT",
+        #         "priceScale":8,
+        #         "ratioScale":8,
         #         "pricePrecision":2,
         #         "type":"Spot",
         #         "baseCurrency":"BTC",
@@ -622,8 +629,11 @@ class phemex(Exchange):
         #         "baseQtyPrecision":6,
         #         "quoteQtyPrecision":2,
         #         "status":"Listed",
-        #         "tipOrderQty":20
-        #     }
+        #         "tipOrderQty":2,
+        #         "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        #         "leverage":5
+        #         "valueScale":8,
+        #     },
         #
         type = self.safe_string_lower(market, 'type')
         id = self.safe_string(market, 'symbol')
@@ -660,9 +670,9 @@ class phemex(Exchange):
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
-            'priceScale': 8,
-            'valueScale': 8,
-            'ratioScale': 8,
+            'priceScale': self.safe_integer(market, 'priceScale'),
+            'valueScale': self.safe_integer(market, 'valueScale'),
+            'ratioScale': self.safe_integer(market, 'ratioScale'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -702,9 +712,9 @@ class phemex(Exchange):
         #         "data":{
         #             "ratioScale":8,
         #             "currencies":[
-        #                 {"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
-        #                 {"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
-        #                 {"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
+        #                 {"code":1,"currency":"BTC","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"Bitcoin"},
+        #                 {"code":2,"currency":"USD","valueScale":4,"minValueEv":1,"maxValueEv":500000000000000,"name":"USD"},
+        #                 {"code":3,"currency":"USDT","valueScale":8,"minValueEv":1,"maxValueEv":5000000000000000000,"name":"TetherUS"},
         #             ],
         #             "products":[
         #                 {
@@ -730,8 +740,11 @@ class phemex(Exchange):
         #                 },
         #                 {
         #                     "symbol":"sBTCUSDT",
+        #                     "code":1001,
         #                     "displaySymbol":"BTC / USDT",
         #                     "quoteCurrency":"USDT",
+        #                     "priceScale":8,
+        #                     "ratioScale":8,
         #                     "pricePrecision":2,
         #                     "type":"Spot",
         #                     "baseCurrency":"BTC",
@@ -750,7 +763,11 @@ class phemex(Exchange):
         #                     "defaultMakerFee":"0.001",
         #                     "defaultMakerFeeEr":100000,
         #                     "baseQtyPrecision":6,
-        #                     "quoteQtyPrecision":2
+        #                     "quoteQtyPrecision":2,
+        #                     "status":"Listed",
+        #                     "tipOrderQty":2,
+        #                     "description":"BTCUSDT is a BTC/USDT spot trading pair. Minimum order value is 1 USDT",
+        #                     "leverage":5
         #                 },
         #             ],
         #             "riskLimits":[
@@ -812,8 +829,10 @@ class phemex(Exchange):
         v2ProductsData = self.safe_value(v2Products, 'data', {})
         products = self.safe_value(v2ProductsData, 'products', [])
         riskLimits = self.safe_value(v2ProductsData, 'riskLimits', [])
+        currencies = self.safe_value(v2ProductsData, 'currencies', [])
         riskLimitsById = self.index_by(riskLimits, 'symbol')
         v1ProductsById = self.index_by(v1ProductsData, 'symbol')
+        currenciesByCode = self.index_by(currencies, 'currency')
         result = []
         for i in range(0, len(products)):
             market = products[i]
@@ -826,6 +845,10 @@ class phemex(Exchange):
                 market = self.extend(market, v1ProductsValues)
                 market = self.parse_swap_market(market)
             else:
+                baseCurrency = self.safe_string(market, 'baseCurrency')
+                currencyValues = self.safe_value(currenciesByCode, baseCurrency, {})
+                valueScale = self.safe_string(currencyValues, 'valueScale', '8')
+                market = self.extend(market, {'valueScale': valueScale})
                 market = self.parse_spot_market(market)
             result.append(market)
         return result
@@ -906,7 +929,7 @@ class phemex(Exchange):
             self.parse_number(amount),
         ]
 
-    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
+    def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -925,14 +948,14 @@ class phemex(Exchange):
         result[asksKey] = self.sort_by(result[asksKey], 0)
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -972,7 +995,7 @@ class phemex(Exchange):
         result = self.safe_value(response, 'result', {})
         book = self.safe_value_2(result, 'book', 'orderbook_p', {})
         timestamp = self.safe_integer_product(result, 'timestamp', 0.000001)
-        orderbook = self.parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
+        orderbook = self.custom_parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
         orderbook['nonce'] = self.safe_integer(result, 'sequence')
         return orderbook
 
@@ -981,8 +1004,8 @@ class phemex(Exchange):
         precise = Precise(stringN)
         precise.decimals = precise.decimals - scale
         precise.reduce()
-        stringValue = str(precise)
-        return int(float(stringValue))
+        preciseString = str(precise)
+        return self.parse_to_int(preciseString)
 
     def to_ev(self, amount, market=None):
         if (amount is None) or (market is None):
@@ -1045,7 +1068,7 @@ class phemex(Exchange):
             baseVolume,
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
@@ -1055,7 +1078,7 @@ class phemex(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1070,10 +1093,10 @@ class phemex(Exchange):
         possibleLimitValues = [5, 10, 50, 100, 500, 1000]
         maxLimit = 1000  # maximum limit, we shouldn't sent request of more than it
         if limit is None:
-            limit = 100  # set default, as exchange doesn't have any defaults and needs something to be set
+            limit = 100  # set default, doesn't have any defaults and needs something to be set
         limit = min(limit, maxLimit)
         if since is not None:  # phemex also provides kline query with from/to, however, self interface is NOT recommended.
-            since = int(since / 1000)
+            since = self.parse_to_int(since / 1000)
             request['from'] = since
             # time ranges ending in the future are not accepted
             # https://github.com/ccxt/ccxt/issues/8050
@@ -1191,13 +1214,13 @@ class phemex(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1259,7 +1282,7 @@ class phemex(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
@@ -1374,6 +1397,67 @@ class phemex(Exchange):
         #         "orderID": "b63bc982-be3a-45e0-8974-43d6375fb626",
         #         "clOrdID": "uuid-1577463487504",
         #         "execStatus": "MakerFill"
+        #     }
+        # perpetual
+        #     {
+        #         "accountID": 9328670003,
+        #         "action": "New",
+        #         "actionBy": "ByUser",
+        #         "actionTimeNs": 1666858780876924611,
+        #         "addedSeq": 77751555,
+        #         "apRp": "0",
+        #         "bonusChangedAmountRv": "0",
+        #         "bpRp": "0",
+        #         "clOrdID": "c0327a7d-9064-62a9-28f6-2db9aaaa04e0",
+        #         "closedPnlRv": "0",
+        #         "closedSize": "0",
+        #         "code": 0,
+        #         "cumFeeRv": "0",
+        #         "cumQty": "0",
+        #         "cumValueRv": "0",
+        #         "curAccBalanceRv": "1508.489893982237",
+        #         "curAssignedPosBalanceRv": "24.62786650928",
+        #         "curBonusBalanceRv": "0",
+        #         "curLeverageRr": "-10",
+        #         "curPosSide": "Buy",
+        #         "curPosSize": "0.043",
+        #         "curPosTerm": 1,
+        #         "curPosValueRv": "894.0689",
+        #         "curRiskLimitRv": "1000000",
+        #         "currency": "USDT",
+        #         "cxlRejReason": 0,
+        #         "displayQty": "0.003",
+        #         "execFeeRv": "0",
+        #         "execID": "00000000-0000-0000-0000-000000000000",
+        #         "execPriceRp": "20723.7",
+        #         "execQty": "0",
+        #         "execSeq": 77751555,
+        #         "execStatus": "New",
+        #         "execValueRv": "0",
+        #         "feeRateRr": "0",
+        #         "leavesQty": "0.003",
+        #         "leavesValueRv": "63.4503",
+        #         "message": "No error",
+        #         "ordStatus": "New",
+        #         "ordType": "Market",
+        #         "orderID": "fa64c6f2-47a4-4929-aab4-b7fa9bbc4323",
+        #         "orderQty": "0.003",
+        #         "pegOffsetValueRp": "0",
+        #         "posSide": "Long",
+        #         "priceRp": "21150.1",
+        #         "relatedPosTerm": 1,
+        #         "relatedReqNum": 11,
+        #         "side": "Buy",
+        #         "slTrigger": "ByMarkPrice",
+        #         "stopLossRp": "0",
+        #         "stopPxRp": "0",
+        #         "symbol": "BTCUSDT",
+        #         "takeProfitRp": "0",
+        #         "timeInForce": "ImmediateOrCancel",
+        #         "tpTrigger": "ByLastPrice",
+        #         "tradeType": "Amend",
+        #         "transactTimeNs": 1666858780881545305,
+        #         "userID": 932867
         #     }
         #
         # swap - USDT
@@ -1845,12 +1929,13 @@ class phemex(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         price = self.from_ep(self.safe_string(order, 'priceEp'), market)
         amount = self.from_ev(self.safe_string(order, 'baseQtyEv'), market)
         remaining = self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), market))
         filled = self.from_ev(self.safe_string_2(order, 'cumBaseQtyEv', 'cumBaseValueEv'), market)
-        cost = self.from_ev(self.safe_string_2(order, 'cumQuoteValueEv', 'quoteQtyEv'), market)
+        cost = self.from_er(self.safe_string_2(order, 'cumQuoteValueEv', 'quoteQtyEv'), market)
         average = self.from_ep(self.safe_string(order, 'avgPriceEp'), market)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
@@ -2062,7 +2147,7 @@ class phemex(Exchange):
             return self.parse_swap_order(order, market)
         return self.parse_spot_order(order, market)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
@@ -2072,17 +2157,17 @@ class phemex(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        side = self.capitalize(side)
+        requestSide = self.capitalize(side)
         type = self.capitalize(type)
         reduceOnly = self.safe_value(params, 'reduceOnly')
         request = {
             # common
             'symbol': market['id'],
-            'side': side,  # Sell, Buy
+            'side': requestSide,  # Sell, Buy
             'ordType': type,  # Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched(additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             # 'stopPxEp': self.to_ep(stopPx, market),  # for conditional orders
             # 'priceEp': self.to_ep(price, market),  # required for limit orders
@@ -2181,10 +2266,10 @@ class phemex(Exchange):
                 request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
         method = 'privatePostSpotOrders'
-        if market['inverse']:
-            method = 'privatePostOrders'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privatePostGOrders'
+        elif market['contract']:
+            method = 'privatePostOrders'
         params = self.omit(params, 'reduceOnly')
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -2266,7 +2351,7 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def edit_order(self, id, symbol, type=None, side=None, amount=None, price=None, params={}):
+    async def edit_order(self, id: str, symbol, type=None, side=None, amount=None, price=None, params={}):
         """
         edit a trade order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
@@ -2277,14 +2362,11 @@ class phemex(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str|None params['posSide']: either 'Hedged' or 'OneWay' or 'Merged'
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
-        if type is not None:
-            raise ArgumentsRequired(self.id + ' editOrder() type changing is not implemented. Try to cancel & recreate order for that purpose')
-        if side is not None:
-            raise ArgumentsRequired(self.id + ' editOrder() side changing is not implemented. Try to cancel & recreate order for that purpose')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2292,13 +2374,14 @@ class phemex(Exchange):
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdID')
         params = self.omit(params, ['clientOrderId', 'clOrdID'])
+        isUSDTSettled = (market['settle'] == 'USDT')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
         else:
             request['orderID'] = id
         if price is not None:
-            if market['settle'] == 'USDT':
-                request['priceRp'] = self.price_to_precision(symbol, price)
+            if isUSDTSettled:
+                request['priceRp'] = self.price_to_precision(market['symbol'], price)
             else:
                 request['priceEp'] = self.to_ep(price, market)
         # Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at self moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
@@ -2307,24 +2390,30 @@ class phemex(Exchange):
         if finalQty is not None:
             request['baseQtyEV'] = finalQty
         elif amount is not None:
-            request['baseQtyEV'] = self.to_ev(amount, market)
+            if isUSDTSettled:
+                request['baseQtyEV'] = self.amount_to_precision(market['symbol'], amount)
+            else:
+                request['baseQtyEV'] = self.to_ev(amount, market)
         stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
         if stopPrice is not None:
-            if market['settle'] == 'USDT':
+            if isUSDTSettled:
                 request['stopPxRp'] = self.price_to_precision(symbol, stopPrice)
             else:
                 request['stopPxEp'] = self.to_ep(stopPrice, market)
         params = self.omit(params, ['stopPx', 'stopPrice'])
         method = 'privatePutSpotOrders'
-        if market['inverse']:
-            method = 'privatePutOrdersReplace'
-        elif market['settle'] == 'USDT':
+        if isUSDTSettled:
             method = 'privatePutGOrdersReplace'
+            posSide = self.safe_string(params, 'posSide')
+            if posSide is None:
+                request['posSide'] = 'Merged'
+        elif market['swap']:
+            method = 'privatePutOrdersReplace'
         response = await getattr(self, method)(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
@@ -2332,7 +2421,7 @@ class phemex(Exchange):
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the phemex api endpoint
         :param str|None params['posSide']: either 'Hedged' or 'OneWay' or 'Merged'
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2348,24 +2437,24 @@ class phemex(Exchange):
         else:
             request['orderID'] = id
         method = 'privateDeleteSpotOrders'
-        if market['inverse']:
-            method = 'privateDeleteOrdersCancel'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privateDeleteGOrdersCancel'
             posSide = self.safe_string(params, 'posSide')
             if posSide is None:
                 request['posSide'] = 'Merged'
+        elif market['swap']:
+            method = 'privateDeleteOrdersCancel'
         response = await getattr(self, method)(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def cancel_all_orders(self, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -2377,19 +2466,19 @@ class phemex(Exchange):
         }
         market = self.market(symbol)
         method = 'privateDeleteSpotOrdersAll'
-        if market['inverse']:
-            method = 'privateDeleteOrdersAll'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privateDeleteGOrdersAll'
+        elif market['swap']:
+            method = 'privateDeleteOrdersAll'
         request['symbol'] = market['id']
         return await getattr(self, method)(self.extend(request, params))
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -2420,7 +2509,7 @@ class phemex(Exchange):
             order = self.safe_value(data, 0, {})
         return self.parse_order(order, market)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
@@ -2428,7 +2517,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -2438,11 +2527,11 @@ class phemex(Exchange):
             'symbol': market['id'],
         }
         method = 'privateGetSpotOrders'
-        if market['inverse']:
-            method = 'privateGetExchangeOrderList'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             request['currency'] = market['settle']
             method = 'privateGetExchangeOrderV2OrderList'
+        elif market['swap']:
+            method = 'privateGetExchangeOrderList'
         if since is not None:
             request['start'] = since
         if limit is not None:
@@ -2452,25 +2541,26 @@ class phemex(Exchange):
         rows = self.safe_value(data, 'rows', data)
         return self.parse_orders(rows, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetSpotOrders'
-        if market['inverse']:
-            method = 'privateGetOrdersActiveList'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             method = 'privateGetGOrdersActiveList'
+        elif market['swap']:
+            method = 'privateGetOrdersActiveList'
         request = {
             'symbol': market['id'],
         }
@@ -2488,7 +2578,7 @@ class phemex(Exchange):
             rows = self.safe_value(data, 'rows', [])
             return self.parse_orders(rows, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
@@ -2496,7 +2586,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2506,11 +2596,11 @@ class phemex(Exchange):
             'symbol': market['id'],
         }
         method = 'privateGetExchangeSpotOrder'
-        if market['inverse']:
-            method = 'privateGetExchangeOrderList'
-        elif market['settle'] == 'USDT':
+        if market['settle'] == 'USDT':
             request['currency'] = market['settle']
             method = 'privateGetExchangeOrderV2OrderList'
+        elif market['swap']:
+            method = 'privateGetExchangeOrderList'
         if since is not None:
             request['start'] = since
         if limit is not None:
@@ -2559,7 +2649,7 @@ class phemex(Exchange):
             rows = self.safe_value(data, 'rows', [])
             return self.parse_orders(rows, market, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-user-trade
@@ -2568,7 +2658,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -2580,13 +2670,14 @@ class phemex(Exchange):
             if market['settle'] == 'USDT':
                 method = 'privateGetExchangeOrderV2TradingList'
         request = {}
+        if limit is not None:
+            limit = min(200, limit)
+            request['limit'] = limit
         if market['settle'] == 'USDT':
             request['currency'] = 'USDT'
             request['offset'] = 0
-            limit = 200
-            if limit is not None:
-                limit = min(200, limit)
-            request['limit'] = limit
+            if limit is None:
+                request['limit'] = 200
         else:
             request['symbol'] = market['id']
         if since is not None:
@@ -2704,12 +2795,12 @@ class phemex(Exchange):
             return self.parse_trades(rows, market, since, limit)
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -2748,14 +2839,14 @@ class phemex(Exchange):
             'info': response,
         }
 
-    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2785,14 +2876,14 @@ class phemex(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2905,14 +2996,14 @@ class phemex(Exchange):
             'fee': fee,
         }
 
-    async def fetch_positions(self, symbols=None, params={}):
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-trading-account-and-positions
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3131,9 +3222,8 @@ class phemex(Exchange):
             else:
                 priceDiff = Precise.string_sub(Precise.string_div('1', markPriceString), Precise.string_div('1', entryPriceString))
         unrealizedPnl = Precise.string_mul(Precise.string_mul(priceDiff, contracts), contractSizeString)
-        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMarginString), '100')
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -3145,8 +3235,10 @@ class phemex(Exchange):
             'collateral': self.parse_number(collateral),
             'notional': self.parse_number(notionalString),
             'markPrice': self.parse_number(markPriceString),  # markPrice lags a bit ¯\_(ツ)_/¯
+            'lastPrice': None,
             'entryPrice': self.parse_number(entryPriceString),
             'timestamp': None,
+            'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -3156,10 +3248,10 @@ class phemex(Exchange):
             'marginMode': None,
             'side': side,
             'hedged': False,
-            'percentage': self.parse_number(percentage),
-        }
+            'percentage': None,
+        })
 
-    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist
@@ -3167,7 +3259,7 @@ class phemex(Exchange):
         :param int|None since: the earliest time in ms to fetch funding history for
         :param int|None limit: the maximum number of funding history structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         await self.load_markets()
         if symbol is None:
@@ -3225,12 +3317,12 @@ class phemex(Exchange):
             })
         return result
 
-    async def fetch_funding_rate(self, symbol, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3331,14 +3423,14 @@ class phemex(Exchange):
             'previousFundingDatetime': None,
         }
 
-    async def set_margin(self, symbol, amount, params={}):
+    async def set_margin(self, symbol: str, amount, params={}):
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict params: parameters specific to the phemex api endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        :returns dict: A `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3385,7 +3477,7 @@ class phemex(Exchange):
             'status': self.parse_margin_status(self.safe_string(data, 'code')),
         }
 
-    async def set_margin_mode(self, marginMode, symbol=None, params={}):
+    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -3412,7 +3504,7 @@ class phemex(Exchange):
         }
         return await self.privatePutPositionsLeverage(self.extend(request, params))
 
-    async def set_position_mode(self, hedged, symbol=None, params={}):
+    async def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """
         set hedged to True or False for a market
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
@@ -3434,12 +3526,12 @@ class phemex(Exchange):
             request['targetPosMode'] = 'OneWay'
         return await self.privatePutGPositionsSwitchPosModeSync(self.extend(request, params))
 
-    async def fetch_leverage_tiers(self, symbols=None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
         response = await self.publicGetCfgV2Products(params)
@@ -3585,11 +3677,11 @@ class phemex(Exchange):
                 body = payload
                 headers['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload
-            headers['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         url = self.implode_hostname(self.urls['api'][api]) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def set_leverage(self, leverage, symbol=None, params={}):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
@@ -3617,7 +3709,7 @@ class phemex(Exchange):
             request['leverage'] = leverage
         return await getattr(self, method)(self.extend(request, params))
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
@@ -3626,7 +3718,7 @@ class phemex(Exchange):
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the phemex api endpoint
         :param str|None params['bizType']: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -3693,14 +3785,14 @@ class phemex(Exchange):
                 transfer['currency'] = code
         return transfer
 
-    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str|None code: unified currency code of the currency transferred
         :param int|None since: the earliest time in ms to fetch transfers for
         :param int|None limit: the maximum number of  transfers structures to retrieve
         :param dict params: extra parameters specific to the phemex api endpoint
-        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         if code is None:
