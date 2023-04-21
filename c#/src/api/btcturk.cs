@@ -5,73 +5,73 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class btcturk : Exchange
 {
-    public async Task<object> publicGetOrderbook (object parameters = null)
+    public async Task<object> publicGetOrderbook(object parameters = null)
     {
-        return await this.callAsync ("publicGetOrderbook",parameters);
+        return await this.callAsync("publicGetOrderbook", parameters);
     }
 
-    public async Task<object> publicGetTicker (object parameters = null)
+    public async Task<object> publicGetTicker(object parameters = null)
     {
-        return await this.callAsync ("publicGetTicker",parameters);
+        return await this.callAsync("publicGetTicker", parameters);
     }
 
-    public async Task<object> publicGetTrades (object parameters = null)
+    public async Task<object> publicGetTrades(object parameters = null)
     {
-        return await this.callAsync ("publicGetTrades",parameters);
+        return await this.callAsync("publicGetTrades", parameters);
     }
 
-    public async Task<object> publicGetServerExchangeinfo (object parameters = null)
+    public async Task<object> publicGetServerExchangeinfo(object parameters = null)
     {
-        return await this.callAsync ("publicGetServerExchangeinfo",parameters);
+        return await this.callAsync("publicGetServerExchangeinfo", parameters);
     }
 
-    public async Task<object> privateGetUsersBalances (object parameters = null)
+    public async Task<object> privateGetUsersBalances(object parameters = null)
     {
-        return await this.callAsync ("privateGetUsersBalances",parameters);
+        return await this.callAsync("privateGetUsersBalances", parameters);
     }
 
-    public async Task<object> privateGetOpenOrders (object parameters = null)
+    public async Task<object> privateGetOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenOrders",parameters);
+        return await this.callAsync("privateGetOpenOrders", parameters);
     }
 
-    public async Task<object> privateGetAllOrders (object parameters = null)
+    public async Task<object> privateGetAllOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetAllOrders",parameters);
+        return await this.callAsync("privateGetAllOrders", parameters);
     }
 
-    public async Task<object> privateGetUsersTransactionsTrade (object parameters = null)
+    public async Task<object> privateGetUsersTransactionsTrade(object parameters = null)
     {
-        return await this.callAsync ("privateGetUsersTransactionsTrade",parameters);
+        return await this.callAsync("privateGetUsersTransactionsTrade", parameters);
     }
 
-    public async Task<object> privatePostOrder (object parameters = null)
+    public async Task<object> privatePostOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrder",parameters);
+        return await this.callAsync("privatePostOrder", parameters);
     }
 
-    public async Task<object> privatePostCancelOrder (object parameters = null)
+    public async Task<object> privatePostCancelOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostCancelOrder",parameters);
+        return await this.callAsync("privatePostCancelOrder", parameters);
     }
 
-    public async Task<object> privateDeleteOrder (object parameters = null)
+    public async Task<object> privateDeleteOrder(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrder",parameters);
+        return await this.callAsync("privateDeleteOrder", parameters);
     }
 
-    public async Task<object> graphGetOhlcs (object parameters = null)
+    public async Task<object> graphGetOhlcs(object parameters = null)
     {
-        return await this.callAsync ("graphGetOhlcs",parameters);
+        return await this.callAsync("graphGetOhlcs", parameters);
     }
 
-    public async Task<object> graphGetKlinesHistory (object parameters = null)
+    public async Task<object> graphGetKlinesHistory(object parameters = null)
     {
-        return await this.callAsync ("graphGetKlinesHistory",parameters);
+        return await this.callAsync("graphGetKlinesHistory", parameters);
     }
 
 }

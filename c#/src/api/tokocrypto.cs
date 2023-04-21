@@ -5,173 +5,173 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class tokocrypto : Exchange
 {
-    public async Task<object> binanceGetPing (object parameters = null)
+    public async Task<object> binanceGetPing(object parameters = null)
     {
-        return await this.callAsync ("binanceGetPing",parameters);
+        return await this.callAsync("binanceGetPing", parameters);
     }
 
-    public async Task<object> binanceGetTime (object parameters = null)
+    public async Task<object> binanceGetTime(object parameters = null)
     {
-        return await this.callAsync ("binanceGetTime",parameters);
+        return await this.callAsync("binanceGetTime", parameters);
     }
 
-    public async Task<object> binanceGetDepth (object parameters = null)
+    public async Task<object> binanceGetDepth(object parameters = null)
     {
-        return await this.callAsync ("binanceGetDepth",parameters);
+        return await this.callAsync("binanceGetDepth", parameters);
     }
 
-    public async Task<object> binanceGetTrades (object parameters = null)
+    public async Task<object> binanceGetTrades(object parameters = null)
     {
-        return await this.callAsync ("binanceGetTrades",parameters);
+        return await this.callAsync("binanceGetTrades", parameters);
     }
 
-    public async Task<object> binanceGetAggTrades (object parameters = null)
+    public async Task<object> binanceGetAggTrades(object parameters = null)
     {
-        return await this.callAsync ("binanceGetAggTrades",parameters);
+        return await this.callAsync("binanceGetAggTrades", parameters);
     }
 
-    public async Task<object> binanceGetHistoricalTrades (object parameters = null)
+    public async Task<object> binanceGetHistoricalTrades(object parameters = null)
     {
-        return await this.callAsync ("binanceGetHistoricalTrades",parameters);
+        return await this.callAsync("binanceGetHistoricalTrades", parameters);
     }
 
-    public async Task<object> binanceGetKlines (object parameters = null)
+    public async Task<object> binanceGetKlines(object parameters = null)
     {
-        return await this.callAsync ("binanceGetKlines",parameters);
+        return await this.callAsync("binanceGetKlines", parameters);
     }
 
-    public async Task<object> binanceGetTicker24hr (object parameters = null)
+    public async Task<object> binanceGetTicker24hr(object parameters = null)
     {
-        return await this.callAsync ("binanceGetTicker24hr",parameters);
+        return await this.callAsync("binanceGetTicker24hr", parameters);
     }
 
-    public async Task<object> binanceGetTickerPrice (object parameters = null)
+    public async Task<object> binanceGetTickerPrice(object parameters = null)
     {
-        return await this.callAsync ("binanceGetTickerPrice",parameters);
+        return await this.callAsync("binanceGetTickerPrice", parameters);
     }
 
-    public async Task<object> binanceGetTickerBookTicker (object parameters = null)
+    public async Task<object> binanceGetTickerBookTicker(object parameters = null)
     {
-        return await this.callAsync ("binanceGetTickerBookTicker",parameters);
+        return await this.callAsync("binanceGetTickerBookTicker", parameters);
     }
 
-    public async Task<object> binanceGetExchangeInfo (object parameters = null)
+    public async Task<object> binanceGetExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("binanceGetExchangeInfo",parameters);
+        return await this.callAsync("binanceGetExchangeInfo", parameters);
     }
 
-    public async Task<object> binancePutUserDataStream (object parameters = null)
+    public async Task<object> binancePutUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("binancePutUserDataStream",parameters);
+        return await this.callAsync("binancePutUserDataStream", parameters);
     }
 
-    public async Task<object> binancePostUserDataStream (object parameters = null)
+    public async Task<object> binancePostUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("binancePostUserDataStream",parameters);
+        return await this.callAsync("binancePostUserDataStream", parameters);
     }
 
-    public async Task<object> binanceDeleteUserDataStream (object parameters = null)
+    public async Task<object> binanceDeleteUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("binanceDeleteUserDataStream",parameters);
+        return await this.callAsync("binanceDeleteUserDataStream", parameters);
     }
 
-    public async Task<object> publicGetOpenV1CommonTime (object parameters = null)
+    public async Task<object> publicGetOpenV1CommonTime(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenV1CommonTime",parameters);
+        return await this.callAsync("publicGetOpenV1CommonTime", parameters);
     }
 
-    public async Task<object> publicGetOpenV1CommonSymbols (object parameters = null)
+    public async Task<object> publicGetOpenV1CommonSymbols(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenV1CommonSymbols",parameters);
+        return await this.callAsync("publicGetOpenV1CommonSymbols", parameters);
     }
 
-    public async Task<object> publicGetOpenV1MarketDepth (object parameters = null)
+    public async Task<object> publicGetOpenV1MarketDepth(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenV1MarketDepth",parameters);
+        return await this.callAsync("publicGetOpenV1MarketDepth", parameters);
     }
 
-    public async Task<object> publicGetOpenV1MarketTrades (object parameters = null)
+    public async Task<object> publicGetOpenV1MarketTrades(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenV1MarketTrades",parameters);
+        return await this.callAsync("publicGetOpenV1MarketTrades", parameters);
     }
 
-    public async Task<object> publicGetOpenV1MarketAggTrades (object parameters = null)
+    public async Task<object> publicGetOpenV1MarketAggTrades(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenV1MarketAggTrades",parameters);
+        return await this.callAsync("publicGetOpenV1MarketAggTrades", parameters);
     }
 
-    public async Task<object> publicGetOpenV1MarketKlines (object parameters = null)
+    public async Task<object> publicGetOpenV1MarketKlines(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenV1MarketKlines",parameters);
+        return await this.callAsync("publicGetOpenV1MarketKlines", parameters);
     }
 
-    public async Task<object> privateGetOpenV1OrdersDetail (object parameters = null)
+    public async Task<object> privateGetOpenV1OrdersDetail(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenV1OrdersDetail",parameters);
+        return await this.callAsync("privateGetOpenV1OrdersDetail", parameters);
     }
 
-    public async Task<object> privateGetOpenV1Orders (object parameters = null)
+    public async Task<object> privateGetOpenV1Orders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenV1Orders",parameters);
+        return await this.callAsync("privateGetOpenV1Orders", parameters);
     }
 
-    public async Task<object> privateGetOpenV1AccountSpot (object parameters = null)
+    public async Task<object> privateGetOpenV1AccountSpot(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenV1AccountSpot",parameters);
+        return await this.callAsync("privateGetOpenV1AccountSpot", parameters);
     }
 
-    public async Task<object> privateGetOpenV1AccountSpotAsset (object parameters = null)
+    public async Task<object> privateGetOpenV1AccountSpotAsset(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenV1AccountSpotAsset",parameters);
+        return await this.callAsync("privateGetOpenV1AccountSpotAsset", parameters);
     }
 
-    public async Task<object> privateGetOpenV1OrdersTrades (object parameters = null)
+    public async Task<object> privateGetOpenV1OrdersTrades(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenV1OrdersTrades",parameters);
+        return await this.callAsync("privateGetOpenV1OrdersTrades", parameters);
     }
 
-    public async Task<object> privateGetOpenV1Withdraws (object parameters = null)
+    public async Task<object> privateGetOpenV1Withdraws(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenV1Withdraws",parameters);
+        return await this.callAsync("privateGetOpenV1Withdraws", parameters);
     }
 
-    public async Task<object> privateGetOpenV1Deposits (object parameters = null)
+    public async Task<object> privateGetOpenV1Deposits(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenV1Deposits",parameters);
+        return await this.callAsync("privateGetOpenV1Deposits", parameters);
     }
 
-    public async Task<object> privateGetOpenV1DepositsAddress (object parameters = null)
+    public async Task<object> privateGetOpenV1DepositsAddress(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenV1DepositsAddress",parameters);
+        return await this.callAsync("privateGetOpenV1DepositsAddress", parameters);
     }
 
-    public async Task<object> privatePostOpenV1Orders (object parameters = null)
+    public async Task<object> privatePostOpenV1Orders(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenV1Orders",parameters);
+        return await this.callAsync("privatePostOpenV1Orders", parameters);
     }
 
-    public async Task<object> privatePostOpenV1OrdersCancel (object parameters = null)
+    public async Task<object> privatePostOpenV1OrdersCancel(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenV1OrdersCancel",parameters);
+        return await this.callAsync("privatePostOpenV1OrdersCancel", parameters);
     }
 
-    public async Task<object> privatePostOpenV1OrdersOco (object parameters = null)
+    public async Task<object> privatePostOpenV1OrdersOco(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenV1OrdersOco",parameters);
+        return await this.callAsync("privatePostOpenV1OrdersOco", parameters);
     }
 
-    public async Task<object> privatePostOpenV1Withdraws (object parameters = null)
+    public async Task<object> privatePostOpenV1Withdraws(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenV1Withdraws",parameters);
+        return await this.callAsync("privatePostOpenV1Withdraws", parameters);
     }
 
-    public async Task<object> privatePostOpenV1UserDataStream (object parameters = null)
+    public async Task<object> privatePostOpenV1UserDataStream(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenV1UserDataStream",parameters);
+        return await this.callAsync("privatePostOpenV1UserDataStream", parameters);
     }
 
 }

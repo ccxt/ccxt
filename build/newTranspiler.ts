@@ -29,6 +29,16 @@ if (platform === 'win32') {
     }
 }
 
+const WRAPPER_FILE = './c#/src/base/Exchange.Wrappers.cs';
+const ERRORS_FILE = './c#/src/base/Exchange.Errors.cs';
+const BASE_METHODS_FILE = './c#/src/base/Exchange.BaseMethods.cs';
+const EXCHANGES_FOLDER = './c#/src/exchanges/';
+const GENERATED_TESTS_FOLDER = './c#/tests/Generated/Exchange/';
+const BASE_TESTS_FOLDER = './c#/tests/Generated/Base';
+const BASE_TESTS_FILE =  './c#/tests/Generated/TestMethods.cs';
+const EXCHANGE_BASE_FOLDER = './c#/tests/Generated/Exchange/Base/';
+const EXCHANGE_GENERATED_FOLDER = './c#/tests/Generated/Exchange/';
+
 class NewTranspiler {
 
     transpiler;
@@ -104,8 +114,8 @@ class NewTranspiler {
 
     getCsharpImports(file) {
         return [
-            "using Main;",
-            "namespace Main;"
+            "using ccxt;",
+            "namespace ccxt;"
         ]
     }
 
@@ -356,11 +366,10 @@ class NewTranspiler {
     }
 
     createCSharpWrappers(wrappers) {
-        const wrapperFile = "./c#/src/base/Exchange.Wrappers.cs";
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(wrapper)).filter(wrapper => wrapper !== '').join('\n');
         const classes = this.createExchangesWrappers().filter(e=> !!e).join('\n');
         const file = [
-            'namespace Main;',
+            'namespace ccxt;',
             '',
             this.createGeneratedHeader().join('\n'),
             'public partial class Exchange',
@@ -369,9 +378,9 @@ class NewTranspiler {
             '}',
             classes
         ].join('\n')
-        log.magenta ('→', (wrapperFile as any).yellow)
+        log.magenta ('→', (WRAPPER_FILE as any).yellow)
 
-        overwriteFile (wrapperFile, file);
+        overwriteFile (WRAPPER_FILE, file);
     }
 
     transpileErrorHierarchy ({ tsFilename }) {
@@ -420,8 +429,6 @@ class NewTranspiler {
             return exception
         }
 
-        const csharpFilename ='./c#/base/Exchange.Errors.cs'
-
             const csharpBaseError =
 `   public class BaseError : Exception
     {
@@ -435,18 +442,18 @@ class NewTranspiler {
         const csharpErrors = intellisense (root as any, 'BaseError', csharpMakeErrorClassFile, undefined)
         const csharpBodyIntellisense = '\n' + this.createGeneratedHeader().join('\n') + '\n' + csharpBaseError + '\n' + csharpErrors.join ('\n') + '\n'
         const csharpFile = ""
-        if (fs.existsSync (csharpFilename)) {
-            log.bright.cyan (message, (csharpFilename as any).yellow)
+        if (fs.existsSync (ERRORS_FILE)) {
+            log.bright.cyan (message, (ERRORS_FILE as any).yellow)
             const csharpRegex = /(?<=public partial class Exchange\n{)((.|\n)+)(?=})/g
-            replaceInFile (csharpFilename, csharpRegex, csharpBodyIntellisense)
+            replaceInFile (ERRORS_FILE, csharpRegex, csharpBodyIntellisense)
         }
 
-        log.bright.cyan (message, (csharpFilename as any).yellow)
+        log.bright.cyan (message, (ERRORS_FILE as any).yellow)
 
     }
 
     transpileBaseMethods(baseExchangeFile) {
-        const csharpExchangeBase = "./c#/src/base/Exchange.BaseMethods.cs";
+        const csharpExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
 
         // to c#
@@ -482,7 +489,7 @@ class NewTranspiler {
     async transpileEverything (force = false, child = false) {
 
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , csharpFolder = './c#/src/exchanges/'
+            , csharpFolder = EXCHANGES_FOLDER
             , tsFolder = './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
@@ -608,7 +615,7 @@ class NewTranspiler {
         const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
 
         const file = [
-            'using Main;',
+            'using ccxt;',
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
@@ -644,7 +651,7 @@ class NewTranspiler {
         const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
 
         const file = [
-            'using Main;',
+            'using ccxt;',
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
@@ -680,7 +687,7 @@ class NewTranspiler {
         const contentIdented = contentLines.map (line => '    ' + line).join ('\n');
 
         const file = [
-            'using Main;',
+            'using ccxt;',
             'namespace Tests;',
             'using System;',
             'using System.Collections.Generic;',
@@ -696,12 +703,12 @@ class NewTranspiler {
 
     async transpileExchangeTestsToCsharp() {
         const inputDir = './ts/src/test/exchange/';
-        const outDir = `./c#/newTests/Generated/Exchange/`;
+        const outDir = GENERATED_TESTS_FOLDER;
         const ignore = [
-            'exportTests.ts',
-            'test.fetchLedger.ts',
+            // 'exportTests.ts',
+            // 'test.fetchLedger.ts',
             'test.throttler.ts',
-            'test.fetchOrderBooks.ts', // uses spread operator
+            // 'test.fetchOrderBooks.ts', // uses spread operator
         ]
 
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
@@ -728,7 +735,7 @@ class NewTranspiler {
         const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
 
         const file = [
-            'using Main;',
+            'using ccxt;',
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
@@ -747,7 +754,7 @@ class NewTranspiler {
     }
 
     transpileBaseTestsToCSharp () {
-        const outDir = `./c#/newTests/Generated/Base`;
+        const outDir = BASE_TESTS_FOLDER;
         this.transpilePrecisionTestsToCSharp(outDir);
         this.transpileCryptoTestsToCSharp(outDir);
         this.transpileDatetimeTestsToCSharp(outDir);
@@ -783,7 +790,7 @@ class NewTranspiler {
         ])
 
         const file = [
-            'using Main;',
+            'using ccxt;',
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
@@ -796,14 +803,14 @@ class NewTranspiler {
     transpileExchangeTests(){
         this.transpileMainTest({
             'tsFile': './ts/src/test/test.ts',
-            'csharpFile': './c#/newTests/Generated/TestMethods.cs',
+            'csharpFile': BASE_TESTS_FILE,
         });
 
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
-            csharpBase: './c#/newTests/Generated/Exchange/Base/',
-            csharp: './c#/newTests/Generated/Exchange/',
+            csharpBase: EXCHANGE_BASE_FOLDER,
+            csharp: EXCHANGE_GENERATED_FOLDER,
         };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -844,7 +851,7 @@ class NewTranspiler {
                 [ /void function/g, 'void']
             ])
             const fileHeaders = [
-                'using Main;',
+                'using ccxt;',
                 'namespace Tests;',
                 '',
                 this.createGeneratedHeader().join('\n'),
@@ -885,7 +892,7 @@ class NewTranspiler {
     }
 }
 
-if (isMainEntry(import.meta.url)) { // called directly like `node module`
+if (isMainEntry(import.meta.url)) {
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const transpiler = new NewTranspiler ();
 
@@ -895,7 +902,4 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
         await transpiler.transpileEverything ();
     }
 
-} else { // if required as a module
-
-    // do nothing
-}
+} else {}

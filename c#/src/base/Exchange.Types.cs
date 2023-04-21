@@ -1,4 +1,4 @@
-namespace Main;
+namespace ccxt;
 
 //
 // Exchange Types that are used in the Exchange.Wrappers.cs file to type the generic methods

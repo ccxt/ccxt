@@ -2841,6 +2841,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchLedger() is not supported yet');
     }
 
+    async fetchLedgerEntry (id: string, code: string = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchLedgerEntry() is not supported yet');
+    }
+
     parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);

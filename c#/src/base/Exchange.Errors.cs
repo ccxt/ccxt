@@ -1,4 +1,4 @@
-namespace Main;
+namespace ccxt;
 
 
 public partial class Exchange

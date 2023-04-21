@@ -2,7 +2,7 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Globalization;
 
-namespace Main;
+namespace ccxt;
 
 using dict = Dictionary<string, object>;
 

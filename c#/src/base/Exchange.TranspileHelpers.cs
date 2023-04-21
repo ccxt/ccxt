@@ -1,4 +1,4 @@
-namespace Main;
+namespace ccxt;
 
 using System.Globalization;
 using System.Reflection;

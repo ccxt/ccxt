@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 
-namespace Main;
+namespace ccxt;
 
 using dict = Dictionary<string, object>;
 

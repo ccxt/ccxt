@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Main;
+namespace ccxt;
 
 public partial class Exchange
 {

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Main;
+namespace ccxt;
 
 
 using dict = Dictionary<string, object>;

@@ -1,4 +1,4 @@
-namespace Main;
+namespace ccxt;
 
 using dict = Dictionary<string, object>;
 using list = List<object>;

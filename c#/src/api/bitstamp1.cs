@@ -5,103 +5,103 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class bitstamp1 : Exchange
 {
-    public async Task<object> publicGetTicker (object parameters = null)
+    public async Task<object> publicGetTicker(object parameters = null)
     {
-        return await this.callAsync ("publicGetTicker",parameters);
+        return await this.callAsync("publicGetTicker", parameters);
     }
 
-    public async Task<object> publicGetTickerHour (object parameters = null)
+    public async Task<object> publicGetTickerHour(object parameters = null)
     {
-        return await this.callAsync ("publicGetTickerHour",parameters);
+        return await this.callAsync("publicGetTickerHour", parameters);
     }
 
-    public async Task<object> publicGetOrderBook (object parameters = null)
+    public async Task<object> publicGetOrderBook(object parameters = null)
     {
-        return await this.callAsync ("publicGetOrderBook",parameters);
+        return await this.callAsync("publicGetOrderBook", parameters);
     }
 
-    public async Task<object> publicGetTransactions (object parameters = null)
+    public async Task<object> publicGetTransactions(object parameters = null)
     {
-        return await this.callAsync ("publicGetTransactions",parameters);
+        return await this.callAsync("publicGetTransactions", parameters);
     }
 
-    public async Task<object> publicGetEurUsd (object parameters = null)
+    public async Task<object> publicGetEurUsd(object parameters = null)
     {
-        return await this.callAsync ("publicGetEurUsd",parameters);
+        return await this.callAsync("publicGetEurUsd", parameters);
     }
 
-    public async Task<object> privatePostBalance (object parameters = null)
+    public async Task<object> privatePostBalance(object parameters = null)
     {
-        return await this.callAsync ("privatePostBalance",parameters);
+        return await this.callAsync("privatePostBalance", parameters);
     }
 
-    public async Task<object> privatePostUserTransactions (object parameters = null)
+    public async Task<object> privatePostUserTransactions(object parameters = null)
     {
-        return await this.callAsync ("privatePostUserTransactions",parameters);
+        return await this.callAsync("privatePostUserTransactions", parameters);
     }
 
-    public async Task<object> privatePostOpenOrders (object parameters = null)
+    public async Task<object> privatePostOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenOrders",parameters);
+        return await this.callAsync("privatePostOpenOrders", parameters);
     }
 
-    public async Task<object> privatePostOrderStatus (object parameters = null)
+    public async Task<object> privatePostOrderStatus(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderStatus",parameters);
+        return await this.callAsync("privatePostOrderStatus", parameters);
     }
 
-    public async Task<object> privatePostCancelOrder (object parameters = null)
+    public async Task<object> privatePostCancelOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostCancelOrder",parameters);
+        return await this.callAsync("privatePostCancelOrder", parameters);
     }
 
-    public async Task<object> privatePostCancelAllOrders (object parameters = null)
+    public async Task<object> privatePostCancelAllOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostCancelAllOrders",parameters);
+        return await this.callAsync("privatePostCancelAllOrders", parameters);
     }
 
-    public async Task<object> privatePostBuy (object parameters = null)
+    public async Task<object> privatePostBuy(object parameters = null)
     {
-        return await this.callAsync ("privatePostBuy",parameters);
+        return await this.callAsync("privatePostBuy", parameters);
     }
 
-    public async Task<object> privatePostSell (object parameters = null)
+    public async Task<object> privatePostSell(object parameters = null)
     {
-        return await this.callAsync ("privatePostSell",parameters);
+        return await this.callAsync("privatePostSell", parameters);
     }
 
-    public async Task<object> privatePostBitcoinDepositAddress (object parameters = null)
+    public async Task<object> privatePostBitcoinDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("privatePostBitcoinDepositAddress",parameters);
+        return await this.callAsync("privatePostBitcoinDepositAddress", parameters);
     }
 
-    public async Task<object> privatePostUnconfirmedBtc (object parameters = null)
+    public async Task<object> privatePostUnconfirmedBtc(object parameters = null)
     {
-        return await this.callAsync ("privatePostUnconfirmedBtc",parameters);
+        return await this.callAsync("privatePostUnconfirmedBtc", parameters);
     }
 
-    public async Task<object> privatePostRippleWithdrawal (object parameters = null)
+    public async Task<object> privatePostRippleWithdrawal(object parameters = null)
     {
-        return await this.callAsync ("privatePostRippleWithdrawal",parameters);
+        return await this.callAsync("privatePostRippleWithdrawal", parameters);
     }
 
-    public async Task<object> privatePostRippleAddress (object parameters = null)
+    public async Task<object> privatePostRippleAddress(object parameters = null)
     {
-        return await this.callAsync ("privatePostRippleAddress",parameters);
+        return await this.callAsync("privatePostRippleAddress", parameters);
     }
 
-    public async Task<object> privatePostWithdrawalRequests (object parameters = null)
+    public async Task<object> privatePostWithdrawalRequests(object parameters = null)
     {
-        return await this.callAsync ("privatePostWithdrawalRequests",parameters);
+        return await this.callAsync("privatePostWithdrawalRequests", parameters);
     }
 
-    public async Task<object> privatePostBitcoinWithdrawal (object parameters = null)
+    public async Task<object> privatePostBitcoinWithdrawal(object parameters = null)
     {
-        return await this.callAsync ("privatePostBitcoinWithdrawal",parameters);
+        return await this.callAsync("privatePostBitcoinWithdrawal", parameters);
     }
 
 }

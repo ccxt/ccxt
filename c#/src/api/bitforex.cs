@@ -5,93 +5,93 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class bitforex : Exchange
 {
-    public async Task<object> publicGetApiV1MarketSymbols (object parameters = null)
+    public async Task<object> publicGetApiV1MarketSymbols(object parameters = null)
     {
-        return await this.callAsync ("publicGetApiV1MarketSymbols",parameters);
+        return await this.callAsync("publicGetApiV1MarketSymbols", parameters);
     }
 
-    public async Task<object> publicGetApiV1MarketTicker (object parameters = null)
+    public async Task<object> publicGetApiV1MarketTicker(object parameters = null)
     {
-        return await this.callAsync ("publicGetApiV1MarketTicker",parameters);
+        return await this.callAsync("publicGetApiV1MarketTicker", parameters);
     }
 
-    public async Task<object> publicGetApiV1MarketTickerAll (object parameters = null)
+    public async Task<object> publicGetApiV1MarketTickerAll(object parameters = null)
     {
-        return await this.callAsync ("publicGetApiV1MarketTickerAll",parameters);
+        return await this.callAsync("publicGetApiV1MarketTickerAll", parameters);
     }
 
-    public async Task<object> publicGetApiV1MarketDepth (object parameters = null)
+    public async Task<object> publicGetApiV1MarketDepth(object parameters = null)
     {
-        return await this.callAsync ("publicGetApiV1MarketDepth",parameters);
+        return await this.callAsync("publicGetApiV1MarketDepth", parameters);
     }
 
-    public async Task<object> publicGetApiV1MarketDepthAll (object parameters = null)
+    public async Task<object> publicGetApiV1MarketDepthAll(object parameters = null)
     {
-        return await this.callAsync ("publicGetApiV1MarketDepthAll",parameters);
+        return await this.callAsync("publicGetApiV1MarketDepthAll", parameters);
     }
 
-    public async Task<object> publicGetApiV1MarketTrades (object parameters = null)
+    public async Task<object> publicGetApiV1MarketTrades(object parameters = null)
     {
-        return await this.callAsync ("publicGetApiV1MarketTrades",parameters);
+        return await this.callAsync("publicGetApiV1MarketTrades", parameters);
     }
 
-    public async Task<object> publicGetApiV1MarketKline (object parameters = null)
+    public async Task<object> publicGetApiV1MarketKline(object parameters = null)
     {
-        return await this.callAsync ("publicGetApiV1MarketKline",parameters);
+        return await this.callAsync("publicGetApiV1MarketKline", parameters);
     }
 
-    public async Task<object> privatePostApiV1FundMainAccount (object parameters = null)
+    public async Task<object> privatePostApiV1FundMainAccount(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1FundMainAccount",parameters);
+        return await this.callAsync("privatePostApiV1FundMainAccount", parameters);
     }
 
-    public async Task<object> privatePostApiV1FundAllAccount (object parameters = null)
+    public async Task<object> privatePostApiV1FundAllAccount(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1FundAllAccount",parameters);
+        return await this.callAsync("privatePostApiV1FundAllAccount", parameters);
     }
 
-    public async Task<object> privatePostApiV1TradePlaceOrder (object parameters = null)
+    public async Task<object> privatePostApiV1TradePlaceOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1TradePlaceOrder",parameters);
+        return await this.callAsync("privatePostApiV1TradePlaceOrder", parameters);
     }
 
-    public async Task<object> privatePostApiV1TradePlaceMultiOrder (object parameters = null)
+    public async Task<object> privatePostApiV1TradePlaceMultiOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1TradePlaceMultiOrder",parameters);
+        return await this.callAsync("privatePostApiV1TradePlaceMultiOrder", parameters);
     }
 
-    public async Task<object> privatePostApiV1TradeCancelOrder (object parameters = null)
+    public async Task<object> privatePostApiV1TradeCancelOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1TradeCancelOrder",parameters);
+        return await this.callAsync("privatePostApiV1TradeCancelOrder", parameters);
     }
 
-    public async Task<object> privatePostApiV1TradeCancelMultiOrder (object parameters = null)
+    public async Task<object> privatePostApiV1TradeCancelMultiOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1TradeCancelMultiOrder",parameters);
+        return await this.callAsync("privatePostApiV1TradeCancelMultiOrder", parameters);
     }
 
-    public async Task<object> privatePostApiV1TradeCancelAllOrder (object parameters = null)
+    public async Task<object> privatePostApiV1TradeCancelAllOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1TradeCancelAllOrder",parameters);
+        return await this.callAsync("privatePostApiV1TradeCancelAllOrder", parameters);
     }
 
-    public async Task<object> privatePostApiV1TradeOrderInfo (object parameters = null)
+    public async Task<object> privatePostApiV1TradeOrderInfo(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1TradeOrderInfo",parameters);
+        return await this.callAsync("privatePostApiV1TradeOrderInfo", parameters);
     }
 
-    public async Task<object> privatePostApiV1TradeMultiOrderInfo (object parameters = null)
+    public async Task<object> privatePostApiV1TradeMultiOrderInfo(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1TradeMultiOrderInfo",parameters);
+        return await this.callAsync("privatePostApiV1TradeMultiOrderInfo", parameters);
     }
 
-    public async Task<object> privatePostApiV1TradeOrderInfos (object parameters = null)
+    public async Task<object> privatePostApiV1TradeOrderInfos(object parameters = null)
     {
-        return await this.callAsync ("privatePostApiV1TradeOrderInfos",parameters);
+        return await this.callAsync("privatePostApiV1TradeOrderInfos", parameters);
     }
 
 }

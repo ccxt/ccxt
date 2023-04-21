@@ -5,73 +5,73 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class btctradeua : Exchange
 {
-    public async Task<object> publicGetDealsSymbol (object parameters = null)
+    public async Task<object> publicGetDealsSymbol(object parameters = null)
     {
-        return await this.callAsync ("publicGetDealsSymbol",parameters);
+        return await this.callAsync("publicGetDealsSymbol", parameters);
     }
 
-    public async Task<object> publicGetTradesSellSymbol (object parameters = null)
+    public async Task<object> publicGetTradesSellSymbol(object parameters = null)
     {
-        return await this.callAsync ("publicGetTradesSellSymbol",parameters);
+        return await this.callAsync("publicGetTradesSellSymbol", parameters);
     }
 
-    public async Task<object> publicGetTradesBuySymbol (object parameters = null)
+    public async Task<object> publicGetTradesBuySymbol(object parameters = null)
     {
-        return await this.callAsync ("publicGetTradesBuySymbol",parameters);
+        return await this.callAsync("publicGetTradesBuySymbol", parameters);
     }
 
-    public async Task<object> publicGetJapanStatHighSymbol (object parameters = null)
+    public async Task<object> publicGetJapanStatHighSymbol(object parameters = null)
     {
-        return await this.callAsync ("publicGetJapanStatHighSymbol",parameters);
+        return await this.callAsync("publicGetJapanStatHighSymbol", parameters);
     }
 
-    public async Task<object> privatePostAuth (object parameters = null)
+    public async Task<object> privatePostAuth(object parameters = null)
     {
-        return await this.callAsync ("privatePostAuth",parameters);
+        return await this.callAsync("privatePostAuth", parameters);
     }
 
-    public async Task<object> privatePostAskSymbol (object parameters = null)
+    public async Task<object> privatePostAskSymbol(object parameters = null)
     {
-        return await this.callAsync ("privatePostAskSymbol",parameters);
+        return await this.callAsync("privatePostAskSymbol", parameters);
     }
 
-    public async Task<object> privatePostBalance (object parameters = null)
+    public async Task<object> privatePostBalance(object parameters = null)
     {
-        return await this.callAsync ("privatePostBalance",parameters);
+        return await this.callAsync("privatePostBalance", parameters);
     }
 
-    public async Task<object> privatePostBidSymbol (object parameters = null)
+    public async Task<object> privatePostBidSymbol(object parameters = null)
     {
-        return await this.callAsync ("privatePostBidSymbol",parameters);
+        return await this.callAsync("privatePostBidSymbol", parameters);
     }
 
-    public async Task<object> privatePostBuySymbol (object parameters = null)
+    public async Task<object> privatePostBuySymbol(object parameters = null)
     {
-        return await this.callAsync ("privatePostBuySymbol",parameters);
+        return await this.callAsync("privatePostBuySymbol", parameters);
     }
 
-    public async Task<object> privatePostMyOrdersSymbol (object parameters = null)
+    public async Task<object> privatePostMyOrdersSymbol(object parameters = null)
     {
-        return await this.callAsync ("privatePostMyOrdersSymbol",parameters);
+        return await this.callAsync("privatePostMyOrdersSymbol", parameters);
     }
 
-    public async Task<object> privatePostOrderStatusId (object parameters = null)
+    public async Task<object> privatePostOrderStatusId(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderStatusId",parameters);
+        return await this.callAsync("privatePostOrderStatusId", parameters);
     }
 
-    public async Task<object> privatePostRemoveOrderId (object parameters = null)
+    public async Task<object> privatePostRemoveOrderId(object parameters = null)
     {
-        return await this.callAsync ("privatePostRemoveOrderId",parameters);
+        return await this.callAsync("privatePostRemoveOrderId", parameters);
     }
 
-    public async Task<object> privatePostSellSymbol (object parameters = null)
+    public async Task<object> privatePostSellSymbol(object parameters = null)
     {
-        return await this.callAsync ("privatePostSellSymbol",parameters);
+        return await this.callAsync("privatePostSellSymbol", parameters);
     }
 
 }

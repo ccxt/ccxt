@@ -5,88 +5,88 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class alpaca : Exchange
 {
-    public async Task<object> marketsGetAssetsPublicBeta (object parameters = null)
+    public async Task<object> marketsGetAssetsPublicBeta(object parameters = null)
     {
-        return await this.callAsync ("marketsGetAssetsPublicBeta",parameters);
+        return await this.callAsync("marketsGetAssetsPublicBeta", parameters);
     }
 
-    public async Task<object> privateGetAccount (object parameters = null)
+    public async Task<object> privateGetAccount(object parameters = null)
     {
-        return await this.callAsync ("privateGetAccount",parameters);
+        return await this.callAsync("privateGetAccount", parameters);
     }
 
-    public async Task<object> privateGetOrders (object parameters = null)
+    public async Task<object> privateGetOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrders",parameters);
+        return await this.callAsync("privateGetOrders", parameters);
     }
 
-    public async Task<object> privateGetOrdersOrderId (object parameters = null)
+    public async Task<object> privateGetOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrdersOrderId",parameters);
+        return await this.callAsync("privateGetOrdersOrderId", parameters);
     }
 
-    public async Task<object> privateGetPositions (object parameters = null)
+    public async Task<object> privateGetPositions(object parameters = null)
     {
-        return await this.callAsync ("privateGetPositions",parameters);
+        return await this.callAsync("privateGetPositions", parameters);
     }
 
-    public async Task<object> privateGetPositionsSymbol (object parameters = null)
+    public async Task<object> privateGetPositionsSymbol(object parameters = null)
     {
-        return await this.callAsync ("privateGetPositionsSymbol",parameters);
+        return await this.callAsync("privateGetPositionsSymbol", parameters);
     }
 
-    public async Task<object> privateGetAccountActivitiesActivityType (object parameters = null)
+    public async Task<object> privateGetAccountActivitiesActivityType(object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountActivitiesActivityType",parameters);
+        return await this.callAsync("privateGetAccountActivitiesActivityType", parameters);
     }
 
-    public async Task<object> privatePostOrders (object parameters = null)
+    public async Task<object> privatePostOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrders",parameters);
+        return await this.callAsync("privatePostOrders", parameters);
     }
 
-    public async Task<object> privateDeleteOrders (object parameters = null)
+    public async Task<object> privateDeleteOrders(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrders",parameters);
+        return await this.callAsync("privateDeleteOrders", parameters);
     }
 
-    public async Task<object> privateDeleteOrdersOrderId (object parameters = null)
+    public async Task<object> privateDeleteOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrdersOrderId",parameters);
+        return await this.callAsync("privateDeleteOrdersOrderId", parameters);
     }
 
-    public async Task<object> cryptoPublicGetCryptoLatestOrderbooks (object parameters = null)
+    public async Task<object> cryptoPublicGetCryptoLatestOrderbooks(object parameters = null)
     {
-        return await this.callAsync ("cryptoPublicGetCryptoLatestOrderbooks",parameters);
+        return await this.callAsync("cryptoPublicGetCryptoLatestOrderbooks", parameters);
     }
 
-    public async Task<object> cryptoPublicGetCryptoTrades (object parameters = null)
+    public async Task<object> cryptoPublicGetCryptoTrades(object parameters = null)
     {
-        return await this.callAsync ("cryptoPublicGetCryptoTrades",parameters);
+        return await this.callAsync("cryptoPublicGetCryptoTrades", parameters);
     }
 
-    public async Task<object> cryptoPublicGetCryptoQuotes (object parameters = null)
+    public async Task<object> cryptoPublicGetCryptoQuotes(object parameters = null)
     {
-        return await this.callAsync ("cryptoPublicGetCryptoQuotes",parameters);
+        return await this.callAsync("cryptoPublicGetCryptoQuotes", parameters);
     }
 
-    public async Task<object> cryptoPublicGetCryptoLatestQuotes (object parameters = null)
+    public async Task<object> cryptoPublicGetCryptoLatestQuotes(object parameters = null)
     {
-        return await this.callAsync ("cryptoPublicGetCryptoLatestQuotes",parameters);
+        return await this.callAsync("cryptoPublicGetCryptoLatestQuotes", parameters);
     }
 
-    public async Task<object> cryptoPublicGetCryptoBars (object parameters = null)
+    public async Task<object> cryptoPublicGetCryptoBars(object parameters = null)
     {
-        return await this.callAsync ("cryptoPublicGetCryptoBars",parameters);
+        return await this.callAsync("cryptoPublicGetCryptoBars", parameters);
     }
 
-    public async Task<object> cryptoPublicGetCryptoSnapshots (object parameters = null)
+    public async Task<object> cryptoPublicGetCryptoSnapshots(object parameters = null)
     {
-        return await this.callAsync ("cryptoPublicGetCryptoSnapshots",parameters);
+        return await this.callAsync("cryptoPublicGetCryptoSnapshots", parameters);
     }
 
 }

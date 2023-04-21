@@ -184,7 +184,7 @@ namespace ccxt\\abstract;
 // -------------------------------------------------------------------------
 
 function createCSharpHeader(exchange, parent){
-    const namespace = 'namespace Main;'
+    const namespace = 'namespace ccxt;'
     const header = `public partial class ${exchange.id} : ${parent}\n{`;
     storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }

@@ -1,8 +1,8 @@
 using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 
-namespace Main;
-using Main;
+namespace ccxt;
+using ccxt;
 using dict = Dictionary<string, object>;
 using list = List<object>;
 

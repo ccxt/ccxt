@@ -5,203 +5,203 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class poloniexfutures : Exchange
 {
-    public async Task<object> publicGetContractsActive (object parameters = null)
+    public async Task<object> publicGetContractsActive(object parameters = null)
     {
-        return await this.callAsync ("publicGetContractsActive",parameters);
+        return await this.callAsync("publicGetContractsActive", parameters);
     }
 
-    public async Task<object> publicGetContractsSymbol (object parameters = null)
+    public async Task<object> publicGetContractsSymbol(object parameters = null)
     {
-        return await this.callAsync ("publicGetContractsSymbol",parameters);
+        return await this.callAsync("publicGetContractsSymbol", parameters);
     }
 
-    public async Task<object> publicGetTicker (object parameters = null)
+    public async Task<object> publicGetTicker(object parameters = null)
     {
-        return await this.callAsync ("publicGetTicker",parameters);
+        return await this.callAsync("publicGetTicker", parameters);
     }
 
-    public async Task<object> publicGetTickers (object parameters = null)
+    public async Task<object> publicGetTickers(object parameters = null)
     {
-        return await this.callAsync ("publicGetTickers",parameters);
+        return await this.callAsync("publicGetTickers", parameters);
     }
 
-    public async Task<object> publicGetLevel2Snapshot (object parameters = null)
+    public async Task<object> publicGetLevel2Snapshot(object parameters = null)
     {
-        return await this.callAsync ("publicGetLevel2Snapshot",parameters);
+        return await this.callAsync("publicGetLevel2Snapshot", parameters);
     }
 
-    public async Task<object> publicGetLevel2Depth (object parameters = null)
+    public async Task<object> publicGetLevel2Depth(object parameters = null)
     {
-        return await this.callAsync ("publicGetLevel2Depth",parameters);
+        return await this.callAsync("publicGetLevel2Depth", parameters);
     }
 
-    public async Task<object> publicGetLevel2MessageQuery (object parameters = null)
+    public async Task<object> publicGetLevel2MessageQuery(object parameters = null)
     {
-        return await this.callAsync ("publicGetLevel2MessageQuery",parameters);
+        return await this.callAsync("publicGetLevel2MessageQuery", parameters);
     }
 
-    public async Task<object> publicGetLevel3Snapshot (object parameters = null)
+    public async Task<object> publicGetLevel3Snapshot(object parameters = null)
     {
-        return await this.callAsync ("publicGetLevel3Snapshot",parameters);
+        return await this.callAsync("publicGetLevel3Snapshot", parameters);
     }
 
-    public async Task<object> publicGetTradeHistory (object parameters = null)
+    public async Task<object> publicGetTradeHistory(object parameters = null)
     {
-        return await this.callAsync ("publicGetTradeHistory",parameters);
+        return await this.callAsync("publicGetTradeHistory", parameters);
     }
 
-    public async Task<object> publicGetInterestQuery (object parameters = null)
+    public async Task<object> publicGetInterestQuery(object parameters = null)
     {
-        return await this.callAsync ("publicGetInterestQuery",parameters);
+        return await this.callAsync("publicGetInterestQuery", parameters);
     }
 
-    public async Task<object> publicGetIndexQuery (object parameters = null)
+    public async Task<object> publicGetIndexQuery(object parameters = null)
     {
-        return await this.callAsync ("publicGetIndexQuery",parameters);
+        return await this.callAsync("publicGetIndexQuery", parameters);
     }
 
-    public async Task<object> publicGetMarkPriceSymbolCurrent (object parameters = null)
+    public async Task<object> publicGetMarkPriceSymbolCurrent(object parameters = null)
     {
-        return await this.callAsync ("publicGetMarkPriceSymbolCurrent",parameters);
+        return await this.callAsync("publicGetMarkPriceSymbolCurrent", parameters);
     }
 
-    public async Task<object> publicGetPremiumQuery (object parameters = null)
+    public async Task<object> publicGetPremiumQuery(object parameters = null)
     {
-        return await this.callAsync ("publicGetPremiumQuery",parameters);
+        return await this.callAsync("publicGetPremiumQuery", parameters);
     }
 
-    public async Task<object> publicGetFundingRateSymbolCurrent (object parameters = null)
+    public async Task<object> publicGetFundingRateSymbolCurrent(object parameters = null)
     {
-        return await this.callAsync ("publicGetFundingRateSymbolCurrent",parameters);
+        return await this.callAsync("publicGetFundingRateSymbolCurrent", parameters);
     }
 
-    public async Task<object> publicGetTimestamp (object parameters = null)
+    public async Task<object> publicGetTimestamp(object parameters = null)
     {
-        return await this.callAsync ("publicGetTimestamp",parameters);
+        return await this.callAsync("publicGetTimestamp", parameters);
     }
 
-    public async Task<object> publicGetStatus (object parameters = null)
+    public async Task<object> publicGetStatus(object parameters = null)
     {
-        return await this.callAsync ("publicGetStatus",parameters);
+        return await this.callAsync("publicGetStatus", parameters);
     }
 
-    public async Task<object> publicGetKlineQuery (object parameters = null)
+    public async Task<object> publicGetKlineQuery(object parameters = null)
     {
-        return await this.callAsync ("publicGetKlineQuery",parameters);
+        return await this.callAsync("publicGetKlineQuery", parameters);
     }
 
-    public async Task<object> publicPostBulletPublic (object parameters = null)
+    public async Task<object> publicPostBulletPublic(object parameters = null)
     {
-        return await this.callAsync ("publicPostBulletPublic",parameters);
+        return await this.callAsync("publicPostBulletPublic", parameters);
     }
 
-    public async Task<object> privateGetAccountOverview (object parameters = null)
+    public async Task<object> privateGetAccountOverview(object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountOverview",parameters);
+        return await this.callAsync("privateGetAccountOverview", parameters);
     }
 
-    public async Task<object> privateGetTransactionHistory (object parameters = null)
+    public async Task<object> privateGetTransactionHistory(object parameters = null)
     {
-        return await this.callAsync ("privateGetTransactionHistory",parameters);
+        return await this.callAsync("privateGetTransactionHistory", parameters);
     }
 
-    public async Task<object> privateGetOrders (object parameters = null)
+    public async Task<object> privateGetOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrders",parameters);
+        return await this.callAsync("privateGetOrders", parameters);
     }
 
-    public async Task<object> privateGetStopOrders (object parameters = null)
+    public async Task<object> privateGetStopOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetStopOrders",parameters);
+        return await this.callAsync("privateGetStopOrders", parameters);
     }
 
-    public async Task<object> privateGetRecentDoneOrders (object parameters = null)
+    public async Task<object> privateGetRecentDoneOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetRecentDoneOrders",parameters);
+        return await this.callAsync("privateGetRecentDoneOrders", parameters);
     }
 
-    public async Task<object> privateGetOrdersOrderId (object parameters = null)
+    public async Task<object> privateGetOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrdersOrderId",parameters);
+        return await this.callAsync("privateGetOrdersOrderId", parameters);
     }
 
-    public async Task<object> privateGetFills (object parameters = null)
+    public async Task<object> privateGetFills(object parameters = null)
     {
-        return await this.callAsync ("privateGetFills",parameters);
+        return await this.callAsync("privateGetFills", parameters);
     }
 
-    public async Task<object> privateGetOpenOrderStatistics (object parameters = null)
+    public async Task<object> privateGetOpenOrderStatistics(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenOrderStatistics",parameters);
+        return await this.callAsync("privateGetOpenOrderStatistics", parameters);
     }
 
-    public async Task<object> privateGetPosition (object parameters = null)
+    public async Task<object> privateGetPosition(object parameters = null)
     {
-        return await this.callAsync ("privateGetPosition",parameters);
+        return await this.callAsync("privateGetPosition", parameters);
     }
 
-    public async Task<object> privateGetPositions (object parameters = null)
+    public async Task<object> privateGetPositions(object parameters = null)
     {
-        return await this.callAsync ("privateGetPositions",parameters);
+        return await this.callAsync("privateGetPositions", parameters);
     }
 
-    public async Task<object> privateGetFundingHistory (object parameters = null)
+    public async Task<object> privateGetFundingHistory(object parameters = null)
     {
-        return await this.callAsync ("privateGetFundingHistory",parameters);
+        return await this.callAsync("privateGetFundingHistory", parameters);
     }
 
-    public async Task<object> privateGetMarginTypeQuery (object parameters = null)
+    public async Task<object> privateGetMarginTypeQuery(object parameters = null)
     {
-        return await this.callAsync ("privateGetMarginTypeQuery",parameters);
+        return await this.callAsync("privateGetMarginTypeQuery", parameters);
     }
 
-    public async Task<object> privatePostOrders (object parameters = null)
+    public async Task<object> privatePostOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrders",parameters);
+        return await this.callAsync("privatePostOrders", parameters);
     }
 
-    public async Task<object> privatePostBatchOrders (object parameters = null)
+    public async Task<object> privatePostBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostBatchOrders",parameters);
+        return await this.callAsync("privatePostBatchOrders", parameters);
     }
 
-    public async Task<object> privatePostPositionMarginAutoDepositStatus (object parameters = null)
+    public async Task<object> privatePostPositionMarginAutoDepositStatus(object parameters = null)
     {
-        return await this.callAsync ("privatePostPositionMarginAutoDepositStatus",parameters);
+        return await this.callAsync("privatePostPositionMarginAutoDepositStatus", parameters);
     }
 
-    public async Task<object> privatePostPositionMarginDepositMargin (object parameters = null)
+    public async Task<object> privatePostPositionMarginDepositMargin(object parameters = null)
     {
-        return await this.callAsync ("privatePostPositionMarginDepositMargin",parameters);
+        return await this.callAsync("privatePostPositionMarginDepositMargin", parameters);
     }
 
-    public async Task<object> privatePostBulletPrivate (object parameters = null)
+    public async Task<object> privatePostBulletPrivate(object parameters = null)
     {
-        return await this.callAsync ("privatePostBulletPrivate",parameters);
+        return await this.callAsync("privatePostBulletPrivate", parameters);
     }
 
-    public async Task<object> privatePostMarginTypeChange (object parameters = null)
+    public async Task<object> privatePostMarginTypeChange(object parameters = null)
     {
-        return await this.callAsync ("privatePostMarginTypeChange",parameters);
+        return await this.callAsync("privatePostMarginTypeChange", parameters);
     }
 
-    public async Task<object> privateDeleteOrdersOrderId (object parameters = null)
+    public async Task<object> privateDeleteOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrdersOrderId",parameters);
+        return await this.callAsync("privateDeleteOrdersOrderId", parameters);
     }
 
-    public async Task<object> privateDeleteOrders (object parameters = null)
+    public async Task<object> privateDeleteOrders(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrders",parameters);
+        return await this.callAsync("privateDeleteOrders", parameters);
     }
 
-    public async Task<object> privateDeleteStopOrders (object parameters = null)
+    public async Task<object> privateDeleteStopOrders(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteStopOrders",parameters);
+        return await this.callAsync("privateDeleteStopOrders", parameters);
     }
 
 }

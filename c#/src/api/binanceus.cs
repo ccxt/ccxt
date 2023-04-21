@@ -5,2423 +5,2423 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class binanceus : binance
 {
-    public async Task<object> sapiGetSystemStatus (object parameters = null)
+    public async Task<object> sapiGetSystemStatus(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSystemStatus",parameters);
+        return await this.callAsync("sapiGetSystemStatus", parameters);
     }
 
-    public async Task<object> sapiGetAccountSnapshot (object parameters = null)
+    public async Task<object> sapiGetAccountSnapshot(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountSnapshot",parameters);
+        return await this.callAsync("sapiGetAccountSnapshot", parameters);
     }
 
-    public async Task<object> sapiGetMarginAsset (object parameters = null)
+    public async Task<object> sapiGetMarginAsset(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAsset",parameters);
+        return await this.callAsync("sapiGetMarginAsset", parameters);
     }
 
-    public async Task<object> sapiGetMarginPair (object parameters = null)
+    public async Task<object> sapiGetMarginPair(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginPair",parameters);
+        return await this.callAsync("sapiGetMarginPair", parameters);
     }
 
-    public async Task<object> sapiGetMarginAllAssets (object parameters = null)
+    public async Task<object> sapiGetMarginAllAssets(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAllAssets",parameters);
+        return await this.callAsync("sapiGetMarginAllAssets", parameters);
     }
 
-    public async Task<object> sapiGetMarginAllPairs (object parameters = null)
+    public async Task<object> sapiGetMarginAllPairs(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAllPairs",parameters);
+        return await this.callAsync("sapiGetMarginAllPairs", parameters);
     }
 
-    public async Task<object> sapiGetMarginPriceIndex (object parameters = null)
+    public async Task<object> sapiGetMarginPriceIndex(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginPriceIndex",parameters);
+        return await this.callAsync("sapiGetMarginPriceIndex", parameters);
     }
 
-    public async Task<object> sapiGetAssetAssetDividend (object parameters = null)
+    public async Task<object> sapiGetAssetAssetDividend(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetAssetDividend",parameters);
+        return await this.callAsync("sapiGetAssetAssetDividend", parameters);
     }
 
-    public async Task<object> sapiGetAssetDribblet (object parameters = null)
+    public async Task<object> sapiGetAssetDribblet(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetDribblet",parameters);
+        return await this.callAsync("sapiGetAssetDribblet", parameters);
     }
 
-    public async Task<object> sapiGetAssetTransfer (object parameters = null)
+    public async Task<object> sapiGetAssetTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetTransfer",parameters);
+        return await this.callAsync("sapiGetAssetTransfer", parameters);
     }
 
-    public async Task<object> sapiGetAssetAssetDetail (object parameters = null)
+    public async Task<object> sapiGetAssetAssetDetail(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetAssetDetail",parameters);
+        return await this.callAsync("sapiGetAssetAssetDetail", parameters);
     }
 
-    public async Task<object> sapiGetAssetTradeFee (object parameters = null)
+    public async Task<object> sapiGetAssetTradeFee(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetTradeFee",parameters);
+        return await this.callAsync("sapiGetAssetTradeFee", parameters);
     }
 
-    public async Task<object> sapiGetAssetLedgerTransferCloudMiningQueryByPage (object parameters = null)
+    public async Task<object> sapiGetAssetLedgerTransferCloudMiningQueryByPage(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetLedgerTransferCloudMiningQueryByPage",parameters);
+        return await this.callAsync("sapiGetAssetLedgerTransferCloudMiningQueryByPage", parameters);
     }
 
-    public async Task<object> sapiGetAssetConvertTransferQueryByPage (object parameters = null)
+    public async Task<object> sapiGetAssetConvertTransferQueryByPage(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetConvertTransferQueryByPage",parameters);
+        return await this.callAsync("sapiGetAssetConvertTransferQueryByPage", parameters);
     }
 
-    public async Task<object> sapiGetMarginLoan (object parameters = null)
+    public async Task<object> sapiGetMarginLoan(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginLoan",parameters);
+        return await this.callAsync("sapiGetMarginLoan", parameters);
     }
 
-    public async Task<object> sapiGetMarginRepay (object parameters = null)
+    public async Task<object> sapiGetMarginRepay(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginRepay",parameters);
+        return await this.callAsync("sapiGetMarginRepay", parameters);
     }
 
-    public async Task<object> sapiGetMarginAccount (object parameters = null)
+    public async Task<object> sapiGetMarginAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAccount",parameters);
+        return await this.callAsync("sapiGetMarginAccount", parameters);
     }
 
-    public async Task<object> sapiGetMarginTransfer (object parameters = null)
+    public async Task<object> sapiGetMarginTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginTransfer",parameters);
+        return await this.callAsync("sapiGetMarginTransfer", parameters);
     }
 
-    public async Task<object> sapiGetMarginInterestHistory (object parameters = null)
+    public async Task<object> sapiGetMarginInterestHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginInterestHistory",parameters);
+        return await this.callAsync("sapiGetMarginInterestHistory", parameters);
     }
 
-    public async Task<object> sapiGetMarginForceLiquidationRec (object parameters = null)
+    public async Task<object> sapiGetMarginForceLiquidationRec(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginForceLiquidationRec",parameters);
+        return await this.callAsync("sapiGetMarginForceLiquidationRec", parameters);
     }
 
-    public async Task<object> sapiGetMarginOrder (object parameters = null)
+    public async Task<object> sapiGetMarginOrder(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginOrder",parameters);
+        return await this.callAsync("sapiGetMarginOrder", parameters);
     }
 
-    public async Task<object> sapiGetMarginOpenOrders (object parameters = null)
+    public async Task<object> sapiGetMarginOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginOpenOrders",parameters);
+        return await this.callAsync("sapiGetMarginOpenOrders", parameters);
     }
 
-    public async Task<object> sapiGetMarginAllOrders (object parameters = null)
+    public async Task<object> sapiGetMarginAllOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAllOrders",parameters);
+        return await this.callAsync("sapiGetMarginAllOrders", parameters);
     }
 
-    public async Task<object> sapiGetMarginMyTrades (object parameters = null)
+    public async Task<object> sapiGetMarginMyTrades(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginMyTrades",parameters);
+        return await this.callAsync("sapiGetMarginMyTrades", parameters);
     }
 
-    public async Task<object> sapiGetMarginMaxBorrowable (object parameters = null)
+    public async Task<object> sapiGetMarginMaxBorrowable(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginMaxBorrowable",parameters);
+        return await this.callAsync("sapiGetMarginMaxBorrowable", parameters);
     }
 
-    public async Task<object> sapiGetMarginMaxTransferable (object parameters = null)
+    public async Task<object> sapiGetMarginMaxTransferable(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginMaxTransferable",parameters);
+        return await this.callAsync("sapiGetMarginMaxTransferable", parameters);
     }
 
-    public async Task<object> sapiGetMarginTradeCoeff (object parameters = null)
+    public async Task<object> sapiGetMarginTradeCoeff(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginTradeCoeff",parameters);
+        return await this.callAsync("sapiGetMarginTradeCoeff", parameters);
     }
 
-    public async Task<object> sapiGetMarginIsolatedTransfer (object parameters = null)
+    public async Task<object> sapiGetMarginIsolatedTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedTransfer",parameters);
+        return await this.callAsync("sapiGetMarginIsolatedTransfer", parameters);
     }
 
-    public async Task<object> sapiGetMarginIsolatedAccount (object parameters = null)
+    public async Task<object> sapiGetMarginIsolatedAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedAccount",parameters);
+        return await this.callAsync("sapiGetMarginIsolatedAccount", parameters);
     }
 
-    public async Task<object> sapiGetMarginIsolatedPair (object parameters = null)
+    public async Task<object> sapiGetMarginIsolatedPair(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedPair",parameters);
+        return await this.callAsync("sapiGetMarginIsolatedPair", parameters);
     }
 
-    public async Task<object> sapiGetMarginIsolatedAllPairs (object parameters = null)
+    public async Task<object> sapiGetMarginIsolatedAllPairs(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedAllPairs",parameters);
+        return await this.callAsync("sapiGetMarginIsolatedAllPairs", parameters);
     }
 
-    public async Task<object> sapiGetMarginIsolatedAccountLimit (object parameters = null)
+    public async Task<object> sapiGetMarginIsolatedAccountLimit(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedAccountLimit",parameters);
+        return await this.callAsync("sapiGetMarginIsolatedAccountLimit", parameters);
     }
 
-    public async Task<object> sapiGetMarginInterestRateHistory (object parameters = null)
+    public async Task<object> sapiGetMarginInterestRateHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginInterestRateHistory",parameters);
+        return await this.callAsync("sapiGetMarginInterestRateHistory", parameters);
     }
 
-    public async Task<object> sapiGetMarginOrderList (object parameters = null)
+    public async Task<object> sapiGetMarginOrderList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginOrderList",parameters);
+        return await this.callAsync("sapiGetMarginOrderList", parameters);
     }
 
-    public async Task<object> sapiGetMarginAllOrderList (object parameters = null)
+    public async Task<object> sapiGetMarginAllOrderList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAllOrderList",parameters);
+        return await this.callAsync("sapiGetMarginAllOrderList", parameters);
     }
 
-    public async Task<object> sapiGetMarginOpenOrderList (object parameters = null)
+    public async Task<object> sapiGetMarginOpenOrderList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginOpenOrderList",parameters);
+        return await this.callAsync("sapiGetMarginOpenOrderList", parameters);
     }
 
-    public async Task<object> sapiGetMarginCrossMarginData (object parameters = null)
+    public async Task<object> sapiGetMarginCrossMarginData(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginCrossMarginData",parameters);
+        return await this.callAsync("sapiGetMarginCrossMarginData", parameters);
     }
 
-    public async Task<object> sapiGetMarginIsolatedMarginData (object parameters = null)
+    public async Task<object> sapiGetMarginIsolatedMarginData(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedMarginData",parameters);
+        return await this.callAsync("sapiGetMarginIsolatedMarginData", parameters);
     }
 
-    public async Task<object> sapiGetMarginIsolatedMarginTier (object parameters = null)
+    public async Task<object> sapiGetMarginIsolatedMarginTier(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedMarginTier",parameters);
+        return await this.callAsync("sapiGetMarginIsolatedMarginTier", parameters);
     }
 
-    public async Task<object> sapiGetMarginRateLimitOrder (object parameters = null)
+    public async Task<object> sapiGetMarginRateLimitOrder(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginRateLimitOrder",parameters);
+        return await this.callAsync("sapiGetMarginRateLimitOrder", parameters);
     }
 
-    public async Task<object> sapiGetMarginDribblet (object parameters = null)
+    public async Task<object> sapiGetMarginDribblet(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginDribblet",parameters);
+        return await this.callAsync("sapiGetMarginDribblet", parameters);
     }
 
-    public async Task<object> sapiGetMarginCrossMarginCollateralRatio (object parameters = null)
+    public async Task<object> sapiGetMarginCrossMarginCollateralRatio(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginCrossMarginCollateralRatio",parameters);
+        return await this.callAsync("sapiGetMarginCrossMarginCollateralRatio", parameters);
     }
 
-    public async Task<object> sapiGetMarginExchangeSmallLiability (object parameters = null)
+    public async Task<object> sapiGetMarginExchangeSmallLiability(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginExchangeSmallLiability",parameters);
+        return await this.callAsync("sapiGetMarginExchangeSmallLiability", parameters);
     }
 
-    public async Task<object> sapiGetMarginExchangeSmallLiabilityHistory (object parameters = null)
+    public async Task<object> sapiGetMarginExchangeSmallLiabilityHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginExchangeSmallLiabilityHistory",parameters);
+        return await this.callAsync("sapiGetMarginExchangeSmallLiabilityHistory", parameters);
     }
 
-    public async Task<object> sapiGetMarginNextHourlyInterestRate (object parameters = null)
+    public async Task<object> sapiGetMarginNextHourlyInterestRate(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginNextHourlyInterestRate",parameters);
+        return await this.callAsync("sapiGetMarginNextHourlyInterestRate", parameters);
     }
 
-    public async Task<object> sapiGetLoanIncome (object parameters = null)
+    public async Task<object> sapiGetLoanIncome(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanIncome",parameters);
+        return await this.callAsync("sapiGetLoanIncome", parameters);
     }
 
-    public async Task<object> sapiGetLoanOngoingOrders (object parameters = null)
+    public async Task<object> sapiGetLoanOngoingOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanOngoingOrders",parameters);
+        return await this.callAsync("sapiGetLoanOngoingOrders", parameters);
     }
 
-    public async Task<object> sapiGetLoanLtvAdjustmentHistory (object parameters = null)
+    public async Task<object> sapiGetLoanLtvAdjustmentHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanLtvAdjustmentHistory",parameters);
+        return await this.callAsync("sapiGetLoanLtvAdjustmentHistory", parameters);
     }
 
-    public async Task<object> sapiGetLoanBorrowHistory (object parameters = null)
+    public async Task<object> sapiGetLoanBorrowHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanBorrowHistory",parameters);
+        return await this.callAsync("sapiGetLoanBorrowHistory", parameters);
     }
 
-    public async Task<object> sapiGetLoanRepayHistory (object parameters = null)
+    public async Task<object> sapiGetLoanRepayHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanRepayHistory",parameters);
+        return await this.callAsync("sapiGetLoanRepayHistory", parameters);
     }
 
-    public async Task<object> sapiGetLoanLoanableData (object parameters = null)
+    public async Task<object> sapiGetLoanLoanableData(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanLoanableData",parameters);
+        return await this.callAsync("sapiGetLoanLoanableData", parameters);
     }
 
-    public async Task<object> sapiGetLoanCollateralData (object parameters = null)
+    public async Task<object> sapiGetLoanCollateralData(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanCollateralData",parameters);
+        return await this.callAsync("sapiGetLoanCollateralData", parameters);
     }
 
-    public async Task<object> sapiGetLoanRepayCollateralRate (object parameters = null)
+    public async Task<object> sapiGetLoanRepayCollateralRate(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanRepayCollateralRate",parameters);
+        return await this.callAsync("sapiGetLoanRepayCollateralRate", parameters);
     }
 
-    public async Task<object> sapiGetLoanVipOngoingOrders (object parameters = null)
+    public async Task<object> sapiGetLoanVipOngoingOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipOngoingOrders",parameters);
+        return await this.callAsync("sapiGetLoanVipOngoingOrders", parameters);
     }
 
-    public async Task<object> sapiGetLoanVipRepayHistory (object parameters = null)
+    public async Task<object> sapiGetLoanVipRepayHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipRepayHistory",parameters);
+        return await this.callAsync("sapiGetLoanVipRepayHistory", parameters);
     }
 
-    public async Task<object> sapiGetLoanVipCollateralAccount (object parameters = null)
+    public async Task<object> sapiGetLoanVipCollateralAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipCollateralAccount",parameters);
+        return await this.callAsync("sapiGetLoanVipCollateralAccount", parameters);
     }
 
-    public async Task<object> sapiGetFiatOrders (object parameters = null)
+    public async Task<object> sapiGetFiatOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiGetFiatOrders",parameters);
+        return await this.callAsync("sapiGetFiatOrders", parameters);
     }
 
-    public async Task<object> sapiGetFiatPayments (object parameters = null)
+    public async Task<object> sapiGetFiatPayments(object parameters = null)
     {
-        return await this.callAsync ("sapiGetFiatPayments",parameters);
+        return await this.callAsync("sapiGetFiatPayments", parameters);
     }
 
-    public async Task<object> sapiGetFuturesTransfer (object parameters = null)
+    public async Task<object> sapiGetFuturesTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiGetFuturesTransfer",parameters);
+        return await this.callAsync("sapiGetFuturesTransfer", parameters);
     }
 
-    public async Task<object> sapiGetFuturesLoanBorrowHistory (object parameters = null)
+    public async Task<object> sapiGetFuturesLoanBorrowHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetFuturesLoanBorrowHistory",parameters);
+        return await this.callAsync("sapiGetFuturesLoanBorrowHistory", parameters);
     }
 
-    public async Task<object> sapiGetFuturesLoanRepayHistory (object parameters = null)
+    public async Task<object> sapiGetFuturesLoanRepayHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetFuturesLoanRepayHistory",parameters);
+        return await this.callAsync("sapiGetFuturesLoanRepayHistory", parameters);
     }
 
-    public async Task<object> sapiGetFuturesLoanWallet (object parameters = null)
+    public async Task<object> sapiGetFuturesLoanWallet(object parameters = null)
     {
-        return await this.callAsync ("sapiGetFuturesLoanWallet",parameters);
+        return await this.callAsync("sapiGetFuturesLoanWallet", parameters);
     }
 
-    public async Task<object> sapiGetFuturesLoanAdjustCollateralHistory (object parameters = null)
+    public async Task<object> sapiGetFuturesLoanAdjustCollateralHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetFuturesLoanAdjustCollateralHistory",parameters);
+        return await this.callAsync("sapiGetFuturesLoanAdjustCollateralHistory", parameters);
     }
 
-    public async Task<object> sapiGetFuturesLoanLiquidationHistory (object parameters = null)
+    public async Task<object> sapiGetFuturesLoanLiquidationHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetFuturesLoanLiquidationHistory",parameters);
+        return await this.callAsync("sapiGetFuturesLoanLiquidationHistory", parameters);
     }
 
-    public async Task<object> sapiGetRebateTaxQuery (object parameters = null)
+    public async Task<object> sapiGetRebateTaxQuery(object parameters = null)
     {
-        return await this.callAsync ("sapiGetRebateTaxQuery",parameters);
+        return await this.callAsync("sapiGetRebateTaxQuery", parameters);
     }
 
-    public async Task<object> sapiGetCapitalConfigGetall (object parameters = null)
+    public async Task<object> sapiGetCapitalConfigGetall(object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalConfigGetall",parameters);
+        return await this.callAsync("sapiGetCapitalConfigGetall", parameters);
     }
 
-    public async Task<object> sapiGetCapitalDepositAddress (object parameters = null)
+    public async Task<object> sapiGetCapitalDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositAddress",parameters);
+        return await this.callAsync("sapiGetCapitalDepositAddress", parameters);
     }
 
-    public async Task<object> sapiGetCapitalDepositHisrec (object parameters = null)
+    public async Task<object> sapiGetCapitalDepositHisrec(object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositHisrec",parameters);
+        return await this.callAsync("sapiGetCapitalDepositHisrec", parameters);
     }
 
-    public async Task<object> sapiGetCapitalDepositSubAddress (object parameters = null)
+    public async Task<object> sapiGetCapitalDepositSubAddress(object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositSubAddress",parameters);
+        return await this.callAsync("sapiGetCapitalDepositSubAddress", parameters);
     }
 
-    public async Task<object> sapiGetCapitalDepositSubHisrec (object parameters = null)
+    public async Task<object> sapiGetCapitalDepositSubHisrec(object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositSubHisrec",parameters);
+        return await this.callAsync("sapiGetCapitalDepositSubHisrec", parameters);
     }
 
-    public async Task<object> sapiGetCapitalWithdrawHistory (object parameters = null)
+    public async Task<object> sapiGetCapitalWithdrawHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalWithdrawHistory",parameters);
+        return await this.callAsync("sapiGetCapitalWithdrawHistory", parameters);
     }
 
-    public async Task<object> sapiGetCapitalContractConvertibleCoins (object parameters = null)
+    public async Task<object> sapiGetCapitalContractConvertibleCoins(object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalContractConvertibleCoins",parameters);
+        return await this.callAsync("sapiGetCapitalContractConvertibleCoins", parameters);
     }
 
-    public async Task<object> sapiGetConvertTradeFlow (object parameters = null)
+    public async Task<object> sapiGetConvertTradeFlow(object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertTradeFlow",parameters);
+        return await this.callAsync("sapiGetConvertTradeFlow", parameters);
     }
 
-    public async Task<object> sapiGetConvertExchangeInfo (object parameters = null)
+    public async Task<object> sapiGetConvertExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertExchangeInfo",parameters);
+        return await this.callAsync("sapiGetConvertExchangeInfo", parameters);
     }
 
-    public async Task<object> sapiGetConvertAssetInfo (object parameters = null)
+    public async Task<object> sapiGetConvertAssetInfo(object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertAssetInfo",parameters);
+        return await this.callAsync("sapiGetConvertAssetInfo", parameters);
     }
 
-    public async Task<object> sapiGetConvertOrderStatus (object parameters = null)
+    public async Task<object> sapiGetConvertOrderStatus(object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertOrderStatus",parameters);
+        return await this.callAsync("sapiGetConvertOrderStatus", parameters);
     }
 
-    public async Task<object> sapiGetAccountStatus (object parameters = null)
+    public async Task<object> sapiGetAccountStatus(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountStatus",parameters);
+        return await this.callAsync("sapiGetAccountStatus", parameters);
     }
 
-    public async Task<object> sapiGetAccountApiTradingStatus (object parameters = null)
+    public async Task<object> sapiGetAccountApiTradingStatus(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountApiTradingStatus",parameters);
+        return await this.callAsync("sapiGetAccountApiTradingStatus", parameters);
     }
 
-    public async Task<object> sapiGetAccountApiRestrictionsIpRestriction (object parameters = null)
+    public async Task<object> sapiGetAccountApiRestrictionsIpRestriction(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountApiRestrictionsIpRestriction",parameters);
+        return await this.callAsync("sapiGetAccountApiRestrictionsIpRestriction", parameters);
     }
 
-    public async Task<object> sapiGetBnbBurn (object parameters = null)
+    public async Task<object> sapiGetBnbBurn(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBnbBurn",parameters);
+        return await this.callAsync("sapiGetBnbBurn", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountFuturesAccount (object parameters = null)
+    public async Task<object> sapiGetSubAccountFuturesAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountFuturesAccount",parameters);
+        return await this.callAsync("sapiGetSubAccountFuturesAccount", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountFuturesAccountSummary (object parameters = null)
+    public async Task<object> sapiGetSubAccountFuturesAccountSummary(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountFuturesAccountSummary",parameters);
+        return await this.callAsync("sapiGetSubAccountFuturesAccountSummary", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountFuturesPositionRisk (object parameters = null)
+    public async Task<object> sapiGetSubAccountFuturesPositionRisk(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountFuturesPositionRisk",parameters);
+        return await this.callAsync("sapiGetSubAccountFuturesPositionRisk", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountFuturesInternalTransfer (object parameters = null)
+    public async Task<object> sapiGetSubAccountFuturesInternalTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountFuturesInternalTransfer",parameters);
+        return await this.callAsync("sapiGetSubAccountFuturesInternalTransfer", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountList (object parameters = null)
+    public async Task<object> sapiGetSubAccountList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountList",parameters);
+        return await this.callAsync("sapiGetSubAccountList", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountMarginAccount (object parameters = null)
+    public async Task<object> sapiGetSubAccountMarginAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountMarginAccount",parameters);
+        return await this.callAsync("sapiGetSubAccountMarginAccount", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountMarginAccountSummary (object parameters = null)
+    public async Task<object> sapiGetSubAccountMarginAccountSummary(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountMarginAccountSummary",parameters);
+        return await this.callAsync("sapiGetSubAccountMarginAccountSummary", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountSpotSummary (object parameters = null)
+    public async Task<object> sapiGetSubAccountSpotSummary(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountSpotSummary",parameters);
+        return await this.callAsync("sapiGetSubAccountSpotSummary", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountStatus (object parameters = null)
+    public async Task<object> sapiGetSubAccountStatus(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountStatus",parameters);
+        return await this.callAsync("sapiGetSubAccountStatus", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountSubTransferHistory (object parameters = null)
+    public async Task<object> sapiGetSubAccountSubTransferHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountSubTransferHistory",parameters);
+        return await this.callAsync("sapiGetSubAccountSubTransferHistory", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountTransferSubUserHistory (object parameters = null)
+    public async Task<object> sapiGetSubAccountTransferSubUserHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountTransferSubUserHistory",parameters);
+        return await this.callAsync("sapiGetSubAccountTransferSubUserHistory", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountUniversalTransfer (object parameters = null)
+    public async Task<object> sapiGetSubAccountUniversalTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountUniversalTransfer",parameters);
+        return await this.callAsync("sapiGetSubAccountUniversalTransfer", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (object parameters = null)
+    public async Task<object> sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList",parameters);
+        return await this.callAsync("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList", parameters);
     }
 
-    public async Task<object> sapiGetSubAccountTransactionTatistics (object parameters = null)
+    public async Task<object> sapiGetSubAccountTransactionTatistics(object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountTransactionTatistics",parameters);
+        return await this.callAsync("sapiGetSubAccountTransactionTatistics", parameters);
     }
 
-    public async Task<object> sapiGetManagedSubaccountAsset (object parameters = null)
+    public async Task<object> sapiGetManagedSubaccountAsset(object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountAsset",parameters);
+        return await this.callAsync("sapiGetManagedSubaccountAsset", parameters);
     }
 
-    public async Task<object> sapiGetManagedSubaccountAccountSnapshot (object parameters = null)
+    public async Task<object> sapiGetManagedSubaccountAccountSnapshot(object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountAccountSnapshot",parameters);
+        return await this.callAsync("sapiGetManagedSubaccountAccountSnapshot", parameters);
     }
 
-    public async Task<object> sapiGetManagedSubaccountQueryTransLogForInvestor (object parameters = null)
+    public async Task<object> sapiGetManagedSubaccountQueryTransLogForInvestor(object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountQueryTransLogForInvestor",parameters);
+        return await this.callAsync("sapiGetManagedSubaccountQueryTransLogForInvestor", parameters);
     }
 
-    public async Task<object> sapiGetManagedSubaccountQueryTransLogForTradeParent (object parameters = null)
+    public async Task<object> sapiGetManagedSubaccountQueryTransLogForTradeParent(object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountQueryTransLogForTradeParent",parameters);
+        return await this.callAsync("sapiGetManagedSubaccountQueryTransLogForTradeParent", parameters);
     }
 
-    public async Task<object> sapiGetManagedSubaccountFetchFutureAsset (object parameters = null)
+    public async Task<object> sapiGetManagedSubaccountFetchFutureAsset(object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountFetchFutureAsset",parameters);
+        return await this.callAsync("sapiGetManagedSubaccountFetchFutureAsset", parameters);
     }
 
-    public async Task<object> sapiGetManagedSubaccountMarginAsset (object parameters = null)
+    public async Task<object> sapiGetManagedSubaccountMarginAsset(object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountMarginAsset",parameters);
+        return await this.callAsync("sapiGetManagedSubaccountMarginAsset", parameters);
     }
 
-    public async Task<object> sapiGetManagedSubaccountInfo (object parameters = null)
+    public async Task<object> sapiGetManagedSubaccountInfo(object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountInfo",parameters);
+        return await this.callAsync("sapiGetManagedSubaccountInfo", parameters);
     }
 
-    public async Task<object> sapiGetLendingDailyProductList (object parameters = null)
+    public async Task<object> sapiGetLendingDailyProductList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingDailyProductList",parameters);
+        return await this.callAsync("sapiGetLendingDailyProductList", parameters);
     }
 
-    public async Task<object> sapiGetLendingDailyUserLeftQuota (object parameters = null)
+    public async Task<object> sapiGetLendingDailyUserLeftQuota(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingDailyUserLeftQuota",parameters);
+        return await this.callAsync("sapiGetLendingDailyUserLeftQuota", parameters);
     }
 
-    public async Task<object> sapiGetLendingDailyUserRedemptionQuota (object parameters = null)
+    public async Task<object> sapiGetLendingDailyUserRedemptionQuota(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingDailyUserRedemptionQuota",parameters);
+        return await this.callAsync("sapiGetLendingDailyUserRedemptionQuota", parameters);
     }
 
-    public async Task<object> sapiGetLendingDailyTokenPosition (object parameters = null)
+    public async Task<object> sapiGetLendingDailyTokenPosition(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingDailyTokenPosition",parameters);
+        return await this.callAsync("sapiGetLendingDailyTokenPosition", parameters);
     }
 
-    public async Task<object> sapiGetLendingUnionAccount (object parameters = null)
+    public async Task<object> sapiGetLendingUnionAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingUnionAccount",parameters);
+        return await this.callAsync("sapiGetLendingUnionAccount", parameters);
     }
 
-    public async Task<object> sapiGetLendingUnionPurchaseRecord (object parameters = null)
+    public async Task<object> sapiGetLendingUnionPurchaseRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingUnionPurchaseRecord",parameters);
+        return await this.callAsync("sapiGetLendingUnionPurchaseRecord", parameters);
     }
 
-    public async Task<object> sapiGetLendingUnionRedemptionRecord (object parameters = null)
+    public async Task<object> sapiGetLendingUnionRedemptionRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingUnionRedemptionRecord",parameters);
+        return await this.callAsync("sapiGetLendingUnionRedemptionRecord", parameters);
     }
 
-    public async Task<object> sapiGetLendingUnionInterestHistory (object parameters = null)
+    public async Task<object> sapiGetLendingUnionInterestHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingUnionInterestHistory",parameters);
+        return await this.callAsync("sapiGetLendingUnionInterestHistory", parameters);
     }
 
-    public async Task<object> sapiGetLendingProjectList (object parameters = null)
+    public async Task<object> sapiGetLendingProjectList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingProjectList",parameters);
+        return await this.callAsync("sapiGetLendingProjectList", parameters);
     }
 
-    public async Task<object> sapiGetLendingProjectPositionList (object parameters = null)
+    public async Task<object> sapiGetLendingProjectPositionList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingProjectPositionList",parameters);
+        return await this.callAsync("sapiGetLendingProjectPositionList", parameters);
     }
 
-    public async Task<object> sapiGetMiningPubAlgoList (object parameters = null)
+    public async Task<object> sapiGetMiningPubAlgoList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningPubAlgoList",parameters);
+        return await this.callAsync("sapiGetMiningPubAlgoList", parameters);
     }
 
-    public async Task<object> sapiGetMiningPubCoinList (object parameters = null)
+    public async Task<object> sapiGetMiningPubCoinList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningPubCoinList",parameters);
+        return await this.callAsync("sapiGetMiningPubCoinList", parameters);
     }
 
-    public async Task<object> sapiGetMiningWorkerDetail (object parameters = null)
+    public async Task<object> sapiGetMiningWorkerDetail(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningWorkerDetail",parameters);
+        return await this.callAsync("sapiGetMiningWorkerDetail", parameters);
     }
 
-    public async Task<object> sapiGetMiningWorkerList (object parameters = null)
+    public async Task<object> sapiGetMiningWorkerList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningWorkerList",parameters);
+        return await this.callAsync("sapiGetMiningWorkerList", parameters);
     }
 
-    public async Task<object> sapiGetMiningPaymentList (object parameters = null)
+    public async Task<object> sapiGetMiningPaymentList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningPaymentList",parameters);
+        return await this.callAsync("sapiGetMiningPaymentList", parameters);
     }
 
-    public async Task<object> sapiGetMiningStatisticsUserStatus (object parameters = null)
+    public async Task<object> sapiGetMiningStatisticsUserStatus(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningStatisticsUserStatus",parameters);
+        return await this.callAsync("sapiGetMiningStatisticsUserStatus", parameters);
     }
 
-    public async Task<object> sapiGetMiningStatisticsUserList (object parameters = null)
+    public async Task<object> sapiGetMiningStatisticsUserList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningStatisticsUserList",parameters);
+        return await this.callAsync("sapiGetMiningStatisticsUserList", parameters);
     }
 
-    public async Task<object> sapiGetMiningPaymentUid (object parameters = null)
+    public async Task<object> sapiGetMiningPaymentUid(object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningPaymentUid",parameters);
+        return await this.callAsync("sapiGetMiningPaymentUid", parameters);
     }
 
-    public async Task<object> sapiGetBswapPools (object parameters = null)
+    public async Task<object> sapiGetBswapPools(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapPools",parameters);
+        return await this.callAsync("sapiGetBswapPools", parameters);
     }
 
-    public async Task<object> sapiGetBswapLiquidity (object parameters = null)
+    public async Task<object> sapiGetBswapLiquidity(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapLiquidity",parameters);
+        return await this.callAsync("sapiGetBswapLiquidity", parameters);
     }
 
-    public async Task<object> sapiGetBswapLiquidityOps (object parameters = null)
+    public async Task<object> sapiGetBswapLiquidityOps(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapLiquidityOps",parameters);
+        return await this.callAsync("sapiGetBswapLiquidityOps", parameters);
     }
 
-    public async Task<object> sapiGetBswapQuote (object parameters = null)
+    public async Task<object> sapiGetBswapQuote(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapQuote",parameters);
+        return await this.callAsync("sapiGetBswapQuote", parameters);
     }
 
-    public async Task<object> sapiGetBswapSwap (object parameters = null)
+    public async Task<object> sapiGetBswapSwap(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapSwap",parameters);
+        return await this.callAsync("sapiGetBswapSwap", parameters);
     }
 
-    public async Task<object> sapiGetBswapPoolConfigure (object parameters = null)
+    public async Task<object> sapiGetBswapPoolConfigure(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapPoolConfigure",parameters);
+        return await this.callAsync("sapiGetBswapPoolConfigure", parameters);
     }
 
-    public async Task<object> sapiGetBswapAddLiquidityPreview (object parameters = null)
+    public async Task<object> sapiGetBswapAddLiquidityPreview(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapAddLiquidityPreview",parameters);
+        return await this.callAsync("sapiGetBswapAddLiquidityPreview", parameters);
     }
 
-    public async Task<object> sapiGetBswapRemoveLiquidityPreview (object parameters = null)
+    public async Task<object> sapiGetBswapRemoveLiquidityPreview(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapRemoveLiquidityPreview",parameters);
+        return await this.callAsync("sapiGetBswapRemoveLiquidityPreview", parameters);
     }
 
-    public async Task<object> sapiGetBswapUnclaimedRewards (object parameters = null)
+    public async Task<object> sapiGetBswapUnclaimedRewards(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapUnclaimedRewards",parameters);
+        return await this.callAsync("sapiGetBswapUnclaimedRewards", parameters);
     }
 
-    public async Task<object> sapiGetBswapClaimedHistory (object parameters = null)
+    public async Task<object> sapiGetBswapClaimedHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapClaimedHistory",parameters);
+        return await this.callAsync("sapiGetBswapClaimedHistory", parameters);
     }
 
-    public async Task<object> sapiGetBlvtTokenInfo (object parameters = null)
+    public async Task<object> sapiGetBlvtTokenInfo(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBlvtTokenInfo",parameters);
+        return await this.callAsync("sapiGetBlvtTokenInfo", parameters);
     }
 
-    public async Task<object> sapiGetBlvtSubscribeRecord (object parameters = null)
+    public async Task<object> sapiGetBlvtSubscribeRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBlvtSubscribeRecord",parameters);
+        return await this.callAsync("sapiGetBlvtSubscribeRecord", parameters);
     }
 
-    public async Task<object> sapiGetBlvtRedeemRecord (object parameters = null)
+    public async Task<object> sapiGetBlvtRedeemRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBlvtRedeemRecord",parameters);
+        return await this.callAsync("sapiGetBlvtRedeemRecord", parameters);
     }
 
-    public async Task<object> sapiGetBlvtUserLimit (object parameters = null)
+    public async Task<object> sapiGetBlvtUserLimit(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBlvtUserLimit",parameters);
+        return await this.callAsync("sapiGetBlvtUserLimit", parameters);
     }
 
-    public async Task<object> sapiGetApiReferralIfNewUser (object parameters = null)
+    public async Task<object> sapiGetApiReferralIfNewUser(object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralIfNewUser",parameters);
+        return await this.callAsync("sapiGetApiReferralIfNewUser", parameters);
     }
 
-    public async Task<object> sapiGetApiReferralCustomization (object parameters = null)
+    public async Task<object> sapiGetApiReferralCustomization(object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralCustomization",parameters);
+        return await this.callAsync("sapiGetApiReferralCustomization", parameters);
     }
 
-    public async Task<object> sapiGetApiReferralUserCustomization (object parameters = null)
+    public async Task<object> sapiGetApiReferralUserCustomization(object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralUserCustomization",parameters);
+        return await this.callAsync("sapiGetApiReferralUserCustomization", parameters);
     }
 
-    public async Task<object> sapiGetApiReferralRebateRecentRecord (object parameters = null)
+    public async Task<object> sapiGetApiReferralRebateRecentRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralRebateRecentRecord",parameters);
+        return await this.callAsync("sapiGetApiReferralRebateRecentRecord", parameters);
     }
 
-    public async Task<object> sapiGetApiReferralRebateHistoricalRecord (object parameters = null)
+    public async Task<object> sapiGetApiReferralRebateHistoricalRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralRebateHistoricalRecord",parameters);
+        return await this.callAsync("sapiGetApiReferralRebateHistoricalRecord", parameters);
     }
 
-    public async Task<object> sapiGetApiReferralKickbackRecentRecord (object parameters = null)
+    public async Task<object> sapiGetApiReferralKickbackRecentRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralKickbackRecentRecord",parameters);
+        return await this.callAsync("sapiGetApiReferralKickbackRecentRecord", parameters);
     }
 
-    public async Task<object> sapiGetApiReferralKickbackHistoricalRecord (object parameters = null)
+    public async Task<object> sapiGetApiReferralKickbackHistoricalRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralKickbackHistoricalRecord",parameters);
+        return await this.callAsync("sapiGetApiReferralKickbackHistoricalRecord", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountApi (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountApi(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountApi",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountApi", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccount (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccount",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccount", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountApiCommissionFutures (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountApiCommissionFutures(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountApiCommissionFutures",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountApiCommissionFutures", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountApiCommissionCoinFutures (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountApiCommissionCoinFutures(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountApiCommissionCoinFutures",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountApiCommissionCoinFutures", parameters);
     }
 
-    public async Task<object> sapiGetBrokerInfo (object parameters = null)
+    public async Task<object> sapiGetBrokerInfo(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerInfo",parameters);
+        return await this.callAsync("sapiGetBrokerInfo", parameters);
     }
 
-    public async Task<object> sapiGetBrokerTransfer (object parameters = null)
+    public async Task<object> sapiGetBrokerTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerTransfer",parameters);
+        return await this.callAsync("sapiGetBrokerTransfer", parameters);
     }
 
-    public async Task<object> sapiGetBrokerTransferFutures (object parameters = null)
+    public async Task<object> sapiGetBrokerTransferFutures(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerTransferFutures",parameters);
+        return await this.callAsync("sapiGetBrokerTransferFutures", parameters);
     }
 
-    public async Task<object> sapiGetBrokerRebateRecentRecord (object parameters = null)
+    public async Task<object> sapiGetBrokerRebateRecentRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerRebateRecentRecord",parameters);
+        return await this.callAsync("sapiGetBrokerRebateRecentRecord", parameters);
     }
 
-    public async Task<object> sapiGetBrokerRebateHistoricalRecord (object parameters = null)
+    public async Task<object> sapiGetBrokerRebateHistoricalRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerRebateHistoricalRecord",parameters);
+        return await this.callAsync("sapiGetBrokerRebateHistoricalRecord", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountBnbBurnStatus (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountBnbBurnStatus(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountBnbBurnStatus",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountBnbBurnStatus", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountDepositHist (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountDepositHist(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountDepositHist",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountDepositHist", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountSpotSummary (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountSpotSummary(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountSpotSummary",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountSpotSummary", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountMarginSummary (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountMarginSummary(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountMarginSummary",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountMarginSummary", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountFuturesSummary (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountFuturesSummary(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountFuturesSummary",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountFuturesSummary", parameters);
     }
 
-    public async Task<object> sapiGetBrokerRebateFuturesRecentRecord (object parameters = null)
+    public async Task<object> sapiGetBrokerRebateFuturesRecentRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerRebateFuturesRecentRecord",parameters);
+        return await this.callAsync("sapiGetBrokerRebateFuturesRecentRecord", parameters);
     }
 
-    public async Task<object> sapiGetBrokerSubAccountApiIpRestriction (object parameters = null)
+    public async Task<object> sapiGetBrokerSubAccountApiIpRestriction(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountApiIpRestriction",parameters);
+        return await this.callAsync("sapiGetBrokerSubAccountApiIpRestriction", parameters);
     }
 
-    public async Task<object> sapiGetBrokerUniversalTransfer (object parameters = null)
+    public async Task<object> sapiGetBrokerUniversalTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerUniversalTransfer",parameters);
+        return await this.callAsync("sapiGetBrokerUniversalTransfer", parameters);
     }
 
-    public async Task<object> sapiGetAccountApiRestrictions (object parameters = null)
+    public async Task<object> sapiGetAccountApiRestrictions(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountApiRestrictions",parameters);
+        return await this.callAsync("sapiGetAccountApiRestrictions", parameters);
     }
 
-    public async Task<object> sapiGetC2cOrderMatchListUserOrderHistory (object parameters = null)
+    public async Task<object> sapiGetC2cOrderMatchListUserOrderHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetC2cOrderMatchListUserOrderHistory",parameters);
+        return await this.callAsync("sapiGetC2cOrderMatchListUserOrderHistory", parameters);
     }
 
-    public async Task<object> sapiGetNftHistoryTransactions (object parameters = null)
+    public async Task<object> sapiGetNftHistoryTransactions(object parameters = null)
     {
-        return await this.callAsync ("sapiGetNftHistoryTransactions",parameters);
+        return await this.callAsync("sapiGetNftHistoryTransactions", parameters);
     }
 
-    public async Task<object> sapiGetNftHistoryDeposit (object parameters = null)
+    public async Task<object> sapiGetNftHistoryDeposit(object parameters = null)
     {
-        return await this.callAsync ("sapiGetNftHistoryDeposit",parameters);
+        return await this.callAsync("sapiGetNftHistoryDeposit", parameters);
     }
 
-    public async Task<object> sapiGetNftHistoryWithdraw (object parameters = null)
+    public async Task<object> sapiGetNftHistoryWithdraw(object parameters = null)
     {
-        return await this.callAsync ("sapiGetNftHistoryWithdraw",parameters);
+        return await this.callAsync("sapiGetNftHistoryWithdraw", parameters);
     }
 
-    public async Task<object> sapiGetNftUserGetAsset (object parameters = null)
+    public async Task<object> sapiGetNftUserGetAsset(object parameters = null)
     {
-        return await this.callAsync ("sapiGetNftUserGetAsset",parameters);
+        return await this.callAsync("sapiGetNftUserGetAsset", parameters);
     }
 
-    public async Task<object> sapiGetPayTransactions (object parameters = null)
+    public async Task<object> sapiGetPayTransactions(object parameters = null)
     {
-        return await this.callAsync ("sapiGetPayTransactions",parameters);
+        return await this.callAsync("sapiGetPayTransactions", parameters);
     }
 
-    public async Task<object> sapiGetGiftcardVerify (object parameters = null)
+    public async Task<object> sapiGetGiftcardVerify(object parameters = null)
     {
-        return await this.callAsync ("sapiGetGiftcardVerify",parameters);
+        return await this.callAsync("sapiGetGiftcardVerify", parameters);
     }
 
-    public async Task<object> sapiGetGiftcardCryptographyRsaPublicKey (object parameters = null)
+    public async Task<object> sapiGetGiftcardCryptographyRsaPublicKey(object parameters = null)
     {
-        return await this.callAsync ("sapiGetGiftcardCryptographyRsaPublicKey",parameters);
+        return await this.callAsync("sapiGetGiftcardCryptographyRsaPublicKey", parameters);
     }
 
-    public async Task<object> sapiGetGiftcardBuyCodeTokenLimit (object parameters = null)
+    public async Task<object> sapiGetGiftcardBuyCodeTokenLimit(object parameters = null)
     {
-        return await this.callAsync ("sapiGetGiftcardBuyCodeTokenLimit",parameters);
+        return await this.callAsync("sapiGetGiftcardBuyCodeTokenLimit", parameters);
     }
 
-    public async Task<object> sapiGetAlgoFuturesOpenOrders (object parameters = null)
+    public async Task<object> sapiGetAlgoFuturesOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoFuturesOpenOrders",parameters);
+        return await this.callAsync("sapiGetAlgoFuturesOpenOrders", parameters);
     }
 
-    public async Task<object> sapiGetAlgoFuturesHistoricalOrders (object parameters = null)
+    public async Task<object> sapiGetAlgoFuturesHistoricalOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoFuturesHistoricalOrders",parameters);
+        return await this.callAsync("sapiGetAlgoFuturesHistoricalOrders", parameters);
     }
 
-    public async Task<object> sapiGetAlgoFuturesSubOrders (object parameters = null)
+    public async Task<object> sapiGetAlgoFuturesSubOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoFuturesSubOrders",parameters);
+        return await this.callAsync("sapiGetAlgoFuturesSubOrders", parameters);
     }
 
-    public async Task<object> sapiGetPortfolioAccount (object parameters = null)
+    public async Task<object> sapiGetPortfolioAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioAccount",parameters);
+        return await this.callAsync("sapiGetPortfolioAccount", parameters);
     }
 
-    public async Task<object> sapiGetPortfolioCollateralRate (object parameters = null)
+    public async Task<object> sapiGetPortfolioCollateralRate(object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioCollateralRate",parameters);
+        return await this.callAsync("sapiGetPortfolioCollateralRate", parameters);
     }
 
-    public async Task<object> sapiGetPortfolioPmLoan (object parameters = null)
+    public async Task<object> sapiGetPortfolioPmLoan(object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioPmLoan",parameters);
+        return await this.callAsync("sapiGetPortfolioPmLoan", parameters);
     }
 
-    public async Task<object> sapiGetPortfolioInterestHistory (object parameters = null)
+    public async Task<object> sapiGetPortfolioInterestHistory(object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioInterestHistory",parameters);
+        return await this.callAsync("sapiGetPortfolioInterestHistory", parameters);
     }
 
-    public async Task<object> sapiGetPortfolioInterestRate (object parameters = null)
+    public async Task<object> sapiGetPortfolioInterestRate(object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioInterestRate",parameters);
+        return await this.callAsync("sapiGetPortfolioInterestRate", parameters);
     }
 
-    public async Task<object> sapiGetStakingProductList (object parameters = null)
+    public async Task<object> sapiGetStakingProductList(object parameters = null)
     {
-        return await this.callAsync ("sapiGetStakingProductList",parameters);
+        return await this.callAsync("sapiGetStakingProductList", parameters);
     }
 
-    public async Task<object> sapiGetStakingPosition (object parameters = null)
+    public async Task<object> sapiGetStakingPosition(object parameters = null)
     {
-        return await this.callAsync ("sapiGetStakingPosition",parameters);
+        return await this.callAsync("sapiGetStakingPosition", parameters);
     }
 
-    public async Task<object> sapiGetStakingStakingRecord (object parameters = null)
+    public async Task<object> sapiGetStakingStakingRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiGetStakingStakingRecord",parameters);
+        return await this.callAsync("sapiGetStakingStakingRecord", parameters);
     }
 
-    public async Task<object> sapiGetStakingPersonalLeftQuota (object parameters = null)
+    public async Task<object> sapiGetStakingPersonalLeftQuota(object parameters = null)
     {
-        return await this.callAsync ("sapiGetStakingPersonalLeftQuota",parameters);
+        return await this.callAsync("sapiGetStakingPersonalLeftQuota", parameters);
     }
 
-    public async Task<object> sapiPostAssetDust (object parameters = null)
+    public async Task<object> sapiPostAssetDust(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetDust",parameters);
+        return await this.callAsync("sapiPostAssetDust", parameters);
     }
 
-    public async Task<object> sapiPostAssetDustBtc (object parameters = null)
+    public async Task<object> sapiPostAssetDustBtc(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetDustBtc",parameters);
+        return await this.callAsync("sapiPostAssetDustBtc", parameters);
     }
 
-    public async Task<object> sapiPostAssetTransfer (object parameters = null)
+    public async Task<object> sapiPostAssetTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetTransfer",parameters);
+        return await this.callAsync("sapiPostAssetTransfer", parameters);
     }
 
-    public async Task<object> sapiPostAssetGetFundingAsset (object parameters = null)
+    public async Task<object> sapiPostAssetGetFundingAsset(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetGetFundingAsset",parameters);
+        return await this.callAsync("sapiPostAssetGetFundingAsset", parameters);
     }
 
-    public async Task<object> sapiPostAssetConvertTransfer (object parameters = null)
+    public async Task<object> sapiPostAssetConvertTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetConvertTransfer",parameters);
+        return await this.callAsync("sapiPostAssetConvertTransfer", parameters);
     }
 
-    public async Task<object> sapiPostAccountDisableFastWithdrawSwitch (object parameters = null)
+    public async Task<object> sapiPostAccountDisableFastWithdrawSwitch(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAccountDisableFastWithdrawSwitch",parameters);
+        return await this.callAsync("sapiPostAccountDisableFastWithdrawSwitch", parameters);
     }
 
-    public async Task<object> sapiPostAccountEnableFastWithdrawSwitch (object parameters = null)
+    public async Task<object> sapiPostAccountEnableFastWithdrawSwitch(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAccountEnableFastWithdrawSwitch",parameters);
+        return await this.callAsync("sapiPostAccountEnableFastWithdrawSwitch", parameters);
     }
 
-    public async Task<object> sapiPostCapitalWithdrawApply (object parameters = null)
+    public async Task<object> sapiPostCapitalWithdrawApply(object parameters = null)
     {
-        return await this.callAsync ("sapiPostCapitalWithdrawApply",parameters);
+        return await this.callAsync("sapiPostCapitalWithdrawApply", parameters);
     }
 
-    public async Task<object> sapiPostCapitalContractConvertibleCoins (object parameters = null)
+    public async Task<object> sapiPostCapitalContractConvertibleCoins(object parameters = null)
     {
-        return await this.callAsync ("sapiPostCapitalContractConvertibleCoins",parameters);
+        return await this.callAsync("sapiPostCapitalContractConvertibleCoins", parameters);
     }
 
-    public async Task<object> sapiPostMarginTransfer (object parameters = null)
+    public async Task<object> sapiPostMarginTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginTransfer",parameters);
+        return await this.callAsync("sapiPostMarginTransfer", parameters);
     }
 
-    public async Task<object> sapiPostMarginLoan (object parameters = null)
+    public async Task<object> sapiPostMarginLoan(object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginLoan",parameters);
+        return await this.callAsync("sapiPostMarginLoan", parameters);
     }
 
-    public async Task<object> sapiPostMarginRepay (object parameters = null)
+    public async Task<object> sapiPostMarginRepay(object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginRepay",parameters);
+        return await this.callAsync("sapiPostMarginRepay", parameters);
     }
 
-    public async Task<object> sapiPostMarginOrder (object parameters = null)
+    public async Task<object> sapiPostMarginOrder(object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginOrder",parameters);
+        return await this.callAsync("sapiPostMarginOrder", parameters);
     }
 
-    public async Task<object> sapiPostMarginOrderOco (object parameters = null)
+    public async Task<object> sapiPostMarginOrderOco(object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginOrderOco",parameters);
+        return await this.callAsync("sapiPostMarginOrderOco", parameters);
     }
 
-    public async Task<object> sapiPostMarginExchangeSmallLiability (object parameters = null)
+    public async Task<object> sapiPostMarginExchangeSmallLiability(object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginExchangeSmallLiability",parameters);
+        return await this.callAsync("sapiPostMarginExchangeSmallLiability", parameters);
     }
 
-    public async Task<object> sapiPostMarginIsolatedTransfer (object parameters = null)
+    public async Task<object> sapiPostMarginIsolatedTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginIsolatedTransfer",parameters);
+        return await this.callAsync("sapiPostMarginIsolatedTransfer", parameters);
     }
 
-    public async Task<object> sapiPostMarginIsolatedAccount (object parameters = null)
+    public async Task<object> sapiPostMarginIsolatedAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginIsolatedAccount",parameters);
+        return await this.callAsync("sapiPostMarginIsolatedAccount", parameters);
     }
 
-    public async Task<object> sapiPostBnbBurn (object parameters = null)
+    public async Task<object> sapiPostBnbBurn(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBnbBurn",parameters);
+        return await this.callAsync("sapiPostBnbBurn", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountVirtualSubAccount (object parameters = null)
+    public async Task<object> sapiPostSubAccountVirtualSubAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountVirtualSubAccount",parameters);
+        return await this.callAsync("sapiPostSubAccountVirtualSubAccount", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountMarginTransfer (object parameters = null)
+    public async Task<object> sapiPostSubAccountMarginTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountMarginTransfer",parameters);
+        return await this.callAsync("sapiPostSubAccountMarginTransfer", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountMarginEnable (object parameters = null)
+    public async Task<object> sapiPostSubAccountMarginEnable(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountMarginEnable",parameters);
+        return await this.callAsync("sapiPostSubAccountMarginEnable", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountFuturesEnable (object parameters = null)
+    public async Task<object> sapiPostSubAccountFuturesEnable(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountFuturesEnable",parameters);
+        return await this.callAsync("sapiPostSubAccountFuturesEnable", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountFuturesTransfer (object parameters = null)
+    public async Task<object> sapiPostSubAccountFuturesTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountFuturesTransfer",parameters);
+        return await this.callAsync("sapiPostSubAccountFuturesTransfer", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountFuturesInternalTransfer (object parameters = null)
+    public async Task<object> sapiPostSubAccountFuturesInternalTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountFuturesInternalTransfer",parameters);
+        return await this.callAsync("sapiPostSubAccountFuturesInternalTransfer", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountTransferSubToSub (object parameters = null)
+    public async Task<object> sapiPostSubAccountTransferSubToSub(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountTransferSubToSub",parameters);
+        return await this.callAsync("sapiPostSubAccountTransferSubToSub", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountTransferSubToMaster (object parameters = null)
+    public async Task<object> sapiPostSubAccountTransferSubToMaster(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountTransferSubToMaster",parameters);
+        return await this.callAsync("sapiPostSubAccountTransferSubToMaster", parameters);
     }
 
-    public async Task<object> sapiPostSubAccountUniversalTransfer (object parameters = null)
+    public async Task<object> sapiPostSubAccountUniversalTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountUniversalTransfer",parameters);
+        return await this.callAsync("sapiPostSubAccountUniversalTransfer", parameters);
     }
 
-    public async Task<object> sapiPostManagedSubaccountDeposit (object parameters = null)
+    public async Task<object> sapiPostManagedSubaccountDeposit(object parameters = null)
     {
-        return await this.callAsync ("sapiPostManagedSubaccountDeposit",parameters);
+        return await this.callAsync("sapiPostManagedSubaccountDeposit", parameters);
     }
 
-    public async Task<object> sapiPostManagedSubaccountWithdraw (object parameters = null)
+    public async Task<object> sapiPostManagedSubaccountWithdraw(object parameters = null)
     {
-        return await this.callAsync ("sapiPostManagedSubaccountWithdraw",parameters);
+        return await this.callAsync("sapiPostManagedSubaccountWithdraw", parameters);
     }
 
-    public async Task<object> sapiPostUserDataStream (object parameters = null)
+    public async Task<object> sapiPostUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("sapiPostUserDataStream",parameters);
+        return await this.callAsync("sapiPostUserDataStream", parameters);
     }
 
-    public async Task<object> sapiPostUserDataStreamIsolated (object parameters = null)
+    public async Task<object> sapiPostUserDataStreamIsolated(object parameters = null)
     {
-        return await this.callAsync ("sapiPostUserDataStreamIsolated",parameters);
+        return await this.callAsync("sapiPostUserDataStreamIsolated", parameters);
     }
 
-    public async Task<object> sapiPostFuturesTransfer (object parameters = null)
+    public async Task<object> sapiPostFuturesTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostFuturesTransfer",parameters);
+        return await this.callAsync("sapiPostFuturesTransfer", parameters);
     }
 
-    public async Task<object> sapiPostLendingCustomizedFixedPurchase (object parameters = null)
+    public async Task<object> sapiPostLendingCustomizedFixedPurchase(object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingCustomizedFixedPurchase",parameters);
+        return await this.callAsync("sapiPostLendingCustomizedFixedPurchase", parameters);
     }
 
-    public async Task<object> sapiPostLendingDailyPurchase (object parameters = null)
+    public async Task<object> sapiPostLendingDailyPurchase(object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingDailyPurchase",parameters);
+        return await this.callAsync("sapiPostLendingDailyPurchase", parameters);
     }
 
-    public async Task<object> sapiPostLendingDailyRedeem (object parameters = null)
+    public async Task<object> sapiPostLendingDailyRedeem(object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingDailyRedeem",parameters);
+        return await this.callAsync("sapiPostLendingDailyRedeem", parameters);
     }
 
-    public async Task<object> sapiPostBswapLiquidityAdd (object parameters = null)
+    public async Task<object> sapiPostBswapLiquidityAdd(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBswapLiquidityAdd",parameters);
+        return await this.callAsync("sapiPostBswapLiquidityAdd", parameters);
     }
 
-    public async Task<object> sapiPostBswapLiquidityRemove (object parameters = null)
+    public async Task<object> sapiPostBswapLiquidityRemove(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBswapLiquidityRemove",parameters);
+        return await this.callAsync("sapiPostBswapLiquidityRemove", parameters);
     }
 
-    public async Task<object> sapiPostBswapSwap (object parameters = null)
+    public async Task<object> sapiPostBswapSwap(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBswapSwap",parameters);
+        return await this.callAsync("sapiPostBswapSwap", parameters);
     }
 
-    public async Task<object> sapiPostBswapClaimRewards (object parameters = null)
+    public async Task<object> sapiPostBswapClaimRewards(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBswapClaimRewards",parameters);
+        return await this.callAsync("sapiPostBswapClaimRewards", parameters);
     }
 
-    public async Task<object> sapiPostBlvtSubscribe (object parameters = null)
+    public async Task<object> sapiPostBlvtSubscribe(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBlvtSubscribe",parameters);
+        return await this.callAsync("sapiPostBlvtSubscribe", parameters);
     }
 
-    public async Task<object> sapiPostBlvtRedeem (object parameters = null)
+    public async Task<object> sapiPostBlvtRedeem(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBlvtRedeem",parameters);
+        return await this.callAsync("sapiPostBlvtRedeem", parameters);
     }
 
-    public async Task<object> sapiPostApiReferralCustomization (object parameters = null)
+    public async Task<object> sapiPostApiReferralCustomization(object parameters = null)
     {
-        return await this.callAsync ("sapiPostApiReferralCustomization",parameters);
+        return await this.callAsync("sapiPostApiReferralCustomization", parameters);
     }
 
-    public async Task<object> sapiPostApiReferralUserCustomization (object parameters = null)
+    public async Task<object> sapiPostApiReferralUserCustomization(object parameters = null)
     {
-        return await this.callAsync ("sapiPostApiReferralUserCustomization",parameters);
+        return await this.callAsync("sapiPostApiReferralUserCustomization", parameters);
     }
 
-    public async Task<object> sapiPostApiReferralRebateHistoricalRecord (object parameters = null)
+    public async Task<object> sapiPostApiReferralRebateHistoricalRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiPostApiReferralRebateHistoricalRecord",parameters);
+        return await this.callAsync("sapiPostApiReferralRebateHistoricalRecord", parameters);
     }
 
-    public async Task<object> sapiPostApiReferralKickbackHistoricalRecord (object parameters = null)
+    public async Task<object> sapiPostApiReferralKickbackHistoricalRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiPostApiReferralKickbackHistoricalRecord",parameters);
+        return await this.callAsync("sapiPostApiReferralKickbackHistoricalRecord", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccount (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccount",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccount", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountMargin (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountMargin(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountMargin",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountMargin", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountFutures (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountFutures(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountFutures",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountFutures", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApi (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApi(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApi",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApi", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApiPermission (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApiPermission(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiPermission",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApiPermission", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApiCommission (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApiCommission(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiCommission",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApiCommission", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApiCommissionFutures (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApiCommissionFutures(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiCommissionFutures",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApiCommissionFutures", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApiCommissionCoinFutures (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApiCommissionCoinFutures(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiCommissionCoinFutures",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApiCommissionCoinFutures", parameters);
     }
 
-    public async Task<object> sapiPostBrokerTransfer (object parameters = null)
+    public async Task<object> sapiPostBrokerTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerTransfer",parameters);
+        return await this.callAsync("sapiPostBrokerTransfer", parameters);
     }
 
-    public async Task<object> sapiPostBrokerTransferFutures (object parameters = null)
+    public async Task<object> sapiPostBrokerTransferFutures(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerTransferFutures",parameters);
+        return await this.callAsync("sapiPostBrokerTransferFutures", parameters);
     }
 
-    public async Task<object> sapiPostBrokerRebateHistoricalRecord (object parameters = null)
+    public async Task<object> sapiPostBrokerRebateHistoricalRecord(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerRebateHistoricalRecord",parameters);
+        return await this.callAsync("sapiPostBrokerRebateHistoricalRecord", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountBnbBurnSpot (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountBnbBurnSpot(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountBnbBurnSpot",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountBnbBurnSpot", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountBnbBurnMarginInterest (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountBnbBurnMarginInterest(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountBnbBurnMarginInterest",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountBnbBurnMarginInterest", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountBlvt (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountBlvt(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountBlvt",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountBlvt", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApiIpRestriction (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApiIpRestriction(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiIpRestriction",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApiIpRestriction", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApiIpRestrictionIpList (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApiIpRestrictionIpList(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiIpRestrictionIpList",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApiIpRestrictionIpList", parameters);
     }
 
-    public async Task<object> sapiPostBrokerUniversalTransfer (object parameters = null)
+    public async Task<object> sapiPostBrokerUniversalTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerUniversalTransfer",parameters);
+        return await this.callAsync("sapiPostBrokerUniversalTransfer", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApiPermissionUniversalTransfer (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApiPermissionUniversalTransfer(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiPermissionUniversalTransfer",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApiPermissionUniversalTransfer", parameters);
     }
 
-    public async Task<object> sapiPostBrokerSubAccountApiPermissionVanillaOptions (object parameters = null)
+    public async Task<object> sapiPostBrokerSubAccountApiPermissionVanillaOptions(object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiPermissionVanillaOptions",parameters);
+        return await this.callAsync("sapiPostBrokerSubAccountApiPermissionVanillaOptions", parameters);
     }
 
-    public async Task<object> sapiPostGiftcardCreateCode (object parameters = null)
+    public async Task<object> sapiPostGiftcardCreateCode(object parameters = null)
     {
-        return await this.callAsync ("sapiPostGiftcardCreateCode",parameters);
+        return await this.callAsync("sapiPostGiftcardCreateCode", parameters);
     }
 
-    public async Task<object> sapiPostGiftcardRedeemCode (object parameters = null)
+    public async Task<object> sapiPostGiftcardRedeemCode(object parameters = null)
     {
-        return await this.callAsync ("sapiPostGiftcardRedeemCode",parameters);
+        return await this.callAsync("sapiPostGiftcardRedeemCode", parameters);
     }
 
-    public async Task<object> sapiPostGiftcardBuyCode (object parameters = null)
+    public async Task<object> sapiPostGiftcardBuyCode(object parameters = null)
     {
-        return await this.callAsync ("sapiPostGiftcardBuyCode",parameters);
+        return await this.callAsync("sapiPostGiftcardBuyCode", parameters);
     }
 
-    public async Task<object> sapiPostAlgoFuturesNewOrderVp (object parameters = null)
+    public async Task<object> sapiPostAlgoFuturesNewOrderVp(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAlgoFuturesNewOrderVp",parameters);
+        return await this.callAsync("sapiPostAlgoFuturesNewOrderVp", parameters);
     }
 
-    public async Task<object> sapiPostAlgoFuturesNewOrderTwap (object parameters = null)
+    public async Task<object> sapiPostAlgoFuturesNewOrderTwap(object parameters = null)
     {
-        return await this.callAsync ("sapiPostAlgoFuturesNewOrderTwap",parameters);
+        return await this.callAsync("sapiPostAlgoFuturesNewOrderTwap", parameters);
     }
 
-    public async Task<object> sapiPostStakingPurchase (object parameters = null)
+    public async Task<object> sapiPostStakingPurchase(object parameters = null)
     {
-        return await this.callAsync ("sapiPostStakingPurchase",parameters);
+        return await this.callAsync("sapiPostStakingPurchase", parameters);
     }
 
-    public async Task<object> sapiPostStakingRedeem (object parameters = null)
+    public async Task<object> sapiPostStakingRedeem(object parameters = null)
     {
-        return await this.callAsync ("sapiPostStakingRedeem",parameters);
+        return await this.callAsync("sapiPostStakingRedeem", parameters);
     }
 
-    public async Task<object> sapiPostStakingSetAutoStaking (object parameters = null)
+    public async Task<object> sapiPostStakingSetAutoStaking(object parameters = null)
     {
-        return await this.callAsync ("sapiPostStakingSetAutoStaking",parameters);
+        return await this.callAsync("sapiPostStakingSetAutoStaking", parameters);
     }
 
-    public async Task<object> sapiPostPortfolioRepay (object parameters = null)
+    public async Task<object> sapiPostPortfolioRepay(object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioRepay",parameters);
+        return await this.callAsync("sapiPostPortfolioRepay", parameters);
     }
 
-    public async Task<object> sapiPostLoanBorrow (object parameters = null)
+    public async Task<object> sapiPostLoanBorrow(object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanBorrow",parameters);
+        return await this.callAsync("sapiPostLoanBorrow", parameters);
     }
 
-    public async Task<object> sapiPostLoanRepay (object parameters = null)
+    public async Task<object> sapiPostLoanRepay(object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanRepay",parameters);
+        return await this.callAsync("sapiPostLoanRepay", parameters);
     }
 
-    public async Task<object> sapiPostLoanAdjustLtv (object parameters = null)
+    public async Task<object> sapiPostLoanAdjustLtv(object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanAdjustLtv",parameters);
+        return await this.callAsync("sapiPostLoanAdjustLtv", parameters);
     }
 
-    public async Task<object> sapiPostLoanCustomizeMarginCall (object parameters = null)
+    public async Task<object> sapiPostLoanCustomizeMarginCall(object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanCustomizeMarginCall",parameters);
+        return await this.callAsync("sapiPostLoanCustomizeMarginCall", parameters);
     }
 
-    public async Task<object> sapiPostLoanVipRepay (object parameters = null)
+    public async Task<object> sapiPostLoanVipRepay(object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanVipRepay",parameters);
+        return await this.callAsync("sapiPostLoanVipRepay", parameters);
     }
 
-    public async Task<object> sapiPostConvertGetQuote (object parameters = null)
+    public async Task<object> sapiPostConvertGetQuote(object parameters = null)
     {
-        return await this.callAsync ("sapiPostConvertGetQuote",parameters);
+        return await this.callAsync("sapiPostConvertGetQuote", parameters);
     }
 
-    public async Task<object> sapiPostConvertAcceptQuote (object parameters = null)
+    public async Task<object> sapiPostConvertAcceptQuote(object parameters = null)
     {
-        return await this.callAsync ("sapiPostConvertAcceptQuote",parameters);
+        return await this.callAsync("sapiPostConvertAcceptQuote", parameters);
     }
 
-    public async Task<object> sapiPutUserDataStream (object parameters = null)
+    public async Task<object> sapiPutUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("sapiPutUserDataStream",parameters);
+        return await this.callAsync("sapiPutUserDataStream", parameters);
     }
 
-    public async Task<object> sapiPutUserDataStreamIsolated (object parameters = null)
+    public async Task<object> sapiPutUserDataStreamIsolated(object parameters = null)
     {
-        return await this.callAsync ("sapiPutUserDataStreamIsolated",parameters);
+        return await this.callAsync("sapiPutUserDataStreamIsolated", parameters);
     }
 
-    public async Task<object> sapiDeleteMarginOpenOrders (object parameters = null)
+    public async Task<object> sapiDeleteMarginOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteMarginOpenOrders",parameters);
+        return await this.callAsync("sapiDeleteMarginOpenOrders", parameters);
     }
 
-    public async Task<object> sapiDeleteMarginOrder (object parameters = null)
+    public async Task<object> sapiDeleteMarginOrder(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteMarginOrder",parameters);
+        return await this.callAsync("sapiDeleteMarginOrder", parameters);
     }
 
-    public async Task<object> sapiDeleteMarginOrderList (object parameters = null)
+    public async Task<object> sapiDeleteMarginOrderList(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteMarginOrderList",parameters);
+        return await this.callAsync("sapiDeleteMarginOrderList", parameters);
     }
 
-    public async Task<object> sapiDeleteMarginIsolatedAccount (object parameters = null)
+    public async Task<object> sapiDeleteMarginIsolatedAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteMarginIsolatedAccount",parameters);
+        return await this.callAsync("sapiDeleteMarginIsolatedAccount", parameters);
     }
 
-    public async Task<object> sapiDeleteUserDataStream (object parameters = null)
+    public async Task<object> sapiDeleteUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteUserDataStream",parameters);
+        return await this.callAsync("sapiDeleteUserDataStream", parameters);
     }
 
-    public async Task<object> sapiDeleteUserDataStreamIsolated (object parameters = null)
+    public async Task<object> sapiDeleteUserDataStreamIsolated(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteUserDataStreamIsolated",parameters);
+        return await this.callAsync("sapiDeleteUserDataStreamIsolated", parameters);
     }
 
-    public async Task<object> sapiDeleteBrokerSubAccountApi (object parameters = null)
+    public async Task<object> sapiDeleteBrokerSubAccountApi(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteBrokerSubAccountApi",parameters);
+        return await this.callAsync("sapiDeleteBrokerSubAccountApi", parameters);
     }
 
-    public async Task<object> sapiDeleteBrokerSubAccountApiIpRestrictionIpList (object parameters = null)
+    public async Task<object> sapiDeleteBrokerSubAccountApiIpRestrictionIpList(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteBrokerSubAccountApiIpRestrictionIpList",parameters);
+        return await this.callAsync("sapiDeleteBrokerSubAccountApiIpRestrictionIpList", parameters);
     }
 
-    public async Task<object> sapiDeleteAlgoFuturesOrder (object parameters = null)
+    public async Task<object> sapiDeleteAlgoFuturesOrder(object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteAlgoFuturesOrder",parameters);
+        return await this.callAsync("sapiDeleteAlgoFuturesOrder", parameters);
     }
 
-    public async Task<object> sapiV2GetSubAccountFuturesAccount (object parameters = null)
+    public async Task<object> sapiV2GetSubAccountFuturesAccount(object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetSubAccountFuturesAccount",parameters);
+        return await this.callAsync("sapiV2GetSubAccountFuturesAccount", parameters);
     }
 
-    public async Task<object> sapiV2GetSubAccountFuturesPositionRisk (object parameters = null)
+    public async Task<object> sapiV2GetSubAccountFuturesPositionRisk(object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetSubAccountFuturesPositionRisk",parameters);
+        return await this.callAsync("sapiV2GetSubAccountFuturesPositionRisk", parameters);
     }
 
-    public async Task<object> sapiV3GetSubAccountAssets (object parameters = null)
+    public async Task<object> sapiV3GetSubAccountAssets(object parameters = null)
     {
-        return await this.callAsync ("sapiV3GetSubAccountAssets",parameters);
+        return await this.callAsync("sapiV3GetSubAccountAssets", parameters);
     }
 
-    public async Task<object> sapiV3PostAssetGetUserAsset (object parameters = null)
+    public async Task<object> sapiV3PostAssetGetUserAsset(object parameters = null)
     {
-        return await this.callAsync ("sapiV3PostAssetGetUserAsset",parameters);
+        return await this.callAsync("sapiV3PostAssetGetUserAsset", parameters);
     }
 
-    public async Task<object> sapiV4GetSubAccountAssets (object parameters = null)
+    public async Task<object> sapiV4GetSubAccountAssets(object parameters = null)
     {
-        return await this.callAsync ("sapiV4GetSubAccountAssets",parameters);
+        return await this.callAsync("sapiV4GetSubAccountAssets", parameters);
     }
 
-    public async Task<object> wapiPostWithdraw (object parameters = null)
+    public async Task<object> wapiPostWithdraw(object parameters = null)
     {
-        return await this.callAsync ("wapiPostWithdraw",parameters);
+        return await this.callAsync("wapiPostWithdraw", parameters);
     }
 
-    public async Task<object> wapiPostSubAccountTransfer (object parameters = null)
+    public async Task<object> wapiPostSubAccountTransfer(object parameters = null)
     {
-        return await this.callAsync ("wapiPostSubAccountTransfer",parameters);
+        return await this.callAsync("wapiPostSubAccountTransfer", parameters);
     }
 
-    public async Task<object> wapiGetDepositHistory (object parameters = null)
+    public async Task<object> wapiGetDepositHistory(object parameters = null)
     {
-        return await this.callAsync ("wapiGetDepositHistory",parameters);
+        return await this.callAsync("wapiGetDepositHistory", parameters);
     }
 
-    public async Task<object> wapiGetWithdrawHistory (object parameters = null)
+    public async Task<object> wapiGetWithdrawHistory(object parameters = null)
     {
-        return await this.callAsync ("wapiGetWithdrawHistory",parameters);
+        return await this.callAsync("wapiGetWithdrawHistory", parameters);
     }
 
-    public async Task<object> wapiGetDepositAddress (object parameters = null)
+    public async Task<object> wapiGetDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("wapiGetDepositAddress",parameters);
+        return await this.callAsync("wapiGetDepositAddress", parameters);
     }
 
-    public async Task<object> wapiGetAccountStatus (object parameters = null)
+    public async Task<object> wapiGetAccountStatus(object parameters = null)
     {
-        return await this.callAsync ("wapiGetAccountStatus",parameters);
+        return await this.callAsync("wapiGetAccountStatus", parameters);
     }
 
-    public async Task<object> wapiGetSystemStatus (object parameters = null)
+    public async Task<object> wapiGetSystemStatus(object parameters = null)
     {
-        return await this.callAsync ("wapiGetSystemStatus",parameters);
+        return await this.callAsync("wapiGetSystemStatus", parameters);
     }
 
-    public async Task<object> wapiGetApiTradingStatus (object parameters = null)
+    public async Task<object> wapiGetApiTradingStatus(object parameters = null)
     {
-        return await this.callAsync ("wapiGetApiTradingStatus",parameters);
+        return await this.callAsync("wapiGetApiTradingStatus", parameters);
     }
 
-    public async Task<object> wapiGetUserAssetDribbletLog (object parameters = null)
+    public async Task<object> wapiGetUserAssetDribbletLog(object parameters = null)
     {
-        return await this.callAsync ("wapiGetUserAssetDribbletLog",parameters);
+        return await this.callAsync("wapiGetUserAssetDribbletLog", parameters);
     }
 
-    public async Task<object> wapiGetTradeFee (object parameters = null)
+    public async Task<object> wapiGetTradeFee(object parameters = null)
     {
-        return await this.callAsync ("wapiGetTradeFee",parameters);
+        return await this.callAsync("wapiGetTradeFee", parameters);
     }
 
-    public async Task<object> wapiGetAssetDetail (object parameters = null)
+    public async Task<object> wapiGetAssetDetail(object parameters = null)
     {
-        return await this.callAsync ("wapiGetAssetDetail",parameters);
+        return await this.callAsync("wapiGetAssetDetail", parameters);
     }
 
-    public async Task<object> wapiGetSubAccountList (object parameters = null)
+    public async Task<object> wapiGetSubAccountList(object parameters = null)
     {
-        return await this.callAsync ("wapiGetSubAccountList",parameters);
+        return await this.callAsync("wapiGetSubAccountList", parameters);
     }
 
-    public async Task<object> wapiGetSubAccountTransferHistory (object parameters = null)
+    public async Task<object> wapiGetSubAccountTransferHistory(object parameters = null)
     {
-        return await this.callAsync ("wapiGetSubAccountTransferHistory",parameters);
+        return await this.callAsync("wapiGetSubAccountTransferHistory", parameters);
     }
 
-    public async Task<object> wapiGetSubAccountAssets (object parameters = null)
+    public async Task<object> wapiGetSubAccountAssets(object parameters = null)
     {
-        return await this.callAsync ("wapiGetSubAccountAssets",parameters);
+        return await this.callAsync("wapiGetSubAccountAssets", parameters);
     }
 
-    public async Task<object> dapiPublicGetPing (object parameters = null)
+    public async Task<object> dapiPublicGetPing(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetPing",parameters);
+        return await this.callAsync("dapiPublicGetPing", parameters);
     }
 
-    public async Task<object> dapiPublicGetTime (object parameters = null)
+    public async Task<object> dapiPublicGetTime(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTime",parameters);
+        return await this.callAsync("dapiPublicGetTime", parameters);
     }
 
-    public async Task<object> dapiPublicGetExchangeInfo (object parameters = null)
+    public async Task<object> dapiPublicGetExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetExchangeInfo",parameters);
+        return await this.callAsync("dapiPublicGetExchangeInfo", parameters);
     }
 
-    public async Task<object> dapiPublicGetDepth (object parameters = null)
+    public async Task<object> dapiPublicGetDepth(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetDepth",parameters);
+        return await this.callAsync("dapiPublicGetDepth", parameters);
     }
 
-    public async Task<object> dapiPublicGetTrades (object parameters = null)
+    public async Task<object> dapiPublicGetTrades(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTrades",parameters);
+        return await this.callAsync("dapiPublicGetTrades", parameters);
     }
 
-    public async Task<object> dapiPublicGetHistoricalTrades (object parameters = null)
+    public async Task<object> dapiPublicGetHistoricalTrades(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetHistoricalTrades",parameters);
+        return await this.callAsync("dapiPublicGetHistoricalTrades", parameters);
     }
 
-    public async Task<object> dapiPublicGetAggTrades (object parameters = null)
+    public async Task<object> dapiPublicGetAggTrades(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetAggTrades",parameters);
+        return await this.callAsync("dapiPublicGetAggTrades", parameters);
     }
 
-    public async Task<object> dapiPublicGetPremiumIndex (object parameters = null)
+    public async Task<object> dapiPublicGetPremiumIndex(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetPremiumIndex",parameters);
+        return await this.callAsync("dapiPublicGetPremiumIndex", parameters);
     }
 
-    public async Task<object> dapiPublicGetFundingRate (object parameters = null)
+    public async Task<object> dapiPublicGetFundingRate(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetFundingRate",parameters);
+        return await this.callAsync("dapiPublicGetFundingRate", parameters);
     }
 
-    public async Task<object> dapiPublicGetKlines (object parameters = null)
+    public async Task<object> dapiPublicGetKlines(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetKlines",parameters);
+        return await this.callAsync("dapiPublicGetKlines", parameters);
     }
 
-    public async Task<object> dapiPublicGetContinuousKlines (object parameters = null)
+    public async Task<object> dapiPublicGetContinuousKlines(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetContinuousKlines",parameters);
+        return await this.callAsync("dapiPublicGetContinuousKlines", parameters);
     }
 
-    public async Task<object> dapiPublicGetIndexPriceKlines (object parameters = null)
+    public async Task<object> dapiPublicGetIndexPriceKlines(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetIndexPriceKlines",parameters);
+        return await this.callAsync("dapiPublicGetIndexPriceKlines", parameters);
     }
 
-    public async Task<object> dapiPublicGetMarkPriceKlines (object parameters = null)
+    public async Task<object> dapiPublicGetMarkPriceKlines(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetMarkPriceKlines",parameters);
+        return await this.callAsync("dapiPublicGetMarkPriceKlines", parameters);
     }
 
-    public async Task<object> dapiPublicGetTicker24hr (object parameters = null)
+    public async Task<object> dapiPublicGetTicker24hr(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTicker24hr",parameters);
+        return await this.callAsync("dapiPublicGetTicker24hr", parameters);
     }
 
-    public async Task<object> dapiPublicGetTickerPrice (object parameters = null)
+    public async Task<object> dapiPublicGetTickerPrice(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTickerPrice",parameters);
+        return await this.callAsync("dapiPublicGetTickerPrice", parameters);
     }
 
-    public async Task<object> dapiPublicGetTickerBookTicker (object parameters = null)
+    public async Task<object> dapiPublicGetTickerBookTicker(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTickerBookTicker",parameters);
+        return await this.callAsync("dapiPublicGetTickerBookTicker", parameters);
     }
 
-    public async Task<object> dapiPublicGetOpenInterest (object parameters = null)
+    public async Task<object> dapiPublicGetOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetOpenInterest",parameters);
+        return await this.callAsync("dapiPublicGetOpenInterest", parameters);
     }
 
-    public async Task<object> dapiPublicGetPmExchangeInfo (object parameters = null)
+    public async Task<object> dapiPublicGetPmExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetPmExchangeInfo",parameters);
+        return await this.callAsync("dapiPublicGetPmExchangeInfo", parameters);
     }
 
-    public async Task<object> dapiDataGetOpenInterestHist (object parameters = null)
+    public async Task<object> dapiDataGetOpenInterestHist(object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetOpenInterestHist",parameters);
+        return await this.callAsync("dapiDataGetOpenInterestHist", parameters);
     }
 
-    public async Task<object> dapiDataGetTopLongShortAccountRatio (object parameters = null)
+    public async Task<object> dapiDataGetTopLongShortAccountRatio(object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetTopLongShortAccountRatio",parameters);
+        return await this.callAsync("dapiDataGetTopLongShortAccountRatio", parameters);
     }
 
-    public async Task<object> dapiDataGetTopLongShortPositionRatio (object parameters = null)
+    public async Task<object> dapiDataGetTopLongShortPositionRatio(object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetTopLongShortPositionRatio",parameters);
+        return await this.callAsync("dapiDataGetTopLongShortPositionRatio", parameters);
     }
 
-    public async Task<object> dapiDataGetGlobalLongShortAccountRatio (object parameters = null)
+    public async Task<object> dapiDataGetGlobalLongShortAccountRatio(object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetGlobalLongShortAccountRatio",parameters);
+        return await this.callAsync("dapiDataGetGlobalLongShortAccountRatio", parameters);
     }
 
-    public async Task<object> dapiDataGetTakerBuySellVol (object parameters = null)
+    public async Task<object> dapiDataGetTakerBuySellVol(object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetTakerBuySellVol",parameters);
+        return await this.callAsync("dapiDataGetTakerBuySellVol", parameters);
     }
 
-    public async Task<object> dapiDataGetBasis (object parameters = null)
+    public async Task<object> dapiDataGetBasis(object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetBasis",parameters);
+        return await this.callAsync("dapiDataGetBasis", parameters);
     }
 
-    public async Task<object> dapiPrivateGetPositionSideDual (object parameters = null)
+    public async Task<object> dapiPrivateGetPositionSideDual(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPositionSideDual",parameters);
+        return await this.callAsync("dapiPrivateGetPositionSideDual", parameters);
     }
 
-    public async Task<object> dapiPrivateGetOrder (object parameters = null)
+    public async Task<object> dapiPrivateGetOrder(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOrder",parameters);
+        return await this.callAsync("dapiPrivateGetOrder", parameters);
     }
 
-    public async Task<object> dapiPrivateGetOpenOrder (object parameters = null)
+    public async Task<object> dapiPrivateGetOpenOrder(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOpenOrder",parameters);
+        return await this.callAsync("dapiPrivateGetOpenOrder", parameters);
     }
 
-    public async Task<object> dapiPrivateGetOpenOrders (object parameters = null)
+    public async Task<object> dapiPrivateGetOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOpenOrders",parameters);
+        return await this.callAsync("dapiPrivateGetOpenOrders", parameters);
     }
 
-    public async Task<object> dapiPrivateGetAllOrders (object parameters = null)
+    public async Task<object> dapiPrivateGetAllOrders(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetAllOrders",parameters);
+        return await this.callAsync("dapiPrivateGetAllOrders", parameters);
     }
 
-    public async Task<object> dapiPrivateGetBalance (object parameters = null)
+    public async Task<object> dapiPrivateGetBalance(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetBalance",parameters);
+        return await this.callAsync("dapiPrivateGetBalance", parameters);
     }
 
-    public async Task<object> dapiPrivateGetAccount (object parameters = null)
+    public async Task<object> dapiPrivateGetAccount(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetAccount",parameters);
+        return await this.callAsync("dapiPrivateGetAccount", parameters);
     }
 
-    public async Task<object> dapiPrivateGetPositionMarginHistory (object parameters = null)
+    public async Task<object> dapiPrivateGetPositionMarginHistory(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPositionMarginHistory",parameters);
+        return await this.callAsync("dapiPrivateGetPositionMarginHistory", parameters);
     }
 
-    public async Task<object> dapiPrivateGetPositionRisk (object parameters = null)
+    public async Task<object> dapiPrivateGetPositionRisk(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPositionRisk",parameters);
+        return await this.callAsync("dapiPrivateGetPositionRisk", parameters);
     }
 
-    public async Task<object> dapiPrivateGetUserTrades (object parameters = null)
+    public async Task<object> dapiPrivateGetUserTrades(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetUserTrades",parameters);
+        return await this.callAsync("dapiPrivateGetUserTrades", parameters);
     }
 
-    public async Task<object> dapiPrivateGetIncome (object parameters = null)
+    public async Task<object> dapiPrivateGetIncome(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetIncome",parameters);
+        return await this.callAsync("dapiPrivateGetIncome", parameters);
     }
 
-    public async Task<object> dapiPrivateGetLeverageBracket (object parameters = null)
+    public async Task<object> dapiPrivateGetLeverageBracket(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetLeverageBracket",parameters);
+        return await this.callAsync("dapiPrivateGetLeverageBracket", parameters);
     }
 
-    public async Task<object> dapiPrivateGetForceOrders (object parameters = null)
+    public async Task<object> dapiPrivateGetForceOrders(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetForceOrders",parameters);
+        return await this.callAsync("dapiPrivateGetForceOrders", parameters);
     }
 
-    public async Task<object> dapiPrivateGetAdlQuantile (object parameters = null)
+    public async Task<object> dapiPrivateGetAdlQuantile(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetAdlQuantile",parameters);
+        return await this.callAsync("dapiPrivateGetAdlQuantile", parameters);
     }
 
-    public async Task<object> dapiPrivateGetOrderAmendment (object parameters = null)
+    public async Task<object> dapiPrivateGetOrderAmendment(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOrderAmendment",parameters);
+        return await this.callAsync("dapiPrivateGetOrderAmendment", parameters);
     }
 
-    public async Task<object> dapiPrivateGetPmAccountInfo (object parameters = null)
+    public async Task<object> dapiPrivateGetPmAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPmAccountInfo",parameters);
+        return await this.callAsync("dapiPrivateGetPmAccountInfo", parameters);
     }
 
-    public async Task<object> dapiPrivatePostPositionSideDual (object parameters = null)
+    public async Task<object> dapiPrivatePostPositionSideDual(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostPositionSideDual",parameters);
+        return await this.callAsync("dapiPrivatePostPositionSideDual", parameters);
     }
 
-    public async Task<object> dapiPrivatePostOrder (object parameters = null)
+    public async Task<object> dapiPrivatePostOrder(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostOrder",parameters);
+        return await this.callAsync("dapiPrivatePostOrder", parameters);
     }
 
-    public async Task<object> dapiPrivatePostBatchOrders (object parameters = null)
+    public async Task<object> dapiPrivatePostBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostBatchOrders",parameters);
+        return await this.callAsync("dapiPrivatePostBatchOrders", parameters);
     }
 
-    public async Task<object> dapiPrivatePostCountdownCancelAll (object parameters = null)
+    public async Task<object> dapiPrivatePostCountdownCancelAll(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostCountdownCancelAll",parameters);
+        return await this.callAsync("dapiPrivatePostCountdownCancelAll", parameters);
     }
 
-    public async Task<object> dapiPrivatePostLeverage (object parameters = null)
+    public async Task<object> dapiPrivatePostLeverage(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostLeverage",parameters);
+        return await this.callAsync("dapiPrivatePostLeverage", parameters);
     }
 
-    public async Task<object> dapiPrivatePostMarginType (object parameters = null)
+    public async Task<object> dapiPrivatePostMarginType(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostMarginType",parameters);
+        return await this.callAsync("dapiPrivatePostMarginType", parameters);
     }
 
-    public async Task<object> dapiPrivatePostPositionMargin (object parameters = null)
+    public async Task<object> dapiPrivatePostPositionMargin(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostPositionMargin",parameters);
+        return await this.callAsync("dapiPrivatePostPositionMargin", parameters);
     }
 
-    public async Task<object> dapiPrivatePostListenKey (object parameters = null)
+    public async Task<object> dapiPrivatePostListenKey(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostListenKey",parameters);
+        return await this.callAsync("dapiPrivatePostListenKey", parameters);
     }
 
-    public async Task<object> dapiPrivatePutListenKey (object parameters = null)
+    public async Task<object> dapiPrivatePutListenKey(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePutListenKey",parameters);
+        return await this.callAsync("dapiPrivatePutListenKey", parameters);
     }
 
-    public async Task<object> dapiPrivatePutOrder (object parameters = null)
+    public async Task<object> dapiPrivatePutOrder(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePutOrder",parameters);
+        return await this.callAsync("dapiPrivatePutOrder", parameters);
     }
 
-    public async Task<object> dapiPrivatePutBatchOrders (object parameters = null)
+    public async Task<object> dapiPrivatePutBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePutBatchOrders",parameters);
+        return await this.callAsync("dapiPrivatePutBatchOrders", parameters);
     }
 
-    public async Task<object> dapiPrivateDeleteOrder (object parameters = null)
+    public async Task<object> dapiPrivateDeleteOrder(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteOrder",parameters);
+        return await this.callAsync("dapiPrivateDeleteOrder", parameters);
     }
 
-    public async Task<object> dapiPrivateDeleteAllOpenOrders (object parameters = null)
+    public async Task<object> dapiPrivateDeleteAllOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteAllOpenOrders",parameters);
+        return await this.callAsync("dapiPrivateDeleteAllOpenOrders", parameters);
     }
 
-    public async Task<object> dapiPrivateDeleteBatchOrders (object parameters = null)
+    public async Task<object> dapiPrivateDeleteBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteBatchOrders",parameters);
+        return await this.callAsync("dapiPrivateDeleteBatchOrders", parameters);
     }
 
-    public async Task<object> dapiPrivateDeleteListenKey (object parameters = null)
+    public async Task<object> dapiPrivateDeleteListenKey(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteListenKey",parameters);
+        return await this.callAsync("dapiPrivateDeleteListenKey", parameters);
     }
 
-    public async Task<object> dapiPrivateV2GetLeverageBracket (object parameters = null)
+    public async Task<object> dapiPrivateV2GetLeverageBracket(object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateV2GetLeverageBracket",parameters);
+        return await this.callAsync("dapiPrivateV2GetLeverageBracket", parameters);
     }
 
-    public async Task<object> fapiPublicGetPing (object parameters = null)
+    public async Task<object> fapiPublicGetPing(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetPing",parameters);
+        return await this.callAsync("fapiPublicGetPing", parameters);
     }
 
-    public async Task<object> fapiPublicGetTime (object parameters = null)
+    public async Task<object> fapiPublicGetTime(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTime",parameters);
+        return await this.callAsync("fapiPublicGetTime", parameters);
     }
 
-    public async Task<object> fapiPublicGetExchangeInfo (object parameters = null)
+    public async Task<object> fapiPublicGetExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetExchangeInfo",parameters);
+        return await this.callAsync("fapiPublicGetExchangeInfo", parameters);
     }
 
-    public async Task<object> fapiPublicGetDepth (object parameters = null)
+    public async Task<object> fapiPublicGetDepth(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetDepth",parameters);
+        return await this.callAsync("fapiPublicGetDepth", parameters);
     }
 
-    public async Task<object> fapiPublicGetTrades (object parameters = null)
+    public async Task<object> fapiPublicGetTrades(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTrades",parameters);
+        return await this.callAsync("fapiPublicGetTrades", parameters);
     }
 
-    public async Task<object> fapiPublicGetHistoricalTrades (object parameters = null)
+    public async Task<object> fapiPublicGetHistoricalTrades(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetHistoricalTrades",parameters);
+        return await this.callAsync("fapiPublicGetHistoricalTrades", parameters);
     }
 
-    public async Task<object> fapiPublicGetAggTrades (object parameters = null)
+    public async Task<object> fapiPublicGetAggTrades(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetAggTrades",parameters);
+        return await this.callAsync("fapiPublicGetAggTrades", parameters);
     }
 
-    public async Task<object> fapiPublicGetKlines (object parameters = null)
+    public async Task<object> fapiPublicGetKlines(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetKlines",parameters);
+        return await this.callAsync("fapiPublicGetKlines", parameters);
     }
 
-    public async Task<object> fapiPublicGetContinuousKlines (object parameters = null)
+    public async Task<object> fapiPublicGetContinuousKlines(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetContinuousKlines",parameters);
+        return await this.callAsync("fapiPublicGetContinuousKlines", parameters);
     }
 
-    public async Task<object> fapiPublicGetMarkPriceKlines (object parameters = null)
+    public async Task<object> fapiPublicGetMarkPriceKlines(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetMarkPriceKlines",parameters);
+        return await this.callAsync("fapiPublicGetMarkPriceKlines", parameters);
     }
 
-    public async Task<object> fapiPublicGetIndexPriceKlines (object parameters = null)
+    public async Task<object> fapiPublicGetIndexPriceKlines(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetIndexPriceKlines",parameters);
+        return await this.callAsync("fapiPublicGetIndexPriceKlines", parameters);
     }
 
-    public async Task<object> fapiPublicGetFundingRate (object parameters = null)
+    public async Task<object> fapiPublicGetFundingRate(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetFundingRate",parameters);
+        return await this.callAsync("fapiPublicGetFundingRate", parameters);
     }
 
-    public async Task<object> fapiPublicGetPremiumIndex (object parameters = null)
+    public async Task<object> fapiPublicGetPremiumIndex(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetPremiumIndex",parameters);
+        return await this.callAsync("fapiPublicGetPremiumIndex", parameters);
     }
 
-    public async Task<object> fapiPublicGetTicker24hr (object parameters = null)
+    public async Task<object> fapiPublicGetTicker24hr(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTicker24hr",parameters);
+        return await this.callAsync("fapiPublicGetTicker24hr", parameters);
     }
 
-    public async Task<object> fapiPublicGetTickerPrice (object parameters = null)
+    public async Task<object> fapiPublicGetTickerPrice(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTickerPrice",parameters);
+        return await this.callAsync("fapiPublicGetTickerPrice", parameters);
     }
 
-    public async Task<object> fapiPublicGetTickerBookTicker (object parameters = null)
+    public async Task<object> fapiPublicGetTickerBookTicker(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTickerBookTicker",parameters);
+        return await this.callAsync("fapiPublicGetTickerBookTicker", parameters);
     }
 
-    public async Task<object> fapiPublicGetOpenInterest (object parameters = null)
+    public async Task<object> fapiPublicGetOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetOpenInterest",parameters);
+        return await this.callAsync("fapiPublicGetOpenInterest", parameters);
     }
 
-    public async Task<object> fapiPublicGetIndexInfo (object parameters = null)
+    public async Task<object> fapiPublicGetIndexInfo(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetIndexInfo",parameters);
+        return await this.callAsync("fapiPublicGetIndexInfo", parameters);
     }
 
-    public async Task<object> fapiPublicGetApiTradingStatus (object parameters = null)
+    public async Task<object> fapiPublicGetApiTradingStatus(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetApiTradingStatus",parameters);
+        return await this.callAsync("fapiPublicGetApiTradingStatus", parameters);
     }
 
-    public async Task<object> fapiPublicGetLvtKlines (object parameters = null)
+    public async Task<object> fapiPublicGetLvtKlines(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetLvtKlines",parameters);
+        return await this.callAsync("fapiPublicGetLvtKlines", parameters);
     }
 
-    public async Task<object> fapiPublicGetPmExchangeInfo (object parameters = null)
+    public async Task<object> fapiPublicGetPmExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetPmExchangeInfo",parameters);
+        return await this.callAsync("fapiPublicGetPmExchangeInfo", parameters);
     }
 
-    public async Task<object> fapiDataGetOpenInterestHist (object parameters = null)
+    public async Task<object> fapiDataGetOpenInterestHist(object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetOpenInterestHist",parameters);
+        return await this.callAsync("fapiDataGetOpenInterestHist", parameters);
     }
 
-    public async Task<object> fapiDataGetTopLongShortAccountRatio (object parameters = null)
+    public async Task<object> fapiDataGetTopLongShortAccountRatio(object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetTopLongShortAccountRatio",parameters);
+        return await this.callAsync("fapiDataGetTopLongShortAccountRatio", parameters);
     }
 
-    public async Task<object> fapiDataGetTopLongShortPositionRatio (object parameters = null)
+    public async Task<object> fapiDataGetTopLongShortPositionRatio(object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetTopLongShortPositionRatio",parameters);
+        return await this.callAsync("fapiDataGetTopLongShortPositionRatio", parameters);
     }
 
-    public async Task<object> fapiDataGetGlobalLongShortAccountRatio (object parameters = null)
+    public async Task<object> fapiDataGetGlobalLongShortAccountRatio(object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetGlobalLongShortAccountRatio",parameters);
+        return await this.callAsync("fapiDataGetGlobalLongShortAccountRatio", parameters);
     }
 
-    public async Task<object> fapiDataGetTakerlongshortRatio (object parameters = null)
+    public async Task<object> fapiDataGetTakerlongshortRatio(object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetTakerlongshortRatio",parameters);
+        return await this.callAsync("fapiDataGetTakerlongshortRatio", parameters);
     }
 
-    public async Task<object> fapiPrivateGetForceOrders (object parameters = null)
+    public async Task<object> fapiPrivateGetForceOrders(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetForceOrders",parameters);
+        return await this.callAsync("fapiPrivateGetForceOrders", parameters);
     }
 
-    public async Task<object> fapiPrivateGetAllOrders (object parameters = null)
+    public async Task<object> fapiPrivateGetAllOrders(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAllOrders",parameters);
+        return await this.callAsync("fapiPrivateGetAllOrders", parameters);
     }
 
-    public async Task<object> fapiPrivateGetOpenOrder (object parameters = null)
+    public async Task<object> fapiPrivateGetOpenOrder(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOpenOrder",parameters);
+        return await this.callAsync("fapiPrivateGetOpenOrder", parameters);
     }
 
-    public async Task<object> fapiPrivateGetOpenOrders (object parameters = null)
+    public async Task<object> fapiPrivateGetOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOpenOrders",parameters);
+        return await this.callAsync("fapiPrivateGetOpenOrders", parameters);
     }
 
-    public async Task<object> fapiPrivateGetOrder (object parameters = null)
+    public async Task<object> fapiPrivateGetOrder(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOrder",parameters);
+        return await this.callAsync("fapiPrivateGetOrder", parameters);
     }
 
-    public async Task<object> fapiPrivateGetAccount (object parameters = null)
+    public async Task<object> fapiPrivateGetAccount(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAccount",parameters);
+        return await this.callAsync("fapiPrivateGetAccount", parameters);
     }
 
-    public async Task<object> fapiPrivateGetBalance (object parameters = null)
+    public async Task<object> fapiPrivateGetBalance(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetBalance",parameters);
+        return await this.callAsync("fapiPrivateGetBalance", parameters);
     }
 
-    public async Task<object> fapiPrivateGetLeverageBracket (object parameters = null)
+    public async Task<object> fapiPrivateGetLeverageBracket(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetLeverageBracket",parameters);
+        return await this.callAsync("fapiPrivateGetLeverageBracket", parameters);
     }
 
-    public async Task<object> fapiPrivateGetPositionMarginHistory (object parameters = null)
+    public async Task<object> fapiPrivateGetPositionMarginHistory(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetPositionMarginHistory",parameters);
+        return await this.callAsync("fapiPrivateGetPositionMarginHistory", parameters);
     }
 
-    public async Task<object> fapiPrivateGetPositionRisk (object parameters = null)
+    public async Task<object> fapiPrivateGetPositionRisk(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetPositionRisk",parameters);
+        return await this.callAsync("fapiPrivateGetPositionRisk", parameters);
     }
 
-    public async Task<object> fapiPrivateGetPositionSideDual (object parameters = null)
+    public async Task<object> fapiPrivateGetPositionSideDual(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetPositionSideDual",parameters);
+        return await this.callAsync("fapiPrivateGetPositionSideDual", parameters);
     }
 
-    public async Task<object> fapiPrivateGetUserTrades (object parameters = null)
+    public async Task<object> fapiPrivateGetUserTrades(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetUserTrades",parameters);
+        return await this.callAsync("fapiPrivateGetUserTrades", parameters);
     }
 
-    public async Task<object> fapiPrivateGetIncome (object parameters = null)
+    public async Task<object> fapiPrivateGetIncome(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetIncome",parameters);
+        return await this.callAsync("fapiPrivateGetIncome", parameters);
     }
 
-    public async Task<object> fapiPrivateGetCommissionRate (object parameters = null)
+    public async Task<object> fapiPrivateGetCommissionRate(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetCommissionRate",parameters);
+        return await this.callAsync("fapiPrivateGetCommissionRate", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiTradingStatus (object parameters = null)
+    public async Task<object> fapiPrivateGetApiTradingStatus(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiTradingStatus",parameters);
+        return await this.callAsync("fapiPrivateGetApiTradingStatus", parameters);
     }
 
-    public async Task<object> fapiPrivateGetMultiAssetsMargin (object parameters = null)
+    public async Task<object> fapiPrivateGetMultiAssetsMargin(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetMultiAssetsMargin",parameters);
+        return await this.callAsync("fapiPrivateGetMultiAssetsMargin", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiReferralIfNewUser (object parameters = null)
+    public async Task<object> fapiPrivateGetApiReferralIfNewUser(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralIfNewUser",parameters);
+        return await this.callAsync("fapiPrivateGetApiReferralIfNewUser", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiReferralCustomization (object parameters = null)
+    public async Task<object> fapiPrivateGetApiReferralCustomization(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralCustomization",parameters);
+        return await this.callAsync("fapiPrivateGetApiReferralCustomization", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiReferralUserCustomization (object parameters = null)
+    public async Task<object> fapiPrivateGetApiReferralUserCustomization(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralUserCustomization",parameters);
+        return await this.callAsync("fapiPrivateGetApiReferralUserCustomization", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiReferralTraderNum (object parameters = null)
+    public async Task<object> fapiPrivateGetApiReferralTraderNum(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralTraderNum",parameters);
+        return await this.callAsync("fapiPrivateGetApiReferralTraderNum", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiReferralOverview (object parameters = null)
+    public async Task<object> fapiPrivateGetApiReferralOverview(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralOverview",parameters);
+        return await this.callAsync("fapiPrivateGetApiReferralOverview", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiReferralTradeVol (object parameters = null)
+    public async Task<object> fapiPrivateGetApiReferralTradeVol(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralTradeVol",parameters);
+        return await this.callAsync("fapiPrivateGetApiReferralTradeVol", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiReferralRebateVol (object parameters = null)
+    public async Task<object> fapiPrivateGetApiReferralRebateVol(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralRebateVol",parameters);
+        return await this.callAsync("fapiPrivateGetApiReferralRebateVol", parameters);
     }
 
-    public async Task<object> fapiPrivateGetApiReferralTraderSummary (object parameters = null)
+    public async Task<object> fapiPrivateGetApiReferralTraderSummary(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralTraderSummary",parameters);
+        return await this.callAsync("fapiPrivateGetApiReferralTraderSummary", parameters);
     }
 
-    public async Task<object> fapiPrivateGetAdlQuantile (object parameters = null)
+    public async Task<object> fapiPrivateGetAdlQuantile(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAdlQuantile",parameters);
+        return await this.callAsync("fapiPrivateGetAdlQuantile", parameters);
     }
 
-    public async Task<object> fapiPrivateGetPmAccountInfo (object parameters = null)
+    public async Task<object> fapiPrivateGetPmAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetPmAccountInfo",parameters);
+        return await this.callAsync("fapiPrivateGetPmAccountInfo", parameters);
     }
 
-    public async Task<object> fapiPrivatePostBatchOrders (object parameters = null)
+    public async Task<object> fapiPrivatePostBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostBatchOrders",parameters);
+        return await this.callAsync("fapiPrivatePostBatchOrders", parameters);
     }
 
-    public async Task<object> fapiPrivatePostPositionSideDual (object parameters = null)
+    public async Task<object> fapiPrivatePostPositionSideDual(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostPositionSideDual",parameters);
+        return await this.callAsync("fapiPrivatePostPositionSideDual", parameters);
     }
 
-    public async Task<object> fapiPrivatePostPositionMargin (object parameters = null)
+    public async Task<object> fapiPrivatePostPositionMargin(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostPositionMargin",parameters);
+        return await this.callAsync("fapiPrivatePostPositionMargin", parameters);
     }
 
-    public async Task<object> fapiPrivatePostMarginType (object parameters = null)
+    public async Task<object> fapiPrivatePostMarginType(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostMarginType",parameters);
+        return await this.callAsync("fapiPrivatePostMarginType", parameters);
     }
 
-    public async Task<object> fapiPrivatePostOrder (object parameters = null)
+    public async Task<object> fapiPrivatePostOrder(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostOrder",parameters);
+        return await this.callAsync("fapiPrivatePostOrder", parameters);
     }
 
-    public async Task<object> fapiPrivatePostLeverage (object parameters = null)
+    public async Task<object> fapiPrivatePostLeverage(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostLeverage",parameters);
+        return await this.callAsync("fapiPrivatePostLeverage", parameters);
     }
 
-    public async Task<object> fapiPrivatePostListenKey (object parameters = null)
+    public async Task<object> fapiPrivatePostListenKey(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostListenKey",parameters);
+        return await this.callAsync("fapiPrivatePostListenKey", parameters);
     }
 
-    public async Task<object> fapiPrivatePostCountdownCancelAll (object parameters = null)
+    public async Task<object> fapiPrivatePostCountdownCancelAll(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostCountdownCancelAll",parameters);
+        return await this.callAsync("fapiPrivatePostCountdownCancelAll", parameters);
     }
 
-    public async Task<object> fapiPrivatePostMultiAssetsMargin (object parameters = null)
+    public async Task<object> fapiPrivatePostMultiAssetsMargin(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostMultiAssetsMargin",parameters);
+        return await this.callAsync("fapiPrivatePostMultiAssetsMargin", parameters);
     }
 
-    public async Task<object> fapiPrivatePostApiReferralCustomization (object parameters = null)
+    public async Task<object> fapiPrivatePostApiReferralCustomization(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostApiReferralCustomization",parameters);
+        return await this.callAsync("fapiPrivatePostApiReferralCustomization", parameters);
     }
 
-    public async Task<object> fapiPrivatePostApiReferralUserCustomization (object parameters = null)
+    public async Task<object> fapiPrivatePostApiReferralUserCustomization(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostApiReferralUserCustomization",parameters);
+        return await this.callAsync("fapiPrivatePostApiReferralUserCustomization", parameters);
     }
 
-    public async Task<object> fapiPrivatePutListenKey (object parameters = null)
+    public async Task<object> fapiPrivatePutListenKey(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePutListenKey",parameters);
+        return await this.callAsync("fapiPrivatePutListenKey", parameters);
     }
 
-    public async Task<object> fapiPrivateDeleteBatchOrders (object parameters = null)
+    public async Task<object> fapiPrivateDeleteBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteBatchOrders",parameters);
+        return await this.callAsync("fapiPrivateDeleteBatchOrders", parameters);
     }
 
-    public async Task<object> fapiPrivateDeleteOrder (object parameters = null)
+    public async Task<object> fapiPrivateDeleteOrder(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteOrder",parameters);
+        return await this.callAsync("fapiPrivateDeleteOrder", parameters);
     }
 
-    public async Task<object> fapiPrivateDeleteAllOpenOrders (object parameters = null)
+    public async Task<object> fapiPrivateDeleteAllOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteAllOpenOrders",parameters);
+        return await this.callAsync("fapiPrivateDeleteAllOpenOrders", parameters);
     }
 
-    public async Task<object> fapiPrivateDeleteListenKey (object parameters = null)
+    public async Task<object> fapiPrivateDeleteListenKey(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteListenKey",parameters);
+        return await this.callAsync("fapiPrivateDeleteListenKey", parameters);
     }
 
-    public async Task<object> fapiPrivateV2GetAccount (object parameters = null)
+    public async Task<object> fapiPrivateV2GetAccount(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV2GetAccount",parameters);
+        return await this.callAsync("fapiPrivateV2GetAccount", parameters);
     }
 
-    public async Task<object> fapiPrivateV2GetBalance (object parameters = null)
+    public async Task<object> fapiPrivateV2GetBalance(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV2GetBalance",parameters);
+        return await this.callAsync("fapiPrivateV2GetBalance", parameters);
     }
 
-    public async Task<object> fapiPrivateV2GetPositionRisk (object parameters = null)
+    public async Task<object> fapiPrivateV2GetPositionRisk(object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV2GetPositionRisk",parameters);
+        return await this.callAsync("fapiPrivateV2GetPositionRisk", parameters);
     }
 
-    public async Task<object> eapiPublicGetPing (object parameters = null)
+    public async Task<object> eapiPublicGetPing(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetPing",parameters);
+        return await this.callAsync("eapiPublicGetPing", parameters);
     }
 
-    public async Task<object> eapiPublicGetTime (object parameters = null)
+    public async Task<object> eapiPublicGetTime(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetTime",parameters);
+        return await this.callAsync("eapiPublicGetTime", parameters);
     }
 
-    public async Task<object> eapiPublicGetExchangeInfo (object parameters = null)
+    public async Task<object> eapiPublicGetExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetExchangeInfo",parameters);
+        return await this.callAsync("eapiPublicGetExchangeInfo", parameters);
     }
 
-    public async Task<object> eapiPublicGetIndex (object parameters = null)
+    public async Task<object> eapiPublicGetIndex(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetIndex",parameters);
+        return await this.callAsync("eapiPublicGetIndex", parameters);
     }
 
-    public async Task<object> eapiPublicGetTicker (object parameters = null)
+    public async Task<object> eapiPublicGetTicker(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetTicker",parameters);
+        return await this.callAsync("eapiPublicGetTicker", parameters);
     }
 
-    public async Task<object> eapiPublicGetMark (object parameters = null)
+    public async Task<object> eapiPublicGetMark(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetMark",parameters);
+        return await this.callAsync("eapiPublicGetMark", parameters);
     }
 
-    public async Task<object> eapiPublicGetDepth (object parameters = null)
+    public async Task<object> eapiPublicGetDepth(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetDepth",parameters);
+        return await this.callAsync("eapiPublicGetDepth", parameters);
     }
 
-    public async Task<object> eapiPublicGetKlines (object parameters = null)
+    public async Task<object> eapiPublicGetKlines(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetKlines",parameters);
+        return await this.callAsync("eapiPublicGetKlines", parameters);
     }
 
-    public async Task<object> eapiPublicGetTrades (object parameters = null)
+    public async Task<object> eapiPublicGetTrades(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetTrades",parameters);
+        return await this.callAsync("eapiPublicGetTrades", parameters);
     }
 
-    public async Task<object> eapiPublicGetHistoricalTrades (object parameters = null)
+    public async Task<object> eapiPublicGetHistoricalTrades(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetHistoricalTrades",parameters);
+        return await this.callAsync("eapiPublicGetHistoricalTrades", parameters);
     }
 
-    public async Task<object> eapiPublicGetExerciseHistory (object parameters = null)
+    public async Task<object> eapiPublicGetExerciseHistory(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetExerciseHistory",parameters);
+        return await this.callAsync("eapiPublicGetExerciseHistory", parameters);
     }
 
-    public async Task<object> eapiPublicGetOpenInterest (object parameters = null)
+    public async Task<object> eapiPublicGetOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetOpenInterest",parameters);
+        return await this.callAsync("eapiPublicGetOpenInterest", parameters);
     }
 
-    public async Task<object> eapiPrivateGetAccount (object parameters = null)
+    public async Task<object> eapiPrivateGetAccount(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetAccount",parameters);
+        return await this.callAsync("eapiPrivateGetAccount", parameters);
     }
 
-    public async Task<object> eapiPrivateGetPosition (object parameters = null)
+    public async Task<object> eapiPrivateGetPosition(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetPosition",parameters);
+        return await this.callAsync("eapiPrivateGetPosition", parameters);
     }
 
-    public async Task<object> eapiPrivateGetOpenOrders (object parameters = null)
+    public async Task<object> eapiPrivateGetOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetOpenOrders",parameters);
+        return await this.callAsync("eapiPrivateGetOpenOrders", parameters);
     }
 
-    public async Task<object> eapiPrivateGetHistoryOrders (object parameters = null)
+    public async Task<object> eapiPrivateGetHistoryOrders(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetHistoryOrders",parameters);
+        return await this.callAsync("eapiPrivateGetHistoryOrders", parameters);
     }
 
-    public async Task<object> eapiPrivateGetUserTrades (object parameters = null)
+    public async Task<object> eapiPrivateGetUserTrades(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetUserTrades",parameters);
+        return await this.callAsync("eapiPrivateGetUserTrades", parameters);
     }
 
-    public async Task<object> eapiPrivateGetExerciseRecord (object parameters = null)
+    public async Task<object> eapiPrivateGetExerciseRecord(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetExerciseRecord",parameters);
+        return await this.callAsync("eapiPrivateGetExerciseRecord", parameters);
     }
 
-    public async Task<object> eapiPrivateGetBill (object parameters = null)
+    public async Task<object> eapiPrivateGetBill(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetBill",parameters);
+        return await this.callAsync("eapiPrivateGetBill", parameters);
     }
 
-    public async Task<object> eapiPrivateGetMarginAccount (object parameters = null)
+    public async Task<object> eapiPrivateGetMarginAccount(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetMarginAccount",parameters);
+        return await this.callAsync("eapiPrivateGetMarginAccount", parameters);
     }
 
-    public async Task<object> eapiPrivateGetMmp (object parameters = null)
+    public async Task<object> eapiPrivateGetMmp(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetMmp",parameters);
+        return await this.callAsync("eapiPrivateGetMmp", parameters);
     }
 
-    public async Task<object> eapiPrivateGetCountdownCancelAll (object parameters = null)
+    public async Task<object> eapiPrivateGetCountdownCancelAll(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetCountdownCancelAll",parameters);
+        return await this.callAsync("eapiPrivateGetCountdownCancelAll", parameters);
     }
 
-    public async Task<object> eapiPrivateGetOrder (object parameters = null)
+    public async Task<object> eapiPrivateGetOrder(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetOrder",parameters);
+        return await this.callAsync("eapiPrivateGetOrder", parameters);
     }
 
-    public async Task<object> eapiPrivatePostOrder (object parameters = null)
+    public async Task<object> eapiPrivatePostOrder(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostOrder",parameters);
+        return await this.callAsync("eapiPrivatePostOrder", parameters);
     }
 
-    public async Task<object> eapiPrivatePostBatchOrders (object parameters = null)
+    public async Task<object> eapiPrivatePostBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostBatchOrders",parameters);
+        return await this.callAsync("eapiPrivatePostBatchOrders", parameters);
     }
 
-    public async Task<object> eapiPrivatePostListenKey (object parameters = null)
+    public async Task<object> eapiPrivatePostListenKey(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostListenKey",parameters);
+        return await this.callAsync("eapiPrivatePostListenKey", parameters);
     }
 
-    public async Task<object> eapiPrivatePostMmpSet (object parameters = null)
+    public async Task<object> eapiPrivatePostMmpSet(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostMmpSet",parameters);
+        return await this.callAsync("eapiPrivatePostMmpSet", parameters);
     }
 
-    public async Task<object> eapiPrivatePostMmpReset (object parameters = null)
+    public async Task<object> eapiPrivatePostMmpReset(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostMmpReset",parameters);
+        return await this.callAsync("eapiPrivatePostMmpReset", parameters);
     }
 
-    public async Task<object> eapiPrivatePostCountdownCancelAll (object parameters = null)
+    public async Task<object> eapiPrivatePostCountdownCancelAll(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostCountdownCancelAll",parameters);
+        return await this.callAsync("eapiPrivatePostCountdownCancelAll", parameters);
     }
 
-    public async Task<object> eapiPrivatePostCountdownCancelAllHeartBeat (object parameters = null)
+    public async Task<object> eapiPrivatePostCountdownCancelAllHeartBeat(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostCountdownCancelAllHeartBeat",parameters);
+        return await this.callAsync("eapiPrivatePostCountdownCancelAllHeartBeat", parameters);
     }
 
-    public async Task<object> eapiPrivatePutListenKey (object parameters = null)
+    public async Task<object> eapiPrivatePutListenKey(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePutListenKey",parameters);
+        return await this.callAsync("eapiPrivatePutListenKey", parameters);
     }
 
-    public async Task<object> eapiPrivateDeleteOrder (object parameters = null)
+    public async Task<object> eapiPrivateDeleteOrder(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteOrder",parameters);
+        return await this.callAsync("eapiPrivateDeleteOrder", parameters);
     }
 
-    public async Task<object> eapiPrivateDeleteBatchOrders (object parameters = null)
+    public async Task<object> eapiPrivateDeleteBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteBatchOrders",parameters);
+        return await this.callAsync("eapiPrivateDeleteBatchOrders", parameters);
     }
 
-    public async Task<object> eapiPrivateDeleteAllOpenOrders (object parameters = null)
+    public async Task<object> eapiPrivateDeleteAllOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteAllOpenOrders",parameters);
+        return await this.callAsync("eapiPrivateDeleteAllOpenOrders", parameters);
     }
 
-    public async Task<object> eapiPrivateDeleteAllOpenOrdersByUnderlying (object parameters = null)
+    public async Task<object> eapiPrivateDeleteAllOpenOrdersByUnderlying(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteAllOpenOrdersByUnderlying",parameters);
+        return await this.callAsync("eapiPrivateDeleteAllOpenOrdersByUnderlying", parameters);
     }
 
-    public async Task<object> eapiPrivateDeleteListenKey (object parameters = null)
+    public async Task<object> eapiPrivateDeleteListenKey(object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteListenKey",parameters);
+        return await this.callAsync("eapiPrivateDeleteListenKey", parameters);
     }
 
-    public async Task<object> publicGetPing (object parameters = null)
+    public async Task<object> publicGetPing(object parameters = null)
     {
-        return await this.callAsync ("publicGetPing",parameters);
+        return await this.callAsync("publicGetPing", parameters);
     }
 
-    public async Task<object> publicGetTime (object parameters = null)
+    public async Task<object> publicGetTime(object parameters = null)
     {
-        return await this.callAsync ("publicGetTime",parameters);
+        return await this.callAsync("publicGetTime", parameters);
     }
 
-    public async Task<object> publicGetDepth (object parameters = null)
+    public async Task<object> publicGetDepth(object parameters = null)
     {
-        return await this.callAsync ("publicGetDepth",parameters);
+        return await this.callAsync("publicGetDepth", parameters);
     }
 
-    public async Task<object> publicGetTrades (object parameters = null)
+    public async Task<object> publicGetTrades(object parameters = null)
     {
-        return await this.callAsync ("publicGetTrades",parameters);
+        return await this.callAsync("publicGetTrades", parameters);
     }
 
-    public async Task<object> publicGetAggTrades (object parameters = null)
+    public async Task<object> publicGetAggTrades(object parameters = null)
     {
-        return await this.callAsync ("publicGetAggTrades",parameters);
+        return await this.callAsync("publicGetAggTrades", parameters);
     }
 
-    public async Task<object> publicGetHistoricalTrades (object parameters = null)
+    public async Task<object> publicGetHistoricalTrades(object parameters = null)
     {
-        return await this.callAsync ("publicGetHistoricalTrades",parameters);
+        return await this.callAsync("publicGetHistoricalTrades", parameters);
     }
 
-    public async Task<object> publicGetKlines (object parameters = null)
+    public async Task<object> publicGetKlines(object parameters = null)
     {
-        return await this.callAsync ("publicGetKlines",parameters);
+        return await this.callAsync("publicGetKlines", parameters);
     }
 
-    public async Task<object> publicGetTicker24hr (object parameters = null)
+    public async Task<object> publicGetTicker24hr(object parameters = null)
     {
-        return await this.callAsync ("publicGetTicker24hr",parameters);
+        return await this.callAsync("publicGetTicker24hr", parameters);
     }
 
-    public async Task<object> publicGetTickerPrice (object parameters = null)
+    public async Task<object> publicGetTickerPrice(object parameters = null)
     {
-        return await this.callAsync ("publicGetTickerPrice",parameters);
+        return await this.callAsync("publicGetTickerPrice", parameters);
     }
 
-    public async Task<object> publicGetTickerBookTicker (object parameters = null)
+    public async Task<object> publicGetTickerBookTicker(object parameters = null)
     {
-        return await this.callAsync ("publicGetTickerBookTicker",parameters);
+        return await this.callAsync("publicGetTickerBookTicker", parameters);
     }
 
-    public async Task<object> publicGetExchangeInfo (object parameters = null)
+    public async Task<object> publicGetExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("publicGetExchangeInfo",parameters);
+        return await this.callAsync("publicGetExchangeInfo", parameters);
     }
 
-    public async Task<object> publicPutUserDataStream (object parameters = null)
+    public async Task<object> publicPutUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("publicPutUserDataStream",parameters);
+        return await this.callAsync("publicPutUserDataStream", parameters);
     }
 
-    public async Task<object> publicPostUserDataStream (object parameters = null)
+    public async Task<object> publicPostUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("publicPostUserDataStream",parameters);
+        return await this.callAsync("publicPostUserDataStream", parameters);
     }
 
-    public async Task<object> publicDeleteUserDataStream (object parameters = null)
+    public async Task<object> publicDeleteUserDataStream(object parameters = null)
     {
-        return await this.callAsync ("publicDeleteUserDataStream",parameters);
+        return await this.callAsync("publicDeleteUserDataStream", parameters);
     }
 
-    public async Task<object> privateGetAllOrderList (object parameters = null)
+    public async Task<object> privateGetAllOrderList(object parameters = null)
     {
-        return await this.callAsync ("privateGetAllOrderList",parameters);
+        return await this.callAsync("privateGetAllOrderList", parameters);
     }
 
-    public async Task<object> privateGetOpenOrderList (object parameters = null)
+    public async Task<object> privateGetOpenOrderList(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenOrderList",parameters);
+        return await this.callAsync("privateGetOpenOrderList", parameters);
     }
 
-    public async Task<object> privateGetOrderList (object parameters = null)
+    public async Task<object> privateGetOrderList(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderList",parameters);
+        return await this.callAsync("privateGetOrderList", parameters);
     }
 
-    public async Task<object> privateGetOrder (object parameters = null)
+    public async Task<object> privateGetOrder(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrder",parameters);
+        return await this.callAsync("privateGetOrder", parameters);
     }
 
-    public async Task<object> privateGetOpenOrders (object parameters = null)
+    public async Task<object> privateGetOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenOrders",parameters);
+        return await this.callAsync("privateGetOpenOrders", parameters);
     }
 
-    public async Task<object> privateGetAllOrders (object parameters = null)
+    public async Task<object> privateGetAllOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetAllOrders",parameters);
+        return await this.callAsync("privateGetAllOrders", parameters);
     }
 
-    public async Task<object> privateGetAccount (object parameters = null)
+    public async Task<object> privateGetAccount(object parameters = null)
     {
-        return await this.callAsync ("privateGetAccount",parameters);
+        return await this.callAsync("privateGetAccount", parameters);
     }
 
-    public async Task<object> privateGetMyTrades (object parameters = null)
+    public async Task<object> privateGetMyTrades(object parameters = null)
     {
-        return await this.callAsync ("privateGetMyTrades",parameters);
+        return await this.callAsync("privateGetMyTrades", parameters);
     }
 
-    public async Task<object> privateGetRateLimitOrder (object parameters = null)
+    public async Task<object> privateGetRateLimitOrder(object parameters = null)
     {
-        return await this.callAsync ("privateGetRateLimitOrder",parameters);
+        return await this.callAsync("privateGetRateLimitOrder", parameters);
     }
 
-    public async Task<object> privateGetMyPreventedMatches (object parameters = null)
+    public async Task<object> privateGetMyPreventedMatches(object parameters = null)
     {
-        return await this.callAsync ("privateGetMyPreventedMatches",parameters);
+        return await this.callAsync("privateGetMyPreventedMatches", parameters);
     }
 
-    public async Task<object> privatePostOrderOco (object parameters = null)
+    public async Task<object> privatePostOrderOco(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderOco",parameters);
+        return await this.callAsync("privatePostOrderOco", parameters);
     }
 
-    public async Task<object> privatePostOrder (object parameters = null)
+    public async Task<object> privatePostOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrder",parameters);
+        return await this.callAsync("privatePostOrder", parameters);
     }
 
-    public async Task<object> privatePostOrderCancelReplace (object parameters = null)
+    public async Task<object> privatePostOrderCancelReplace(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderCancelReplace",parameters);
+        return await this.callAsync("privatePostOrderCancelReplace", parameters);
     }
 
-    public async Task<object> privatePostOrderTest (object parameters = null)
+    public async Task<object> privatePostOrderTest(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderTest",parameters);
+        return await this.callAsync("privatePostOrderTest", parameters);
     }
 
-    public async Task<object> privateDeleteOpenOrders (object parameters = null)
+    public async Task<object> privateDeleteOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOpenOrders",parameters);
+        return await this.callAsync("privateDeleteOpenOrders", parameters);
     }
 
-    public async Task<object> privateDeleteOrderList (object parameters = null)
+    public async Task<object> privateDeleteOrderList(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrderList",parameters);
+        return await this.callAsync("privateDeleteOrderList", parameters);
     }
 
-    public async Task<object> privateDeleteOrder (object parameters = null)
+    public async Task<object> privateDeleteOrder(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrder",parameters);
+        return await this.callAsync("privateDeleteOrder", parameters);
     }
 
 }

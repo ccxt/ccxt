@@ -5,483 +5,563 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class bitget : Exchange
 {
-    public async Task<object> publicSpotGetPublicTime (object parameters = null)
+    public async Task<object> publicSpotGetPublicTime(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetPublicTime",parameters);
+        return await this.callAsync("publicSpotGetPublicTime", parameters);
     }
 
-    public async Task<object> publicSpotGetPublicCurrencies (object parameters = null)
+    public async Task<object> publicSpotGetPublicCurrencies(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetPublicCurrencies",parameters);
+        return await this.callAsync("publicSpotGetPublicCurrencies", parameters);
     }
 
-    public async Task<object> publicSpotGetPublicProducts (object parameters = null)
+    public async Task<object> publicSpotGetPublicProducts(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetPublicProducts",parameters);
+        return await this.callAsync("publicSpotGetPublicProducts", parameters);
     }
 
-    public async Task<object> publicSpotGetPublicProduct (object parameters = null)
+    public async Task<object> publicSpotGetPublicProduct(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetPublicProduct",parameters);
+        return await this.callAsync("publicSpotGetPublicProduct", parameters);
     }
 
-    public async Task<object> publicSpotGetMarketTicker (object parameters = null)
+    public async Task<object> publicSpotGetMarketTicker(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetMarketTicker",parameters);
+        return await this.callAsync("publicSpotGetMarketTicker", parameters);
     }
 
-    public async Task<object> publicSpotGetMarketTickers (object parameters = null)
+    public async Task<object> publicSpotGetMarketTickers(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetMarketTickers",parameters);
+        return await this.callAsync("publicSpotGetMarketTickers", parameters);
     }
 
-    public async Task<object> publicSpotGetMarketFills (object parameters = null)
+    public async Task<object> publicSpotGetMarketFills(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetMarketFills",parameters);
+        return await this.callAsync("publicSpotGetMarketFills", parameters);
     }
 
-    public async Task<object> publicSpotGetMarketCandles (object parameters = null)
+    public async Task<object> publicSpotGetMarketFillsHistory(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetMarketCandles",parameters);
+        return await this.callAsync("publicSpotGetMarketFillsHistory", parameters);
     }
 
-    public async Task<object> publicSpotGetMarketDepth (object parameters = null)
+    public async Task<object> publicSpotGetMarketCandles(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetMarketDepth",parameters);
+        return await this.callAsync("publicSpotGetMarketCandles", parameters);
     }
 
-    public async Task<object> publicSpotGetMarketSpotVipLevel (object parameters = null)
+    public async Task<object> publicSpotGetMarketDepth(object parameters = null)
     {
-        return await this.callAsync ("publicSpotGetMarketSpotVipLevel",parameters);
+        return await this.callAsync("publicSpotGetMarketDepth", parameters);
     }
 
-    public async Task<object> publicMixGetMarketContracts (object parameters = null)
+    public async Task<object> publicSpotGetMarketSpotVipLevel(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketContracts",parameters);
+        return await this.callAsync("publicSpotGetMarketSpotVipLevel", parameters);
     }
 
-    public async Task<object> publicMixGetMarketDepth (object parameters = null)
+    public async Task<object> publicMixGetMarketContracts(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketDepth",parameters);
+        return await this.callAsync("publicMixGetMarketContracts", parameters);
     }
 
-    public async Task<object> publicMixGetMarketTicker (object parameters = null)
+    public async Task<object> publicMixGetMarketDepth(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketTicker",parameters);
+        return await this.callAsync("publicMixGetMarketDepth", parameters);
     }
 
-    public async Task<object> publicMixGetMarketTickers (object parameters = null)
+    public async Task<object> publicMixGetMarketTicker(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketTickers",parameters);
+        return await this.callAsync("publicMixGetMarketTicker", parameters);
     }
 
-    public async Task<object> publicMixGetMarketFills (object parameters = null)
+    public async Task<object> publicMixGetMarketTickers(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketFills",parameters);
+        return await this.callAsync("publicMixGetMarketTickers", parameters);
     }
 
-    public async Task<object> publicMixGetMarketCandles (object parameters = null)
+    public async Task<object> publicMixGetMarketFills(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketCandles",parameters);
+        return await this.callAsync("publicMixGetMarketFills", parameters);
     }
 
-    public async Task<object> publicMixGetMarketIndex (object parameters = null)
+    public async Task<object> publicMixGetMarketCandles(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketIndex",parameters);
+        return await this.callAsync("publicMixGetMarketCandles", parameters);
     }
 
-    public async Task<object> publicMixGetMarketFundingTime (object parameters = null)
+    public async Task<object> publicMixGetMarketIndex(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketFundingTime",parameters);
+        return await this.callAsync("publicMixGetMarketIndex", parameters);
     }
 
-    public async Task<object> publicMixGetMarketHistoryFundRate (object parameters = null)
+    public async Task<object> publicMixGetMarketFundingTime(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketHistoryFundRate",parameters);
+        return await this.callAsync("publicMixGetMarketFundingTime", parameters);
     }
 
-    public async Task<object> publicMixGetMarketCurrentFundRate (object parameters = null)
+    public async Task<object> publicMixGetMarketHistoryFundRate(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketCurrentFundRate",parameters);
+        return await this.callAsync("publicMixGetMarketHistoryFundRate", parameters);
     }
 
-    public async Task<object> publicMixGetMarketOpenInterest (object parameters = null)
+    public async Task<object> publicMixGetMarketCurrentFundRate(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketOpenInterest",parameters);
+        return await this.callAsync("publicMixGetMarketCurrentFundRate", parameters);
     }
 
-    public async Task<object> publicMixGetMarketMarkPrice (object parameters = null)
+    public async Task<object> publicMixGetMarketOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketMarkPrice",parameters);
+        return await this.callAsync("publicMixGetMarketOpenInterest", parameters);
     }
 
-    public async Task<object> publicMixGetMarketSymbolLeverage (object parameters = null)
+    public async Task<object> publicMixGetMarketMarkPrice(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketSymbolLeverage",parameters);
+        return await this.callAsync("publicMixGetMarketMarkPrice", parameters);
     }
 
-    public async Task<object> publicMixGetMarketContractVipLevel (object parameters = null)
+    public async Task<object> publicMixGetMarketSymbolLeverage(object parameters = null)
     {
-        return await this.callAsync ("publicMixGetMarketContractVipLevel",parameters);
+        return await this.callAsync("publicMixGetMarketSymbolLeverage", parameters);
     }
 
-    public async Task<object> privateSpotGetAccountGetInfo (object parameters = null)
+    public async Task<object> publicMixGetMarketContractVipLevel(object parameters = null)
     {
-        return await this.callAsync ("privateSpotGetAccountGetInfo",parameters);
+        return await this.callAsync("publicMixGetMarketContractVipLevel", parameters);
     }
 
-    public async Task<object> privateSpotGetAccountAssets (object parameters = null)
+    public async Task<object> publicMixGetMarketFillsHistory(object parameters = null)
     {
-        return await this.callAsync ("privateSpotGetAccountAssets",parameters);
+        return await this.callAsync("publicMixGetMarketFillsHistory", parameters);
     }
 
-    public async Task<object> privateSpotGetAccountTransferRecords (object parameters = null)
+    public async Task<object> publicMixGetMarketQueryPositionLever(object parameters = null)
     {
-        return await this.callAsync ("privateSpotGetAccountTransferRecords",parameters);
+        return await this.callAsync("publicMixGetMarketQueryPositionLever", parameters);
     }
 
-    public async Task<object> privateSpotGetWalletDepositAddress (object parameters = null)
+    public async Task<object> privateSpotGetAccountGetInfo(object parameters = null)
     {
-        return await this.callAsync ("privateSpotGetWalletDepositAddress",parameters);
+        return await this.callAsync("privateSpotGetAccountGetInfo", parameters);
     }
 
-    public async Task<object> privateSpotGetWalletWithdrawalInner (object parameters = null)
+    public async Task<object> privateSpotGetAccountAssets(object parameters = null)
     {
-        return await this.callAsync ("privateSpotGetWalletWithdrawalInner",parameters);
+        return await this.callAsync("privateSpotGetAccountAssets", parameters);
     }
 
-    public async Task<object> privateSpotGetWalletWithdrawalList (object parameters = null)
+    public async Task<object> privateSpotGetAccountTransferRecords(object parameters = null)
     {
-        return await this.callAsync ("privateSpotGetWalletWithdrawalList",parameters);
+        return await this.callAsync("privateSpotGetAccountTransferRecords", parameters);
     }
 
-    public async Task<object> privateSpotGetWalletDepositList (object parameters = null)
+    public async Task<object> privateSpotGetWalletDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("privateSpotGetWalletDepositList",parameters);
+        return await this.callAsync("privateSpotGetWalletDepositAddress", parameters);
     }
 
-    public async Task<object> privateSpotPostAccountBills (object parameters = null)
+    public async Task<object> privateSpotGetWalletWithdrawalInner(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostAccountBills",parameters);
+        return await this.callAsync("privateSpotGetWalletWithdrawalInner", parameters);
     }
 
-    public async Task<object> privateSpotPostAccountSubAccountSpotAssets (object parameters = null)
+    public async Task<object> privateSpotGetWalletWithdrawalList(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostAccountSubAccountSpotAssets",parameters);
+        return await this.callAsync("privateSpotGetWalletWithdrawalList", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeOrders (object parameters = null)
+    public async Task<object> privateSpotGetWalletDepositList(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeOrders",parameters);
+        return await this.callAsync("privateSpotGetWalletDepositList", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeBatchOrders (object parameters = null)
+    public async Task<object> privateSpotPostAccountBills(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeBatchOrders",parameters);
+        return await this.callAsync("privateSpotPostAccountBills", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeCancelOrder (object parameters = null)
+    public async Task<object> privateSpotPostAccountSubAccountSpotAssets(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeCancelOrder",parameters);
+        return await this.callAsync("privateSpotPostAccountSubAccountSpotAssets", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeCancelBatchOrders (object parameters = null)
+    public async Task<object> privateSpotPostTradeOrders(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeCancelBatchOrders",parameters);
+        return await this.callAsync("privateSpotPostTradeOrders", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeCancelBatchOrdersV2 (object parameters = null)
+    public async Task<object> privateSpotPostTradeBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeCancelBatchOrdersV2",parameters);
+        return await this.callAsync("privateSpotPostTradeBatchOrders", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeOrderInfo (object parameters = null)
+    public async Task<object> privateSpotPostTradeCancelOrder(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeOrderInfo",parameters);
+        return await this.callAsync("privateSpotPostTradeCancelOrder", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeOpenOrders (object parameters = null)
+    public async Task<object> privateSpotPostTradeCancelBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeOpenOrders",parameters);
+        return await this.callAsync("privateSpotPostTradeCancelBatchOrders", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeHistory (object parameters = null)
+    public async Task<object> privateSpotPostTradeCancelBatchOrdersV2(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeHistory",parameters);
+        return await this.callAsync("privateSpotPostTradeCancelBatchOrdersV2", parameters);
     }
 
-    public async Task<object> privateSpotPostTradeFills (object parameters = null)
+    public async Task<object> privateSpotPostTradeOrderInfo(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostTradeFills",parameters);
+        return await this.callAsync("privateSpotPostTradeOrderInfo", parameters);
     }
 
-    public async Task<object> privateSpotPostWalletTransfer (object parameters = null)
+    public async Task<object> privateSpotPostTradeOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostWalletTransfer",parameters);
+        return await this.callAsync("privateSpotPostTradeOpenOrders", parameters);
     }
 
-    public async Task<object> privateSpotPostWalletWithdrawal (object parameters = null)
+    public async Task<object> privateSpotPostTradeHistory(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostWalletWithdrawal",parameters);
+        return await this.callAsync("privateSpotPostTradeHistory", parameters);
     }
 
-    public async Task<object> privateSpotPostWalletSubTransfer (object parameters = null)
+    public async Task<object> privateSpotPostTradeFills(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostWalletSubTransfer",parameters);
+        return await this.callAsync("privateSpotPostTradeFills", parameters);
     }
 
-    public async Task<object> privateSpotPostPlanPlacePlan (object parameters = null)
+    public async Task<object> privateSpotPostTradeCancelOrderV2(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostPlanPlacePlan",parameters);
+        return await this.callAsync("privateSpotPostTradeCancelOrderV2", parameters);
     }
 
-    public async Task<object> privateSpotPostPlanModifyPlan (object parameters = null)
+    public async Task<object> privateSpotPostTradeCancelSymbolOrder(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostPlanModifyPlan",parameters);
+        return await this.callAsync("privateSpotPostTradeCancelSymbolOrder", parameters);
     }
 
-    public async Task<object> privateSpotPostPlanCancelPlan (object parameters = null)
+    public async Task<object> privateSpotPostWalletTransfer(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostPlanCancelPlan",parameters);
+        return await this.callAsync("privateSpotPostWalletTransfer", parameters);
     }
 
-    public async Task<object> privateSpotPostPlanCurrentPlan (object parameters = null)
+    public async Task<object> privateSpotPostWalletWithdrawal(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostPlanCurrentPlan",parameters);
+        return await this.callAsync("privateSpotPostWalletWithdrawal", parameters);
     }
 
-    public async Task<object> privateSpotPostPlanHistoryPlan (object parameters = null)
+    public async Task<object> privateSpotPostWalletSubTransfer(object parameters = null)
     {
-        return await this.callAsync ("privateSpotPostPlanHistoryPlan",parameters);
+        return await this.callAsync("privateSpotPostWalletSubTransfer", parameters);
     }
 
-    public async Task<object> privateMixGetAccountAccount (object parameters = null)
+    public async Task<object> privateSpotPostWalletTransferV2(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetAccountAccount",parameters);
+        return await this.callAsync("privateSpotPostWalletTransferV2", parameters);
     }
 
-    public async Task<object> privateMixGetAccountAccounts (object parameters = null)
+    public async Task<object> privateSpotPostWalletWithdrawalV2(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetAccountAccounts",parameters);
+        return await this.callAsync("privateSpotPostWalletWithdrawalV2", parameters);
     }
 
-    public async Task<object> privateMixGetAccountAccountBill (object parameters = null)
+    public async Task<object> privateSpotPostWalletWithdrawalInnerV2(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetAccountAccountBill",parameters);
+        return await this.callAsync("privateSpotPostWalletWithdrawalInnerV2", parameters);
     }
 
-    public async Task<object> privateMixGetAccountAccountBusinessBill (object parameters = null)
+    public async Task<object> privateSpotPostPlanPlacePlan(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetAccountAccountBusinessBill",parameters);
+        return await this.callAsync("privateSpotPostPlanPlacePlan", parameters);
     }
 
-    public async Task<object> privateMixGetAccountOpenCount (object parameters = null)
+    public async Task<object> privateSpotPostPlanModifyPlan(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetAccountOpenCount",parameters);
+        return await this.callAsync("privateSpotPostPlanModifyPlan", parameters);
     }
 
-    public async Task<object> privateMixGetOrderCurrent (object parameters = null)
+    public async Task<object> privateSpotPostPlanCancelPlan(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetOrderCurrent",parameters);
+        return await this.callAsync("privateSpotPostPlanCancelPlan", parameters);
     }
 
-    public async Task<object> privateMixGetOrderHistory (object parameters = null)
+    public async Task<object> privateSpotPostPlanCurrentPlan(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetOrderHistory",parameters);
+        return await this.callAsync("privateSpotPostPlanCurrentPlan", parameters);
     }
 
-    public async Task<object> privateMixGetOrderDetail (object parameters = null)
+    public async Task<object> privateSpotPostPlanHistoryPlan(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetOrderDetail",parameters);
+        return await this.callAsync("privateSpotPostPlanHistoryPlan", parameters);
     }
 
-    public async Task<object> privateMixGetOrderFills (object parameters = null)
+    public async Task<object> privateMixGetAccountAccount(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetOrderFills",parameters);
+        return await this.callAsync("privateMixGetAccountAccount", parameters);
     }
 
-    public async Task<object> privateMixGetOrderHistoryProductType (object parameters = null)
+    public async Task<object> privateMixGetAccountAccounts(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetOrderHistoryProductType",parameters);
+        return await this.callAsync("privateMixGetAccountAccounts", parameters);
     }
 
-    public async Task<object> privateMixGetOrderAllFills (object parameters = null)
+    public async Task<object> privateMixGetAccountAccountBill(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetOrderAllFills",parameters);
+        return await this.callAsync("privateMixGetAccountAccountBill", parameters);
     }
 
-    public async Task<object> privateMixGetPlanCurrentPlan (object parameters = null)
+    public async Task<object> privateMixGetAccountAccountBusinessBill(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetPlanCurrentPlan",parameters);
+        return await this.callAsync("privateMixGetAccountAccountBusinessBill", parameters);
     }
 
-    public async Task<object> privateMixGetPlanHistoryPlan (object parameters = null)
+    public async Task<object> privateMixGetAccountOpenCount(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetPlanHistoryPlan",parameters);
+        return await this.callAsync("privateMixGetAccountOpenCount", parameters);
     }
 
-    public async Task<object> privateMixGetPositionSinglePosition (object parameters = null)
+    public async Task<object> privateMixGetOrderCurrent(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetPositionSinglePosition",parameters);
+        return await this.callAsync("privateMixGetOrderCurrent", parameters);
     }
 
-    public async Task<object> privateMixGetPositionAllPosition (object parameters = null)
+    public async Task<object> privateMixGetOrderHistory(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetPositionAllPosition",parameters);
+        return await this.callAsync("privateMixGetOrderHistory", parameters);
     }
 
-    public async Task<object> privateMixGetTraceCurrentTrack (object parameters = null)
+    public async Task<object> privateMixGetOrderDetail(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTraceCurrentTrack",parameters);
+        return await this.callAsync("privateMixGetOrderDetail", parameters);
     }
 
-    public async Task<object> privateMixGetTraceFollowerOrder (object parameters = null)
+    public async Task<object> privateMixGetOrderFills(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTraceFollowerOrder",parameters);
+        return await this.callAsync("privateMixGetOrderFills", parameters);
     }
 
-    public async Task<object> privateMixGetTraceHistoryTrack (object parameters = null)
+    public async Task<object> privateMixGetOrderHistoryProductType(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTraceHistoryTrack",parameters);
+        return await this.callAsync("privateMixGetOrderHistoryProductType", parameters);
     }
 
-    public async Task<object> privateMixGetTraceSummary (object parameters = null)
+    public async Task<object> privateMixGetOrderAllFills(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTraceSummary",parameters);
+        return await this.callAsync("privateMixGetOrderAllFills", parameters);
     }
 
-    public async Task<object> privateMixGetTraceProfitSettleTokenIdGroup (object parameters = null)
+    public async Task<object> privateMixGetPlanCurrentPlan(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTraceProfitSettleTokenIdGroup",parameters);
+        return await this.callAsync("privateMixGetPlanCurrentPlan", parameters);
     }
 
-    public async Task<object> privateMixGetTraceProfitDateGroupList (object parameters = null)
+    public async Task<object> privateMixGetPlanHistoryPlan(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTraceProfitDateGroupList",parameters);
+        return await this.callAsync("privateMixGetPlanHistoryPlan", parameters);
     }
 
-    public async Task<object> privateMixGetTradeProfitDateList (object parameters = null)
+    public async Task<object> privateMixGetPositionSinglePosition(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTradeProfitDateList",parameters);
+        return await this.callAsync("privateMixGetPositionSinglePosition", parameters);
     }
 
-    public async Task<object> privateMixGetTraceWaitProfitDateList (object parameters = null)
+    public async Task<object> privateMixGetPositionAllPosition(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTraceWaitProfitDateList",parameters);
+        return await this.callAsync("privateMixGetPositionAllPosition", parameters);
     }
 
-    public async Task<object> privateMixGetTraceTraderSymbols (object parameters = null)
+    public async Task<object> privateMixGetTraceCurrentTrack(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetTraceTraderSymbols",parameters);
+        return await this.callAsync("privateMixGetTraceCurrentTrack", parameters);
     }
 
-    public async Task<object> privateMixGetOrderMarginCoinCurrent (object parameters = null)
+    public async Task<object> privateMixGetTraceFollowerOrder(object parameters = null)
     {
-        return await this.callAsync ("privateMixGetOrderMarginCoinCurrent",parameters);
+        return await this.callAsync("privateMixGetTraceFollowerOrder", parameters);
     }
 
-    public async Task<object> privateMixPostAccountSetLeverage (object parameters = null)
+    public async Task<object> privateMixGetTraceHistoryTrack(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostAccountSetLeverage",parameters);
+        return await this.callAsync("privateMixGetTraceHistoryTrack", parameters);
     }
 
-    public async Task<object> privateMixPostAccountSetMargin (object parameters = null)
+    public async Task<object> privateMixGetTraceSummary(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostAccountSetMargin",parameters);
+        return await this.callAsync("privateMixGetTraceSummary", parameters);
     }
 
-    public async Task<object> privateMixPostAccountSetMarginMode (object parameters = null)
+    public async Task<object> privateMixGetTraceProfitSettleTokenIdGroup(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostAccountSetMarginMode",parameters);
+        return await this.callAsync("privateMixGetTraceProfitSettleTokenIdGroup", parameters);
     }
 
-    public async Task<object> privateMixPostAccountSetPositionMode (object parameters = null)
+    public async Task<object> privateMixGetTraceProfitDateGroupList(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostAccountSetPositionMode",parameters);
+        return await this.callAsync("privateMixGetTraceProfitDateGroupList", parameters);
     }
 
-    public async Task<object> privateMixPostOrderPlaceOrder (object parameters = null)
+    public async Task<object> privateMixGetTradeProfitDateList(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostOrderPlaceOrder",parameters);
+        return await this.callAsync("privateMixGetTradeProfitDateList", parameters);
     }
 
-    public async Task<object> privateMixPostOrderBatchOrders (object parameters = null)
+    public async Task<object> privateMixGetTraceWaitProfitDateList(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostOrderBatchOrders",parameters);
+        return await this.callAsync("privateMixGetTraceWaitProfitDateList", parameters);
     }
 
-    public async Task<object> privateMixPostOrderCancelOrder (object parameters = null)
+    public async Task<object> privateMixGetTraceTraderSymbols(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostOrderCancelOrder",parameters);
+        return await this.callAsync("privateMixGetTraceTraderSymbols", parameters);
     }
 
-    public async Task<object> privateMixPostOrderCancelAllOrders (object parameters = null)
+    public async Task<object> privateMixGetTraceTraderList(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostOrderCancelAllOrders",parameters);
+        return await this.callAsync("privateMixGetTraceTraderList", parameters);
     }
 
-    public async Task<object> privateMixPostOrderCancelBatchOrders (object parameters = null)
+    public async Task<object> privateMixGetTraceQueryTraceConfig(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostOrderCancelBatchOrders",parameters);
+        return await this.callAsync("privateMixGetTraceQueryTraceConfig", parameters);
     }
 
-    public async Task<object> privateMixPostPlanPlacePlan (object parameters = null)
+    public async Task<object> privateMixGetOrderMarginCoinCurrent(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanPlacePlan",parameters);
+        return await this.callAsync("privateMixGetOrderMarginCoinCurrent", parameters);
     }
 
-    public async Task<object> privateMixPostPlanModifyPlan (object parameters = null)
+    public async Task<object> privateMixPostAccountSetLeverage(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanModifyPlan",parameters);
+        return await this.callAsync("privateMixPostAccountSetLeverage", parameters);
     }
 
-    public async Task<object> privateMixPostPlanModifyPlanPreset (object parameters = null)
+    public async Task<object> privateMixPostAccountSetMargin(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanModifyPlanPreset",parameters);
+        return await this.callAsync("privateMixPostAccountSetMargin", parameters);
     }
 
-    public async Task<object> privateMixPostPlanPlaceTPSL (object parameters = null)
+    public async Task<object> privateMixPostAccountSetMarginMode(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanPlaceTPSL",parameters);
+        return await this.callAsync("privateMixPostAccountSetMarginMode", parameters);
     }
 
-    public async Task<object> privateMixPostPlanPlaceTrailStop (object parameters = null)
+    public async Task<object> privateMixPostAccountSetPositionMode(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanPlaceTrailStop",parameters);
+        return await this.callAsync("privateMixPostAccountSetPositionMode", parameters);
     }
 
-    public async Task<object> privateMixPostPlanPlacePositionsTPSL (object parameters = null)
+    public async Task<object> privateMixPostOrderPlaceOrder(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanPlacePositionsTPSL",parameters);
+        return await this.callAsync("privateMixPostOrderPlaceOrder", parameters);
     }
 
-    public async Task<object> privateMixPostPlanModifyTPSLPlan (object parameters = null)
+    public async Task<object> privateMixPostOrderBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanModifyTPSLPlan",parameters);
+        return await this.callAsync("privateMixPostOrderBatchOrders", parameters);
     }
 
-    public async Task<object> privateMixPostPlanCancelPlan (object parameters = null)
+    public async Task<object> privateMixPostOrderCancelOrder(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanCancelPlan",parameters);
+        return await this.callAsync("privateMixPostOrderCancelOrder", parameters);
     }
 
-    public async Task<object> privateMixPostPlanCancelAllPlan (object parameters = null)
+    public async Task<object> privateMixPostOrderCancelAllOrders(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostPlanCancelAllPlan",parameters);
+        return await this.callAsync("privateMixPostOrderCancelAllOrders", parameters);
     }
 
-    public async Task<object> privateMixPostTraceCloseTrackOrder (object parameters = null)
+    public async Task<object> privateMixPostOrderCancelBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostTraceCloseTrackOrder",parameters);
+        return await this.callAsync("privateMixPostOrderCancelBatchOrders", parameters);
     }
 
-    public async Task<object> privateMixPostTraceSetUpCopySymbols (object parameters = null)
+    public async Task<object> privateMixPostOrderCancelSymbolOrders(object parameters = null)
     {
-        return await this.callAsync ("privateMixPostTraceSetUpCopySymbols",parameters);
+        return await this.callAsync("privateMixPostOrderCancelSymbolOrders", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanPlacePlan(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanPlacePlan", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanModifyPlan(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanModifyPlan", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanModifyPlanPreset(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanModifyPlanPreset", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanPlaceTPSL(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanPlaceTPSL", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanPlaceTrailStop(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanPlaceTrailStop", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanPlacePositionsTPSL(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanPlacePositionsTPSL", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanModifyTPSLPlan(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanModifyTPSLPlan", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanCancelPlan(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanCancelPlan", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanCancelAllPlan(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanCancelAllPlan", parameters);
+    }
+
+    public async Task<object> privateMixPostPlanCancelSymbolPlan(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostPlanCancelSymbolPlan", parameters);
+    }
+
+    public async Task<object> privateMixPostTraceCloseTrackOrder(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostTraceCloseTrackOrder", parameters);
+    }
+
+    public async Task<object> privateMixPostTraceSetUpCopySymbols(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostTraceSetUpCopySymbols", parameters);
+    }
+
+    public async Task<object> privateMixPostTraceFollowerSetBatchTraceConfig(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostTraceFollowerSetBatchTraceConfig", parameters);
+    }
+
+    public async Task<object> privateMixPostTraceFollowerCloseByTrackingNo(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostTraceFollowerCloseByTrackingNo", parameters);
+    }
+
+    public async Task<object> privateMixPostTraceFollowerCloseByAll(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostTraceFollowerCloseByAll", parameters);
+    }
+
+    public async Task<object> privateMixPostTraceFollowerSetTpsl(object parameters = null)
+    {
+        return await this.callAsync("privateMixPostTraceFollowerSetTpsl", parameters);
     }
 
 }

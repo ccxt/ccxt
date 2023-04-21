@@ -5,133 +5,133 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class coinsph : Exchange
 {
-    public async Task<object> publicGetOpenapiV1Ping (object parameters = null)
+    public async Task<object> publicGetOpenapiV1Ping(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiV1Ping",parameters);
+        return await this.callAsync("publicGetOpenapiV1Ping", parameters);
     }
 
-    public async Task<object> publicGetOpenapiV1Time (object parameters = null)
+    public async Task<object> publicGetOpenapiV1Time(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiV1Time",parameters);
+        return await this.callAsync("publicGetOpenapiV1Time", parameters);
     }
 
-    public async Task<object> publicGetOpenapiQuoteV1Ticker24hr (object parameters = null)
+    public async Task<object> publicGetOpenapiQuoteV1Ticker24hr(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiQuoteV1Ticker24hr",parameters);
+        return await this.callAsync("publicGetOpenapiQuoteV1Ticker24hr", parameters);
     }
 
-    public async Task<object> publicGetOpenapiQuoteV1TickerPrice (object parameters = null)
+    public async Task<object> publicGetOpenapiQuoteV1TickerPrice(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiQuoteV1TickerPrice",parameters);
+        return await this.callAsync("publicGetOpenapiQuoteV1TickerPrice", parameters);
     }
 
-    public async Task<object> publicGetOpenapiQuoteV1TickerBookTicker (object parameters = null)
+    public async Task<object> publicGetOpenapiQuoteV1TickerBookTicker(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiQuoteV1TickerBookTicker",parameters);
+        return await this.callAsync("publicGetOpenapiQuoteV1TickerBookTicker", parameters);
     }
 
-    public async Task<object> publicGetOpenapiV1ExchangeInfo (object parameters = null)
+    public async Task<object> publicGetOpenapiV1ExchangeInfo(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiV1ExchangeInfo",parameters);
+        return await this.callAsync("publicGetOpenapiV1ExchangeInfo", parameters);
     }
 
-    public async Task<object> publicGetOpenapiQuoteV1Depth (object parameters = null)
+    public async Task<object> publicGetOpenapiQuoteV1Depth(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiQuoteV1Depth",parameters);
+        return await this.callAsync("publicGetOpenapiQuoteV1Depth", parameters);
     }
 
-    public async Task<object> publicGetOpenapiQuoteV1Klines (object parameters = null)
+    public async Task<object> publicGetOpenapiQuoteV1Klines(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiQuoteV1Klines",parameters);
+        return await this.callAsync("publicGetOpenapiQuoteV1Klines", parameters);
     }
 
-    public async Task<object> publicGetOpenapiQuoteV1Trades (object parameters = null)
+    public async Task<object> publicGetOpenapiQuoteV1Trades(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiQuoteV1Trades",parameters);
+        return await this.callAsync("publicGetOpenapiQuoteV1Trades", parameters);
     }
 
-    public async Task<object> publicGetOpenapiV1Pairs (object parameters = null)
+    public async Task<object> publicGetOpenapiV1Pairs(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiV1Pairs",parameters);
+        return await this.callAsync("publicGetOpenapiV1Pairs", parameters);
     }
 
-    public async Task<object> publicGetOpenapiQuoteV1AvgPrice (object parameters = null)
+    public async Task<object> publicGetOpenapiQuoteV1AvgPrice(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenapiQuoteV1AvgPrice",parameters);
+        return await this.callAsync("publicGetOpenapiQuoteV1AvgPrice", parameters);
     }
 
-    public async Task<object> privateGetOpenapiV1Account (object parameters = null)
+    public async Task<object> privateGetOpenapiV1Account(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenapiV1Account",parameters);
+        return await this.callAsync("privateGetOpenapiV1Account", parameters);
     }
 
-    public async Task<object> privateGetOpenapiV1OpenOrders (object parameters = null)
+    public async Task<object> privateGetOpenapiV1OpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenapiV1OpenOrders",parameters);
+        return await this.callAsync("privateGetOpenapiV1OpenOrders", parameters);
     }
 
-    public async Task<object> privateGetOpenapiV1AssetTradeFee (object parameters = null)
+    public async Task<object> privateGetOpenapiV1AssetTradeFee(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenapiV1AssetTradeFee",parameters);
+        return await this.callAsync("privateGetOpenapiV1AssetTradeFee", parameters);
     }
 
-    public async Task<object> privateGetOpenapiV1Order (object parameters = null)
+    public async Task<object> privateGetOpenapiV1Order(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenapiV1Order",parameters);
+        return await this.callAsync("privateGetOpenapiV1Order", parameters);
     }
 
-    public async Task<object> privateGetOpenapiV1HistoryOrders (object parameters = null)
+    public async Task<object> privateGetOpenapiV1HistoryOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenapiV1HistoryOrders",parameters);
+        return await this.callAsync("privateGetOpenapiV1HistoryOrders", parameters);
     }
 
-    public async Task<object> privateGetOpenapiV1MyTrades (object parameters = null)
+    public async Task<object> privateGetOpenapiV1MyTrades(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenapiV1MyTrades",parameters);
+        return await this.callAsync("privateGetOpenapiV1MyTrades", parameters);
     }
 
-    public async Task<object> privateGetOpenapiV1CapitalDepositHistory (object parameters = null)
+    public async Task<object> privateGetOpenapiV1CapitalDepositHistory(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenapiV1CapitalDepositHistory",parameters);
+        return await this.callAsync("privateGetOpenapiV1CapitalDepositHistory", parameters);
     }
 
-    public async Task<object> privateGetOpenapiV1CapitalWithdrawHistory (object parameters = null)
+    public async Task<object> privateGetOpenapiV1CapitalWithdrawHistory(object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenapiV1CapitalWithdrawHistory",parameters);
+        return await this.callAsync("privateGetOpenapiV1CapitalWithdrawHistory", parameters);
     }
 
-    public async Task<object> privatePostOpenapiV1OrderTest (object parameters = null)
+    public async Task<object> privatePostOpenapiV1OrderTest(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenapiV1OrderTest",parameters);
+        return await this.callAsync("privatePostOpenapiV1OrderTest", parameters);
     }
 
-    public async Task<object> privatePostOpenapiV1Order (object parameters = null)
+    public async Task<object> privatePostOpenapiV1Order(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenapiV1Order",parameters);
+        return await this.callAsync("privatePostOpenapiV1Order", parameters);
     }
 
-    public async Task<object> privatePostOpenapiV1CapitalWithdrawApply (object parameters = null)
+    public async Task<object> privatePostOpenapiV1CapitalWithdrawApply(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenapiV1CapitalWithdrawApply",parameters);
+        return await this.callAsync("privatePostOpenapiV1CapitalWithdrawApply", parameters);
     }
 
-    public async Task<object> privatePostOpenapiV1CapitalDepositApply (object parameters = null)
+    public async Task<object> privatePostOpenapiV1CapitalDepositApply(object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenapiV1CapitalDepositApply",parameters);
+        return await this.callAsync("privatePostOpenapiV1CapitalDepositApply", parameters);
     }
 
-    public async Task<object> privateDeleteOpenapiV1Order (object parameters = null)
+    public async Task<object> privateDeleteOpenapiV1Order(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOpenapiV1Order",parameters);
+        return await this.callAsync("privateDeleteOpenapiV1Order", parameters);
     }
 
-    public async Task<object> privateDeleteOpenapiV1OpenOrders (object parameters = null)
+    public async Task<object> privateDeleteOpenapiV1OpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOpenapiV1OpenOrders",parameters);
+        return await this.callAsync("privateDeleteOpenapiV1OpenOrders", parameters);
     }
 
 }

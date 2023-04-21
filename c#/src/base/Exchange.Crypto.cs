@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using Newtonsoft.Json;
 using System.Buffers.Binary;
 
-namespace Main;
+namespace ccxt;
 
 
 public partial class Exchange

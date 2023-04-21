@@ -1,4 +1,4 @@
-namespace Main;
+namespace ccxt;
 using System.Security.Cryptography;
 using System.Text;
 

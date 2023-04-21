@@ -1,5 +1,5 @@
-using Main;
-namespace Main;
+using ccxt;
+namespace ccxt;
 public partial class Exchange
 {
 

@@ -5,188 +5,188 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class bitbns : Exchange
 {
-    public async Task<object> wwwGetOrderFetchMarkets (object parameters = null)
+    public async Task<object> wwwGetOrderFetchMarkets(object parameters = null)
     {
-        return await this.callAsync ("wwwGetOrderFetchMarkets",parameters);
+        return await this.callAsync("wwwGetOrderFetchMarkets", parameters);
     }
 
-    public async Task<object> wwwGetOrderFetchTickers (object parameters = null)
+    public async Task<object> wwwGetOrderFetchTickers(object parameters = null)
     {
-        return await this.callAsync ("wwwGetOrderFetchTickers",parameters);
+        return await this.callAsync("wwwGetOrderFetchTickers", parameters);
     }
 
-    public async Task<object> wwwGetOrderFetchOrderbook (object parameters = null)
+    public async Task<object> wwwGetOrderFetchOrderbook(object parameters = null)
     {
-        return await this.callAsync ("wwwGetOrderFetchOrderbook",parameters);
+        return await this.callAsync("wwwGetOrderFetchOrderbook", parameters);
     }
 
-    public async Task<object> wwwGetOrderGetTickerWithVolume (object parameters = null)
+    public async Task<object> wwwGetOrderGetTickerWithVolume(object parameters = null)
     {
-        return await this.callAsync ("wwwGetOrderGetTickerWithVolume",parameters);
+        return await this.callAsync("wwwGetOrderGetTickerWithVolume", parameters);
     }
 
-    public async Task<object> wwwGetExchangeDataOhlc (object parameters = null)
+    public async Task<object> wwwGetExchangeDataOhlc(object parameters = null)
     {
-        return await this.callAsync ("wwwGetExchangeDataOhlc",parameters);
+        return await this.callAsync("wwwGetExchangeDataOhlc", parameters);
     }
 
-    public async Task<object> wwwGetExchangeDataOrderBook (object parameters = null)
+    public async Task<object> wwwGetExchangeDataOrderBook(object parameters = null)
     {
-        return await this.callAsync ("wwwGetExchangeDataOrderBook",parameters);
+        return await this.callAsync("wwwGetExchangeDataOrderBook", parameters);
     }
 
-    public async Task<object> wwwGetExchangeDataTradedetails (object parameters = null)
+    public async Task<object> wwwGetExchangeDataTradedetails(object parameters = null)
     {
-        return await this.callAsync ("wwwGetExchangeDataTradedetails",parameters);
+        return await this.callAsync("wwwGetExchangeDataTradedetails", parameters);
     }
 
-    public async Task<object> v1GetPlatformStatus (object parameters = null)
+    public async Task<object> v1GetPlatformStatus(object parameters = null)
     {
-        return await this.callAsync ("v1GetPlatformStatus",parameters);
+        return await this.callAsync("v1GetPlatformStatus", parameters);
     }
 
-    public async Task<object> v1GetTickers (object parameters = null)
+    public async Task<object> v1GetTickers(object parameters = null)
     {
-        return await this.callAsync ("v1GetTickers",parameters);
+        return await this.callAsync("v1GetTickers", parameters);
     }
 
-    public async Task<object> v1GetOrderbookSellSymbol (object parameters = null)
+    public async Task<object> v1GetOrderbookSellSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1GetOrderbookSellSymbol",parameters);
+        return await this.callAsync("v1GetOrderbookSellSymbol", parameters);
     }
 
-    public async Task<object> v1GetOrderbookBuySymbol (object parameters = null)
+    public async Task<object> v1GetOrderbookBuySymbol(object parameters = null)
     {
-        return await this.callAsync ("v1GetOrderbookBuySymbol",parameters);
+        return await this.callAsync("v1GetOrderbookBuySymbol", parameters);
     }
 
-    public async Task<object> v1PostCurrentCoinBalanceEVERYTHING (object parameters = null)
+    public async Task<object> v1PostCurrentCoinBalanceEVERYTHING(object parameters = null)
     {
-        return await this.callAsync ("v1PostCurrentCoinBalanceEVERYTHING",parameters);
+        return await this.callAsync("v1PostCurrentCoinBalanceEVERYTHING", parameters);
     }
 
-    public async Task<object> v1PostGetApiUsageStatusUSAGE (object parameters = null)
+    public async Task<object> v1PostGetApiUsageStatusUSAGE(object parameters = null)
     {
-        return await this.callAsync ("v1PostGetApiUsageStatusUSAGE",parameters);
+        return await this.callAsync("v1PostGetApiUsageStatusUSAGE", parameters);
     }
 
-    public async Task<object> v1PostGetOrderSocketTokenUSAGE (object parameters = null)
+    public async Task<object> v1PostGetOrderSocketTokenUSAGE(object parameters = null)
     {
-        return await this.callAsync ("v1PostGetOrderSocketTokenUSAGE",parameters);
+        return await this.callAsync("v1PostGetOrderSocketTokenUSAGE", parameters);
     }
 
-    public async Task<object> v1PostCurrentCoinBalanceSymbol (object parameters = null)
+    public async Task<object> v1PostCurrentCoinBalanceSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostCurrentCoinBalanceSymbol",parameters);
+        return await this.callAsync("v1PostCurrentCoinBalanceSymbol", parameters);
     }
 
-    public async Task<object> v1PostOrderStatusSymbol (object parameters = null)
+    public async Task<object> v1PostOrderStatusSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostOrderStatusSymbol",parameters);
+        return await this.callAsync("v1PostOrderStatusSymbol", parameters);
     }
 
-    public async Task<object> v1PostDepositHistorySymbol (object parameters = null)
+    public async Task<object> v1PostDepositHistorySymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostDepositHistorySymbol",parameters);
+        return await this.callAsync("v1PostDepositHistorySymbol", parameters);
     }
 
-    public async Task<object> v1PostWithdrawHistorySymbol (object parameters = null)
+    public async Task<object> v1PostWithdrawHistorySymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostWithdrawHistorySymbol",parameters);
+        return await this.callAsync("v1PostWithdrawHistorySymbol", parameters);
     }
 
-    public async Task<object> v1PostWithdrawHistoryAllSymbol (object parameters = null)
+    public async Task<object> v1PostWithdrawHistoryAllSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostWithdrawHistoryAllSymbol",parameters);
+        return await this.callAsync("v1PostWithdrawHistoryAllSymbol", parameters);
     }
 
-    public async Task<object> v1PostDepositHistoryAllSymbol (object parameters = null)
+    public async Task<object> v1PostDepositHistoryAllSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostDepositHistoryAllSymbol",parameters);
+        return await this.callAsync("v1PostDepositHistoryAllSymbol", parameters);
     }
 
-    public async Task<object> v1PostListOpenOrdersSymbol (object parameters = null)
+    public async Task<object> v1PostListOpenOrdersSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostListOpenOrdersSymbol",parameters);
+        return await this.callAsync("v1PostListOpenOrdersSymbol", parameters);
     }
 
-    public async Task<object> v1PostListOpenStopOrdersSymbol (object parameters = null)
+    public async Task<object> v1PostListOpenStopOrdersSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostListOpenStopOrdersSymbol",parameters);
+        return await this.callAsync("v1PostListOpenStopOrdersSymbol", parameters);
     }
 
-    public async Task<object> v1PostGetCoinAddressSymbol (object parameters = null)
+    public async Task<object> v1PostGetCoinAddressSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostGetCoinAddressSymbol",parameters);
+        return await this.callAsync("v1PostGetCoinAddressSymbol", parameters);
     }
 
-    public async Task<object> v1PostPlaceSellOrderSymbol (object parameters = null)
+    public async Task<object> v1PostPlaceSellOrderSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostPlaceSellOrderSymbol",parameters);
+        return await this.callAsync("v1PostPlaceSellOrderSymbol", parameters);
     }
 
-    public async Task<object> v1PostPlaceBuyOrderSymbol (object parameters = null)
+    public async Task<object> v1PostPlaceBuyOrderSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostPlaceBuyOrderSymbol",parameters);
+        return await this.callAsync("v1PostPlaceBuyOrderSymbol", parameters);
     }
 
-    public async Task<object> v1PostBuyStopLossSymbol (object parameters = null)
+    public async Task<object> v1PostBuyStopLossSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostBuyStopLossSymbol",parameters);
+        return await this.callAsync("v1PostBuyStopLossSymbol", parameters);
     }
 
-    public async Task<object> v1PostSellStopLossSymbol (object parameters = null)
+    public async Task<object> v1PostSellStopLossSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostSellStopLossSymbol",parameters);
+        return await this.callAsync("v1PostSellStopLossSymbol", parameters);
     }
 
-    public async Task<object> v1PostCancelOrderSymbol (object parameters = null)
+    public async Task<object> v1PostCancelOrderSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostCancelOrderSymbol",parameters);
+        return await this.callAsync("v1PostCancelOrderSymbol", parameters);
     }
 
-    public async Task<object> v1PostCancelStopLossOrderSymbol (object parameters = null)
+    public async Task<object> v1PostCancelStopLossOrderSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostCancelStopLossOrderSymbol",parameters);
+        return await this.callAsync("v1PostCancelStopLossOrderSymbol", parameters);
     }
 
-    public async Task<object> v1PostListExecutedOrdersSymbol (object parameters = null)
+    public async Task<object> v1PostListExecutedOrdersSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostListExecutedOrdersSymbol",parameters);
+        return await this.callAsync("v1PostListExecutedOrdersSymbol", parameters);
     }
 
-    public async Task<object> v1PostPlaceMarketOrderSymbol (object parameters = null)
+    public async Task<object> v1PostPlaceMarketOrderSymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostPlaceMarketOrderSymbol",parameters);
+        return await this.callAsync("v1PostPlaceMarketOrderSymbol", parameters);
     }
 
-    public async Task<object> v1PostPlaceMarketOrderQntySymbol (object parameters = null)
+    public async Task<object> v1PostPlaceMarketOrderQntySymbol(object parameters = null)
     {
-        return await this.callAsync ("v1PostPlaceMarketOrderQntySymbol",parameters);
+        return await this.callAsync("v1PostPlaceMarketOrderQntySymbol", parameters);
     }
 
-    public async Task<object> v2PostOrders (object parameters = null)
+    public async Task<object> v2PostOrders(object parameters = null)
     {
-        return await this.callAsync ("v2PostOrders",parameters);
+        return await this.callAsync("v2PostOrders", parameters);
     }
 
-    public async Task<object> v2PostCancel (object parameters = null)
+    public async Task<object> v2PostCancel(object parameters = null)
     {
-        return await this.callAsync ("v2PostCancel",parameters);
+        return await this.callAsync("v2PostCancel", parameters);
     }
 
-    public async Task<object> v2PostGetordersnew (object parameters = null)
+    public async Task<object> v2PostGetordersnew(object parameters = null)
     {
-        return await this.callAsync ("v2PostGetordersnew",parameters);
+        return await this.callAsync("v2PostGetordersnew", parameters);
     }
 
-    public async Task<object> v2PostMarginOrders (object parameters = null)
+    public async Task<object> v2PostMarginOrders(object parameters = null)
     {
-        return await this.callAsync ("v2PostMarginOrders",parameters);
+        return await this.callAsync("v2PostMarginOrders", parameters);
     }
 
 }

@@ -2,7 +2,7 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace Main;
+namespace ccxt;
 
 using dict = Dictionary<string, object>;
 using list = List<object>;

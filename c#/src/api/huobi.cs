@@ -5,2643 +5,2644 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class huobi : Exchange
 {
-    public async Task<object> v2PublicGetReferenceCurrencies (object parameters = null)
+    public async Task<object> v2PublicGetReferenceCurrencies(object parameters = null)
     {
-        return await this.callAsync ("v2PublicGetReferenceCurrencies",parameters);
+        return await this.callAsync("v2PublicGetReferenceCurrencies", parameters);
     }
 
-    public async Task<object> v2PublicGetMarketStatus (object parameters = null)
+    public async Task<object> v2PublicGetMarketStatus(object parameters = null)
     {
-        return await this.callAsync ("v2PublicGetMarketStatus",parameters);
+        return await this.callAsync("v2PublicGetMarketStatus", parameters);
     }
 
-    public async Task<object> v2PrivateGetAccountLedger (object parameters = null)
+    public async Task<object> v2PrivateGetAccountLedger(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAccountLedger",parameters);
+        return await this.callAsync("v2PrivateGetAccountLedger", parameters);
     }
 
-    public async Task<object> v2PrivateGetAccountWithdrawQuota (object parameters = null)
+    public async Task<object> v2PrivateGetAccountWithdrawQuota(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAccountWithdrawQuota",parameters);
+        return await this.callAsync("v2PrivateGetAccountWithdrawQuota", parameters);
     }
 
-    public async Task<object> v2PrivateGetAccountWithdrawAddress (object parameters = null)
+    public async Task<object> v2PrivateGetAccountWithdrawAddress(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAccountWithdrawAddress",parameters);
+        return await this.callAsync("v2PrivateGetAccountWithdrawAddress", parameters);
     }
 
-    public async Task<object> v2PrivateGetAccountDepositAddress (object parameters = null)
+    public async Task<object> v2PrivateGetAccountDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAccountDepositAddress",parameters);
+        return await this.callAsync("v2PrivateGetAccountDepositAddress", parameters);
     }
 
-    public async Task<object> v2PrivateGetAccountRepayment (object parameters = null)
+    public async Task<object> v2PrivateGetAccountRepayment(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAccountRepayment",parameters);
+        return await this.callAsync("v2PrivateGetAccountRepayment", parameters);
     }
 
-    public async Task<object> v2PrivateGetReferenceTransactFeeRate (object parameters = null)
+    public async Task<object> v2PrivateGetReferenceTransactFeeRate(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetReferenceTransactFeeRate",parameters);
+        return await this.callAsync("v2PrivateGetReferenceTransactFeeRate", parameters);
     }
 
-    public async Task<object> v2PrivateGetAccountAssetValuation (object parameters = null)
+    public async Task<object> v2PrivateGetAccountAssetValuation(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAccountAssetValuation",parameters);
+        return await this.callAsync("v2PrivateGetAccountAssetValuation", parameters);
     }
 
-    public async Task<object> v2PrivateGetPointAccount (object parameters = null)
+    public async Task<object> v2PrivateGetPointAccount(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetPointAccount",parameters);
+        return await this.callAsync("v2PrivateGetPointAccount", parameters);
     }
 
-    public async Task<object> v2PrivateGetSubUserUserList (object parameters = null)
+    public async Task<object> v2PrivateGetSubUserUserList(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetSubUserUserList",parameters);
+        return await this.callAsync("v2PrivateGetSubUserUserList", parameters);
     }
 
-    public async Task<object> v2PrivateGetSubUserUserState (object parameters = null)
+    public async Task<object> v2PrivateGetSubUserUserState(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetSubUserUserState",parameters);
+        return await this.callAsync("v2PrivateGetSubUserUserState", parameters);
     }
 
-    public async Task<object> v2PrivateGetSubUserAccountList (object parameters = null)
+    public async Task<object> v2PrivateGetSubUserAccountList(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetSubUserAccountList",parameters);
+        return await this.callAsync("v2PrivateGetSubUserAccountList", parameters);
     }
 
-    public async Task<object> v2PrivateGetSubUserDepositAddress (object parameters = null)
+    public async Task<object> v2PrivateGetSubUserDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetSubUserDepositAddress",parameters);
+        return await this.callAsync("v2PrivateGetSubUserDepositAddress", parameters);
     }
 
-    public async Task<object> v2PrivateGetSubUserQueryDeposit (object parameters = null)
+    public async Task<object> v2PrivateGetSubUserQueryDeposit(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetSubUserQueryDeposit",parameters);
+        return await this.callAsync("v2PrivateGetSubUserQueryDeposit", parameters);
     }
 
-    public async Task<object> v2PrivateGetUserApiKey (object parameters = null)
+    public async Task<object> v2PrivateGetUserApiKey(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetUserApiKey",parameters);
+        return await this.callAsync("v2PrivateGetUserApiKey", parameters);
     }
 
-    public async Task<object> v2PrivateGetUserUid (object parameters = null)
+    public async Task<object> v2PrivateGetUserUid(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetUserUid",parameters);
+        return await this.callAsync("v2PrivateGetUserUid", parameters);
     }
 
-    public async Task<object> v2PrivateGetAlgoOrdersOpening (object parameters = null)
+    public async Task<object> v2PrivateGetAlgoOrdersOpening(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAlgoOrdersOpening",parameters);
+        return await this.callAsync("v2PrivateGetAlgoOrdersOpening", parameters);
     }
 
-    public async Task<object> v2PrivateGetAlgoOrdersHistory (object parameters = null)
+    public async Task<object> v2PrivateGetAlgoOrdersHistory(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAlgoOrdersHistory",parameters);
+        return await this.callAsync("v2PrivateGetAlgoOrdersHistory", parameters);
     }
 
-    public async Task<object> v2PrivateGetAlgoOrdersSpecific (object parameters = null)
+    public async Task<object> v2PrivateGetAlgoOrdersSpecific(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetAlgoOrdersSpecific",parameters);
+        return await this.callAsync("v2PrivateGetAlgoOrdersSpecific", parameters);
     }
 
-    public async Task<object> v2PrivateGetC2cOffers (object parameters = null)
+    public async Task<object> v2PrivateGetC2cOffers(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetC2cOffers",parameters);
+        return await this.callAsync("v2PrivateGetC2cOffers", parameters);
     }
 
-    public async Task<object> v2PrivateGetC2cOffer (object parameters = null)
+    public async Task<object> v2PrivateGetC2cOffer(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetC2cOffer",parameters);
+        return await this.callAsync("v2PrivateGetC2cOffer", parameters);
     }
 
-    public async Task<object> v2PrivateGetC2cTransactions (object parameters = null)
+    public async Task<object> v2PrivateGetC2cTransactions(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetC2cTransactions",parameters);
+        return await this.callAsync("v2PrivateGetC2cTransactions", parameters);
     }
 
-    public async Task<object> v2PrivateGetC2cRepayment (object parameters = null)
+    public async Task<object> v2PrivateGetC2cRepayment(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetC2cRepayment",parameters);
+        return await this.callAsync("v2PrivateGetC2cRepayment", parameters);
     }
 
-    public async Task<object> v2PrivateGetC2cAccount (object parameters = null)
+    public async Task<object> v2PrivateGetC2cAccount(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetC2cAccount",parameters);
+        return await this.callAsync("v2PrivateGetC2cAccount", parameters);
     }
 
-    public async Task<object> v2PrivateGetEtpReference (object parameters = null)
+    public async Task<object> v2PrivateGetEtpReference(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetEtpReference",parameters);
+        return await this.callAsync("v2PrivateGetEtpReference", parameters);
     }
 
-    public async Task<object> v2PrivateGetEtpTransactions (object parameters = null)
+    public async Task<object> v2PrivateGetEtpTransactions(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetEtpTransactions",parameters);
+        return await this.callAsync("v2PrivateGetEtpTransactions", parameters);
     }
 
-    public async Task<object> v2PrivateGetEtpTransaction (object parameters = null)
+    public async Task<object> v2PrivateGetEtpTransaction(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetEtpTransaction",parameters);
+        return await this.callAsync("v2PrivateGetEtpTransaction", parameters);
     }
 
-    public async Task<object> v2PrivateGetEtpRebalance (object parameters = null)
+    public async Task<object> v2PrivateGetEtpRebalance(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetEtpRebalance",parameters);
+        return await this.callAsync("v2PrivateGetEtpRebalance", parameters);
     }
 
-    public async Task<object> v2PrivateGetEtpLimit (object parameters = null)
+    public async Task<object> v2PrivateGetEtpLimit(object parameters = null)
     {
-        return await this.callAsync ("v2PrivateGetEtpLimit",parameters);
+        return await this.callAsync("v2PrivateGetEtpLimit", parameters);
     }
 
-    public async Task<object> v2PrivatePostAccountTransfer (object parameters = null)
+    public async Task<object> v2PrivatePostAccountTransfer(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostAccountTransfer",parameters);
+        return await this.callAsync("v2PrivatePostAccountTransfer", parameters);
     }
 
-    public async Task<object> v2PrivatePostAccountRepayment (object parameters = null)
+    public async Task<object> v2PrivatePostAccountRepayment(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostAccountRepayment",parameters);
+        return await this.callAsync("v2PrivatePostAccountRepayment", parameters);
     }
 
-    public async Task<object> v2PrivatePostPointTransfer (object parameters = null)
+    public async Task<object> v2PrivatePostPointTransfer(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostPointTransfer",parameters);
+        return await this.callAsync("v2PrivatePostPointTransfer", parameters);
     }
 
-    public async Task<object> v2PrivatePostSubUserManagement (object parameters = null)
+    public async Task<object> v2PrivatePostSubUserManagement(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostSubUserManagement",parameters);
+        return await this.callAsync("v2PrivatePostSubUserManagement", parameters);
     }
 
-    public async Task<object> v2PrivatePostSubUserCreation (object parameters = null)
+    public async Task<object> v2PrivatePostSubUserCreation(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostSubUserCreation",parameters);
+        return await this.callAsync("v2PrivatePostSubUserCreation", parameters);
     }
 
-    public async Task<object> v2PrivatePostSubUserTradableMarket (object parameters = null)
+    public async Task<object> v2PrivatePostSubUserTradableMarket(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostSubUserTradableMarket",parameters);
+        return await this.callAsync("v2PrivatePostSubUserTradableMarket", parameters);
     }
 
-    public async Task<object> v2PrivatePostSubUserTransferability (object parameters = null)
+    public async Task<object> v2PrivatePostSubUserTransferability(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostSubUserTransferability",parameters);
+        return await this.callAsync("v2PrivatePostSubUserTransferability", parameters);
     }
 
-    public async Task<object> v2PrivatePostSubUserApiKeyGeneration (object parameters = null)
+    public async Task<object> v2PrivatePostSubUserApiKeyGeneration(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostSubUserApiKeyGeneration",parameters);
+        return await this.callAsync("v2PrivatePostSubUserApiKeyGeneration", parameters);
     }
 
-    public async Task<object> v2PrivatePostSubUserApiKeyModification (object parameters = null)
+    public async Task<object> v2PrivatePostSubUserApiKeyModification(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostSubUserApiKeyModification",parameters);
+        return await this.callAsync("v2PrivatePostSubUserApiKeyModification", parameters);
     }
 
-    public async Task<object> v2PrivatePostSubUserApiKeyDeletion (object parameters = null)
+    public async Task<object> v2PrivatePostSubUserApiKeyDeletion(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostSubUserApiKeyDeletion",parameters);
+        return await this.callAsync("v2PrivatePostSubUserApiKeyDeletion", parameters);
     }
 
-    public async Task<object> v2PrivatePostSubUserDeductMode (object parameters = null)
+    public async Task<object> v2PrivatePostSubUserDeductMode(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostSubUserDeductMode",parameters);
+        return await this.callAsync("v2PrivatePostSubUserDeductMode", parameters);
     }
 
-    public async Task<object> v2PrivatePostAlgoOrders (object parameters = null)
+    public async Task<object> v2PrivatePostAlgoOrders(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostAlgoOrders",parameters);
+        return await this.callAsync("v2PrivatePostAlgoOrders", parameters);
     }
 
-    public async Task<object> v2PrivatePostAlgoOrdersCancelAllAfter (object parameters = null)
+    public async Task<object> v2PrivatePostAlgoOrdersCancelAllAfter(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostAlgoOrdersCancelAllAfter",parameters);
+        return await this.callAsync("v2PrivatePostAlgoOrdersCancelAllAfter", parameters);
     }
 
-    public async Task<object> v2PrivatePostAlgoOrdersCancellation (object parameters = null)
+    public async Task<object> v2PrivatePostAlgoOrdersCancellation(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostAlgoOrdersCancellation",parameters);
+        return await this.callAsync("v2PrivatePostAlgoOrdersCancellation", parameters);
     }
 
-    public async Task<object> v2PrivatePostC2cOffer (object parameters = null)
+    public async Task<object> v2PrivatePostC2cOffer(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostC2cOffer",parameters);
+        return await this.callAsync("v2PrivatePostC2cOffer", parameters);
     }
 
-    public async Task<object> v2PrivatePostC2cCancellation (object parameters = null)
+    public async Task<object> v2PrivatePostC2cCancellation(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostC2cCancellation",parameters);
+        return await this.callAsync("v2PrivatePostC2cCancellation", parameters);
     }
 
-    public async Task<object> v2PrivatePostC2cCancelAll (object parameters = null)
+    public async Task<object> v2PrivatePostC2cCancelAll(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostC2cCancelAll",parameters);
+        return await this.callAsync("v2PrivatePostC2cCancelAll", parameters);
     }
 
-    public async Task<object> v2PrivatePostC2cRepayment (object parameters = null)
+    public async Task<object> v2PrivatePostC2cRepayment(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostC2cRepayment",parameters);
+        return await this.callAsync("v2PrivatePostC2cRepayment", parameters);
     }
 
-    public async Task<object> v2PrivatePostC2cTransfer (object parameters = null)
+    public async Task<object> v2PrivatePostC2cTransfer(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostC2cTransfer",parameters);
+        return await this.callAsync("v2PrivatePostC2cTransfer", parameters);
     }
 
-    public async Task<object> v2PrivatePostEtpCreation (object parameters = null)
+    public async Task<object> v2PrivatePostEtpCreation(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostEtpCreation",parameters);
+        return await this.callAsync("v2PrivatePostEtpCreation", parameters);
     }
 
-    public async Task<object> v2PrivatePostEtpRedemption (object parameters = null)
+    public async Task<object> v2PrivatePostEtpRedemption(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostEtpRedemption",parameters);
+        return await this.callAsync("v2PrivatePostEtpRedemption", parameters);
     }
 
-    public async Task<object> v2PrivatePostEtpTransactIdCancel (object parameters = null)
+    public async Task<object> v2PrivatePostEtpTransactIdCancel(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostEtpTransactIdCancel",parameters);
+        return await this.callAsync("v2PrivatePostEtpTransactIdCancel", parameters);
     }
 
-    public async Task<object> v2PrivatePostEtpBatchCancel (object parameters = null)
+    public async Task<object> v2PrivatePostEtpBatchCancel(object parameters = null)
     {
-        return await this.callAsync ("v2PrivatePostEtpBatchCancel",parameters);
+        return await this.callAsync("v2PrivatePostEtpBatchCancel", parameters);
     }
 
-    public async Task<object> publicGetCommonSymbols (object parameters = null)
+    public async Task<object> publicGetCommonSymbols(object parameters = null)
     {
-        return await this.callAsync ("publicGetCommonSymbols",parameters);
+        return await this.callAsync("publicGetCommonSymbols", parameters);
     }
 
-    public async Task<object> publicGetCommonCurrencys (object parameters = null)
+    public async Task<object> publicGetCommonCurrencys(object parameters = null)
     {
-        return await this.callAsync ("publicGetCommonCurrencys",parameters);
+        return await this.callAsync("publicGetCommonCurrencys", parameters);
     }
 
-    public async Task<object> publicGetCommonTimestamp (object parameters = null)
+    public async Task<object> publicGetCommonTimestamp(object parameters = null)
     {
-        return await this.callAsync ("publicGetCommonTimestamp",parameters);
+        return await this.callAsync("publicGetCommonTimestamp", parameters);
     }
 
-    public async Task<object> publicGetCommonExchange (object parameters = null)
+    public async Task<object> publicGetCommonExchange(object parameters = null)
     {
-        return await this.callAsync ("publicGetCommonExchange",parameters);
+        return await this.callAsync("publicGetCommonExchange", parameters);
     }
 
-    public async Task<object> publicGetSettingsCurrencys (object parameters = null)
+    public async Task<object> publicGetSettingsCurrencys(object parameters = null)
     {
-        return await this.callAsync ("publicGetSettingsCurrencys",parameters);
+        return await this.callAsync("publicGetSettingsCurrencys", parameters);
     }
 
-    public async Task<object> privateGetAccountAccounts (object parameters = null)
+    public async Task<object> privateGetAccountAccounts(object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountAccounts",parameters);
+        return await this.callAsync("privateGetAccountAccounts", parameters);
     }
 
-    public async Task<object> privateGetAccountAccountsIdBalance (object parameters = null)
+    public async Task<object> privateGetAccountAccountsIdBalance(object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountAccountsIdBalance",parameters);
+        return await this.callAsync("privateGetAccountAccountsIdBalance", parameters);
     }
 
-    public async Task<object> privateGetAccountAccountsSubUid (object parameters = null)
+    public async Task<object> privateGetAccountAccountsSubUid(object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountAccountsSubUid",parameters);
+        return await this.callAsync("privateGetAccountAccountsSubUid", parameters);
     }
 
-    public async Task<object> privateGetAccountHistory (object parameters = null)
+    public async Task<object> privateGetAccountHistory(object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountHistory",parameters);
+        return await this.callAsync("privateGetAccountHistory", parameters);
     }
 
-    public async Task<object> privateGetCrossMarginLoanInfo (object parameters = null)
+    public async Task<object> privateGetCrossMarginLoanInfo(object parameters = null)
     {
-        return await this.callAsync ("privateGetCrossMarginLoanInfo",parameters);
+        return await this.callAsync("privateGetCrossMarginLoanInfo", parameters);
     }
 
-    public async Task<object> privateGetMarginLoanInfo (object parameters = null)
+    public async Task<object> privateGetMarginLoanInfo(object parameters = null)
     {
-        return await this.callAsync ("privateGetMarginLoanInfo",parameters);
+        return await this.callAsync("privateGetMarginLoanInfo", parameters);
     }
 
-    public async Task<object> privateGetFeeFeeRateGet (object parameters = null)
+    public async Task<object> privateGetFeeFeeRateGet(object parameters = null)
     {
-        return await this.callAsync ("privateGetFeeFeeRateGet",parameters);
+        return await this.callAsync("privateGetFeeFeeRateGet", parameters);
     }
 
-    public async Task<object> privateGetOrderOpenOrders (object parameters = null)
+    public async Task<object> privateGetOrderOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderOpenOrders",parameters);
+        return await this.callAsync("privateGetOrderOpenOrders", parameters);
     }
 
-    public async Task<object> privateGetOrderOrders (object parameters = null)
+    public async Task<object> privateGetOrderOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderOrders",parameters);
+        return await this.callAsync("privateGetOrderOrders", parameters);
     }
 
-    public async Task<object> privateGetOrderOrdersId (object parameters = null)
+    public async Task<object> privateGetOrderOrdersId(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderOrdersId",parameters);
+        return await this.callAsync("privateGetOrderOrdersId", parameters);
     }
 
-    public async Task<object> privateGetOrderOrdersIdMatchresults (object parameters = null)
+    public async Task<object> privateGetOrderOrdersIdMatchresults(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderOrdersIdMatchresults",parameters);
+        return await this.callAsync("privateGetOrderOrdersIdMatchresults", parameters);
     }
 
-    public async Task<object> privateGetOrderOrdersGetClientOrder (object parameters = null)
+    public async Task<object> privateGetOrderOrdersGetClientOrder(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderOrdersGetClientOrder",parameters);
+        return await this.callAsync("privateGetOrderOrdersGetClientOrder", parameters);
     }
 
-    public async Task<object> privateGetOrderHistory (object parameters = null)
+    public async Task<object> privateGetOrderHistory(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderHistory",parameters);
+        return await this.callAsync("privateGetOrderHistory", parameters);
     }
 
-    public async Task<object> privateGetOrderMatchresults (object parameters = null)
+    public async Task<object> privateGetOrderMatchresults(object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderMatchresults",parameters);
+        return await this.callAsync("privateGetOrderMatchresults", parameters);
     }
 
-    public async Task<object> privateGetQueryDepositWithdraw (object parameters = null)
+    public async Task<object> privateGetQueryDepositWithdraw(object parameters = null)
     {
-        return await this.callAsync ("privateGetQueryDepositWithdraw",parameters);
+        return await this.callAsync("privateGetQueryDepositWithdraw", parameters);
     }
 
-    public async Task<object> privateGetMarginLoanOrders (object parameters = null)
+    public async Task<object> privateGetMarginLoanOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetMarginLoanOrders",parameters);
+        return await this.callAsync("privateGetMarginLoanOrders", parameters);
     }
 
-    public async Task<object> privateGetMarginAccountsBalance (object parameters = null)
+    public async Task<object> privateGetMarginAccountsBalance(object parameters = null)
     {
-        return await this.callAsync ("privateGetMarginAccountsBalance",parameters);
+        return await this.callAsync("privateGetMarginAccountsBalance", parameters);
     }
 
-    public async Task<object> privateGetCrossMarginLoanOrders (object parameters = null)
+    public async Task<object> privateGetCrossMarginLoanOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetCrossMarginLoanOrders",parameters);
+        return await this.callAsync("privateGetCrossMarginLoanOrders", parameters);
     }
 
-    public async Task<object> privateGetCrossMarginAccountsBalance (object parameters = null)
+    public async Task<object> privateGetCrossMarginAccountsBalance(object parameters = null)
     {
-        return await this.callAsync ("privateGetCrossMarginAccountsBalance",parameters);
+        return await this.callAsync("privateGetCrossMarginAccountsBalance", parameters);
     }
 
-    public async Task<object> privateGetPointsActions (object parameters = null)
+    public async Task<object> privateGetPointsActions(object parameters = null)
     {
-        return await this.callAsync ("privateGetPointsActions",parameters);
+        return await this.callAsync("privateGetPointsActions", parameters);
     }
 
-    public async Task<object> privateGetPointsOrders (object parameters = null)
+    public async Task<object> privateGetPointsOrders(object parameters = null)
     {
-        return await this.callAsync ("privateGetPointsOrders",parameters);
+        return await this.callAsync("privateGetPointsOrders", parameters);
     }
 
-    public async Task<object> privateGetSubuserAggregateBalance (object parameters = null)
+    public async Task<object> privateGetSubuserAggregateBalance(object parameters = null)
     {
-        return await this.callAsync ("privateGetSubuserAggregateBalance",parameters);
+        return await this.callAsync("privateGetSubuserAggregateBalance", parameters);
     }
 
-    public async Task<object> privateGetStableCoinExchangeRate (object parameters = null)
+    public async Task<object> privateGetStableCoinExchangeRate(object parameters = null)
     {
-        return await this.callAsync ("privateGetStableCoinExchangeRate",parameters);
+        return await this.callAsync("privateGetStableCoinExchangeRate", parameters);
     }
 
-    public async Task<object> privateGetStableCoinQuote (object parameters = null)
+    public async Task<object> privateGetStableCoinQuote(object parameters = null)
     {
-        return await this.callAsync ("privateGetStableCoinQuote",parameters);
+        return await this.callAsync("privateGetStableCoinQuote", parameters);
     }
 
-    public async Task<object> privatePostAccountTransfer (object parameters = null)
+    public async Task<object> privatePostAccountTransfer(object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountTransfer",parameters);
+        return await this.callAsync("privatePostAccountTransfer", parameters);
     }
 
-    public async Task<object> privatePostFuturesTransfer (object parameters = null)
+    public async Task<object> privatePostFuturesTransfer(object parameters = null)
     {
-        return await this.callAsync ("privatePostFuturesTransfer",parameters);
+        return await this.callAsync("privatePostFuturesTransfer", parameters);
     }
 
-    public async Task<object> privatePostOrderBatchOrders (object parameters = null)
+    public async Task<object> privatePostOrderBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderBatchOrders",parameters);
+        return await this.callAsync("privatePostOrderBatchOrders", parameters);
     }
 
-    public async Task<object> privatePostOrderOrdersPlace (object parameters = null)
+    public async Task<object> privatePostOrderOrdersPlace(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderOrdersPlace",parameters);
+        return await this.callAsync("privatePostOrderOrdersPlace", parameters);
     }
 
-    public async Task<object> privatePostOrderOrdersSubmitCancelClientOrder (object parameters = null)
+    public async Task<object> privatePostOrderOrdersSubmitCancelClientOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderOrdersSubmitCancelClientOrder",parameters);
+        return await this.callAsync("privatePostOrderOrdersSubmitCancelClientOrder", parameters);
     }
 
-    public async Task<object> privatePostOrderOrdersBatchCancelOpenOrders (object parameters = null)
+    public async Task<object> privatePostOrderOrdersBatchCancelOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderOrdersBatchCancelOpenOrders",parameters);
+        return await this.callAsync("privatePostOrderOrdersBatchCancelOpenOrders", parameters);
     }
 
-    public async Task<object> privatePostOrderOrdersIdSubmitcancel (object parameters = null)
+    public async Task<object> privatePostOrderOrdersIdSubmitcancel(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderOrdersIdSubmitcancel",parameters);
+        return await this.callAsync("privatePostOrderOrdersIdSubmitcancel", parameters);
     }
 
-    public async Task<object> privatePostOrderOrdersBatchcancel (object parameters = null)
+    public async Task<object> privatePostOrderOrdersBatchcancel(object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderOrdersBatchcancel",parameters);
+        return await this.callAsync("privatePostOrderOrdersBatchcancel", parameters);
     }
 
-    public async Task<object> privatePostDwWithdrawApiCreate (object parameters = null)
+    public async Task<object> privatePostDwWithdrawApiCreate(object parameters = null)
     {
-        return await this.callAsync ("privatePostDwWithdrawApiCreate",parameters);
+        return await this.callAsync("privatePostDwWithdrawApiCreate", parameters);
     }
 
-    public async Task<object> privatePostDwWithdrawVirtualIdCancel (object parameters = null)
+    public async Task<object> privatePostDwWithdrawVirtualIdCancel(object parameters = null)
     {
-        return await this.callAsync ("privatePostDwWithdrawVirtualIdCancel",parameters);
+        return await this.callAsync("privatePostDwWithdrawVirtualIdCancel", parameters);
     }
 
-    public async Task<object> privatePostDwTransferInMargin (object parameters = null)
+    public async Task<object> privatePostDwTransferInMargin(object parameters = null)
     {
-        return await this.callAsync ("privatePostDwTransferInMargin",parameters);
+        return await this.callAsync("privatePostDwTransferInMargin", parameters);
     }
 
-    public async Task<object> privatePostDwTransferOutMargin (object parameters = null)
+    public async Task<object> privatePostDwTransferOutMargin(object parameters = null)
     {
-        return await this.callAsync ("privatePostDwTransferOutMargin",parameters);
+        return await this.callAsync("privatePostDwTransferOutMargin", parameters);
     }
 
-    public async Task<object> privatePostMarginOrders (object parameters = null)
+    public async Task<object> privatePostMarginOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostMarginOrders",parameters);
+        return await this.callAsync("privatePostMarginOrders", parameters);
     }
 
-    public async Task<object> privatePostMarginOrdersIdRepay (object parameters = null)
+    public async Task<object> privatePostMarginOrdersIdRepay(object parameters = null)
     {
-        return await this.callAsync ("privatePostMarginOrdersIdRepay",parameters);
+        return await this.callAsync("privatePostMarginOrdersIdRepay", parameters);
     }
 
-    public async Task<object> privatePostCrossMarginTransferIn (object parameters = null)
+    public async Task<object> privatePostCrossMarginTransferIn(object parameters = null)
     {
-        return await this.callAsync ("privatePostCrossMarginTransferIn",parameters);
+        return await this.callAsync("privatePostCrossMarginTransferIn", parameters);
     }
 
-    public async Task<object> privatePostCrossMarginTransferOut (object parameters = null)
+    public async Task<object> privatePostCrossMarginTransferOut(object parameters = null)
     {
-        return await this.callAsync ("privatePostCrossMarginTransferOut",parameters);
+        return await this.callAsync("privatePostCrossMarginTransferOut", parameters);
     }
 
-    public async Task<object> privatePostCrossMarginOrders (object parameters = null)
+    public async Task<object> privatePostCrossMarginOrders(object parameters = null)
     {
-        return await this.callAsync ("privatePostCrossMarginOrders",parameters);
+        return await this.callAsync("privatePostCrossMarginOrders", parameters);
     }
 
-    public async Task<object> privatePostCrossMarginOrdersIdRepay (object parameters = null)
+    public async Task<object> privatePostCrossMarginOrdersIdRepay(object parameters = null)
     {
-        return await this.callAsync ("privatePostCrossMarginOrdersIdRepay",parameters);
+        return await this.callAsync("privatePostCrossMarginOrdersIdRepay", parameters);
     }
 
-    public async Task<object> privatePostStableCoinExchange (object parameters = null)
+    public async Task<object> privatePostStableCoinExchange(object parameters = null)
     {
-        return await this.callAsync ("privatePostStableCoinExchange",parameters);
+        return await this.callAsync("privatePostStableCoinExchange", parameters);
     }
 
-    public async Task<object> privatePostSubuserTransfer (object parameters = null)
+    public async Task<object> privatePostSubuserTransfer(object parameters = null)
     {
-        return await this.callAsync ("privatePostSubuserTransfer",parameters);
+        return await this.callAsync("privatePostSubuserTransfer", parameters);
     }
 
-    public async Task<object> statusPublicSpotGetApiV2SummaryJson (object parameters = null)
+    public async Task<object> statusPublicSpotGetApiV2SummaryJson(object parameters = null)
     {
-        return await this.callAsync ("statusPublicSpotGetApiV2SummaryJson",parameters);
+        return await this.callAsync("statusPublicSpotGetApiV2SummaryJson", parameters);
     }
 
-    public async Task<object> statusPublicFutureInverseGetApiV2SummaryJson (object parameters = null)
+    public async Task<object> statusPublicFutureInverseGetApiV2SummaryJson(object parameters = null)
     {
-        return await this.callAsync ("statusPublicFutureInverseGetApiV2SummaryJson",parameters);
+        return await this.callAsync("statusPublicFutureInverseGetApiV2SummaryJson", parameters);
     }
 
-    public async Task<object> statusPublicFutureLinearGetApiV2SummaryJson (object parameters = null)
+    public async Task<object> statusPublicFutureLinearGetApiV2SummaryJson(object parameters = null)
     {
-        return await this.callAsync ("statusPublicFutureLinearGetApiV2SummaryJson",parameters);
+        return await this.callAsync("statusPublicFutureLinearGetApiV2SummaryJson", parameters);
     }
 
-    public async Task<object> statusPublicSwapInverseGetApiV2SummaryJson (object parameters = null)
+    public async Task<object> statusPublicSwapInverseGetApiV2SummaryJson(object parameters = null)
     {
-        return await this.callAsync ("statusPublicSwapInverseGetApiV2SummaryJson",parameters);
+        return await this.callAsync("statusPublicSwapInverseGetApiV2SummaryJson", parameters);
     }
 
-    public async Task<object> statusPublicSwapLinearGetApiV2SummaryJson (object parameters = null)
+    public async Task<object> statusPublicSwapLinearGetApiV2SummaryJson(object parameters = null)
     {
-        return await this.callAsync ("statusPublicSwapLinearGetApiV2SummaryJson",parameters);
+        return await this.callAsync("statusPublicSwapLinearGetApiV2SummaryJson", parameters);
     }
 
-    public async Task<object> spotPublicGetV2MarketStatus (object parameters = null)
+    public async Task<object> spotPublicGetV2MarketStatus(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV2MarketStatus",parameters);
+        return await this.callAsync("spotPublicGetV2MarketStatus", parameters);
     }
 
-    public async Task<object> spotPublicGetV1CommonSymbols (object parameters = null)
+    public async Task<object> spotPublicGetV1CommonSymbols(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV1CommonSymbols",parameters);
+        return await this.callAsync("spotPublicGetV1CommonSymbols", parameters);
     }
 
-    public async Task<object> spotPublicGetV1CommonCurrencys (object parameters = null)
+    public async Task<object> spotPublicGetV1CommonCurrencys(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV1CommonCurrencys",parameters);
+        return await this.callAsync("spotPublicGetV1CommonCurrencys", parameters);
     }
 
-    public async Task<object> spotPublicGetV2SettingsCommonCurrencies (object parameters = null)
+    public async Task<object> spotPublicGetV2SettingsCommonCurrencies(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV2SettingsCommonCurrencies",parameters);
+        return await this.callAsync("spotPublicGetV2SettingsCommonCurrencies", parameters);
     }
 
-    public async Task<object> spotPublicGetV2ReferenceCurrencies (object parameters = null)
+    public async Task<object> spotPublicGetV2ReferenceCurrencies(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV2ReferenceCurrencies",parameters);
+        return await this.callAsync("spotPublicGetV2ReferenceCurrencies", parameters);
     }
 
-    public async Task<object> spotPublicGetV1CommonTimestamp (object parameters = null)
+    public async Task<object> spotPublicGetV1CommonTimestamp(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV1CommonTimestamp",parameters);
+        return await this.callAsync("spotPublicGetV1CommonTimestamp", parameters);
     }
 
-    public async Task<object> spotPublicGetV1CommonExchange (object parameters = null)
+    public async Task<object> spotPublicGetV1CommonExchange(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV1CommonExchange",parameters);
+        return await this.callAsync("spotPublicGetV1CommonExchange", parameters);
     }
 
-    public async Task<object> spotPublicGetV1SettingsCommonChains (object parameters = null)
+    public async Task<object> spotPublicGetV1SettingsCommonChains(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV1SettingsCommonChains",parameters);
+        return await this.callAsync("spotPublicGetV1SettingsCommonChains", parameters);
     }
 
-    public async Task<object> spotPublicGetV1SettingsCommonCurrencys (object parameters = null)
+    public async Task<object> spotPublicGetV1SettingsCommonCurrencys(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV1SettingsCommonCurrencys",parameters);
+        return await this.callAsync("spotPublicGetV1SettingsCommonCurrencys", parameters);
     }
 
-    public async Task<object> spotPublicGetV1SettingsCommonSymbols (object parameters = null)
+    public async Task<object> spotPublicGetV1SettingsCommonSymbols(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV1SettingsCommonSymbols",parameters);
+        return await this.callAsync("spotPublicGetV1SettingsCommonSymbols", parameters);
     }
 
-    public async Task<object> spotPublicGetV2SettingsCommonSymbols (object parameters = null)
+    public async Task<object> spotPublicGetV2SettingsCommonSymbols(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV2SettingsCommonSymbols",parameters);
+        return await this.callAsync("spotPublicGetV2SettingsCommonSymbols", parameters);
     }
 
-    public async Task<object> spotPublicGetV1SettingsCommonMarketSymbols (object parameters = null)
+    public async Task<object> spotPublicGetV1SettingsCommonMarketSymbols(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV1SettingsCommonMarketSymbols",parameters);
+        return await this.callAsync("spotPublicGetV1SettingsCommonMarketSymbols", parameters);
     }
 
-    public async Task<object> spotPublicGetMarketHistoryCandles (object parameters = null)
+    public async Task<object> spotPublicGetMarketHistoryCandles(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketHistoryCandles",parameters);
+        var res = await this.callAsync("spotPublicGetMarketHistoryCandles", parameters);
+        return res;
     }
 
-    public async Task<object> spotPublicGetMarketHistoryKline (object parameters = null)
+    public async Task<object> spotPublicGetMarketHistoryKline(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketHistoryKline",parameters);
+        return await this.callAsync("spotPublicGetMarketHistoryKline", parameters);
     }
 
-    public async Task<object> spotPublicGetMarketDetailMerged (object parameters = null)
+    public async Task<object> spotPublicGetMarketDetailMerged(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketDetailMerged",parameters);
+        return await this.callAsync("spotPublicGetMarketDetailMerged", parameters);
     }
 
-    public async Task<object> spotPublicGetMarketTickers (object parameters = null)
+    public async Task<object> spotPublicGetMarketTickers(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketTickers",parameters);
+        return await this.callAsync("spotPublicGetMarketTickers", parameters);
     }
 
-    public async Task<object> spotPublicGetMarketDetail (object parameters = null)
+    public async Task<object> spotPublicGetMarketDetail(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketDetail",parameters);
+        return await this.callAsync("spotPublicGetMarketDetail", parameters);
     }
 
-    public async Task<object> spotPublicGetMarketDepth (object parameters = null)
+    public async Task<object> spotPublicGetMarketDepth(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketDepth",parameters);
+        return await this.callAsync("spotPublicGetMarketDepth", parameters);
     }
 
-    public async Task<object> spotPublicGetMarketTrade (object parameters = null)
+    public async Task<object> spotPublicGetMarketTrade(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketTrade",parameters);
+        return await this.callAsync("spotPublicGetMarketTrade", parameters);
     }
 
-    public async Task<object> spotPublicGetMarketHistoryTrade (object parameters = null)
+    public async Task<object> spotPublicGetMarketHistoryTrade(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketHistoryTrade",parameters);
+        return await this.callAsync("spotPublicGetMarketHistoryTrade", parameters);
     }
 
-    public async Task<object> spotPublicGetMarketEtp (object parameters = null)
+    public async Task<object> spotPublicGetMarketEtp(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetMarketEtp",parameters);
+        return await this.callAsync("spotPublicGetMarketEtp", parameters);
     }
 
-    public async Task<object> spotPublicGetV2EtpReference (object parameters = null)
+    public async Task<object> spotPublicGetV2EtpReference(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV2EtpReference",parameters);
+        return await this.callAsync("spotPublicGetV2EtpReference", parameters);
     }
 
-    public async Task<object> spotPublicGetV2EtpRebalance (object parameters = null)
+    public async Task<object> spotPublicGetV2EtpRebalance(object parameters = null)
     {
-        return await this.callAsync ("spotPublicGetV2EtpRebalance",parameters);
+        return await this.callAsync("spotPublicGetV2EtpRebalance", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1AccountAccounts (object parameters = null)
+    public async Task<object> spotPrivateGetV1AccountAccounts(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1AccountAccounts",parameters);
+        return await this.callAsync("spotPrivateGetV1AccountAccounts", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1AccountAccountsAccountIdBalance (object parameters = null)
+    public async Task<object> spotPrivateGetV1AccountAccountsAccountIdBalance(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1AccountAccountsAccountIdBalance",parameters);
+        return await this.callAsync("spotPrivateGetV1AccountAccountsAccountIdBalance", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AccountValuation (object parameters = null)
+    public async Task<object> spotPrivateGetV2AccountValuation(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AccountValuation",parameters);
+        return await this.callAsync("spotPrivateGetV2AccountValuation", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AccountAssetValuation (object parameters = null)
+    public async Task<object> spotPrivateGetV2AccountAssetValuation(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AccountAssetValuation",parameters);
+        return await this.callAsync("spotPrivateGetV2AccountAssetValuation", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1AccountHistory (object parameters = null)
+    public async Task<object> spotPrivateGetV1AccountHistory(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1AccountHistory",parameters);
+        return await this.callAsync("spotPrivateGetV1AccountHistory", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AccountLedger (object parameters = null)
+    public async Task<object> spotPrivateGetV2AccountLedger(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AccountLedger",parameters);
+        return await this.callAsync("spotPrivateGetV2AccountLedger", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2PointAccount (object parameters = null)
+    public async Task<object> spotPrivateGetV2PointAccount(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2PointAccount",parameters);
+        return await this.callAsync("spotPrivateGetV2PointAccount", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AccountDepositAddress (object parameters = null)
+    public async Task<object> spotPrivateGetV2AccountDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AccountDepositAddress",parameters);
+        return await this.callAsync("spotPrivateGetV2AccountDepositAddress", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AccountWithdrawQuota (object parameters = null)
+    public async Task<object> spotPrivateGetV2AccountWithdrawQuota(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AccountWithdrawQuota",parameters);
+        return await this.callAsync("spotPrivateGetV2AccountWithdrawQuota", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AccountWithdrawAddress (object parameters = null)
+    public async Task<object> spotPrivateGetV2AccountWithdrawAddress(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AccountWithdrawAddress",parameters);
+        return await this.callAsync("spotPrivateGetV2AccountWithdrawAddress", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2ReferenceCurrencies (object parameters = null)
+    public async Task<object> spotPrivateGetV2ReferenceCurrencies(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2ReferenceCurrencies",parameters);
+        return await this.callAsync("spotPrivateGetV2ReferenceCurrencies", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1QueryDepositWithdraw (object parameters = null)
+    public async Task<object> spotPrivateGetV1QueryDepositWithdraw(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1QueryDepositWithdraw",parameters);
+        return await this.callAsync("spotPrivateGetV1QueryDepositWithdraw", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1QueryWithdrawClientOrderId (object parameters = null)
+    public async Task<object> spotPrivateGetV1QueryWithdrawClientOrderId(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1QueryWithdrawClientOrderId",parameters);
+        return await this.callAsync("spotPrivateGetV1QueryWithdrawClientOrderId", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2UserApiKey (object parameters = null)
+    public async Task<object> spotPrivateGetV2UserApiKey(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2UserApiKey",parameters);
+        return await this.callAsync("spotPrivateGetV2UserApiKey", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2UserUid (object parameters = null)
+    public async Task<object> spotPrivateGetV2UserUid(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2UserUid",parameters);
+        return await this.callAsync("spotPrivateGetV2UserUid", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2SubUserUserList (object parameters = null)
+    public async Task<object> spotPrivateGetV2SubUserUserList(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2SubUserUserList",parameters);
+        return await this.callAsync("spotPrivateGetV2SubUserUserList", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2SubUserUserState (object parameters = null)
+    public async Task<object> spotPrivateGetV2SubUserUserState(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2SubUserUserState",parameters);
+        return await this.callAsync("spotPrivateGetV2SubUserUserState", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2SubUserAccountList (object parameters = null)
+    public async Task<object> spotPrivateGetV2SubUserAccountList(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2SubUserAccountList",parameters);
+        return await this.callAsync("spotPrivateGetV2SubUserAccountList", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2SubUserDepositAddress (object parameters = null)
+    public async Task<object> spotPrivateGetV2SubUserDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2SubUserDepositAddress",parameters);
+        return await this.callAsync("spotPrivateGetV2SubUserDepositAddress", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2SubUserQueryDeposit (object parameters = null)
+    public async Task<object> spotPrivateGetV2SubUserQueryDeposit(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2SubUserQueryDeposit",parameters);
+        return await this.callAsync("spotPrivateGetV2SubUserQueryDeposit", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1SubuserAggregateBalance (object parameters = null)
+    public async Task<object> spotPrivateGetV1SubuserAggregateBalance(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1SubuserAggregateBalance",parameters);
+        return await this.callAsync("spotPrivateGetV1SubuserAggregateBalance", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1AccountAccountsSubUid (object parameters = null)
+    public async Task<object> spotPrivateGetV1AccountAccountsSubUid(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1AccountAccountsSubUid",parameters);
+        return await this.callAsync("spotPrivateGetV1AccountAccountsSubUid", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1OrderOpenOrders (object parameters = null)
+    public async Task<object> spotPrivateGetV1OrderOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1OrderOpenOrders",parameters);
+        return await this.callAsync("spotPrivateGetV1OrderOpenOrders", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1OrderOrdersOrderId (object parameters = null)
+    public async Task<object> spotPrivateGetV1OrderOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1OrderOrdersOrderId",parameters);
+        return await this.callAsync("spotPrivateGetV1OrderOrdersOrderId", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1OrderOrdersGetClientOrder (object parameters = null)
+    public async Task<object> spotPrivateGetV1OrderOrdersGetClientOrder(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1OrderOrdersGetClientOrder",parameters);
+        return await this.callAsync("spotPrivateGetV1OrderOrdersGetClientOrder", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1OrderOrdersOrderIdMatchresult (object parameters = null)
+    public async Task<object> spotPrivateGetV1OrderOrdersOrderIdMatchresult(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1OrderOrdersOrderIdMatchresult",parameters);
+        return await this.callAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresult", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1OrderOrdersOrderIdMatchresults (object parameters = null)
+    public async Task<object> spotPrivateGetV1OrderOrdersOrderIdMatchresults(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1OrderOrdersOrderIdMatchresults",parameters);
+        return await this.callAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresults", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1OrderOrders (object parameters = null)
+    public async Task<object> spotPrivateGetV1OrderOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1OrderOrders",parameters);
+        return await this.callAsync("spotPrivateGetV1OrderOrders", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1OrderHistory (object parameters = null)
+    public async Task<object> spotPrivateGetV1OrderHistory(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1OrderHistory",parameters);
+        return await this.callAsync("spotPrivateGetV1OrderHistory", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1OrderMatchresults (object parameters = null)
+    public async Task<object> spotPrivateGetV1OrderMatchresults(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1OrderMatchresults",parameters);
+        return await this.callAsync("spotPrivateGetV1OrderMatchresults", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2ReferenceTransactFeeRate (object parameters = null)
+    public async Task<object> spotPrivateGetV2ReferenceTransactFeeRate(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2ReferenceTransactFeeRate",parameters);
+        return await this.callAsync("spotPrivateGetV2ReferenceTransactFeeRate", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AlgoOrdersOpening (object parameters = null)
+    public async Task<object> spotPrivateGetV2AlgoOrdersOpening(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AlgoOrdersOpening",parameters);
+        return await this.callAsync("spotPrivateGetV2AlgoOrdersOpening", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AlgoOrdersHistory (object parameters = null)
+    public async Task<object> spotPrivateGetV2AlgoOrdersHistory(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AlgoOrdersHistory",parameters);
+        return await this.callAsync("spotPrivateGetV2AlgoOrdersHistory", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AlgoOrdersSpecific (object parameters = null)
+    public async Task<object> spotPrivateGetV2AlgoOrdersSpecific(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AlgoOrdersSpecific",parameters);
+        return await this.callAsync("spotPrivateGetV2AlgoOrdersSpecific", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1MarginLoanInfo (object parameters = null)
+    public async Task<object> spotPrivateGetV1MarginLoanInfo(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1MarginLoanInfo",parameters);
+        return await this.callAsync("spotPrivateGetV1MarginLoanInfo", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1MarginLoanOrders (object parameters = null)
+    public async Task<object> spotPrivateGetV1MarginLoanOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1MarginLoanOrders",parameters);
+        return await this.callAsync("spotPrivateGetV1MarginLoanOrders", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1MarginAccountsBalance (object parameters = null)
+    public async Task<object> spotPrivateGetV1MarginAccountsBalance(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1MarginAccountsBalance",parameters);
+        return await this.callAsync("spotPrivateGetV1MarginAccountsBalance", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1CrossMarginLoanInfo (object parameters = null)
+    public async Task<object> spotPrivateGetV1CrossMarginLoanInfo(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1CrossMarginLoanInfo",parameters);
+        return await this.callAsync("spotPrivateGetV1CrossMarginLoanInfo", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1CrossMarginLoanOrders (object parameters = null)
+    public async Task<object> spotPrivateGetV1CrossMarginLoanOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1CrossMarginLoanOrders",parameters);
+        return await this.callAsync("spotPrivateGetV1CrossMarginLoanOrders", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1CrossMarginAccountsBalance (object parameters = null)
+    public async Task<object> spotPrivateGetV1CrossMarginAccountsBalance(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1CrossMarginAccountsBalance",parameters);
+        return await this.callAsync("spotPrivateGetV1CrossMarginAccountsBalance", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2AccountRepayment (object parameters = null)
+    public async Task<object> spotPrivateGetV2AccountRepayment(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2AccountRepayment",parameters);
+        return await this.callAsync("spotPrivateGetV2AccountRepayment", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1StableCoinQuote (object parameters = null)
+    public async Task<object> spotPrivateGetV1StableCoinQuote(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1StableCoinQuote",parameters);
+        return await this.callAsync("spotPrivateGetV1StableCoinQuote", parameters);
     }
 
-    public async Task<object> spotPrivateGetV1StableCoinExchangeRate (object parameters = null)
+    public async Task<object> spotPrivateGetV1StableCoinExchangeRate(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV1StableCoinExchangeRate",parameters);
+        return await this.callAsync("spotPrivateGetV1StableCoinExchangeRate", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2EtpTransactions (object parameters = null)
+    public async Task<object> spotPrivateGetV2EtpTransactions(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2EtpTransactions",parameters);
+        return await this.callAsync("spotPrivateGetV2EtpTransactions", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2EtpTransaction (object parameters = null)
+    public async Task<object> spotPrivateGetV2EtpTransaction(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2EtpTransaction",parameters);
+        return await this.callAsync("spotPrivateGetV2EtpTransaction", parameters);
     }
 
-    public async Task<object> spotPrivateGetV2EtpLimit (object parameters = null)
+    public async Task<object> spotPrivateGetV2EtpLimit(object parameters = null)
     {
-        return await this.callAsync ("spotPrivateGetV2EtpLimit",parameters);
+        return await this.callAsync("spotPrivateGetV2EtpLimit", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1AccountTransfer (object parameters = null)
+    public async Task<object> spotPrivatePostV1AccountTransfer(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1AccountTransfer",parameters);
+        return await this.callAsync("spotPrivatePostV1AccountTransfer", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1FuturesTransfer (object parameters = null)
+    public async Task<object> spotPrivatePostV1FuturesTransfer(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1FuturesTransfer",parameters);
+        return await this.callAsync("spotPrivatePostV1FuturesTransfer", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2PointTransfer (object parameters = null)
+    public async Task<object> spotPrivatePostV2PointTransfer(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2PointTransfer",parameters);
+        return await this.callAsync("spotPrivatePostV2PointTransfer", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2AccountTransfer (object parameters = null)
+    public async Task<object> spotPrivatePostV2AccountTransfer(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2AccountTransfer",parameters);
+        return await this.callAsync("spotPrivatePostV2AccountTransfer", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1DwWithdrawApiCreate (object parameters = null)
+    public async Task<object> spotPrivatePostV1DwWithdrawApiCreate(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1DwWithdrawApiCreate",parameters);
+        return await this.callAsync("spotPrivatePostV1DwWithdrawApiCreate", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel (object parameters = null)
+    public async Task<object> spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel",parameters);
+        return await this.callAsync("spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2SubUserDeductMode (object parameters = null)
+    public async Task<object> spotPrivatePostV2SubUserDeductMode(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2SubUserDeductMode",parameters);
+        return await this.callAsync("spotPrivatePostV2SubUserDeductMode", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2SubUserCreation (object parameters = null)
+    public async Task<object> spotPrivatePostV2SubUserCreation(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2SubUserCreation",parameters);
+        return await this.callAsync("spotPrivatePostV2SubUserCreation", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2SubUserManagement (object parameters = null)
+    public async Task<object> spotPrivatePostV2SubUserManagement(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2SubUserManagement",parameters);
+        return await this.callAsync("spotPrivatePostV2SubUserManagement", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2SubUserTradableMarket (object parameters = null)
+    public async Task<object> spotPrivatePostV2SubUserTradableMarket(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2SubUserTradableMarket",parameters);
+        return await this.callAsync("spotPrivatePostV2SubUserTradableMarket", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2SubUserTransferability (object parameters = null)
+    public async Task<object> spotPrivatePostV2SubUserTransferability(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2SubUserTransferability",parameters);
+        return await this.callAsync("spotPrivatePostV2SubUserTransferability", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2SubUserApiKeyGeneration (object parameters = null)
+    public async Task<object> spotPrivatePostV2SubUserApiKeyGeneration(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2SubUserApiKeyGeneration",parameters);
+        return await this.callAsync("spotPrivatePostV2SubUserApiKeyGeneration", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2SubUserApiKeyModification (object parameters = null)
+    public async Task<object> spotPrivatePostV2SubUserApiKeyModification(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2SubUserApiKeyModification",parameters);
+        return await this.callAsync("spotPrivatePostV2SubUserApiKeyModification", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2SubUserApiKeyDeletion (object parameters = null)
+    public async Task<object> spotPrivatePostV2SubUserApiKeyDeletion(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2SubUserApiKeyDeletion",parameters);
+        return await this.callAsync("spotPrivatePostV2SubUserApiKeyDeletion", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1SubuserTransfer (object parameters = null)
+    public async Task<object> spotPrivatePostV1SubuserTransfer(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1SubuserTransfer",parameters);
+        return await this.callAsync("spotPrivatePostV1SubuserTransfer", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1OrderOrdersPlace (object parameters = null)
+    public async Task<object> spotPrivatePostV1OrderOrdersPlace(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1OrderOrdersPlace",parameters);
+        return await this.callAsync("spotPrivatePostV1OrderOrdersPlace", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1OrderBatchOrders (object parameters = null)
+    public async Task<object> spotPrivatePostV1OrderBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1OrderBatchOrders",parameters);
+        return await this.callAsync("spotPrivatePostV1OrderBatchOrders", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1OrderOrdersOrderIdSubmitcancel (object parameters = null)
+    public async Task<object> spotPrivatePostV1OrderOrdersOrderIdSubmitcancel(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1OrderOrdersOrderIdSubmitcancel",parameters);
+        return await this.callAsync("spotPrivatePostV1OrderOrdersOrderIdSubmitcancel", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1OrderOrdersSubmitCancelClientOrder (object parameters = null)
+    public async Task<object> spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1OrderOrdersSubmitCancelClientOrder",parameters);
+        return await this.callAsync("spotPrivatePostV1OrderOrdersSubmitCancelClientOrder", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (object parameters = null)
+    public async Task<object> spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1OrderOrdersBatchCancelOpenOrders",parameters);
+        return await this.callAsync("spotPrivatePostV1OrderOrdersBatchCancelOpenOrders", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1OrderOrdersBatchcancel (object parameters = null)
+    public async Task<object> spotPrivatePostV1OrderOrdersBatchcancel(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1OrderOrdersBatchcancel",parameters);
+        return await this.callAsync("spotPrivatePostV1OrderOrdersBatchcancel", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2AlgoOrdersCancelAllAfter (object parameters = null)
+    public async Task<object> spotPrivatePostV2AlgoOrdersCancelAllAfter(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2AlgoOrdersCancelAllAfter",parameters);
+        return await this.callAsync("spotPrivatePostV2AlgoOrdersCancelAllAfter", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2AlgoOrders (object parameters = null)
+    public async Task<object> spotPrivatePostV2AlgoOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2AlgoOrders",parameters);
+        return await this.callAsync("spotPrivatePostV2AlgoOrders", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2AlgoOrdersCancellation (object parameters = null)
+    public async Task<object> spotPrivatePostV2AlgoOrdersCancellation(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2AlgoOrdersCancellation",parameters);
+        return await this.callAsync("spotPrivatePostV2AlgoOrdersCancellation", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2AccountRepayment (object parameters = null)
+    public async Task<object> spotPrivatePostV2AccountRepayment(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2AccountRepayment",parameters);
+        return await this.callAsync("spotPrivatePostV2AccountRepayment", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1DwTransferInMargin (object parameters = null)
+    public async Task<object> spotPrivatePostV1DwTransferInMargin(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1DwTransferInMargin",parameters);
+        return await this.callAsync("spotPrivatePostV1DwTransferInMargin", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1DwTransferOutMargin (object parameters = null)
+    public async Task<object> spotPrivatePostV1DwTransferOutMargin(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1DwTransferOutMargin",parameters);
+        return await this.callAsync("spotPrivatePostV1DwTransferOutMargin", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1MarginOrders (object parameters = null)
+    public async Task<object> spotPrivatePostV1MarginOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1MarginOrders",parameters);
+        return await this.callAsync("spotPrivatePostV1MarginOrders", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1MarginOrdersOrderIdRepay (object parameters = null)
+    public async Task<object> spotPrivatePostV1MarginOrdersOrderIdRepay(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1MarginOrdersOrderIdRepay",parameters);
+        return await this.callAsync("spotPrivatePostV1MarginOrdersOrderIdRepay", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1CrossMarginTransferIn (object parameters = null)
+    public async Task<object> spotPrivatePostV1CrossMarginTransferIn(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1CrossMarginTransferIn",parameters);
+        return await this.callAsync("spotPrivatePostV1CrossMarginTransferIn", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1CrossMarginTransferOut (object parameters = null)
+    public async Task<object> spotPrivatePostV1CrossMarginTransferOut(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1CrossMarginTransferOut",parameters);
+        return await this.callAsync("spotPrivatePostV1CrossMarginTransferOut", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1CrossMarginOrders (object parameters = null)
+    public async Task<object> spotPrivatePostV1CrossMarginOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1CrossMarginOrders",parameters);
+        return await this.callAsync("spotPrivatePostV1CrossMarginOrders", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1CrossMarginOrdersOrderIdRepay (object parameters = null)
+    public async Task<object> spotPrivatePostV1CrossMarginOrdersOrderIdRepay(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1CrossMarginOrdersOrderIdRepay",parameters);
+        return await this.callAsync("spotPrivatePostV1CrossMarginOrdersOrderIdRepay", parameters);
     }
 
-    public async Task<object> spotPrivatePostV1StableCoinExchange (object parameters = null)
+    public async Task<object> spotPrivatePostV1StableCoinExchange(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV1StableCoinExchange",parameters);
+        return await this.callAsync("spotPrivatePostV1StableCoinExchange", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2EtpCreation (object parameters = null)
+    public async Task<object> spotPrivatePostV2EtpCreation(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2EtpCreation",parameters);
+        return await this.callAsync("spotPrivatePostV2EtpCreation", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2EtpRedemption (object parameters = null)
+    public async Task<object> spotPrivatePostV2EtpRedemption(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2EtpRedemption",parameters);
+        return await this.callAsync("spotPrivatePostV2EtpRedemption", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2EtpTransactIdCancel (object parameters = null)
+    public async Task<object> spotPrivatePostV2EtpTransactIdCancel(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2EtpTransactIdCancel",parameters);
+        return await this.callAsync("spotPrivatePostV2EtpTransactIdCancel", parameters);
     }
 
-    public async Task<object> spotPrivatePostV2EtpBatchCancel (object parameters = null)
+    public async Task<object> spotPrivatePostV2EtpBatchCancel(object parameters = null)
     {
-        return await this.callAsync ("spotPrivatePostV2EtpBatchCancel",parameters);
+        return await this.callAsync("spotPrivatePostV2EtpBatchCancel", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1Timestamp (object parameters = null)
+    public async Task<object> contractPublicGetApiV1Timestamp(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1Timestamp",parameters);
+        return await this.callAsync("contractPublicGetApiV1Timestamp", parameters);
     }
 
-    public async Task<object> contractPublicGetHeartbeat (object parameters = null)
+    public async Task<object> contractPublicGetHeartbeat(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetHeartbeat",parameters);
+        return await this.callAsync("contractPublicGetHeartbeat", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractContractInfo (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractContractInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractContractInfo",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractContractInfo", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractIndex (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractIndex(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractIndex",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractIndex", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractPriceLimit (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractPriceLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractPriceLimit",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractPriceLimit", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractOpenInterest (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractOpenInterest",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractOpenInterest", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractDeliveryPrice (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractDeliveryPrice(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractDeliveryPrice",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractDeliveryPrice", parameters);
     }
 
-    public async Task<object> contractPublicGetMarketDepth (object parameters = null)
+    public async Task<object> contractPublicGetMarketDepth(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetMarketDepth",parameters);
+        return await this.callAsync("contractPublicGetMarketDepth", parameters);
     }
 
-    public async Task<object> contractPublicGetMarketBbo (object parameters = null)
+    public async Task<object> contractPublicGetMarketBbo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetMarketBbo",parameters);
+        return await this.callAsync("contractPublicGetMarketBbo", parameters);
     }
 
-    public async Task<object> contractPublicGetMarketHistoryKline (object parameters = null)
+    public async Task<object> contractPublicGetMarketHistoryKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetMarketHistoryKline",parameters);
+        return await this.callAsync("contractPublicGetMarketHistoryKline", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistoryMarkPriceKline (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistoryMarkPriceKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistoryMarkPriceKline",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistoryMarkPriceKline", parameters);
     }
 
-    public async Task<object> contractPublicGetMarketDetailMerged (object parameters = null)
+    public async Task<object> contractPublicGetMarketDetailMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetMarketDetailMerged",parameters);
+        return await this.callAsync("contractPublicGetMarketDetailMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetMarketDetailBatchMerged (object parameters = null)
+    public async Task<object> contractPublicGetMarketDetailBatchMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetMarketDetailBatchMerged",parameters);
+        return await this.callAsync("contractPublicGetMarketDetailBatchMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetV2MarketDetailBatchMerged (object parameters = null)
+    public async Task<object> contractPublicGetV2MarketDetailBatchMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetV2MarketDetailBatchMerged",parameters);
+        return await this.callAsync("contractPublicGetV2MarketDetailBatchMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetMarketTrade (object parameters = null)
+    public async Task<object> contractPublicGetMarketTrade(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetMarketTrade",parameters);
+        return await this.callAsync("contractPublicGetMarketTrade", parameters);
     }
 
-    public async Task<object> contractPublicGetMarketHistoryTrade (object parameters = null)
+    public async Task<object> contractPublicGetMarketHistoryTrade(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetMarketHistoryTrade",parameters);
+        return await this.callAsync("contractPublicGetMarketHistoryTrade", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractRiskInfo (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractRiskInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractRiskInfo",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractRiskInfo", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractInsuranceFund (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractInsuranceFund(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractInsuranceFund",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractInsuranceFund", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractAdjustfactor (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractAdjustfactor(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractAdjustfactor",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractAdjustfactor", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractHisOpenInterest (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractHisOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractHisOpenInterest",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractHisOpenInterest", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractLadderMargin (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractLadderMargin(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractLadderMargin",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractLadderMargin", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractApiState (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractApiState(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractApiState",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractApiState", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractEliteAccountRatio (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractEliteAccountRatio(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractEliteAccountRatio",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractEliteAccountRatio", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractElitePositionRatio (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractElitePositionRatio(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractElitePositionRatio",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractElitePositionRatio", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractLiquidationOrders (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractLiquidationOrders(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractLiquidationOrders",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractLiquidationOrders", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractSettlementRecords (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractSettlementRecords(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractSettlementRecords",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractSettlementRecords", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistoryIndex (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistoryIndex(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistoryIndex",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistoryIndex", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistoryBasis (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistoryBasis(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistoryBasis",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistoryBasis", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV1ContractEstimatedSettlementPrice (object parameters = null)
+    public async Task<object> contractPublicGetApiV1ContractEstimatedSettlementPrice(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV1ContractEstimatedSettlementPrice",parameters);
+        return await this.callAsync("contractPublicGetApiV1ContractEstimatedSettlementPrice", parameters);
     }
 
-    public async Task<object> contractPublicGetApiV3ContractLiquidationOrders (object parameters = null)
+    public async Task<object> contractPublicGetApiV3ContractLiquidationOrders(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetApiV3ContractLiquidationOrders",parameters);
+        return await this.callAsync("contractPublicGetApiV3ContractLiquidationOrders", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapContractInfo (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapContractInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapContractInfo",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapContractInfo", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapIndex (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapIndex(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapIndex",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapIndex", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapPriceLimit (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapPriceLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapPriceLimit",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapPriceLimit", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapOpenInterest (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapOpenInterest",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapOpenInterest", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapExMarketDepth (object parameters = null)
+    public async Task<object> contractPublicGetSwapExMarketDepth(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapExMarketDepth",parameters);
+        return await this.callAsync("contractPublicGetSwapExMarketDepth", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapExMarketBbo (object parameters = null)
+    public async Task<object> contractPublicGetSwapExMarketBbo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapExMarketBbo",parameters);
+        return await this.callAsync("contractPublicGetSwapExMarketBbo", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapExMarketHistoryKline (object parameters = null)
+    public async Task<object> contractPublicGetSwapExMarketHistoryKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapExMarketHistoryKline",parameters);
+        return await this.callAsync("contractPublicGetSwapExMarketHistoryKline", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistorySwapMarkPriceKline (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistorySwapMarkPriceKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistorySwapMarkPriceKline",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistorySwapMarkPriceKline", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapExMarketDetailMerged (object parameters = null)
+    public async Task<object> contractPublicGetSwapExMarketDetailMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapExMarketDetailMerged",parameters);
+        return await this.callAsync("contractPublicGetSwapExMarketDetailMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetV2SwapExMarketDetailBatchMerged (object parameters = null)
+    public async Task<object> contractPublicGetV2SwapExMarketDetailBatchMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetV2SwapExMarketDetailBatchMerged",parameters);
+        return await this.callAsync("contractPublicGetV2SwapExMarketDetailBatchMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistorySwapPremiumIndexKline (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistorySwapPremiumIndexKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistorySwapPremiumIndexKline",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistorySwapPremiumIndexKline", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapExMarketDetailBatchMerged (object parameters = null)
+    public async Task<object> contractPublicGetSwapExMarketDetailBatchMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapExMarketDetailBatchMerged",parameters);
+        return await this.callAsync("contractPublicGetSwapExMarketDetailBatchMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapExMarketTrade (object parameters = null)
+    public async Task<object> contractPublicGetSwapExMarketTrade(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapExMarketTrade",parameters);
+        return await this.callAsync("contractPublicGetSwapExMarketTrade", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapExMarketHistoryTrade (object parameters = null)
+    public async Task<object> contractPublicGetSwapExMarketHistoryTrade(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapExMarketHistoryTrade",parameters);
+        return await this.callAsync("contractPublicGetSwapExMarketHistoryTrade", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapRiskInfo (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapRiskInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapRiskInfo",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapRiskInfo", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapInsuranceFund (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapInsuranceFund(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapInsuranceFund",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapInsuranceFund", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapAdjustfactor (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapAdjustfactor(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapAdjustfactor",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapAdjustfactor", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapHisOpenInterest (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapHisOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapHisOpenInterest",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapHisOpenInterest", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapLadderMargin (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapLadderMargin(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapLadderMargin",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapLadderMargin", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapApiState (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapApiState(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapApiState",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapApiState", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapEliteAccountRatio (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapEliteAccountRatio(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapEliteAccountRatio",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapEliteAccountRatio", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapElitePositionRatio (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapElitePositionRatio(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapElitePositionRatio",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapElitePositionRatio", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapEstimatedSettlementPrice (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapEstimatedSettlementPrice(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapEstimatedSettlementPrice",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapEstimatedSettlementPrice", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapLiquidationOrders (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapLiquidationOrders(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapLiquidationOrders",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapLiquidationOrders", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapSettlementRecords (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapSettlementRecords(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapSettlementRecords",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapSettlementRecords", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapFundingRate (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapFundingRate(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapFundingRate",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapFundingRate", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapBatchFundingRate (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapBatchFundingRate(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapBatchFundingRate",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapBatchFundingRate", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1SwapHistoricalFundingRate (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1SwapHistoricalFundingRate(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1SwapHistoricalFundingRate",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1SwapHistoricalFundingRate", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV3SwapLiquidationOrders (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV3SwapLiquidationOrders(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV3SwapLiquidationOrders",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV3SwapLiquidationOrders", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistorySwapEstimatedRateKline (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistorySwapEstimatedRateKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistorySwapEstimatedRateKline",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistorySwapEstimatedRateKline", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistorySwapBasis (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistorySwapBasis(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistorySwapBasis",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistorySwapBasis", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapContractInfo (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapContractInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapContractInfo",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapContractInfo", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapIndex (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapIndex(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapIndex",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapIndex", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapPriceLimit (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapPriceLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapPriceLimit",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapPriceLimit", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapOpenInterest (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapOpenInterest",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapOpenInterest", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapExMarketDepth (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapExMarketDepth(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapExMarketDepth",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapExMarketDepth", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapExMarketBbo (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapExMarketBbo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapExMarketBbo",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapExMarketBbo", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapExMarketHistoryKline (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapExMarketHistoryKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapExMarketHistoryKline",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapExMarketHistoryKline", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapExMarketDetailMerged (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapExMarketDetailMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapExMarketDetailMerged",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapExMarketDetailMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapExMarketDetailBatchMerged (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapExMarketDetailBatchMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapExMarketDetailBatchMerged",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapExMarketDetailBatchMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetV2LinearSwapExMarketDetailBatchMerged (object parameters = null)
+    public async Task<object> contractPublicGetV2LinearSwapExMarketDetailBatchMerged(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetV2LinearSwapExMarketDetailBatchMerged",parameters);
+        return await this.callAsync("contractPublicGetV2LinearSwapExMarketDetailBatchMerged", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapExMarketTrade (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapExMarketTrade(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapExMarketTrade",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapExMarketTrade", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapExMarketHistoryTrade (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapExMarketHistoryTrade(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapExMarketHistoryTrade",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapExMarketHistoryTrade", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapRiskInfo (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapRiskInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapRiskInfo",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapRiskInfo", parameters);
     }
 
-    public async Task<object> contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund (object parameters = null)
+    public async Task<object> contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund",parameters);
+        return await this.callAsync("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapAdjustfactor (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapAdjustfactor(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapAdjustfactor",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapAdjustfactor", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapHisOpenInterest (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapHisOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapHisOpenInterest",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapHisOpenInterest", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapLadderMargin (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapLadderMargin(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapLadderMargin",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapLadderMargin", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossLadderMargin (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossLadderMargin(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapCrossLadderMargin",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapCrossLadderMargin", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapApiState (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapApiState(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapApiState",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapApiState", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossTransferState (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossTransferState(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapCrossTransferState",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapCrossTransferState", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossTradeState (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapCrossTradeState(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapCrossTradeState",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapCrossTradeState", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapEliteAccountRatio (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapEliteAccountRatio(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapElitePositionRatio (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapElitePositionRatio(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapElitePositionRatio",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapElitePositionRatio", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapLiquidationOrders (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapLiquidationOrders(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapLiquidationOrders",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapLiquidationOrders", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapSettlementRecords (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapSettlementRecords(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapSettlementRecords",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapSettlementRecords", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapFundingRate (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapFundingRate(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapFundingRate",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapFundingRate", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapBatchFundingRate (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapBatchFundingRate(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapBatchFundingRate",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapBatchFundingRate", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapHistoricalFundingRate", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV3SwapLiquidationOrders (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV3SwapLiquidationOrders(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV3SwapLiquidationOrders",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV3SwapLiquidationOrders", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline", parameters);
     }
 
-    public async Task<object> contractPublicGetIndexMarketHistoryLinearSwapBasis (object parameters = null)
+    public async Task<object> contractPublicGetIndexMarketHistoryLinearSwapBasis(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetIndexMarketHistoryLinearSwapBasis",parameters);
+        return await this.callAsync("contractPublicGetIndexMarketHistoryLinearSwapBasis", parameters);
     }
 
-    public async Task<object> contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice (object parameters = null)
+    public async Task<object> contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(object parameters = null)
     {
-        return await this.callAsync ("contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice",parameters);
+        return await this.callAsync("contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice", parameters);
     }
 
-    public async Task<object> contractPrivateGetApiV1ContractApiTradingStatus (object parameters = null)
+    public async Task<object> contractPrivateGetApiV1ContractApiTradingStatus(object parameters = null)
     {
-        return await this.callAsync ("contractPrivateGetApiV1ContractApiTradingStatus",parameters);
+        return await this.callAsync("contractPrivateGetApiV1ContractApiTradingStatus", parameters);
     }
 
-    public async Task<object> contractPrivateGetSwapApiV1SwapApiTradingStatus (object parameters = null)
+    public async Task<object> contractPrivateGetSwapApiV1SwapApiTradingStatus(object parameters = null)
     {
-        return await this.callAsync ("contractPrivateGetSwapApiV1SwapApiTradingStatus",parameters);
+        return await this.callAsync("contractPrivateGetSwapApiV1SwapApiTradingStatus", parameters);
     }
 
-    public async Task<object> contractPrivateGetLinearSwapApiV1SwapApiTradingStatus (object parameters = null)
+    public async Task<object> contractPrivateGetLinearSwapApiV1SwapApiTradingStatus(object parameters = null)
     {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV1SwapApiTradingStatus",parameters);
+        return await this.callAsync("contractPrivateGetLinearSwapApiV1SwapApiTradingStatus", parameters);
     }
 
-    public async Task<object> contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (object parameters = null)
+    public async Task<object> contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV3UnifiedAccountInfo",parameters);
+        return await this.callAsync("contractPrivateGetLinearSwapApiV3UnifiedAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType (object parameters = null)
+    public async Task<object> contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType(object parameters = null)
     {
-        return await this.callAsync ("contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType",parameters);
+        return await this.callAsync("contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractBalanceValuation (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractBalanceValuation(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractBalanceValuation",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractBalanceValuation", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractAccountInfo (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractAccountInfo",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractSubAuth (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractSubAuth(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractSubAuth",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractSubAuth", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractSubAccountList (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractSubAccountList(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractSubAccountList",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractSubAccountList", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractSubAccountInfoList (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractSubAccountInfoList(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractSubAccountInfoList",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractSubAccountInfoList", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractSubAccountInfo (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractSubAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractSubAccountInfo",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractSubAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractSubPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractSubPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractSubPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractSubPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractFinancialRecord (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractFinancialRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractFinancialRecord",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractFinancialRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractFinancialRecordExact (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractFinancialRecordExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractFinancialRecordExact",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractFinancialRecordExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractUserSettlementRecords (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractUserSettlementRecords(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractUserSettlementRecords",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractUserSettlementRecords", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractOrderLimit (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractOrderLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractOrderLimit",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractOrderLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractFee (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractFee(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractFee",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractFee", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTransferLimit (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTransferLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTransferLimit",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTransferLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractPositionLimit (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractPositionLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractPositionLimit",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractPositionLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractAccountPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractAccountPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractAccountPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractAccountPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractMasterSubTransfer (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractMasterSubTransfer(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractMasterSubTransfer",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractMasterSubTransfer", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractMasterSubTransferRecord (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractMasterSubTransferRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractMasterSubTransferRecord",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractMasterSubTransferRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractAvailableLevelRate (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractAvailableLevelRate(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractAvailableLevelRate",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractAvailableLevelRate", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV3ContractFinancialRecord (object parameters = null)
+    public async Task<object> contractPrivatePostApiV3ContractFinancialRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV3ContractFinancialRecord",parameters);
+        return await this.callAsync("contractPrivatePostApiV3ContractFinancialRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV3ContractFinancialRecordExact (object parameters = null)
+    public async Task<object> contractPrivatePostApiV3ContractFinancialRecordExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV3ContractFinancialRecordExact",parameters);
+        return await this.callAsync("contractPrivatePostApiV3ContractFinancialRecordExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractOrder (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractOrder",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostV1ContractBatchorder (object parameters = null)
+    public async Task<object> contractPrivatePostV1ContractBatchorder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostV1ContractBatchorder",parameters);
+        return await this.callAsync("contractPrivatePostV1ContractBatchorder", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractCancel (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractCancel",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractCancelall",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractSwitchLeverRate (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractSwitchLeverRate(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractSwitchLeverRate",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractSwitchLeverRate", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1LightningClosePosition (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1LightningClosePosition(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1LightningClosePosition",parameters);
+        return await this.callAsync("contractPrivatePostApiV1LightningClosePosition", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractOrderInfo (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractOrderInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractOrderInfo",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractOrderInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractOrderDetail (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractOrderDetail(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractOrderDetail",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractOrderDetail", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractHisorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractHisordersExact (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractHisordersExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractHisordersExact",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractHisordersExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractMatchresults (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractMatchresults(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractMatchresults",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractMatchresults", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractMatchresultsExact (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractMatchresultsExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractMatchresultsExact",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractMatchresultsExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV3ContractHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV3ContractHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV3ContractHisorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV3ContractHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV3ContractHisordersExact (object parameters = null)
+    public async Task<object> contractPrivatePostApiV3ContractHisordersExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV3ContractHisordersExact",parameters);
+        return await this.callAsync("contractPrivatePostApiV3ContractHisordersExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV3ContractMatchresults (object parameters = null)
+    public async Task<object> contractPrivatePostApiV3ContractMatchresults(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV3ContractMatchresults",parameters);
+        return await this.callAsync("contractPrivatePostApiV3ContractMatchresults", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV3ContractMatchresultsExact (object parameters = null)
+    public async Task<object> contractPrivatePostApiV3ContractMatchresultsExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV3ContractMatchresultsExact",parameters);
+        return await this.callAsync("contractPrivatePostApiV3ContractMatchresultsExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTriggerOrder (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTriggerOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTriggerOrder",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTriggerOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTriggerCancel (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTriggerCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTriggerCancel",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTriggerCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTriggerCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTriggerCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTriggerCancelall",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTriggerCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTriggerOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTriggerOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTriggerOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTriggerOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTriggerHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTriggerHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTriggerHisorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTriggerHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTpslOrder (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTpslOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTpslOrder",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTpslOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTpslCancel (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTpslCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTpslCancel",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTpslCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTpslCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTpslCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTpslCancelall",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTpslCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTpslOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTpslOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTpslOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTpslOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTpslHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTpslHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTpslHisorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTpslHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractRelationTpslOrder (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractRelationTpslOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractRelationTpslOrder",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractRelationTpslOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTrackOrder (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTrackOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTrackOrder",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTrackOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTrackCancel (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTrackCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTrackCancel",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTrackCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTrackCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTrackCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTrackCancelall",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTrackCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTrackOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTrackOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTrackOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTrackOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostApiV1ContractTrackHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostApiV1ContractTrackHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostApiV1ContractTrackHisorders",parameters);
+        return await this.callAsync("contractPrivatePostApiV1ContractTrackHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapBalanceValuation (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapBalanceValuation(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapBalanceValuation",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapBalanceValuation", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapAccountInfo (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapAccountInfo",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapAccountPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapAccountPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapAccountPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapAccountPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapSubAuth (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapSubAuth(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapSubAuth",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapSubAuth", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapSubAccountList (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapSubAccountList(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapSubAccountList",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapSubAccountList", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapSubAccountInfoList (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapSubAccountInfoList(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapSubAccountInfoList",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapSubAccountInfoList", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapSubAccountInfo (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapSubAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapSubAccountInfo",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapSubAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapSubPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapSubPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapSubPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapSubPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapFinancialRecord (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapFinancialRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapFinancialRecord",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapFinancialRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapFinancialRecordExact (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapFinancialRecordExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapFinancialRecordExact",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapFinancialRecordExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapUserSettlementRecords (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapUserSettlementRecords(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapUserSettlementRecords",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapUserSettlementRecords", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapAvailableLevelRate (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapAvailableLevelRate(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapAvailableLevelRate",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapAvailableLevelRate", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapOrderLimit (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapOrderLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapOrderLimit",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapOrderLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapFee (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapFee(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapFee",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapFee", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTransferLimit (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTransferLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTransferLimit",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTransferLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapPositionLimit (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapPositionLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapPositionLimit",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapPositionLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapMasterSubTransfer (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapMasterSubTransfer(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapMasterSubTransfer",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapMasterSubTransfer", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapMasterSubTransferRecord (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapMasterSubTransferRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapMasterSubTransferRecord",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapMasterSubTransferRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV3SwapFinancialRecord (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV3SwapFinancialRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV3SwapFinancialRecord",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV3SwapFinancialRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV3SwapFinancialRecordExact (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV3SwapFinancialRecordExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV3SwapFinancialRecordExact",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV3SwapFinancialRecordExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapOrder (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapOrder",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapBatchorder (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapBatchorder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapBatchorder",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapBatchorder", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapCancel (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapCancel",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapCancelall",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapLightningClosePosition (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapLightningClosePosition(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapLightningClosePosition",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapLightningClosePosition", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapSwitchLeverRate (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapSwitchLeverRate(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapSwitchLeverRate",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapSwitchLeverRate", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapOrderInfo (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapOrderInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapOrderInfo",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapOrderInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapOrderDetail (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapOrderDetail(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapOrderDetail",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapOrderDetail", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapHisorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapHisordersExact (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapHisordersExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapHisordersExact",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapHisordersExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapMatchresults (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapMatchresults(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapMatchresults",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapMatchresults", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapMatchresultsExact (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapMatchresultsExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapMatchresultsExact",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapMatchresultsExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV3SwapMatchresults (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV3SwapMatchresults(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV3SwapMatchresults",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV3SwapMatchresults", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV3SwapMatchresultsExact (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV3SwapMatchresultsExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV3SwapMatchresultsExact",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV3SwapMatchresultsExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV3SwapHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV3SwapHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV3SwapHisorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV3SwapHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV3SwapHisordersExact (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV3SwapHisordersExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV3SwapHisordersExact",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV3SwapHisordersExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerOrder (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTriggerOrder",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTriggerOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerCancel (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTriggerCancel",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTriggerCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTriggerCancelall",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTriggerCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTriggerOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTriggerOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTriggerHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTriggerHisorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTriggerHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTpslOrder (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTpslOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTpslOrder",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTpslOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTpslCancel (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTpslCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTpslCancel",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTpslCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTpslCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTpslCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTpslCancelall",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTpslCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTpslOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTpslOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTpslOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTpslOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTpslHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTpslHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTpslHisorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTpslHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapRelationTpslOrder (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapRelationTpslOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapRelationTpslOrder",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapRelationTpslOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTrackOrder (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTrackOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTrackOrder",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTrackOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTrackCancel (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTrackCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTrackCancel",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTrackCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTrackCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTrackCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTrackCancelall",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTrackCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTrackOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTrackOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTrackOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTrackOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostSwapApiV1SwapTrackHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostSwapApiV1SwapTrackHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostSwapApiV1SwapTrackHisorders",parameters);
+        return await this.callAsync("contractPrivatePostSwapApiV1SwapTrackHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapLeverPositionLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossLeverPositionLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapBalanceValuation (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapBalanceValuation(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapBalanceValuation",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapBalanceValuation", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapAccountInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapAccountInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapAccountPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAuth (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAuth(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAuth",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapSubAuth", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountList (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountList(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountList",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountList", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountList", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountInfoList", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfoList", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubAccountInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapSubAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubAccountInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSubPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSubPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapSubPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossSubPositionInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFinancialRecord (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFinancialRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFinancialRecord",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapFinancialRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapUserSettlementRecords", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossUserSettlementRecords", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapAvailableLevelRate", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossAvailableLevelRate", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrderLimit (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrderLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapOrderLimit",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapOrderLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFee (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapFee(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapFee",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapFee", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTransferLimit (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTransferLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTransferLimit",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTransferLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTransferLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapPositionLimit (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapPositionLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapPositionLimit",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapPositionLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossPositionLimit", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapMasterSubTransfer", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapMasterSubTransferRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTransferInner (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTransferInner(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTransferInner",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTransferInner", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapFinancialRecord (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapFinancialRecord(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapFinancialRecord",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapFinancialRecord", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapBatchorder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapBatchorder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapBatchorder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapBatchorder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossBatchorder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossBatchorder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossBatchorder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossBatchorder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCancel (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCancel",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossCancel (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossCancel",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCancelall",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossCancelall",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapLightningClosePosition (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapLightningClosePosition(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapLightningClosePosition",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapLightningClosePosition", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrderInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrderInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapOrderInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapOrderInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrderInfo", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrderDetail (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOrderDetail(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapOrderDetail",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapOrderDetail", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossOrderDetail (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossOrderDetail(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossOrderDetail",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossOrderDetail", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapHisordersExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapHisordersExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapHisordersExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapHisordersExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossHisordersExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossHisordersExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossHisordersExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossHisordersExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMatchresults (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMatchresults(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapMatchresults",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapMatchresults", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossMatchresults (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossMatchresults(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossMatchresults",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossMatchresults", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMatchresultsExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapMatchresultsExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapMatchresultsExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapMatchresultsExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapMatchresults (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapMatchresults(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapMatchresults",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapMatchresults", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossMatchresults (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossMatchresults(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapCrossMatchresults",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapCrossMatchresults", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapMatchresultsExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapMatchresultsExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapMatchresultsExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapMatchresultsExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapCrossHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapCrossHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapHisordersExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapHisordersExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapHisordersExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapHisordersExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV3SwapSwitchAccountType (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV3SwapSwitchAccountType(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV3SwapSwitchAccountType",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV3SwapSwitchAccountType", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTriggerOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTriggerOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerCancel (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTriggerCancel",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTriggerCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTriggerCancelall",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTriggerCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTriggerHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTriggerHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTriggerHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTpslOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTpslOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslCancel (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTpslCancel",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTpslCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTpslCancelall",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTpslCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTpslOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTpslOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTpslHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTpslHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTpslHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapRelationTpslOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossRelationTpslOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTrackOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTrackOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackOrder", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackCancel (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTrackCancel",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTrackCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackCancel", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTrackCancelall",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTrackCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTrackOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTrackOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapTrackHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapTrackHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapTrackHisorders", parameters);
     }
 
-    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders (object parameters = null)
+    public async Task<object> contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders(object parameters = null)
     {
-        return await this.callAsync ("contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders",parameters);
+        return await this.callAsync("contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders", parameters);
     }
 
 }

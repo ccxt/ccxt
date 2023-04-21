@@ -1,6 +1,6 @@
 using Newtonsoft.Json.Linq;
 
-namespace Main;
+namespace ccxt;
 
 using dict = Dictionary<string, object>;
 

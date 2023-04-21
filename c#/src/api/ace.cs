@@ -5,63 +5,63 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class ace : Exchange
 {
-    public async Task<object> publicGetOapiV2ListTradePrice (object parameters = null)
+    public async Task<object> publicGetOapiV2ListTradePrice(object parameters = null)
     {
-        return await this.callAsync ("publicGetOapiV2ListTradePrice",parameters);
+        return await this.callAsync("publicGetOapiV2ListTradePrice", parameters);
     }
 
-    public async Task<object> publicGetOapiV2ListMarketPair (object parameters = null)
+    public async Task<object> publicGetOapiV2ListMarketPair(object parameters = null)
     {
-        return await this.callAsync ("publicGetOapiV2ListMarketPair",parameters);
+        return await this.callAsync("publicGetOapiV2ListMarketPair", parameters);
     }
 
-    public async Task<object> publicGetOpenV2PublicGetOrderBook (object parameters = null)
+    public async Task<object> publicGetOpenV2PublicGetOrderBook(object parameters = null)
     {
-        return await this.callAsync ("publicGetOpenV2PublicGetOrderBook",parameters);
+        return await this.callAsync("publicGetOpenV2PublicGetOrderBook", parameters);
     }
 
-    public async Task<object> privatePostV2CoinCustomerAccount (object parameters = null)
+    public async Task<object> privatePostV2CoinCustomerAccount(object parameters = null)
     {
-        return await this.callAsync ("privatePostV2CoinCustomerAccount",parameters);
+        return await this.callAsync("privatePostV2CoinCustomerAccount", parameters);
     }
 
-    public async Task<object> privatePostV2KlineGetKline (object parameters = null)
+    public async Task<object> privatePostV2KlineGetKline(object parameters = null)
     {
-        return await this.callAsync ("privatePostV2KlineGetKline",parameters);
+        return await this.callAsync("privatePostV2KlineGetKline", parameters);
     }
 
-    public async Task<object> privatePostV2OrderOrder (object parameters = null)
+    public async Task<object> privatePostV2OrderOrder(object parameters = null)
     {
-        return await this.callAsync ("privatePostV2OrderOrder",parameters);
+        return await this.callAsync("privatePostV2OrderOrder", parameters);
     }
 
-    public async Task<object> privatePostV2OrderCancel (object parameters = null)
+    public async Task<object> privatePostV2OrderCancel(object parameters = null)
     {
-        return await this.callAsync ("privatePostV2OrderCancel",parameters);
+        return await this.callAsync("privatePostV2OrderCancel", parameters);
     }
 
-    public async Task<object> privatePostV2OrderGetOrderList (object parameters = null)
+    public async Task<object> privatePostV2OrderGetOrderList(object parameters = null)
     {
-        return await this.callAsync ("privatePostV2OrderGetOrderList",parameters);
+        return await this.callAsync("privatePostV2OrderGetOrderList", parameters);
     }
 
-    public async Task<object> privatePostV2OrderShowOrderStatus (object parameters = null)
+    public async Task<object> privatePostV2OrderShowOrderStatus(object parameters = null)
     {
-        return await this.callAsync ("privatePostV2OrderShowOrderStatus",parameters);
+        return await this.callAsync("privatePostV2OrderShowOrderStatus", parameters);
     }
 
-    public async Task<object> privatePostV2OrderShowOrderHistory (object parameters = null)
+    public async Task<object> privatePostV2OrderShowOrderHistory(object parameters = null)
     {
-        return await this.callAsync ("privatePostV2OrderShowOrderHistory",parameters);
+        return await this.callAsync("privatePostV2OrderShowOrderHistory", parameters);
     }
 
-    public async Task<object> privatePostV2OrderGetTradeList (object parameters = null)
+    public async Task<object> privatePostV2OrderGetTradeList(object parameters = null)
     {
-        return await this.callAsync ("privatePostV2OrderGetTradeList",parameters);
+        return await this.callAsync("privatePostV2OrderGetTradeList", parameters);
     }
 
 }

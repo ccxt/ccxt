@@ -5,1038 +5,1038 @@
 
 // -------------------------------------------------------------------------------
 
-namespace Main;
+namespace ccxt;
 
 public partial class okcoin : Exchange
 {
-    public async Task<object> generalGetTime (object parameters = null)
+    public async Task<object> generalGetTime(object parameters = null)
     {
-        return await this.callAsync ("generalGetTime",parameters);
+        return await this.callAsync("generalGetTime", parameters);
     }
 
-    public async Task<object> accountGetWallet (object parameters = null)
+    public async Task<object> accountGetWallet(object parameters = null)
     {
-        return await this.callAsync ("accountGetWallet",parameters);
+        return await this.callAsync("accountGetWallet", parameters);
     }
 
-    public async Task<object> accountGetSubAccount (object parameters = null)
+    public async Task<object> accountGetSubAccount(object parameters = null)
     {
-        return await this.callAsync ("accountGetSubAccount",parameters);
+        return await this.callAsync("accountGetSubAccount", parameters);
     }
 
-    public async Task<object> accountGetAssetValuation (object parameters = null)
+    public async Task<object> accountGetAssetValuation(object parameters = null)
     {
-        return await this.callAsync ("accountGetAssetValuation",parameters);
+        return await this.callAsync("accountGetAssetValuation", parameters);
     }
 
-    public async Task<object> accountGetWalletCurrency (object parameters = null)
+    public async Task<object> accountGetWalletCurrency(object parameters = null)
     {
-        return await this.callAsync ("accountGetWalletCurrency",parameters);
+        return await this.callAsync("accountGetWalletCurrency", parameters);
     }
 
-    public async Task<object> accountGetWithdrawalHistory (object parameters = null)
+    public async Task<object> accountGetWithdrawalHistory(object parameters = null)
     {
-        return await this.callAsync ("accountGetWithdrawalHistory",parameters);
+        return await this.callAsync("accountGetWithdrawalHistory", parameters);
     }
 
-    public async Task<object> accountGetWithdrawalHistoryCurrency (object parameters = null)
+    public async Task<object> accountGetWithdrawalHistoryCurrency(object parameters = null)
     {
-        return await this.callAsync ("accountGetWithdrawalHistoryCurrency",parameters);
+        return await this.callAsync("accountGetWithdrawalHistoryCurrency", parameters);
     }
 
-    public async Task<object> accountGetLedger (object parameters = null)
+    public async Task<object> accountGetLedger(object parameters = null)
     {
-        return await this.callAsync ("accountGetLedger",parameters);
+        return await this.callAsync("accountGetLedger", parameters);
     }
 
-    public async Task<object> accountGetDepositAddress (object parameters = null)
+    public async Task<object> accountGetDepositAddress(object parameters = null)
     {
-        return await this.callAsync ("accountGetDepositAddress",parameters);
+        return await this.callAsync("accountGetDepositAddress", parameters);
     }
 
-    public async Task<object> accountGetDepositHistory (object parameters = null)
+    public async Task<object> accountGetDepositHistory(object parameters = null)
     {
-        return await this.callAsync ("accountGetDepositHistory",parameters);
+        return await this.callAsync("accountGetDepositHistory", parameters);
     }
 
-    public async Task<object> accountGetDepositHistoryCurrency (object parameters = null)
+    public async Task<object> accountGetDepositHistoryCurrency(object parameters = null)
     {
-        return await this.callAsync ("accountGetDepositHistoryCurrency",parameters);
+        return await this.callAsync("accountGetDepositHistoryCurrency", parameters);
     }
 
-    public async Task<object> accountGetCurrencies (object parameters = null)
+    public async Task<object> accountGetCurrencies(object parameters = null)
     {
-        return await this.callAsync ("accountGetCurrencies",parameters);
+        return await this.callAsync("accountGetCurrencies", parameters);
     }
 
-    public async Task<object> accountGetWithdrawalFee (object parameters = null)
+    public async Task<object> accountGetWithdrawalFee(object parameters = null)
     {
-        return await this.callAsync ("accountGetWithdrawalFee",parameters);
+        return await this.callAsync("accountGetWithdrawalFee", parameters);
     }
 
-    public async Task<object> accountGetDepositLightning (object parameters = null)
+    public async Task<object> accountGetDepositLightning(object parameters = null)
     {
-        return await this.callAsync ("accountGetDepositLightning",parameters);
+        return await this.callAsync("accountGetDepositLightning", parameters);
     }
 
-    public async Task<object> accountGetWithdrawalLightning (object parameters = null)
+    public async Task<object> accountGetWithdrawalLightning(object parameters = null)
     {
-        return await this.callAsync ("accountGetWithdrawalLightning",parameters);
+        return await this.callAsync("accountGetWithdrawalLightning", parameters);
     }
 
-    public async Task<object> accountGetFiatDepositDetail (object parameters = null)
+    public async Task<object> accountGetFiatDepositDetail(object parameters = null)
     {
-        return await this.callAsync ("accountGetFiatDepositDetail",parameters);
+        return await this.callAsync("accountGetFiatDepositDetail", parameters);
     }
 
-    public async Task<object> accountGetFiatDepositDetails (object parameters = null)
+    public async Task<object> accountGetFiatDepositDetails(object parameters = null)
     {
-        return await this.callAsync ("accountGetFiatDepositDetails",parameters);
+        return await this.callAsync("accountGetFiatDepositDetails", parameters);
     }
 
-    public async Task<object> accountGetFiatWithdrawDetail (object parameters = null)
+    public async Task<object> accountGetFiatWithdrawDetail(object parameters = null)
     {
-        return await this.callAsync ("accountGetFiatWithdrawDetail",parameters);
+        return await this.callAsync("accountGetFiatWithdrawDetail", parameters);
     }
 
-    public async Task<object> accountGetFiatWithdrawDetails (object parameters = null)
+    public async Task<object> accountGetFiatWithdrawDetails(object parameters = null)
     {
-        return await this.callAsync ("accountGetFiatWithdrawDetails",parameters);
+        return await this.callAsync("accountGetFiatWithdrawDetails", parameters);
     }
 
-    public async Task<object> accountGetFiatChannel (object parameters = null)
+    public async Task<object> accountGetFiatChannel(object parameters = null)
     {
-        return await this.callAsync ("accountGetFiatChannel",parameters);
+        return await this.callAsync("accountGetFiatChannel", parameters);
     }
 
-    public async Task<object> accountPostTransfer (object parameters = null)
+    public async Task<object> accountPostTransfer(object parameters = null)
     {
-        return await this.callAsync ("accountPostTransfer",parameters);
+        return await this.callAsync("accountPostTransfer", parameters);
     }
 
-    public async Task<object> accountPostWithdrawal (object parameters = null)
+    public async Task<object> accountPostWithdrawal(object parameters = null)
     {
-        return await this.callAsync ("accountPostWithdrawal",parameters);
+        return await this.callAsync("accountPostWithdrawal", parameters);
     }
 
-    public async Task<object> accountPostFiatCancelDeposit (object parameters = null)
+    public async Task<object> accountPostFiatCancelDeposit(object parameters = null)
     {
-        return await this.callAsync ("accountPostFiatCancelDeposit",parameters);
+        return await this.callAsync("accountPostFiatCancelDeposit", parameters);
     }
 
-    public async Task<object> accountPostFiatDeposit (object parameters = null)
+    public async Task<object> accountPostFiatDeposit(object parameters = null)
     {
-        return await this.callAsync ("accountPostFiatDeposit",parameters);
+        return await this.callAsync("accountPostFiatDeposit", parameters);
     }
 
-    public async Task<object> accountPostFiatWithdraw (object parameters = null)
+    public async Task<object> accountPostFiatWithdraw(object parameters = null)
     {
-        return await this.callAsync ("accountPostFiatWithdraw",parameters);
+        return await this.callAsync("accountPostFiatWithdraw", parameters);
     }
 
-    public async Task<object> accountPostFiatCancelWithdrawal (object parameters = null)
+    public async Task<object> accountPostFiatCancelWithdrawal(object parameters = null)
     {
-        return await this.callAsync ("accountPostFiatCancelWithdrawal",parameters);
+        return await this.callAsync("accountPostFiatCancelWithdrawal", parameters);
     }
 
-    public async Task<object> otcGetRfqInstruments (object parameters = null)
+    public async Task<object> otcGetRfqInstruments(object parameters = null)
     {
-        return await this.callAsync ("otcGetRfqInstruments",parameters);
+        return await this.callAsync("otcGetRfqInstruments", parameters);
     }
 
-    public async Task<object> otcGetRfqTrade (object parameters = null)
+    public async Task<object> otcGetRfqTrade(object parameters = null)
     {
-        return await this.callAsync ("otcGetRfqTrade",parameters);
+        return await this.callAsync("otcGetRfqTrade", parameters);
     }
 
-    public async Task<object> otcGetRfqHistory (object parameters = null)
+    public async Task<object> otcGetRfqHistory(object parameters = null)
     {
-        return await this.callAsync ("otcGetRfqHistory",parameters);
+        return await this.callAsync("otcGetRfqHistory", parameters);
     }
 
-    public async Task<object> otcPostRfqQuote (object parameters = null)
+    public async Task<object> otcPostRfqQuote(object parameters = null)
     {
-        return await this.callAsync ("otcPostRfqQuote",parameters);
+        return await this.callAsync("otcPostRfqQuote", parameters);
     }
 
-    public async Task<object> otcPostRfqTrade (object parameters = null)
+    public async Task<object> otcPostRfqTrade(object parameters = null)
     {
-        return await this.callAsync ("otcPostRfqTrade",parameters);
+        return await this.callAsync("otcPostRfqTrade", parameters);
     }
 
-    public async Task<object> usersGetSubaccountInfo (object parameters = null)
+    public async Task<object> usersGetSubaccountInfo(object parameters = null)
     {
-        return await this.callAsync ("usersGetSubaccountInfo",parameters);
+        return await this.callAsync("usersGetSubaccountInfo", parameters);
     }
 
-    public async Task<object> usersGetAccountInfo (object parameters = null)
+    public async Task<object> usersGetAccountInfo(object parameters = null)
     {
-        return await this.callAsync ("usersGetAccountInfo",parameters);
+        return await this.callAsync("usersGetAccountInfo", parameters);
     }
 
-    public async Task<object> usersGetSubaccountApikey (object parameters = null)
+    public async Task<object> usersGetSubaccountApikey(object parameters = null)
     {
-        return await this.callAsync ("usersGetSubaccountApikey",parameters);
+        return await this.callAsync("usersGetSubaccountApikey", parameters);
     }
 
-    public async Task<object> usersPostCreateSubaccount (object parameters = null)
+    public async Task<object> usersPostCreateSubaccount(object parameters = null)
     {
-        return await this.callAsync ("usersPostCreateSubaccount",parameters);
+        return await this.callAsync("usersPostCreateSubaccount", parameters);
     }
 
-    public async Task<object> usersPostDeleteSubaccount (object parameters = null)
+    public async Task<object> usersPostDeleteSubaccount(object parameters = null)
     {
-        return await this.callAsync ("usersPostDeleteSubaccount",parameters);
+        return await this.callAsync("usersPostDeleteSubaccount", parameters);
     }
 
-    public async Task<object> usersPostSubaccountApikey (object parameters = null)
+    public async Task<object> usersPostSubaccountApikey(object parameters = null)
     {
-        return await this.callAsync ("usersPostSubaccountApikey",parameters);
+        return await this.callAsync("usersPostSubaccountApikey", parameters);
     }
 
-    public async Task<object> usersPostSubacountDeleteApikey (object parameters = null)
+    public async Task<object> usersPostSubacountDeleteApikey(object parameters = null)
     {
-        return await this.callAsync ("usersPostSubacountDeleteApikey",parameters);
+        return await this.callAsync("usersPostSubacountDeleteApikey", parameters);
     }
 
-    public async Task<object> usersPostSubacountModifyApikey (object parameters = null)
+    public async Task<object> usersPostSubacountModifyApikey(object parameters = null)
     {
-        return await this.callAsync ("usersPostSubacountModifyApikey",parameters);
+        return await this.callAsync("usersPostSubacountModifyApikey", parameters);
     }
 
-    public async Task<object> earningGetOffers (object parameters = null)
+    public async Task<object> earningGetOffers(object parameters = null)
     {
-        return await this.callAsync ("earningGetOffers",parameters);
+        return await this.callAsync("earningGetOffers", parameters);
     }
 
-    public async Task<object> earningGetOrders (object parameters = null)
+    public async Task<object> earningGetOrders(object parameters = null)
     {
-        return await this.callAsync ("earningGetOrders",parameters);
+        return await this.callAsync("earningGetOrders", parameters);
     }
 
-    public async Task<object> earningGetPositions (object parameters = null)
+    public async Task<object> earningGetPositions(object parameters = null)
     {
-        return await this.callAsync ("earningGetPositions",parameters);
+        return await this.callAsync("earningGetPositions", parameters);
     }
 
-    public async Task<object> earningPostPurchase (object parameters = null)
+    public async Task<object> earningPostPurchase(object parameters = null)
     {
-        return await this.callAsync ("earningPostPurchase",parameters);
+        return await this.callAsync("earningPostPurchase", parameters);
     }
 
-    public async Task<object> earningPostRedeem (object parameters = null)
+    public async Task<object> earningPostRedeem(object parameters = null)
     {
-        return await this.callAsync ("earningPostRedeem",parameters);
+        return await this.callAsync("earningPostRedeem", parameters);
     }
 
-    public async Task<object> earningPostCancel (object parameters = null)
+    public async Task<object> earningPostCancel(object parameters = null)
     {
-        return await this.callAsync ("earningPostCancel",parameters);
+        return await this.callAsync("earningPostCancel", parameters);
     }
 
-    public async Task<object> spotGetAccounts (object parameters = null)
+    public async Task<object> spotGetAccounts(object parameters = null)
     {
-        return await this.callAsync ("spotGetAccounts",parameters);
+        return await this.callAsync("spotGetAccounts", parameters);
     }
 
-    public async Task<object> spotGetAccountsCurrency (object parameters = null)
+    public async Task<object> spotGetAccountsCurrency(object parameters = null)
     {
-        return await this.callAsync ("spotGetAccountsCurrency",parameters);
+        return await this.callAsync("spotGetAccountsCurrency", parameters);
     }
 
-    public async Task<object> spotGetAccountsCurrencyLedger (object parameters = null)
+    public async Task<object> spotGetAccountsCurrencyLedger(object parameters = null)
     {
-        return await this.callAsync ("spotGetAccountsCurrencyLedger",parameters);
+        return await this.callAsync("spotGetAccountsCurrencyLedger", parameters);
     }
 
-    public async Task<object> spotGetOrders (object parameters = null)
+    public async Task<object> spotGetOrders(object parameters = null)
     {
-        return await this.callAsync ("spotGetOrders",parameters);
+        return await this.callAsync("spotGetOrders", parameters);
     }
 
-    public async Task<object> spotGetOrdersPending (object parameters = null)
+    public async Task<object> spotGetOrdersPending(object parameters = null)
     {
-        return await this.callAsync ("spotGetOrdersPending",parameters);
+        return await this.callAsync("spotGetOrdersPending", parameters);
     }
 
-    public async Task<object> spotGetOrdersOrderId (object parameters = null)
+    public async Task<object> spotGetOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("spotGetOrdersOrderId",parameters);
+        return await this.callAsync("spotGetOrdersOrderId", parameters);
     }
 
-    public async Task<object> spotGetOrdersClientOid (object parameters = null)
+    public async Task<object> spotGetOrdersClientOid(object parameters = null)
     {
-        return await this.callAsync ("spotGetOrdersClientOid",parameters);
+        return await this.callAsync("spotGetOrdersClientOid", parameters);
     }
 
-    public async Task<object> spotGetTradeFee (object parameters = null)
+    public async Task<object> spotGetTradeFee(object parameters = null)
     {
-        return await this.callAsync ("spotGetTradeFee",parameters);
+        return await this.callAsync("spotGetTradeFee", parameters);
     }
 
-    public async Task<object> spotGetFills (object parameters = null)
+    public async Task<object> spotGetFills(object parameters = null)
     {
-        return await this.callAsync ("spotGetFills",parameters);
+        return await this.callAsync("spotGetFills", parameters);
     }
 
-    public async Task<object> spotGetAlgo (object parameters = null)
+    public async Task<object> spotGetAlgo(object parameters = null)
     {
-        return await this.callAsync ("spotGetAlgo",parameters);
+        return await this.callAsync("spotGetAlgo", parameters);
     }
 
-    public async Task<object> spotGetInstruments (object parameters = null)
+    public async Task<object> spotGetInstruments(object parameters = null)
     {
-        return await this.callAsync ("spotGetInstruments",parameters);
+        return await this.callAsync("spotGetInstruments", parameters);
     }
 
-    public async Task<object> spotGetInstrumentsInstrumentIdBook (object parameters = null)
+    public async Task<object> spotGetInstrumentsInstrumentIdBook(object parameters = null)
     {
-        return await this.callAsync ("spotGetInstrumentsInstrumentIdBook",parameters);
+        return await this.callAsync("spotGetInstrumentsInstrumentIdBook", parameters);
     }
 
-    public async Task<object> spotGetInstrumentsTicker (object parameters = null)
+    public async Task<object> spotGetInstrumentsTicker(object parameters = null)
     {
-        return await this.callAsync ("spotGetInstrumentsTicker",parameters);
+        return await this.callAsync("spotGetInstrumentsTicker", parameters);
     }
 
-    public async Task<object> spotGetInstrumentsInstrumentIdTicker (object parameters = null)
+    public async Task<object> spotGetInstrumentsInstrumentIdTicker(object parameters = null)
     {
-        return await this.callAsync ("spotGetInstrumentsInstrumentIdTicker",parameters);
+        return await this.callAsync("spotGetInstrumentsInstrumentIdTicker", parameters);
     }
 
-    public async Task<object> spotGetInstrumentsInstrumentIdTrades (object parameters = null)
+    public async Task<object> spotGetInstrumentsInstrumentIdTrades(object parameters = null)
     {
-        return await this.callAsync ("spotGetInstrumentsInstrumentIdTrades",parameters);
+        return await this.callAsync("spotGetInstrumentsInstrumentIdTrades", parameters);
     }
 
-    public async Task<object> spotGetInstrumentsInstrumentIdCandles (object parameters = null)
+    public async Task<object> spotGetInstrumentsInstrumentIdCandles(object parameters = null)
     {
-        return await this.callAsync ("spotGetInstrumentsInstrumentIdCandles",parameters);
+        return await this.callAsync("spotGetInstrumentsInstrumentIdCandles", parameters);
     }
 
-    public async Task<object> spotPostOrderAlgo (object parameters = null)
+    public async Task<object> spotPostOrderAlgo(object parameters = null)
     {
-        return await this.callAsync ("spotPostOrderAlgo",parameters);
+        return await this.callAsync("spotPostOrderAlgo", parameters);
     }
 
-    public async Task<object> spotPostOrders (object parameters = null)
+    public async Task<object> spotPostOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPostOrders",parameters);
+        return await this.callAsync("spotPostOrders", parameters);
     }
 
-    public async Task<object> spotPostBatchOrders (object parameters = null)
+    public async Task<object> spotPostBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPostBatchOrders",parameters);
+        return await this.callAsync("spotPostBatchOrders", parameters);
     }
 
-    public async Task<object> spotPostCancelOrdersOrderId (object parameters = null)
+    public async Task<object> spotPostCancelOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("spotPostCancelOrdersOrderId",parameters);
+        return await this.callAsync("spotPostCancelOrdersOrderId", parameters);
     }
 
-    public async Task<object> spotPostCancelOrdersClientOid (object parameters = null)
+    public async Task<object> spotPostCancelOrdersClientOid(object parameters = null)
     {
-        return await this.callAsync ("spotPostCancelOrdersClientOid",parameters);
+        return await this.callAsync("spotPostCancelOrdersClientOid", parameters);
     }
 
-    public async Task<object> spotPostCancelBatchAlgos (object parameters = null)
+    public async Task<object> spotPostCancelBatchAlgos(object parameters = null)
     {
-        return await this.callAsync ("spotPostCancelBatchAlgos",parameters);
+        return await this.callAsync("spotPostCancelBatchAlgos", parameters);
     }
 
-    public async Task<object> spotPostCancelBatchOrders (object parameters = null)
+    public async Task<object> spotPostCancelBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPostCancelBatchOrders",parameters);
+        return await this.callAsync("spotPostCancelBatchOrders", parameters);
     }
 
-    public async Task<object> spotPostAmendOrderInstrumentId (object parameters = null)
+    public async Task<object> spotPostAmendOrderInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("spotPostAmendOrderInstrumentId",parameters);
+        return await this.callAsync("spotPostAmendOrderInstrumentId", parameters);
     }
 
-    public async Task<object> spotPostAmendBatchOrders (object parameters = null)
+    public async Task<object> spotPostAmendBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("spotPostAmendBatchOrders",parameters);
+        return await this.callAsync("spotPostAmendBatchOrders", parameters);
     }
 
-    public async Task<object> marginGetAccounts (object parameters = null)
+    public async Task<object> marginGetAccounts(object parameters = null)
     {
-        return await this.callAsync ("marginGetAccounts",parameters);
+        return await this.callAsync("marginGetAccounts", parameters);
     }
 
-    public async Task<object> marginGetAccountsInstrumentId (object parameters = null)
+    public async Task<object> marginGetAccountsInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("marginGetAccountsInstrumentId",parameters);
+        return await this.callAsync("marginGetAccountsInstrumentId", parameters);
     }
 
-    public async Task<object> marginGetAccountsInstrumentIdLedger (object parameters = null)
+    public async Task<object> marginGetAccountsInstrumentIdLedger(object parameters = null)
     {
-        return await this.callAsync ("marginGetAccountsInstrumentIdLedger",parameters);
+        return await this.callAsync("marginGetAccountsInstrumentIdLedger", parameters);
     }
 
-    public async Task<object> marginGetAccountsAvailability (object parameters = null)
+    public async Task<object> marginGetAccountsAvailability(object parameters = null)
     {
-        return await this.callAsync ("marginGetAccountsAvailability",parameters);
+        return await this.callAsync("marginGetAccountsAvailability", parameters);
     }
 
-    public async Task<object> marginGetAccountsInstrumentIdAvailability (object parameters = null)
+    public async Task<object> marginGetAccountsInstrumentIdAvailability(object parameters = null)
     {
-        return await this.callAsync ("marginGetAccountsInstrumentIdAvailability",parameters);
+        return await this.callAsync("marginGetAccountsInstrumentIdAvailability", parameters);
     }
 
-    public async Task<object> marginGetAccountsBorrowed (object parameters = null)
+    public async Task<object> marginGetAccountsBorrowed(object parameters = null)
     {
-        return await this.callAsync ("marginGetAccountsBorrowed",parameters);
+        return await this.callAsync("marginGetAccountsBorrowed", parameters);
     }
 
-    public async Task<object> marginGetAccountsInstrumentIdBorrowed (object parameters = null)
+    public async Task<object> marginGetAccountsInstrumentIdBorrowed(object parameters = null)
     {
-        return await this.callAsync ("marginGetAccountsInstrumentIdBorrowed",parameters);
+        return await this.callAsync("marginGetAccountsInstrumentIdBorrowed", parameters);
     }
 
-    public async Task<object> marginGetOrders (object parameters = null)
+    public async Task<object> marginGetOrders(object parameters = null)
     {
-        return await this.callAsync ("marginGetOrders",parameters);
+        return await this.callAsync("marginGetOrders", parameters);
     }
 
-    public async Task<object> marginGetAccountsInstrumentIdLeverage (object parameters = null)
+    public async Task<object> marginGetAccountsInstrumentIdLeverage(object parameters = null)
     {
-        return await this.callAsync ("marginGetAccountsInstrumentIdLeverage",parameters);
+        return await this.callAsync("marginGetAccountsInstrumentIdLeverage", parameters);
     }
 
-    public async Task<object> marginGetOrdersOrderId (object parameters = null)
+    public async Task<object> marginGetOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("marginGetOrdersOrderId",parameters);
+        return await this.callAsync("marginGetOrdersOrderId", parameters);
     }
 
-    public async Task<object> marginGetOrdersClientOid (object parameters = null)
+    public async Task<object> marginGetOrdersClientOid(object parameters = null)
     {
-        return await this.callAsync ("marginGetOrdersClientOid",parameters);
+        return await this.callAsync("marginGetOrdersClientOid", parameters);
     }
 
-    public async Task<object> marginGetOrdersPending (object parameters = null)
+    public async Task<object> marginGetOrdersPending(object parameters = null)
     {
-        return await this.callAsync ("marginGetOrdersPending",parameters);
+        return await this.callAsync("marginGetOrdersPending", parameters);
     }
 
-    public async Task<object> marginGetFills (object parameters = null)
+    public async Task<object> marginGetFills(object parameters = null)
     {
-        return await this.callAsync ("marginGetFills",parameters);
+        return await this.callAsync("marginGetFills", parameters);
     }
 
-    public async Task<object> marginGetInstrumentsInstrumentIdMarkPrice (object parameters = null)
+    public async Task<object> marginGetInstrumentsInstrumentIdMarkPrice(object parameters = null)
     {
-        return await this.callAsync ("marginGetInstrumentsInstrumentIdMarkPrice",parameters);
+        return await this.callAsync("marginGetInstrumentsInstrumentIdMarkPrice", parameters);
     }
 
-    public async Task<object> marginPostAccountsBorrow (object parameters = null)
+    public async Task<object> marginPostAccountsBorrow(object parameters = null)
     {
-        return await this.callAsync ("marginPostAccountsBorrow",parameters);
+        return await this.callAsync("marginPostAccountsBorrow", parameters);
     }
 
-    public async Task<object> marginPostAccountsRepayment (object parameters = null)
+    public async Task<object> marginPostAccountsRepayment(object parameters = null)
     {
-        return await this.callAsync ("marginPostAccountsRepayment",parameters);
+        return await this.callAsync("marginPostAccountsRepayment", parameters);
     }
 
-    public async Task<object> marginPostOrders (object parameters = null)
+    public async Task<object> marginPostOrders(object parameters = null)
     {
-        return await this.callAsync ("marginPostOrders",parameters);
+        return await this.callAsync("marginPostOrders", parameters);
     }
 
-    public async Task<object> marginPostBatchOrders (object parameters = null)
+    public async Task<object> marginPostBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("marginPostBatchOrders",parameters);
+        return await this.callAsync("marginPostBatchOrders", parameters);
     }
 
-    public async Task<object> marginPostCancelOrders (object parameters = null)
+    public async Task<object> marginPostCancelOrders(object parameters = null)
     {
-        return await this.callAsync ("marginPostCancelOrders",parameters);
+        return await this.callAsync("marginPostCancelOrders", parameters);
     }
 
-    public async Task<object> marginPostCancelOrdersOrderId (object parameters = null)
+    public async Task<object> marginPostCancelOrdersOrderId(object parameters = null)
     {
-        return await this.callAsync ("marginPostCancelOrdersOrderId",parameters);
+        return await this.callAsync("marginPostCancelOrdersOrderId", parameters);
     }
 
-    public async Task<object> marginPostCancelOrdersClientOid (object parameters = null)
+    public async Task<object> marginPostCancelOrdersClientOid(object parameters = null)
     {
-        return await this.callAsync ("marginPostCancelOrdersClientOid",parameters);
+        return await this.callAsync("marginPostCancelOrdersClientOid", parameters);
     }
 
-    public async Task<object> marginPostCancelBatchOrders (object parameters = null)
+    public async Task<object> marginPostCancelBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("marginPostCancelBatchOrders",parameters);
+        return await this.callAsync("marginPostCancelBatchOrders", parameters);
     }
 
-    public async Task<object> marginPostAmendOrderInstrumentId (object parameters = null)
+    public async Task<object> marginPostAmendOrderInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("marginPostAmendOrderInstrumentId",parameters);
+        return await this.callAsync("marginPostAmendOrderInstrumentId", parameters);
     }
 
-    public async Task<object> marginPostAmendBatchOrders (object parameters = null)
+    public async Task<object> marginPostAmendBatchOrders(object parameters = null)
     {
-        return await this.callAsync ("marginPostAmendBatchOrders",parameters);
+        return await this.callAsync("marginPostAmendBatchOrders", parameters);
     }
 
-    public async Task<object> marginPostAccountsInstrumentIdLeverage (object parameters = null)
+    public async Task<object> marginPostAccountsInstrumentIdLeverage(object parameters = null)
     {
-        return await this.callAsync ("marginPostAccountsInstrumentIdLeverage",parameters);
+        return await this.callAsync("marginPostAccountsInstrumentIdLeverage", parameters);
     }
 
-    public async Task<object> systemGetStatus (object parameters = null)
+    public async Task<object> systemGetStatus(object parameters = null)
     {
-        return await this.callAsync ("systemGetStatus",parameters);
+        return await this.callAsync("systemGetStatus", parameters);
     }
 
-    public async Task<object> marketGetOracle (object parameters = null)
+    public async Task<object> marketGetOracle(object parameters = null)
     {
-        return await this.callAsync ("marketGetOracle",parameters);
+        return await this.callAsync("marketGetOracle", parameters);
     }
 
-    public async Task<object> futuresGetPosition (object parameters = null)
+    public async Task<object> futuresGetPosition(object parameters = null)
     {
-        return await this.callAsync ("futuresGetPosition",parameters);
+        return await this.callAsync("futuresGetPosition", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentIdPosition (object parameters = null)
+    public async Task<object> futuresGetInstrumentIdPosition(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentIdPosition",parameters);
+        return await this.callAsync("futuresGetInstrumentIdPosition", parameters);
     }
 
-    public async Task<object> futuresGetAccounts (object parameters = null)
+    public async Task<object> futuresGetAccounts(object parameters = null)
     {
-        return await this.callAsync ("futuresGetAccounts",parameters);
+        return await this.callAsync("futuresGetAccounts", parameters);
     }
 
-    public async Task<object> futuresGetAccountsUnderlying (object parameters = null)
+    public async Task<object> futuresGetAccountsUnderlying(object parameters = null)
     {
-        return await this.callAsync ("futuresGetAccountsUnderlying",parameters);
+        return await this.callAsync("futuresGetAccountsUnderlying", parameters);
     }
 
-    public async Task<object> futuresGetAccountsUnderlyingLeverage (object parameters = null)
+    public async Task<object> futuresGetAccountsUnderlyingLeverage(object parameters = null)
     {
-        return await this.callAsync ("futuresGetAccountsUnderlyingLeverage",parameters);
+        return await this.callAsync("futuresGetAccountsUnderlyingLeverage", parameters);
     }
 
-    public async Task<object> futuresGetAccountsUnderlyingLedger (object parameters = null)
+    public async Task<object> futuresGetAccountsUnderlyingLedger(object parameters = null)
     {
-        return await this.callAsync ("futuresGetAccountsUnderlyingLedger",parameters);
+        return await this.callAsync("futuresGetAccountsUnderlyingLedger", parameters);
     }
 
-    public async Task<object> futuresGetOrderAlgoInstrumentId (object parameters = null)
+    public async Task<object> futuresGetOrderAlgoInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("futuresGetOrderAlgoInstrumentId",parameters);
+        return await this.callAsync("futuresGetOrderAlgoInstrumentId", parameters);
     }
 
-    public async Task<object> futuresGetOrdersInstrumentId (object parameters = null)
+    public async Task<object> futuresGetOrdersInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("futuresGetOrdersInstrumentId",parameters);
+        return await this.callAsync("futuresGetOrdersInstrumentId", parameters);
     }
 
-    public async Task<object> futuresGetOrdersInstrumentIdOrderId (object parameters = null)
+    public async Task<object> futuresGetOrdersInstrumentIdOrderId(object parameters = null)
     {
-        return await this.callAsync ("futuresGetOrdersInstrumentIdOrderId",parameters);
+        return await this.callAsync("futuresGetOrdersInstrumentIdOrderId", parameters);
     }
 
-    public async Task<object> futuresGetOrdersInstrumentIdClientOid (object parameters = null)
+    public async Task<object> futuresGetOrdersInstrumentIdClientOid(object parameters = null)
     {
-        return await this.callAsync ("futuresGetOrdersInstrumentIdClientOid",parameters);
+        return await this.callAsync("futuresGetOrdersInstrumentIdClientOid", parameters);
     }
 
-    public async Task<object> futuresGetFills (object parameters = null)
+    public async Task<object> futuresGetFills(object parameters = null)
     {
-        return await this.callAsync ("futuresGetFills",parameters);
+        return await this.callAsync("futuresGetFills", parameters);
     }
 
-    public async Task<object> futuresGetTradeFee (object parameters = null)
+    public async Task<object> futuresGetTradeFee(object parameters = null)
     {
-        return await this.callAsync ("futuresGetTradeFee",parameters);
+        return await this.callAsync("futuresGetTradeFee", parameters);
     }
 
-    public async Task<object> futuresGetAccountsInstrumentIdHolds (object parameters = null)
+    public async Task<object> futuresGetAccountsInstrumentIdHolds(object parameters = null)
     {
-        return await this.callAsync ("futuresGetAccountsInstrumentIdHolds",parameters);
+        return await this.callAsync("futuresGetAccountsInstrumentIdHolds", parameters);
     }
 
-    public async Task<object> futuresGetInstruments (object parameters = null)
+    public async Task<object> futuresGetInstruments(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstruments",parameters);
+        return await this.callAsync("futuresGetInstruments", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdBook (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdBook(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdBook",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdBook", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsTicker (object parameters = null)
+    public async Task<object> futuresGetInstrumentsTicker(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsTicker",parameters);
+        return await this.callAsync("futuresGetInstrumentsTicker", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdTicker (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdTicker(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdTicker",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdTicker", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdTrades (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdTrades(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdTrades",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdTrades", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdCandles (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdCandles(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdCandles",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdCandles", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdHistoryCandles (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdHistoryCandles(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdHistoryCandles",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdHistoryCandles", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdIndex (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdIndex(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdIndex",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdIndex", parameters);
     }
 
-    public async Task<object> futuresGetRate (object parameters = null)
+    public async Task<object> futuresGetRate(object parameters = null)
     {
-        return await this.callAsync ("futuresGetRate",parameters);
+        return await this.callAsync("futuresGetRate", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdEstimatedPrice (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdEstimatedPrice(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdEstimatedPrice",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdEstimatedPrice", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdOpenInterest (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdOpenInterest",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdOpenInterest", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdPriceLimit (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdPriceLimit(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdPriceLimit",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdPriceLimit", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdMarkPrice (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdMarkPrice(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdMarkPrice",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdMarkPrice", parameters);
     }
 
-    public async Task<object> futuresGetInstrumentsInstrumentIdLiquidation (object parameters = null)
+    public async Task<object> futuresGetInstrumentsInstrumentIdLiquidation(object parameters = null)
     {
-        return await this.callAsync ("futuresGetInstrumentsInstrumentIdLiquidation",parameters);
+        return await this.callAsync("futuresGetInstrumentsInstrumentIdLiquidation", parameters);
     }
 
-    public async Task<object> futuresPostAccountsUnderlyingLeverage (object parameters = null)
+    public async Task<object> futuresPostAccountsUnderlyingLeverage(object parameters = null)
     {
-        return await this.callAsync ("futuresPostAccountsUnderlyingLeverage",parameters);
+        return await this.callAsync("futuresPostAccountsUnderlyingLeverage", parameters);
     }
 
-    public async Task<object> futuresPostOrder (object parameters = null)
+    public async Task<object> futuresPostOrder(object parameters = null)
     {
-        return await this.callAsync ("futuresPostOrder",parameters);
+        return await this.callAsync("futuresPostOrder", parameters);
     }
 
-    public async Task<object> futuresPostAmendOrderInstrumentId (object parameters = null)
+    public async Task<object> futuresPostAmendOrderInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("futuresPostAmendOrderInstrumentId",parameters);
+        return await this.callAsync("futuresPostAmendOrderInstrumentId", parameters);
     }
 
-    public async Task<object> futuresPostOrders (object parameters = null)
+    public async Task<object> futuresPostOrders(object parameters = null)
     {
-        return await this.callAsync ("futuresPostOrders",parameters);
+        return await this.callAsync("futuresPostOrders", parameters);
     }
 
-    public async Task<object> futuresPostCancelOrderInstrumentIdOrderId (object parameters = null)
+    public async Task<object> futuresPostCancelOrderInstrumentIdOrderId(object parameters = null)
     {
-        return await this.callAsync ("futuresPostCancelOrderInstrumentIdOrderId",parameters);
+        return await this.callAsync("futuresPostCancelOrderInstrumentIdOrderId", parameters);
     }
 
-    public async Task<object> futuresPostCancelOrderInstrumentIdClientOid (object parameters = null)
+    public async Task<object> futuresPostCancelOrderInstrumentIdClientOid(object parameters = null)
     {
-        return await this.callAsync ("futuresPostCancelOrderInstrumentIdClientOid",parameters);
+        return await this.callAsync("futuresPostCancelOrderInstrumentIdClientOid", parameters);
     }
 
-    public async Task<object> futuresPostCancelBatchOrdersInstrumentId (object parameters = null)
+    public async Task<object> futuresPostCancelBatchOrdersInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("futuresPostCancelBatchOrdersInstrumentId",parameters);
+        return await this.callAsync("futuresPostCancelBatchOrdersInstrumentId", parameters);
     }
 
-    public async Task<object> futuresPostAccountsMarginMode (object parameters = null)
+    public async Task<object> futuresPostAccountsMarginMode(object parameters = null)
     {
-        return await this.callAsync ("futuresPostAccountsMarginMode",parameters);
+        return await this.callAsync("futuresPostAccountsMarginMode", parameters);
     }
 
-    public async Task<object> futuresPostClosePosition (object parameters = null)
+    public async Task<object> futuresPostClosePosition(object parameters = null)
     {
-        return await this.callAsync ("futuresPostClosePosition",parameters);
+        return await this.callAsync("futuresPostClosePosition", parameters);
     }
 
-    public async Task<object> futuresPostCancelAll (object parameters = null)
+    public async Task<object> futuresPostCancelAll(object parameters = null)
     {
-        return await this.callAsync ("futuresPostCancelAll",parameters);
+        return await this.callAsync("futuresPostCancelAll", parameters);
     }
 
-    public async Task<object> futuresPostOrderAlgo (object parameters = null)
+    public async Task<object> futuresPostOrderAlgo(object parameters = null)
     {
-        return await this.callAsync ("futuresPostOrderAlgo",parameters);
+        return await this.callAsync("futuresPostOrderAlgo", parameters);
     }
 
-    public async Task<object> futuresPostCancelAlgos (object parameters = null)
+    public async Task<object> futuresPostCancelAlgos(object parameters = null)
     {
-        return await this.callAsync ("futuresPostCancelAlgos",parameters);
+        return await this.callAsync("futuresPostCancelAlgos", parameters);
     }
 
-    public async Task<object> swapGetPosition (object parameters = null)
+    public async Task<object> swapGetPosition(object parameters = null)
     {
-        return await this.callAsync ("swapGetPosition",parameters);
+        return await this.callAsync("swapGetPosition", parameters);
     }
 
-    public async Task<object> swapGetInstrumentIdPosition (object parameters = null)
+    public async Task<object> swapGetInstrumentIdPosition(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentIdPosition",parameters);
+        return await this.callAsync("swapGetInstrumentIdPosition", parameters);
     }
 
-    public async Task<object> swapGetAccounts (object parameters = null)
+    public async Task<object> swapGetAccounts(object parameters = null)
     {
-        return await this.callAsync ("swapGetAccounts",parameters);
+        return await this.callAsync("swapGetAccounts", parameters);
     }
 
-    public async Task<object> swapGetInstrumentIdAccounts (object parameters = null)
+    public async Task<object> swapGetInstrumentIdAccounts(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentIdAccounts",parameters);
+        return await this.callAsync("swapGetInstrumentIdAccounts", parameters);
     }
 
-    public async Task<object> swapGetAccountsInstrumentIdSettings (object parameters = null)
+    public async Task<object> swapGetAccountsInstrumentIdSettings(object parameters = null)
     {
-        return await this.callAsync ("swapGetAccountsInstrumentIdSettings",parameters);
+        return await this.callAsync("swapGetAccountsInstrumentIdSettings", parameters);
     }
 
-    public async Task<object> swapGetAccountsInstrumentIdLedger (object parameters = null)
+    public async Task<object> swapGetAccountsInstrumentIdLedger(object parameters = null)
     {
-        return await this.callAsync ("swapGetAccountsInstrumentIdLedger",parameters);
+        return await this.callAsync("swapGetAccountsInstrumentIdLedger", parameters);
     }
 
-    public async Task<object> swapGetOrdersInstrumentId (object parameters = null)
+    public async Task<object> swapGetOrdersInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("swapGetOrdersInstrumentId",parameters);
+        return await this.callAsync("swapGetOrdersInstrumentId", parameters);
     }
 
-    public async Task<object> swapGetOrdersInstrumentIdOrderId (object parameters = null)
+    public async Task<object> swapGetOrdersInstrumentIdOrderId(object parameters = null)
     {
-        return await this.callAsync ("swapGetOrdersInstrumentIdOrderId",parameters);
+        return await this.callAsync("swapGetOrdersInstrumentIdOrderId", parameters);
     }
 
-    public async Task<object> swapGetOrdersInstrumentIdClientOid (object parameters = null)
+    public async Task<object> swapGetOrdersInstrumentIdClientOid(object parameters = null)
     {
-        return await this.callAsync ("swapGetOrdersInstrumentIdClientOid",parameters);
+        return await this.callAsync("swapGetOrdersInstrumentIdClientOid", parameters);
     }
 
-    public async Task<object> swapGetFills (object parameters = null)
+    public async Task<object> swapGetFills(object parameters = null)
     {
-        return await this.callAsync ("swapGetFills",parameters);
+        return await this.callAsync("swapGetFills", parameters);
     }
 
-    public async Task<object> swapGetAccountsInstrumentIdHolds (object parameters = null)
+    public async Task<object> swapGetAccountsInstrumentIdHolds(object parameters = null)
     {
-        return await this.callAsync ("swapGetAccountsInstrumentIdHolds",parameters);
+        return await this.callAsync("swapGetAccountsInstrumentIdHolds", parameters);
     }
 
-    public async Task<object> swapGetTradeFee (object parameters = null)
+    public async Task<object> swapGetTradeFee(object parameters = null)
     {
-        return await this.callAsync ("swapGetTradeFee",parameters);
+        return await this.callAsync("swapGetTradeFee", parameters);
     }
 
-    public async Task<object> swapGetOrderAlgoInstrumentId (object parameters = null)
+    public async Task<object> swapGetOrderAlgoInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("swapGetOrderAlgoInstrumentId",parameters);
+        return await this.callAsync("swapGetOrderAlgoInstrumentId", parameters);
     }
 
-    public async Task<object> swapGetInstruments (object parameters = null)
+    public async Task<object> swapGetInstruments(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstruments",parameters);
+        return await this.callAsync("swapGetInstruments", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdDepth (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdDepth(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdDepth",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdDepth", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsTicker (object parameters = null)
+    public async Task<object> swapGetInstrumentsTicker(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsTicker",parameters);
+        return await this.callAsync("swapGetInstrumentsTicker", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdTicker (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdTicker(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdTicker",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdTicker", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdTrades (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdTrades(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdTrades",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdTrades", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdCandles (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdCandles(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdCandles",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdCandles", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdHistoryCandles (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdHistoryCandles(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdHistoryCandles",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdHistoryCandles", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdIndex (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdIndex(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdIndex",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdIndex", parameters);
     }
 
-    public async Task<object> swapGetRate (object parameters = null)
+    public async Task<object> swapGetRate(object parameters = null)
     {
-        return await this.callAsync ("swapGetRate",parameters);
+        return await this.callAsync("swapGetRate", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdOpenInterest (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdOpenInterest(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdOpenInterest",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdOpenInterest", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdPriceLimit (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdPriceLimit(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdPriceLimit",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdPriceLimit", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdLiquidation (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdLiquidation(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdLiquidation",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdLiquidation", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdFundingTime (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdFundingTime(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdFundingTime",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdFundingTime", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdMarkPrice (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdMarkPrice(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdMarkPrice",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdMarkPrice", parameters);
     }
 
-    public async Task<object> swapGetInstrumentsInstrumentIdHistoricalFundingRate (object parameters = null)
+    public async Task<object> swapGetInstrumentsInstrumentIdHistoricalFundingRate(object parameters = null)
     {
-        return await this.callAsync ("swapGetInstrumentsInstrumentIdHistoricalFundingRate",parameters);
+        return await this.callAsync("swapGetInstrumentsInstrumentIdHistoricalFundingRate", parameters);
     }
 
-    public async Task<object> swapPostAccountsInstrumentIdLeverage (object parameters = null)
+    public async Task<object> swapPostAccountsInstrumentIdLeverage(object parameters = null)
     {
-        return await this.callAsync ("swapPostAccountsInstrumentIdLeverage",parameters);
+        return await this.callAsync("swapPostAccountsInstrumentIdLeverage", parameters);
     }
 
-    public async Task<object> swapPostOrder (object parameters = null)
+    public async Task<object> swapPostOrder(object parameters = null)
     {
-        return await this.callAsync ("swapPostOrder",parameters);
+        return await this.callAsync("swapPostOrder", parameters);
     }
 
-    public async Task<object> swapPostAmendOrderInstrumentId (object parameters = null)
+    public async Task<object> swapPostAmendOrderInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("swapPostAmendOrderInstrumentId",parameters);
+        return await this.callAsync("swapPostAmendOrderInstrumentId", parameters);
     }
 
-    public async Task<object> swapPostOrders (object parameters = null)
+    public async Task<object> swapPostOrders(object parameters = null)
     {
-        return await this.callAsync ("swapPostOrders",parameters);
+        return await this.callAsync("swapPostOrders", parameters);
     }
 
-    public async Task<object> swapPostCancelOrderInstrumentIdOrderId (object parameters = null)
+    public async Task<object> swapPostCancelOrderInstrumentIdOrderId(object parameters = null)
     {
-        return await this.callAsync ("swapPostCancelOrderInstrumentIdOrderId",parameters);
+        return await this.callAsync("swapPostCancelOrderInstrumentIdOrderId", parameters);
     }
 
-    public async Task<object> swapPostCancelOrderInstrumentIdClientOid (object parameters = null)
+    public async Task<object> swapPostCancelOrderInstrumentIdClientOid(object parameters = null)
     {
-        return await this.callAsync ("swapPostCancelOrderInstrumentIdClientOid",parameters);
+        return await this.callAsync("swapPostCancelOrderInstrumentIdClientOid", parameters);
     }
 
-    public async Task<object> swapPostCancelBatchOrdersInstrumentId (object parameters = null)
+    public async Task<object> swapPostCancelBatchOrdersInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("swapPostCancelBatchOrdersInstrumentId",parameters);
+        return await this.callAsync("swapPostCancelBatchOrdersInstrumentId", parameters);
     }
 
-    public async Task<object> swapPostOrderAlgo (object parameters = null)
+    public async Task<object> swapPostOrderAlgo(object parameters = null)
     {
-        return await this.callAsync ("swapPostOrderAlgo",parameters);
+        return await this.callAsync("swapPostOrderAlgo", parameters);
     }
 
-    public async Task<object> swapPostCancelAlgos (object parameters = null)
+    public async Task<object> swapPostCancelAlgos(object parameters = null)
     {
-        return await this.callAsync ("swapPostCancelAlgos",parameters);
+        return await this.callAsync("swapPostCancelAlgos", parameters);
     }
 
-    public async Task<object> swapPostClosePosition (object parameters = null)
+    public async Task<object> swapPostClosePosition(object parameters = null)
     {
-        return await this.callAsync ("swapPostClosePosition",parameters);
+        return await this.callAsync("swapPostClosePosition", parameters);
     }
 
-    public async Task<object> swapPostCancelAll (object parameters = null)
+    public async Task<object> swapPostCancelAll(object parameters = null)
     {
-        return await this.callAsync ("swapPostCancelAll",parameters);
+        return await this.callAsync("swapPostCancelAll", parameters);
     }
 
-    public async Task<object> optionGetAccounts (object parameters = null)
+    public async Task<object> optionGetAccounts(object parameters = null)
     {
-        return await this.callAsync ("optionGetAccounts",parameters);
+        return await this.callAsync("optionGetAccounts", parameters);
     }
 
-    public async Task<object> optionGetPosition (object parameters = null)
+    public async Task<object> optionGetPosition(object parameters = null)
     {
-        return await this.callAsync ("optionGetPosition",parameters);
+        return await this.callAsync("optionGetPosition", parameters);
     }
 
-    public async Task<object> optionGetUnderlyingPosition (object parameters = null)
+    public async Task<object> optionGetUnderlyingPosition(object parameters = null)
     {
-        return await this.callAsync ("optionGetUnderlyingPosition",parameters);
+        return await this.callAsync("optionGetUnderlyingPosition", parameters);
     }
 
-    public async Task<object> optionGetAccountsUnderlying (object parameters = null)
+    public async Task<object> optionGetAccountsUnderlying(object parameters = null)
     {
-        return await this.callAsync ("optionGetAccountsUnderlying",parameters);
+        return await this.callAsync("optionGetAccountsUnderlying", parameters);
     }
 
-    public async Task<object> optionGetOrdersUnderlying (object parameters = null)
+    public async Task<object> optionGetOrdersUnderlying(object parameters = null)
     {
-        return await this.callAsync ("optionGetOrdersUnderlying",parameters);
+        return await this.callAsync("optionGetOrdersUnderlying", parameters);
     }
 
-    public async Task<object> optionGetFillsUnderlying (object parameters = null)
+    public async Task<object> optionGetFillsUnderlying(object parameters = null)
     {
-        return await this.callAsync ("optionGetFillsUnderlying",parameters);
+        return await this.callAsync("optionGetFillsUnderlying", parameters);
     }
 
-    public async Task<object> optionGetAccountsUnderlyingLedger (object parameters = null)
+    public async Task<object> optionGetAccountsUnderlyingLedger(object parameters = null)
     {
-        return await this.callAsync ("optionGetAccountsUnderlyingLedger",parameters);
+        return await this.callAsync("optionGetAccountsUnderlyingLedger", parameters);
     }
 
-    public async Task<object> optionGetTradeFee (object parameters = null)
+    public async Task<object> optionGetTradeFee(object parameters = null)
     {
-        return await this.callAsync ("optionGetTradeFee",parameters);
+        return await this.callAsync("optionGetTradeFee", parameters);
     }
 
-    public async Task<object> optionGetOrdersUnderlyingOrderId (object parameters = null)
+    public async Task<object> optionGetOrdersUnderlyingOrderId(object parameters = null)
     {
-        return await this.callAsync ("optionGetOrdersUnderlyingOrderId",parameters);
+        return await this.callAsync("optionGetOrdersUnderlyingOrderId", parameters);
     }
 
-    public async Task<object> optionGetOrdersUnderlyingClientOid (object parameters = null)
+    public async Task<object> optionGetOrdersUnderlyingClientOid(object parameters = null)
     {
-        return await this.callAsync ("optionGetOrdersUnderlyingClientOid",parameters);
+        return await this.callAsync("optionGetOrdersUnderlyingClientOid", parameters);
     }
 
-    public async Task<object> optionGetUnderlying (object parameters = null)
+    public async Task<object> optionGetUnderlying(object parameters = null)
     {
-        return await this.callAsync ("optionGetUnderlying",parameters);
+        return await this.callAsync("optionGetUnderlying", parameters);
     }
 
-    public async Task<object> optionGetInstrumentsUnderlying (object parameters = null)
+    public async Task<object> optionGetInstrumentsUnderlying(object parameters = null)
     {
-        return await this.callAsync ("optionGetInstrumentsUnderlying",parameters);
+        return await this.callAsync("optionGetInstrumentsUnderlying", parameters);
     }
 
-    public async Task<object> optionGetInstrumentsUnderlyingSummary (object parameters = null)
+    public async Task<object> optionGetInstrumentsUnderlyingSummary(object parameters = null)
     {
-        return await this.callAsync ("optionGetInstrumentsUnderlyingSummary",parameters);
+        return await this.callAsync("optionGetInstrumentsUnderlyingSummary", parameters);
     }
 
-    public async Task<object> optionGetInstrumentsUnderlyingSummaryInstrumentId (object parameters = null)
+    public async Task<object> optionGetInstrumentsUnderlyingSummaryInstrumentId(object parameters = null)
     {
-        return await this.callAsync ("optionGetInstrumentsUnderlyingSummaryInstrumentId",parameters);
+        return await this.callAsync("optionGetInstrumentsUnderlyingSummaryInstrumentId", parameters);
     }
 
-    public async Task<object> optionGetInstrumentsInstrumentIdBook (object parameters = null)
+    public async Task<object> optionGetInstrumentsInstrumentIdBook(object parameters = null)
     {
-        return await this.callAsync ("optionGetInstrumentsInstrumentIdBook",parameters);
+        return await this.callAsync("optionGetInstrumentsInstrumentIdBook", parameters);
     }
 
-    public async Task<object> optionGetInstrumentsInstrumentIdTrades (object parameters = null)
+    public async Task<object> optionGetInstrumentsInstrumentIdTrades(object parameters = null)
     {
-        return await this.callAsync ("optionGetInstrumentsInstrumentIdTrades",parameters);
+        return await this.callAsync("optionGetInstrumentsInstrumentIdTrades", parameters);
     }
 
-    public async Task<object> optionGetInstrumentsInstrumentIdTicker (object parameters = null)
+    public async Task<object> optionGetInstrumentsInstrumentIdTicker(object parameters = null)
     {
-        return await this.callAsync ("optionGetInstrumentsInstrumentIdTicker",parameters);
+        return await this.callAsync("optionGetInstrumentsInstrumentIdTicker", parameters);
     }
 
-    public async Task<object> optionGetInstrumentsInstrumentIdCandles (object parameters = null)
+    public async Task<object> optionGetInstrumentsInstrumentIdCandles(object parameters = null)
     {
-        return await this.callAsync ("optionGetInstrumentsInstrumentIdCandles",parameters);
+        return await this.callAsync("optionGetInstrumentsInstrumentIdCandles", parameters);
     }
 
-    public async Task<object> optionPostOrder (object parameters = null)
+    public async Task<object> optionPostOrder(object parameters = null)
     {
-        return await this.callAsync ("optionPostOrder",parameters);
+        return await this.callAsync("optionPostOrder", parameters);
     }
 
-    public async Task<object> optionPostOrders (object parameters = null)
+    public async Task<object> optionPostOrders(object parameters = null)
     {
-        return await this.callAsync ("optionPostOrders",parameters);
+        return await this.callAsync("optionPostOrders", parameters);
     }
 
-    public async Task<object> optionPostCancelOrderUnderlyingOrderId (object parameters = null)
+    public async Task<object> optionPostCancelOrderUnderlyingOrderId(object parameters = null)
     {
-        return await this.callAsync ("optionPostCancelOrderUnderlyingOrderId",parameters);
+        return await this.callAsync("optionPostCancelOrderUnderlyingOrderId", parameters);
     }
 
-    public async Task<object> optionPostCancelOrderUnderlyingClientOid (object parameters = null)
+    public async Task<object> optionPostCancelOrderUnderlyingClientOid(object parameters = null)
     {
-        return await this.callAsync ("optionPostCancelOrderUnderlyingClientOid",parameters);
+        return await this.callAsync("optionPostCancelOrderUnderlyingClientOid", parameters);
     }
 
-    public async Task<object> optionPostCancelBatchOrdersUnderlying (object parameters = null)
+    public async Task<object> optionPostCancelBatchOrdersUnderlying(object parameters = null)
     {
-        return await this.callAsync ("optionPostCancelBatchOrdersUnderlying",parameters);
+        return await this.callAsync("optionPostCancelBatchOrdersUnderlying", parameters);
     }
 
-    public async Task<object> optionPostAmendOrderUnderlying (object parameters = null)
+    public async Task<object> optionPostAmendOrderUnderlying(object parameters = null)
     {
-        return await this.callAsync ("optionPostAmendOrderUnderlying",parameters);
+        return await this.callAsync("optionPostAmendOrderUnderlying", parameters);
     }
 
-    public async Task<object> optionPostAmendBatchOrdersUnderlying (object parameters = null)
+    public async Task<object> optionPostAmendBatchOrdersUnderlying(object parameters = null)
     {
-        return await this.callAsync ("optionPostAmendBatchOrdersUnderlying",parameters);
+        return await this.callAsync("optionPostAmendBatchOrdersUnderlying", parameters);
     }
 
-    public async Task<object> informationGetCurrencyLongShortRatio (object parameters = null)
+    public async Task<object> informationGetCurrencyLongShortRatio(object parameters = null)
     {
-        return await this.callAsync ("informationGetCurrencyLongShortRatio",parameters);
+        return await this.callAsync("informationGetCurrencyLongShortRatio", parameters);
     }
 
-    public async Task<object> informationGetCurrencyVolume (object parameters = null)
+    public async Task<object> informationGetCurrencyVolume(object parameters = null)
     {
-        return await this.callAsync ("informationGetCurrencyVolume",parameters);
+        return await this.callAsync("informationGetCurrencyVolume", parameters);
     }
 
-    public async Task<object> informationGetCurrencyTaker (object parameters = null)
+    public async Task<object> informationGetCurrencyTaker(object parameters = null)
     {
-        return await this.callAsync ("informationGetCurrencyTaker",parameters);
+        return await this.callAsync("informationGetCurrencyTaker", parameters);
     }
 
-    public async Task<object> informationGetCurrencySentiment (object parameters = null)
+    public async Task<object> informationGetCurrencySentiment(object parameters = null)
     {
-        return await this.callAsync ("informationGetCurrencySentiment",parameters);
+        return await this.callAsync("informationGetCurrencySentiment", parameters);
     }
 
-    public async Task<object> informationGetCurrencyMargin (object parameters = null)
+    public async Task<object> informationGetCurrencyMargin(object parameters = null)
     {
-        return await this.callAsync ("informationGetCurrencyMargin",parameters);
+        return await this.callAsync("informationGetCurrencyMargin", parameters);
     }
 
-    public async Task<object> indexGetInstrumentIdConstituents (object parameters = null)
+    public async Task<object> indexGetInstrumentIdConstituents(object parameters = null)
     {
-        return await this.callAsync ("indexGetInstrumentIdConstituents",parameters);
+        return await this.callAsync("indexGetInstrumentIdConstituents", parameters);
     }
 
 }
