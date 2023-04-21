@@ -1,10 +1,9 @@
 ﻿namespace Example;
-using Main;
+using ccxt;
 using System;
 using System.Threading.Tasks;
 using dict = Dictionary<string, object>;
 using list = List<object>;
-using CommandLine;
 using Newtonsoft.Json;
 
 public static class Program
@@ -12,14 +11,9 @@ public static class Program
 
     public class Options
     {
-        [Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
         public bool Verbose { get; set; }
-
-        [Option('s', "sandbox", Required = false, HelpText = "Set sandbox mode.")]
         public bool Sandbox { get; set; }
     }
-
-    // public static string exchangesPath = "exchanges.json";
     public static string exchangesPath = "../../exchanges.json"; // when using debugguer
 
     public static List<string> exchangesId;
