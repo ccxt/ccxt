@@ -28,6 +28,7 @@ const keys = {
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
     '--python-async': false, // run Python 3 async tests only
+    '--csharp': false,  // run C# tests only
     '--php-async': false,    // run php async tests only,
     '--warnings': false,
     '--info': false,
@@ -211,10 +212,11 @@ const testExchange = async (exchange) => {
     }
     args = args.concat(exchangeOptions)
     const allTestsWithoutTs = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',                                  ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',                        ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py',                       ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',                               ...args] },
+            { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'c#/tests/tests.csproj',               ...args] },
         ]
 
         if (!skipSettings[exchange] || !!!skipSettings[exchange].skipPhpAsync) {
