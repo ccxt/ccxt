@@ -1633,6 +1633,7 @@ class woo extends Exchange {
         $addressFrom = $this->safe_string($transaction, 'source_address');
         $timestamp = $this->safe_timestamp($transaction, 'created_time');
         return array(
+            'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'withdraw_id'),
             'txid' => $this->safe_string($transaction, 'tx_id'),
             'timestamp' => $timestamp,
@@ -1641,13 +1642,15 @@ class woo extends Exchange {
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'tag' => $this->safe_string($transaction, 'extra'),
+            'tagFrom' => null,
+            'tagTo' => null,
             'type' => $movementDirection,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'updated' => $this->safe_timestamp($transaction, 'updated_time'),
+            'comment' => null,
             'fee' => $fee,
-            'info' => $transaction,
         );
     }
 

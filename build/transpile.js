@@ -2024,7 +2024,7 @@ class Transpiler {
 
     createBaseInitFile (pyPath, tests) {
         const finalPath = pyPath + '__init__.py';
-        const fileNames = tests.filter(t => t !== 'exportTests' && t !== 'test.sharedMethods').map(test => this.uncamelcaseName(test));
+        const fileNames = tests.filter(t => t !== 'test.sharedMethods').map(test => this.uncamelcaseName(test));
         const importNames = fileNames.map(testName => `from ccxt.test.base.${testName} import ${testName} # noqa E402`)
         const baseContent = [
             '',
@@ -2077,6 +2077,8 @@ class Transpiler {
 
         // ########### PHP ###########
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
+        phpAsync = phpAsync.replace ('\nuse React\\Async;','').replace ('\nuse React\\Promise;', ''); // no longer needed, as hardcoded in top lines
+        phpAsync = phpAsync.replace ('(this,','($this,'); // no longer needed, as hardcoded in top lines
         const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const phpReform = (cont) => {
             let newContent = existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n' + cont + '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1];

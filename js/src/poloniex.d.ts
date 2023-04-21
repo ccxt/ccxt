@@ -85,9 +85,11 @@ export default class poloniex extends Exchange {
         txid: string;
         timestamp: number;
         datetime: string;
+        comment: any;
         fee: {
             currency: any;
             cost: number;
+            rate: any;
         };
     }>;
     fetchTransactionsHelper(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -116,9 +118,11 @@ export default class poloniex extends Exchange {
         txid: string;
         timestamp: number;
         datetime: string;
+        comment: any;
         fee: {
             currency: any;
             cost: number;
+            rate: any;
         };
     };
     nonce(): number;

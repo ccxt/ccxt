@@ -1133,7 +1133,7 @@ export default class phemex extends Exchange {
             }
             request['limit'] = limit;
         }
-        let method = 'publicGetMdKline';
+        let method = 'publicGetMdV2Kline';
         if (market['linear'] || market['settle'] === 'USDT') {
             method = 'publicGetMdV2KlineLast';
         }

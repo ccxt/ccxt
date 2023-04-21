@@ -1419,7 +1419,12 @@ export default class novadax extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fee': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
 

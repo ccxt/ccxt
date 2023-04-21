@@ -998,7 +998,8 @@ class Exchange {
                         }).catch((e) => { throw e; });
                     }
                     else {
-                        client.send(message);
+                        client.send(message)
+                            .catch((e) => { throw e; });
                     }
                 }
             }

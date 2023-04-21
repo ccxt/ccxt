@@ -1139,7 +1139,7 @@ class phemex extends Exchange {
                 }
                 $request['limit'] = $limit;
             }
-            $method = 'publicGetMdKline';
+            $method = 'publicGetMdV2Kline';
             if ($market['linear'] || $market['settle'] === 'USDT') {
                 $method = 'publicGetMdV2KlineLast';
             }

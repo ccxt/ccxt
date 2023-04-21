@@ -1649,6 +1649,7 @@ class woo extends woo$1 {
         const addressFrom = this.safeString(transaction, 'source_address');
         const timestamp = this.safeTimestamp(transaction, 'created_time');
         return {
+            'info': transaction,
             'id': this.safeString2(transaction, 'id', 'withdraw_id'),
             'txid': this.safeString(transaction, 'tx_id'),
             'timestamp': timestamp,
@@ -1657,13 +1658,15 @@ class woo extends woo$1 {
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': this.safeString(transaction, 'extra'),
+            'tagFrom': undefined,
+            'tagTo': undefined,
             'type': movementDirection,
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'updated': this.safeTimestamp(transaction, 'updated_time'),
+            'comment': undefined,
             'fee': fee,
-            'info': transaction,
         };
     }
     parseTransactionStatus(status) {

@@ -109,10 +109,10 @@ trait ClientTrait {
                             //               |
                             //               V
                             \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message) {
-                                $client->send($message);
+                                Async\await($client->send($message));
                             });
                         } else {
-                            $client->send($message);
+                            Async\await($client->send($message));
                         }
                     }
                 }

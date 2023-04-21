@@ -199,12 +199,13 @@ class Client {
     }
 
     public function send($data) {
-        $message = is_string($data) ? $data : Exchange::json($data);
-        if ($this->verbose) {
-            echo date('c'), ' sending ', $message, "\n";
-        }
-        $this->connection->send($message);
-        return null;
+        return React\Async\async(function () use ($data) {
+            $message = is_string($data) ? $data : Exchange::json($data);
+            if ($this->verbose) {
+                echo date('c'), ' sending ', $message, "\n";
+            }
+            return $this->connection->send($message);
+        })();
     }
 
     public function close() {

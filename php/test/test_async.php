@@ -3,8 +3,37 @@ namespace ccxt;
 
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
+ini_set('memory_limit', '512M');
 
 include_once 'vendor/autoload.php';
+use React\Async;
+use React\Promise;
+
+$filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
+$exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
+$exchangeSymbol = null; // todo: this should be different than JS
+
+// non-transpiled part, but shared names among langs
+
+class baseMainTestClass {
+    public $testFiles = [];
+    public $skippedMethods = [];
+    public $checkedPublicTests = [];
+    public $publicTests = [];
+    public $info = false;
+    public $verbose = false;
+    public $debug = false;
+    public $privateTest = false;
+    public $privateTestOnly = false;
+    public $sandbox = false;
+}
+
+define ('is_synchronous', stripos(__FILE__, '_async') === false);
+
+define('rootDir', __DIR__ . '/../../');
+define('envVars', $_ENV);
+define('ext', 'php');
+define('httpsAgent', null);
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -17,95 +46,14 @@ function dump(...$s) {
     echo implode(' ', $args) . "\n";
 }
 
-ini_set('memory_limit', '512M');
-
-$exchanges = null;
-
-// $shortopts = '';
-// $longopts = array (
-//     "nonce::", // '::' means optional, ':' means required
-// );
-
-// $options = getopt ($shortopts, $longopts);
-// var_dump ($options);
-// exit ();
-
-# first we filter the args
-$verbose = in_array('--verbose', $argv);
-$args = $argv;
-
-$exchangeSymbol = $nonPrefixedArgs[3] ?? null;
-define ('exchangeSymbol', $nonPrefixedArgs[3] ?? null);
-define ('sandbox', in_array('--sandbox', $args));
-define ('privateTest', in_array('--private', $args));
-define ('privateOnly', in_array('--privateOnly', $args));
-define ('info', in_array('--info', $args));
-
-define ('is_sync', stripos(__FILE__, '_async') === false);
-
-//-----------------------------------------------------------------------------
-foreach (Exchange::$exchanges as $id) {
-    if (in_array($id, $args)) {
-        $exchangeName = '\\ccxt\\async\\' . $id;
-        $selected_exchange = new $exchangeName();
-                            // httpsAgent,
-                            // verbose,
-                            // enableRateLimit,
-                            // debug,
-                            // timeout,
-    }
+function get_cli_arg_value ($arg) {
+    return in_array($arg, $GLOBALS['argv']);
 }
 
-if (!$selected_exchange) {
-    throw new \Exception('No exchange specified');
-}
-
-var_dump('\nTESTING (PHP)', [ 'exchange'=> $selected_exchange->id, 'symbol'=> $exchangeSymbol || 'all' ], '\n');
-
-function snake_case ($methodName) {
-    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName));
-}
 function get_test_name($methodName) {
-    $snake_cased = snake_case($methodName);
+    $snake_cased = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName)); // snake_case
     $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
     return 'test_' . $snake_cased;
-}
-define('rootDir', __DIR__ . '/../../');
-
-if (is_sync) {
-    foreach (glob(__DIR__ . '/sync/test_*.php') as $filename) {
-        $basename = basename($filename);
-        if (!in_array($basename, ['test_throttle.php'])) {
-            include_once $filename;
-        }
-    }
-}
-
-if (!is_sync) {
-    foreach (glob(__DIR__ . '/async/test_*.php') as $filename) {
-        $basename = basename($filename);
-        if (!in_array($basename, ['test_throttle.php'])) {
-            include_once $filename;
-        }
-    }
-}
-
-$allfuncs = get_defined_functions()['user'];
-$testFuncs = [];
-foreach ($allfuncs as $fName) {
-    if (stripos($fName, 'ccxt\\test_')!==false) {
-        $nameWithoutNs = str_replace('ccxt\\', '', $fName);
-        $testFuncs[$nameWithoutNs] = $fName;
-    }
-}
-define('testFiles', $testFuncs);
-define('envVars', []);
-
-// non-transpiled commons
-class baseMainTestClass {
-    public $skippedMethods = [];
-    public $checkedPublicTests = [];
-    public $publicTests = [];
 }
 
 function io_file_exists($path) {
@@ -117,8 +65,8 @@ function io_file_read($path, $decode = true) {
     return $decode ? json_decode($content, true) : $content;
 }
 
-function call_method($methodName, $exchange, $args) {
-    return testFiles[$methodName]($exchange, ... $args);
+function call_method($testFiles, $methodName, $exchange, $args) {
+    return $testFiles[$methodName]($exchange, ... $args);
 }
 
 function exception_message ($exc) {
@@ -135,10 +83,6 @@ function exit_script() {
     exit(0);
 }
 
-function reqCredentials ($exchange) {
-    return $exchange->requiredCredenials;
-}
-
 function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
     return property_exists ($exchange, $prop) ? $exchange->{$prop} : $defaultValue;
 }
@@ -146,6 +90,38 @@ function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
 function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{$prop} = $value;
 }
+
+function init_exchange ($exchangeId, $args) {
+    $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
+    return new $exchangeClassString($args);
+}
+
+function set_test_files ($holderClass, $properties) {
+    return Async\async (function() use ($holderClass, $properties){
+        $skiped = ['test_throttle'];
+        foreach (glob(__DIR__ . '/' . (is_synchronous ? 'sync' : 'async') . '/test_*.php') as $filename) {
+            $basename = basename($filename);
+            if (!in_array($basename, $skiped)) {
+                include_once $filename;
+            }
+        }
+        $allfuncs = get_defined_functions()['user'];
+        foreach ($allfuncs as $fName) {
+            if (stripos($fName, 'ccxt\\test_')!==false) {
+                $nameWithoutNs = str_replace('ccxt\\', '', $fName);
+                $holderClass->testFiles[$nameWithoutNs] = $fName;
+            }
+        }
+    })();
+}
+
+function close($exchange) {
+    return Async\async (function() {
+        // stub
+        return true;
+    })();
+}
+
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 
@@ -156,15 +132,45 @@ function set_exchange_prop ($exchange, $prop, $value) {
 use Exception; // a common import
 
 use ccxt\AuthenticationError;
-use React\Async;
-use React\Promise;
 
 class testMainClass extends baseMainTestClass {
 
-    public function init($exchange, $symbol) {
-        return Async\async(function () use ($exchange, $symbol) {
+    public function parse_cli_args() {
+        $this->info = get_cli_arg_value ('--info');
+        $this->verbose = get_cli_arg_value ('--verbose');
+        $this->debug = get_cli_arg_value ('--debug');
+        $this->privateTest = get_cli_arg_value ('--private');
+        $this->privateTestOnly = get_cli_arg_value ('--privateOnly');
+        $this->sandbox = get_cli_arg_value ('--sandbox');
+    }
+
+    public function init($exchangeId, $symbol) {
+        return Async\async(function () use ($exchangeId, $symbol) {
+            $this->parse_cli_args();
+            $symbolStr = $symbol !== null ? $symbol : 'all';
+            var_dump ('\nTESTING ', ext, array( 'exchange' => $exchangeId, 'symbol' => $symbolStr ), '\n');
+            $exchangeArgs = array(
+                'verbose' => $this->verbose,
+                'debug' => $this->debug,
+                'httpsAgent' => httpsAgent,
+                'enableRateLimit' => true,
+                'timeout' => 20000,
+            );
+            $exchange = init_exchange ($exchangeId, $exchangeArgs);
+            Async\await($this->import_files($exchange));
             $this->expand_settings($exchange, $symbol);
             Async\await($this->start_test($exchange, $symbol));
+            Async\await(close ($exchange));
+        }) ();
+    }
+
+    public function import_files($exchange) {
+        return Async\async(function () use ($exchange) {
+            // $exchange tests
+            $this->testFiles = array();
+            $properties = is_array($exchange->has) ? array_keys($exchange->has) : array();
+            $properties[] = 'loadMarkets';
+            Async\await(set_test_files ($this, $properties));
         }) ();
     }
 
@@ -199,7 +205,7 @@ class testMainClass extends baseMainTestClass {
         for ($i = 0; $i < count($objkeys); $i++) {
             $credential = $objkeys[$i];
             $isRequired = $reqCreds[$credential];
-            if ($isRequired && get_exchange_prop($exchange, $credential) === null) {
+            if ($isRequired && get_exchange_prop ($exchange, $credential) === null) {
                 $fullKey = $exchangeId . '_' . $credential;
                 $credentialEnvName = strtoupper($fullKey); // example => KRAKEN_APIKEY
                 $credentialValue = (is_array(envVars) && array_key_exists($credentialEnvName, envVars)) ? envVars[$credentialEnvName] : null;
@@ -215,21 +221,21 @@ class testMainClass extends baseMainTestClass {
         // others
         if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
             dump ('[SKIPPED] exchange', $exchangeId);
-            exit_script();
+            exit_script ();
         }
         if ($exchange->alias) {
             dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
-            exit_script();
+            exit_script ();
         }
         //
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
         $this->checkedPublicTests = array();
     }
 
-    public function pad_end($message, $size) {
+    public function add_padding($message, $size) {
         // has to be transpilable
         $res = '';
-        $missingSpace = $size - count($message);
+        $missingSpace = $size - strlen($message) - 0; // - 0 is added just to trick transpile to treat the .length string for php
         if ($missingSpace > 0) {
             for ($i = 0; $i < $missingSpace; $i++) {
                 $res .= ' ';
@@ -251,29 +257,29 @@ class testMainClass extends baseMainTestClass {
                 $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
             } elseif (is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) {
                 $skipMessage = '[INFO:SKIPPED_TEST]';
-            } elseif (!(is_array(testFiles) && array_key_exists($methodNameInTest, testFiles))) {
+            } elseif (!(is_array($this->testFiles) && array_key_exists($methodNameInTest, $this->testFiles))) {
                 $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
             }
             if ($skipMessage) {
-                if (info) {
-                    dump (str_pad(this, $skipMessage, 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest);
+                if ($this->info) {
+                    dump ($this->add_padding($skipMessage, 25), $exchange->id, $methodNameInTest);
                 }
                 return;
             }
             $argsStringified = '(' . implode(',', $args) . ')';
-            if (info) {
-                dump (str_pad(this, '[INFO:TESTING]', 25, STR_PAD_RIGHT), $exchange->id, $methodNameInTest, $argsStringified);
+            if ($this->info) {
+                dump ($this->add_padding('[INFO:TESTING]', 25), $exchange->id, $methodNameInTest, $argsStringified);
             }
             $result = null;
             try {
-                $result = Async\await(call_method ($methodNameInTest, $exchange, $args));
+                $result = Async\await(call_method ($this->testFiles, $methodNameInTest, $exchange, $args));
                 if ($isPublic) {
                     $this->checkedPublicTests[$methodNameInTest] = true;
                 }
             } catch (Exception $e) {
                 $isAuthError = ($e instanceof AuthenticationError);
                 if (!($isPublic && $isAuthError)) {
-                    dump ('ERROR:', exception_message($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
+                    dump ('ERROR:', exception_message ($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
                     throw $e;
                 }
             }
@@ -297,12 +303,12 @@ class testMainClass extends baseMainTestClass {
             $tests = array(
                 'loadMarkets' => array(),
                 'fetchCurrencies' => array(),
-                'fetchTicker' => [$symbol],
-                'fetchTickers' => [$symbol],
-                'fetchOHLCV' => [$symbol],
-                'fetchTrades' => [$symbol],
-                'fetchOrderBook' => [$symbol],
-                'fetchL2OrderBook' => [$symbol],
+                'fetchTicker' => array( $symbol ),
+                'fetchTickers' => array( $symbol ),
+                'fetchOHLCV' => array( $symbol ),
+                'fetchTrades' => array( $symbol ),
+                'fetchOrderBook' => array( $symbol ),
+                'fetchL2OrderBook' => array( $symbol ),
                 'fetchOrderBooks' => array(),
                 'fetchBidsAsks' => array(),
                 'fetchStatus' => array(),
@@ -313,12 +319,12 @@ class testMainClass extends baseMainTestClass {
             if ($isSpot) {
                 $tests['fetchCurrencies'] = array();
             } else {
-                $tests['fetchFundingRates'] = [$symbol];
-                $tests['fetchFundingRate'] = [$symbol];
-                $tests['fetchFundingRateHistory'] = [$symbol];
-                $tests['fetchIndexOHLCV'] = [$symbol];
-                $tests['fetchMarkOHLCV'] = [$symbol];
-                $tests['fetchPremiumIndexOHLCV'] = [$symbol];
+                $tests['fetchFundingRates'] = array( $symbol );
+                $tests['fetchFundingRate'] = array( $symbol );
+                $tests['fetchFundingRateHistory'] = array( $symbol );
+                $tests['fetchIndexOHLCV'] = array( $symbol );
+                $tests['fetchMarkOHLCV'] = array( $symbol );
+                $tests['fetchPremiumIndexOHLCV'] = array( $symbol );
             }
             $this->publicTests = $tests;
             $testNames = is_array($tests) ? array_keys($tests) : array();
@@ -329,17 +335,17 @@ class testMainClass extends baseMainTestClass {
                 $promises[] = $this->test_safe($testName, $exchange, $testArgs, true);
             }
             // todo - not yet ready in other langs too
-            // $promises[] = test_throttle();
+            // $promises[] = testThrottle ();
             Async\await(Promise\all($promises));
-            if (info) {
-                dump (str_pad(this, '[INFO:PUBLIC_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+            if ($this->info) {
+                dump ($this->add_padding('[INFO:PUBLIC_TESTS_DONE]', 25), $exchange->id);
             }
         }) ();
     }
 
     public function load_exchange($exchange) {
         return Async\async(function () use ($exchange) {
-            $markets = Async\await($exchange->load_markets());
+            Async\await($exchange->load_markets());
             assert (gettype($exchange->markets) === 'array', '.markets is not an object');
             assert (gettype($exchange->symbols) === 'array' && array_keys($exchange->symbols) === array_keys(array_keys($exchange->symbols)), '.symbols is not an array');
             $symbolsLength = count($exchange->symbols);
@@ -375,7 +381,7 @@ class testMainClass extends baseMainTestClass {
             $exchangeSpecificSymbols = $exchange->symbols;
             for ($i = 0; $i < count($exchangeSpecificSymbols); $i++) {
                 $symbol = $exchangeSpecificSymbols[$i];
-                if ($exchange->inArray($symbol, $symbols)) {
+                if ($exchange->in_array($symbol, $symbols)) {
                     $resultSymbols[] = $symbol;
                 }
             }
@@ -411,7 +417,7 @@ class testMainClass extends baseMainTestClass {
 
     public function get_exchange_code($exchange, $codes = null) {
         if ($codes === null) {
-            $codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT'];
+            $codes = array( 'BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT' );
         }
         $code = $codes[0];
         for ($i = 0; $i < count($codes); $i++) {
@@ -506,7 +512,8 @@ class testMainClass extends baseMainTestClass {
                 $marketsArrayForCurrentCode = $exchange->filter_by($currentTypeMarkets, 'base', $currentCode);
                 $indexedMkts = $exchange->index_by($marketsArrayForCurrentCode, 'symbol');
                 $symbolsArrayForCurrentCode = is_array($indexedMkts) ? array_keys($indexedMkts) : array();
-                if (strlen($symbolsArrayForCurrentCode)) {
+                $symbolsLength = count($symbolsArrayForCurrentCode);
+                if ($symbolsLength) {
                     $symbol = $this->get_test_symbol($exchange, $spot, $symbolsArrayForCurrentCode);
                     break;
                 }
@@ -533,7 +540,7 @@ class testMainClass extends baseMainTestClass {
             $spotSymbol = null;
             $swapSymbol = null;
             if ($providedSymbol !== null) {
-                $market = $exchange->market($providedSymbol);
+                $market = $exchange->market ($providedSymbol);
                 if ($market['spot']) {
                     $spotSymbol = $providedSymbol;
                 } else {
@@ -545,7 +552,7 @@ class testMainClass extends baseMainTestClass {
                 }
                 if ($exchange->has['swap']) {
                     $swapSymbol = $this->get_valid_symbol($exchange, false);
-                } 
+                }
             }
             if ($spotSymbol !== null) {
                 dump ('Selected SPOT SYMBOL:', $spotSymbol);
@@ -553,17 +560,23 @@ class testMainClass extends baseMainTestClass {
             if ($swapSymbol !== null) {
                 dump ('Selected SWAP SYMBOL:', $swapSymbol);
             }
-            if (!privateOnly) {
+            if (!$this->privateTestOnly) {
                 if ($exchange->has['spot'] && $spotSymbol !== null) {
+                    if ($this->info) {
+                        dump ('[INFO:SPOT TESTS]');
+                    }
                     $exchange->options['type'] = 'spot';
                     Async\await($this->run_public_tests($exchange, $spotSymbol));
                 }
                 if ($exchange->has['swap'] && $swapSymbol !== null) {
+                    if ($this->info) {
+                        dump ('[INFO:SWAP TESTS]');
+                    }
                     $exchange->options['type'] = 'swap';
                     Async\await($this->run_public_tests($exchange, $swapSymbol));
                 }
             }
-            if (privateTest || privateOnly) {
+            if ($this->privateTest || $this->privateTestOnly) {
                 if ($exchange->has['spot'] && $spotSymbol !== null) {
                     $exchange->options['defaultType'] = 'spot';
                     Async\await($this->run_private_tests($exchange, $spotSymbol));
@@ -590,65 +603,65 @@ class testMainClass extends baseMainTestClass {
             //     Async\await(test ('InsufficientFunds', $exchange, $symbol, balance)); // danger zone - won't execute with non-empty balance
             // }
             $tests = array(
-                'signIn' => [$exchange],
-                'fetchBalance' => [$exchange],
-                'fetchAccounts' => [$exchange],
-                'fetchTransactionFees' => [$exchange],
-                'fetchTradingFees' => [$exchange],
-                'fetchStatus' => [$exchange],
-                'fetchOrders' => [$exchange, $symbol],
-                'fetchOpenOrders' => [$exchange, $symbol],
-                'fetchClosedOrders' => [$exchange, $symbol],
-                'fetchMyTrades' => [$exchange, $symbol],
-                'fetchLeverageTiers' => [$exchange, $symbol],
-                'fetchLedger' => [$exchange, $code],
-                'fetchTransactions' => [$exchange, $code],
-                'fetchDeposits' => [$exchange, $code],
-                'fetchWithdrawals' => [$exchange, $code],
-                'fetchBorrowRates' => [$exchange, $code],
-                'fetchBorrowRate' => [$exchange, $code],
-                'fetchBorrowInterest' => [$exchange, $code, $symbol],
-                'addMargin' => [$exchange, $symbol],
-                'reduceMargin' => [$exchange, $symbol],
-                'setMargin' => [$exchange, $symbol],
-                'setMarginMode' => [$exchange, $symbol],
-                'setLeverage' => [$exchange, $symbol],
-                'cancelAllOrders' => [$exchange, $symbol],
-                'cancelOrder' => [$exchange, $symbol],
-                'cancelOrders' => [$exchange, $symbol],
-                'fetchCanceledOrders' => [$exchange, $symbol],
-                'fetchClosedOrder' => [$exchange, $symbol],
-                'fetchOpenOrder' => [$exchange, $symbol],
-                'fetchOrder' => [$exchange, $symbol],
-                'fetchOrderTrades' => [$exchange, $symbol],
-                'fetchPosition' => [$exchange, $symbol],
-                'fetchDeposit' => [$exchange, $code],
-                'createDepositAddress' => [$exchange, $code],
-                'fetchDepositAddress' => [$exchange, $code],
-                'fetchDepositAddresses' => [$exchange, $code],
-                'fetchDepositAddressesByNetwork' => [$exchange, $code],
-                'editOrder' => [$exchange, $symbol],
-                'fetchBorrowRateHistory' => [$exchange, $symbol],
-                'fetchBorrowRatesPerSymbol' => [$exchange, $symbol],
-                'fetchLedgerEntry' => [$exchange, $code],
-                'fetchWithdrawal' => [$exchange, $code],
-                'transfer' => [$exchange, $code],
-                'withdraw' => [$exchange, $code],
+                'signIn' => array( $exchange ),
+                'fetchBalance' => array( $exchange ),
+                'fetchAccounts' => array( $exchange ),
+                'fetchTransactionFees' => array( $exchange ),
+                'fetchTradingFees' => array( $exchange ),
+                'fetchStatus' => array( $exchange ),
+                'fetchOrders' => array( $exchange, $symbol ),
+                'fetchOpenOrders' => array( $exchange, $symbol ),
+                'fetchClosedOrders' => array( $exchange, $symbol ),
+                'fetchMyTrades' => array( $exchange, $symbol ),
+                'fetchLeverageTiers' => array( $exchange, $symbol ),
+                'fetchLedger' => array( $exchange, $code ),
+                'fetchTransactions' => array( $exchange, $code ),
+                'fetchDeposits' => array( $exchange, $code ),
+                'fetchWithdrawals' => array( $exchange, $code ),
+                'fetchBorrowRates' => array( $exchange, $code ),
+                'fetchBorrowRate' => array( $exchange, $code ),
+                'fetchBorrowInterest' => array( $exchange, $code, $symbol ),
+                'addMargin' => array( $exchange, $symbol ),
+                'reduceMargin' => array( $exchange, $symbol ),
+                'setMargin' => array( $exchange, $symbol ),
+                'setMarginMode' => array( $exchange, $symbol ),
+                'setLeverage' => array( $exchange, $symbol ),
+                'cancelAllOrders' => array( $exchange, $symbol ),
+                'cancelOrder' => array( $exchange, $symbol ),
+                'cancelOrders' => array( $exchange, $symbol ),
+                'fetchCanceledOrders' => array( $exchange, $symbol ),
+                'fetchClosedOrder' => array( $exchange, $symbol ),
+                'fetchOpenOrder' => array( $exchange, $symbol ),
+                'fetchOrder' => array( $exchange, $symbol ),
+                'fetchOrderTrades' => array( $exchange, $symbol ),
+                'fetchPosition' => array( $exchange, $symbol ),
+                'fetchDeposit' => array( $exchange, $code ),
+                'createDepositAddress' => array( $exchange, $code ),
+                'fetchDepositAddress' => array( $exchange, $code ),
+                'fetchDepositAddresses' => array( $exchange, $code ),
+                'fetchDepositAddressesByNetwork' => array( $exchange, $code ),
+                'editOrder' => array( $exchange, $symbol ),
+                'fetchBorrowRateHistory' => array( $exchange, $symbol ),
+                'fetchBorrowRatesPerSymbol' => array( $exchange, $symbol ),
+                'fetchLedgerEntry' => array( $exchange, $code ),
+                'fetchWithdrawal' => array( $exchange, $code ),
+                'transfer' => array( $exchange, $code ),
+                'withdraw' => array( $exchange, $code ),
             );
             $market = $exchange->market ($symbol);
             $isSpot = $market['spot'];
             if ($isSpot) {
-                $tests['fetchCurrencies'] = [$exchange, $symbol];
+                $tests['fetchCurrencies'] = array( $exchange, $symbol );
             } else {
                 // derivatives only
-                $tests['fetchPositions'] = [$exchange, [$symbol]];
-                $tests['fetchPosition'] = [$exchange, $symbol];
-                $tests['fetchPositionRisk'] = [$exchange, $symbol];
-                $tests['setPositionMode'] = [$exchange, $symbol];
-                $tests['setMarginMode'] = [$exchange, $symbol];
-                $tests['fetchOpenInterestHistory'] = [$exchange, $symbol];
-                $tests['fetchFundingRateHistory'] = [$exchange, $symbol];
-                $tests['fetchFundingHistory'] = [$exchange, $symbol];
+                $tests['fetchPositions'] = array( $exchange, array( $symbol ) );
+                $tests['fetchPosition'] = array( $exchange, $symbol );
+                $tests['fetchPositionRisk'] = array( $exchange, $symbol );
+                $tests['setPositionMode'] = array( $exchange, $symbol );
+                $tests['setMarginMode'] = array( $exchange, $symbol );
+                $tests['fetchOpenInterestHistory'] = array( $exchange, $symbol );
+                $tests['fetchFundingRateHistory'] = array( $exchange, $symbol );
+                $tests['fetchFundingHistory'] = array( $exchange, $symbol );
             }
             $combinedPublicPrivateTests = $exchange->deep_extend($this->publicTests, $tests);
             $testNames = is_array($combinedPublicPrivateTests) ? array_keys($combinedPublicPrivateTests) : array();
@@ -670,8 +683,8 @@ class testMainClass extends baseMainTestClass {
             if (strlen($errors) > 0) {
                 throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
             } else {
-                if (info) {
-                    dump (str_pad(this, '[INFO:PRIVATE_TESTS_DONE]', 25, STR_PAD_RIGHT), $exchange->id);
+                if ($this->info) {
+                    dump ($this->add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), $exchange->id);
                 }
             }
         }) ();
@@ -683,7 +696,7 @@ class testMainClass extends baseMainTestClass {
             if ($exchange->alias) {
                 return;
             }
-            if (sandbox || get_exchange_prop ($exchange, 'sandbox')) {
+            if ($this->sandbox || get_exchange_prop ($exchange, 'sandbox')) {
                 $exchange->set_sandbox_mode(true);
             }
             Async\await($this->load_exchange($exchange));
@@ -694,5 +707,5 @@ class testMainClass extends baseMainTestClass {
 
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-$promise = (new testMainClass())->init($selected_exchange, $exchangeSymbol); // Async\coroutine(
-//Async\await($promise);
+$promise = (new testMainClass())->init($exchangeId, $exchangeSymbol);
+Async\await($promise);

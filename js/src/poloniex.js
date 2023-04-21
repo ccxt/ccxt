@@ -2042,9 +2042,11 @@ export default class poloniex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCostString),
+                'rate': undefined,
             },
         };
     }

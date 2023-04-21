@@ -256,7 +256,7 @@ class ndax(ccxt.async_support.ndax):
                 duration = int(interval) * 1000
                 timestamp = self.safe_integer(ohlcv, 0)
                 parsed = [
-                    int(((timestamp / duration) * str(duration))),
+                    self.parse_to_int((timestamp / duration) * duration),
                     self.safe_float(ohlcv, 3),
                     self.safe_float(ohlcv, 1),
                     self.safe_float(ohlcv, 2),

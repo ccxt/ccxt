@@ -1118,7 +1118,7 @@ class phemex extends phemex$1 {
             }
             request['limit'] = limit;
         }
-        let method = 'publicGetMdKline';
+        let method = 'publicGetMdV2Kline';
         if (market['linear'] || market['settle'] === 'USDT') {
             method = 'publicGetMdV2KlineLast';
         }

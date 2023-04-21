@@ -256,12 +256,26 @@ export default class Client {
         }
     }
 
-    send (message) {
+    async send (message) {
         if (this.verbose) {
             this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
-        this.connection.send (message)
+        const future = Future ()
+        if (isNode) {
+            function onSendComplete (error) {
+                if (error) {
+                    future.reject (error)
+                } else {
+                    future.resolve (null)
+                }
+            }
+            this.connection.send (message, {}, onSendComplete)
+        } else {
+            this.connection.send (message)
+            future.resolve (null)
+        }
+        return future
     }
 
     close () {
