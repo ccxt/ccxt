@@ -59,17 +59,17 @@ public partial class BaseTest
 
 public partial class BaseTest
 {
-    public int TRUNCATE = Main.Exchange.TRUNCATE;
-    public int DECIMAL_PLACES = Main.Exchange.DECIMAL_PLACES;
-    public int ROUND = Main.Exchange.ROUND;
-    public int ROUND_UP = Main.Exchange.ROUND_UP;
-    public int ROUND_DOWN = Main.Exchange.ROUND_DOWN;
-    public int SIGNIFICANT_DIGITS = Main.Exchange.SIGNIFICANT_DIGITS;
-    public int TICK_SIZE = Main.Exchange.TICK_SIZE;
-    public int NO_PADDING = Main.Exchange.NO_PADDING;
-    public int PAD_WITH_ZERO = Main.Exchange.PAD_WITH_ZERO;
+    public int TRUNCATE = ccxt.Exchange.TRUNCATE;
+    public int DECIMAL_PLACES = ccxt.Exchange.DECIMAL_PLACES;
+    public int ROUND = ccxt.Exchange.ROUND;
+    public int ROUND_UP = ccxt.Exchange.ROUND_UP;
+    public int ROUND_DOWN = ccxt.Exchange.ROUND_DOWN;
+    public int SIGNIFICANT_DIGITS = ccxt.Exchange.SIGNIFICANT_DIGITS;
+    public int TICK_SIZE = ccxt.Exchange.TICK_SIZE;
+    public int NO_PADDING = ccxt.Exchange.NO_PADDING;
+    public int PAD_WITH_ZERO = ccxt.Exchange.PAD_WITH_ZERO;
 
-    // public Main.Precise Precise = Main.Precise;
+    // public ccxt.Precise Precise = ccxt.Precise;
     // initialize methods used here; (improve this later)
 }
 
@@ -79,7 +79,7 @@ public partial class BaseTest
     // bridges to make auxiliary methods available in tests
     public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null) => Exchange.DecimalToPrecision(a, b, c, d, e);
     public virtual string numberToString(object number) => Exchange.NumberToString(number);
-    public static Task<List<object>> promiseAll(object a) => Main.Exchange.PromiseAll(a);
+    public static Task<List<object>> promiseAll(object a) => ccxt.Exchange.PromiseAll(a);
     public static object getValue(object a, object b) => Exchange.GetValue(a, b);
 
     public static int getIndexOf(object a, object b) => Exchange.getIndexOf(a, b);
