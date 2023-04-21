@@ -30,6 +30,7 @@
     },
     "binance": {
         "skipWs": true,
+		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": "expiry not set for future markets",
             "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0",
@@ -43,6 +44,7 @@
         }
     },
     "binanceus": {
+		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": "expiry not set for future markets",
             "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0",
@@ -50,6 +52,7 @@
         }
     },
     "binancecoinm": {
+		"skipPhpAsync":true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": "expiry not set for future markets",
@@ -58,9 +61,11 @@
         }
     },
     "binanceusdm": {
+		"skipPhpAsync":true,
         "skipWs": true
     },
     "tokocrypto": {
+		"skipPhpAsync":true,
         "skipWs": true
     },
     "bitbank": {
@@ -144,8 +149,7 @@
             "fetchTicker": "same",
             "fetchOHLCV": "open might be greater than high"
         },
-        "skip": true,
-        "//": "update:spot markets doesnt work atm, need fix spot:true"
+        "skip": "update:spot markets doesnt work atm, need fix spot:true"
     },
     "bitopro": {
         "skipWs": true,
@@ -203,8 +207,7 @@
         }
     },
     "blockchaincom": {
-        "skip": true,
-        "//": "503 Service Unavailable",
+        "skip": "503 Service Unavailable",
         "skipMethods": {
             "loadMarkets": "taker key is missing from structure",
             "fetchCurrencies": "info key is missing",
@@ -221,12 +224,10 @@
             "fetchTicker": "same",
             "fetchOHLCV": "open might be greater than high"
         },
-		"skip": true,
-		"//": "request timeout"
+		"skip": "request timeout"
     },
     "bittrex": {
-		"skip": true,
-		"//": "request timeout",
+		"skip": "request timeout",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "bid might be set to 0",
@@ -289,8 +290,7 @@
             "fetchTicker": "same",
             "fetchTrades": "datetime is not same as timestamp"
         },
-        "skip": true,
-        "//": "private endpoints"
+        "skip": "private endpoints"
     },
     "coinbasepro": {
 		"skipPhpAsync":true,
@@ -317,15 +317,12 @@
         }
     },
     "buda": { 
-        "skip": true,
-        "//": "forbidden location"
+        "skip": "forbidden location"
     },
     "cdax": {
         "skipWs": true
     },
     "cex": {
-        "skip": true,
-        "//": "temporary unavailable, lets re-check from 16th april",
         "skipWs": true,
         "skipMethods": {
             "fetchOHLCV": "unexpected issue",
@@ -371,7 +368,6 @@
         }
     },
     "delta": {
-        "skip": true,
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
             "fetchTickers": "quoteVolume >= baseVolume * low is incorrect, also quoteVolume <= baseVolume * high",
@@ -402,6 +398,7 @@
         }
     },
     "gemini": {
+        "skip": "temporary outage till 2023-04-22",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
@@ -453,8 +450,7 @@
         }
     },
     "huobijp": {
-        "skip": true,
-        "//": "trade object does not include fee/s, causing many methods test to fail",
+        "skip": "trade object does not include fee/s, causing many methods test to fail",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume <= baseVolume * high is failing",
@@ -488,8 +484,7 @@
         }
     },
     "idex": {
-		"skip": true,
-		"//": "rate limit exceeded",
+		"skip": "rate limit exceeded",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "close key is undefined",
@@ -519,8 +514,7 @@
         }
     },
     "kuna": {
-        "skip": true,
-        "//": "403 forbidden"
+        "skip": "403 forbidden"
     },
     "kucoin": {
         "skipMethods": {
@@ -541,8 +535,7 @@
         }
     },
     "lbank": {
-        "skip": true,
-        "//": "nothing returned, probably temporary issue",
+        "skip": "nothing returned, probably temporary issue",
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
@@ -610,6 +603,7 @@
     "oceanex": {
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
+            "fetchOrderBooks": "fetchOrderBooks returned 0 length",
             "fetchTickers": "high might be set to 0",
             "fetchTicker": "same"
         }
@@ -628,8 +622,7 @@
         }
     },
     "okcoin": {
-        "skip": true,
-        "//": "502 Bad Gateway, probably location restricted, or might be temporary",
+        "skip": "502 Bad Gateway, probably location restricted, or might be temporary",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume <= baseVolume * high is failing",
@@ -658,8 +651,7 @@
         }
     },
     "tidex": {
-        "skip": true,
-        "//": "exchange does not seem to respond"
+        "skip": "exchange does not seem to respond"
     },
     "krakenfutures": {
         "skipMethods": {
@@ -678,8 +670,7 @@
         }
     },
     "ripio": {
-        "skip": true,
-        "//": "503 Service Unavailable, might be location issue",
+        "skip": "503 Service Unavailable, might be location issue",
         "skipWs": true
     },
     "timex": {
@@ -710,8 +701,7 @@
 		"skipPhpAsync": true
 	},
     "wazirx": {
-        "skip":true,
-        "//": "ratelimit exceeded",
+        "skip":"ratelimit exceeded",
         "skipWs": true
     },
     "zaif": {

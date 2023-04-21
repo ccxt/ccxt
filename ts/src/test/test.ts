@@ -203,8 +203,9 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettings = ioFileRead (skippedFile);
         const skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         // others
-        if (exchange.safeValue (skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED] exchange', exchangeId);
+        const skipReason = exchange.safeValue (skippedSettingsForExchange, 'skip');
+        if (skipReason !== undefined) {
+            dump ('[SKIPPED] exchange', exchangeId, skipReason);
             exitScript ();
         }
         if (exchange.alias) {
