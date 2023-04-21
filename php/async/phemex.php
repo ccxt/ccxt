@@ -57,7 +57,7 @@ class phemex extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistories' => false,
-                'fetchFundingRateHistory' => false,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
@@ -158,6 +158,7 @@ class phemex extends Exchange {
                         'md/v2/trade' => 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr/all' => 5, // ?id=<id>
+                        'api-data/public/data/funding-rate-history' => 5,
                     ),
                 ),
                 'private' => array(
@@ -4161,6 +4162,60 @@ class phemex extends Exchange {
             '11' => 'failed', // 'Failed',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap'] || $market['settle'] !== 'USDT') {
+                throw new BadRequest($this->id . ' fetchFundingRateHistory() supports USDT swap contracts only');
+            }
+            $customSymbol = '.' . $market['id'] . 'FR8H'; // phemex requires a custom $symbol for funding rate history
+            $request = array(
+                'symbol' => $customSymbol,
+            );
+            if ($since !== null) {
+                $request['start'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->v2GetApiDataPublicDataFundingRateHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        "code":"0",
+            //        "msg":"OK",
+            //        "data":{
+            //           "rows":array(
+            //              {
+            //                 "symbol":".BTCUSDTFR8H",
+            //                 "fundingRate":"0.0001",
+            //                 "fundingTime":"1682064000000",
+            //                 "intervalSeconds":"28800"
+            //              }
+            //           )
+            //        }
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $rates = $this->safe_value($data, 'rows');
+            $result = array();
+            for ($i = 0; $i < count($rates); $i++) {
+                $item = $rates[$i];
+                $timestamp = $this->safe_integer($item, 'fundingTime');
+                $result[] = array(
+                    'info' => $item,
+                    'symbol' => $symbol,
+                    'fundingRate' => $this->safe_number($item, 'fundingRate'),
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                );
+            }
+            $sorted = $this->sort_by($result, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        }) ();
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

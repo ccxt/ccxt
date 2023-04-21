@@ -69,7 +69,7 @@ class phemex(Exchange):
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistories': False,
-                'fetchFundingRateHistory': False,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
@@ -170,6 +170,7 @@ class phemex(Exchange):
                         'md/v2/trade': 5,  # ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr/all': 5,  # ?id=<id>
+                        'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'private': {
@@ -3892,6 +3893,53 @@ class phemex(Exchange):
             '11': 'failed',  # 'Failed',
         }
         return self.safe_string(statuses, status, status)
+
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap'] or market['settle'] != 'USDT':
+            raise BadRequest(self.id + ' fetchFundingRateHistory() supports USDT swap contracts only')
+        customSymbol = '.' + market['id'] + 'FR8H'  # phemex requires a custom symbol for funding rate history
+        request = {
+            'symbol': customSymbol,
+        }
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.v2GetApiDataPublicDataFundingRateHistory(self.extend(request, params))
+        #
+        #    {
+        #        "code":"0",
+        #        "msg":"OK",
+        #        "data":{
+        #           "rows":[
+        #              {
+        #                 "symbol":".BTCUSDTFR8H",
+        #                 "fundingRate":"0.0001",
+        #                 "fundingTime":"1682064000000",
+        #                 "intervalSeconds":"28800"
+        #              }
+        #           ]
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        rates = self.safe_value(data, 'rows')
+        result = []
+        for i in range(0, len(rates)):
+            item = rates[i]
+            timestamp = self.safe_integer(item, 'fundingTime')
+            result.append({
+                'info': item,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(item, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

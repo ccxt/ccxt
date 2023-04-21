@@ -5,73 +5,52 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-// @ts-nocheck
-/* eslint-disable */
 import fs from 'fs';
 import assert from 'assert';
 import { Agent } from 'https';
 import HttpsProxyAgent from 'https-proxy-agent';
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../ccxt.js';
-//
+import errorsHierarchy from '../base/errorHierarchy.js';
+// js specific codes //
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-// ----------------------------------------------------------------------------
+process.on('uncaughtException', (e) => {
+    console.log(e, e.stack);
+    process.exit(1);
+});
+process.on('unhandledRejection', (e) => {
+    console.log(e, e.stack);
+    process.exit(1);
+});
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter((x) => !x.startsWith('--'));
-const verbose = process.argv.includes('--verbose') || false;
-const debug = process.argv.includes('--debug') || false;
-const sandbox = process.argv.includes('--sandbox') || false;
-const privateTest = process.argv.includes('--private') || false;
-const privateOnly = process.argv.includes('--privateOnly') || false;
-const info = process.argv.includes('--info') || false;
-const ext = import.meta.url.split('.')[1];
-// ----------------------------------------------------------------------------
-process.on('uncaughtException', (e) => { console.log(e, e.stack); process.exit(1); });
-process.on('unhandledRejection', (e) => { console.log(e, e.stack); process.exit(1); });
-// ----------------------------------------------------------------------------
-console.log('\nTESTING (JS)', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' }, '\n');
-//-----------------------------------------------------------------------------
-const enableRateLimit = true;
-const httpsAgent = new Agent({
-    'ecdhCurve': 'auto',
-});
-const timeout = 20000;
-const exchange = new (ccxt)[exchangeId]({
-    httpsAgent,
-    verbose,
-    enableRateLimit,
-    debug,
-    timeout,
-});
-//-----------------------------------------------------------------------------
-const get_test_name = (str) => str;
-const testFiles = {};
-const properties = Object.keys(exchange.has);
-properties.push('loadMarkets');
-for (let i = 0; i < properties.length; i++) {
-    const property = properties[i];
-    const filePath = __dirname + '/Exchange/test.' + property;
-    if (fs.existsSync(filePath + '.' + ext)) {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[property] = (await import(pathToFileURL(filePath + '.js')))['default'];
+const AuthenticationError = ccxt.AuthenticationError;
+// non-transpiled part, but shared names among langs
+class baseMainTestClass {
+    constructor() {
+        this.info = false;
+        this.verbose = false;
+        this.debug = false;
+        this.privateTest = false;
+        this.privateTestOnly = false;
+        this.sandbox = false;
+        this.skippedMethods = {};
+        this.checkedPublicTests = {};
+        this.testFiles = {};
+        this.publicTests = {};
     }
 }
-import errorsHierarchy from '../base/errorHierarchy.js';
-Object.keys(errorsHierarchy)
-    .forEach(async (error) => {
-    const filePath = __dirname + '/errors/test.' + error;
-    if (fs.existsSync(filePath + '.' + ext)) {
-        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        testFiles[error] = (await import(pathToFileURL(filePath + '.js')))['default'];
-    }
-});
-const AuthenticationError = ccxt.AuthenticationError;
-// non-transpiled commons
 const rootDir = __dirname + '/../../../';
 const envVars = process.env;
-class baseMainTestClass {
-}
+const ext = import.meta.url.split('.')[1];
+const httpsAgent = new Agent({ 'ecdhCurve': 'auto' });
 function dump(...args) {
     console.log(...args);
+}
+function getCliArgValue(arg) {
+    return process.argv.includes(arg) || false;
+}
+function getTestName(str) {
+    return str;
 }
 function ioFileExists(path) {
     return fs.existsSync(path);
@@ -80,15 +59,15 @@ function ioFileRead(path, decode = true) {
     const content = fs.readFileSync(path, 'utf8');
     return decode ? JSON.parse(content) : content;
 }
+async function callMethod(testFiles, methodName, exchange, args) {
+    return await testFiles[methodName](exchange, ...args);
+}
 function exceptionMessage(exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice(0, 500);
 }
-async function callMethod(methodName, exchange, args) {
-    return await testFiles[methodName](exchange, ...args);
-}
 function addProxy(exchange, httpProxy) {
     // add real proxy agent
-    exchange.agent = new HttpsProxyAgent(httpProxy);
+    exchange.agent = HttpsProxyAgent(httpProxy);
 }
 function exitScript() {
     process.exit(0);
@@ -99,15 +78,71 @@ function getExchangeProp(exchange, prop, defaultValue = undefined) {
 function setExchangeProp(exchange, prop, value) {
     exchange[prop] = value;
 }
-async function testThrottle() {
-    // todo: exists in py/php not in js
+function initExchange(exchangeId, args) {
+    return new (ccxt)[exchangeId](args);
+}
+async function importTestFile(filePath) {
+    // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+    return (await import(pathToFileURL(filePath + '.js')))['default'];
+}
+async function setTestFiles(holderClass, properties) {
+    // exchange tests
+    for (let i = 0; i < properties.length; i++) {
+        const name = properties[i];
+        const filePathWoExt = __dirname + '/Exchange/test.' + name;
+        if (ioFileExists(filePathWoExt + '.' + ext)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            holderClass.testFiles[name] = await importTestFile(filePathWoExt);
+        }
+    }
+    // errors tests
+    const errorHierarchyKeys = Object.keys(errorsHierarchy);
+    for (let i = 0; i < errorHierarchyKeys.length; i++) {
+        const name = errorHierarchyKeys[i];
+        const filePathWoExt = __dirname + '/base/errors/test.' + name;
+        if (ioFileExists(filePathWoExt + '.' + ext)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            holderClass.testFiles[name] = await importTestFile(filePathWoExt);
+        }
+    }
+}
+async function close(exchange) {
+    // stub
 }
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 export default class testMainClass extends baseMainTestClass {
-    async init(exchange, symbol) {
+    parseCliArgs() {
+        this.info = getCliArgValue('--info');
+        this.verbose = getCliArgValue('--verbose');
+        this.debug = getCliArgValue('--debug');
+        this.privateTest = getCliArgValue('--private');
+        this.privateTestOnly = getCliArgValue('--privateOnly');
+        this.sandbox = getCliArgValue('--sandbox');
+    }
+    async init(exchangeId, symbol) {
+        this.parseCliArgs();
+        const symbolStr = symbol !== undefined ? symbol : 'all';
+        console.log('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
+        const exchangeArgs = {
+            'verbose': this.verbose,
+            'debug': this.debug,
+            'httpsAgent': httpsAgent,
+            'enableRateLimit': true,
+            'timeout': 20000,
+        };
+        const exchange = initExchange(exchangeId, exchangeArgs);
+        await this.importFiles(exchange);
         this.expandSettings(exchange, symbol);
         await this.startTest(exchange, symbol);
+        await close(exchange);
+    }
+    async importFiles(exchange) {
+        // exchange tests
+        this.testFiles = {};
+        const properties = Object.keys(exchange.has);
+        properties.push('loadMarkets');
+        await setTestFiles(this, properties);
     }
     expandSettings(exchange, symbol) {
         const exchangeId = exchange.id;
@@ -154,8 +189,9 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettings = ioFileRead(skippedFile);
         const skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, {});
         // others
-        if (exchange.safeValue(skippedSettingsForExchange, 'skip')) {
-            dump('[SKIPPED] exchange', exchangeId);
+        const skipReason = exchange.safeValue(skippedSettingsForExchange, 'skip');
+        if (skipReason !== undefined) {
+            dump('[SKIPPED] exchange', exchangeId, skipReason);
             exitScript();
         }
         if (exchange.alias) {
@@ -166,10 +202,10 @@ export default class testMainClass extends baseMainTestClass {
         this.skippedMethods = exchange.safeValue(skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
     }
-    padEnd(message, size) {
+    addPadding(message, size) {
         // has to be transpilable
         let res = '';
-        const missingSpace = size - message.length;
+        const missingSpace = size - message.length - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if (missingSpace > 0) {
             for (let i = 0; i < missingSpace; i++) {
                 res += ' ';
@@ -178,7 +214,7 @@ export default class testMainClass extends baseMainTestClass {
         return message + res;
     }
     async testMethod(methodName, exchange, args, isPublic) {
-        const methodNameInTest = get_test_name(methodName);
+        const methodNameInTest = getTestName(methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
             return;
@@ -191,22 +227,22 @@ export default class testMainClass extends baseMainTestClass {
         else if (methodName in this.skippedMethods) {
             skipMessage = '[INFO:SKIPPED_TEST]';
         }
-        else if (!(methodNameInTest in testFiles)) {
+        else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
         if (skipMessage) {
-            if (info) {
-                dump(this.padEnd(skipMessage, 25), exchange.id, methodNameInTest);
+            if (this.info) {
+                dump(this.addPadding(skipMessage, 25), exchange.id, methodNameInTest);
             }
             return;
         }
         const argsStringified = '(' + args.join(',') + ')';
-        if (info) {
-            dump(this.padEnd('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+        if (this.info) {
+            dump(this.addPadding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
         }
         let result = null;
         try {
-            result = await callMethod(methodNameInTest, exchange, args);
+            result = await callMethod(this.testFiles, methodNameInTest, exchange, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
@@ -266,14 +302,14 @@ export default class testMainClass extends baseMainTestClass {
             promises.push(this.testSafe(testName, exchange, testArgs, true));
         }
         // todo - not yet ready in other langs too
-        // promises.push(testThrottle());
+        // promises.push (testThrottle ());
         await Promise.all(promises);
-        if (info) {
-            dump(this.padEnd('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
+        if (this.info) {
+            dump(this.addPadding('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
         }
     }
     async loadExchange(exchange) {
-        const markets = await exchange.loadMarkets();
+        await exchange.loadMarkets();
         assert(typeof exchange.markets === 'object', '.markets is not an object');
         assert(Array.isArray(exchange.symbols), '.symbols is not an array');
         const symbolsLength = exchange.symbols.length;
@@ -354,8 +390,8 @@ export default class testMainClass extends baseMainTestClass {
         return code;
     }
     getMarketsFromExchange(exchange, spot = true) {
-        let res = {};
-        let markets = exchange.markets;
+        const res = {};
+        const markets = exchange.markets;
         const keys = Object.keys(markets);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -437,7 +473,8 @@ export default class testMainClass extends baseMainTestClass {
                 const marketsArrayForCurrentCode = exchange.filterBy(currentTypeMarkets, 'base', currentCode);
                 const indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, 'symbol');
                 const symbolsArrayForCurrentCode = Object.keys(indexedMkts);
-                if (symbolsArrayForCurrentCode.length) {
+                const symbolsLength = symbolsArrayForCurrentCode.length;
+                if (symbolsLength) {
                     symbol = this.getTestSymbol(exchange, spot, symbolsArrayForCurrentCode);
                     break;
                 }
@@ -484,17 +521,23 @@ export default class testMainClass extends baseMainTestClass {
         if (swapSymbol !== undefined) {
             dump('Selected SWAP SYMBOL:', swapSymbol);
         }
-        if (!privateOnly) {
+        if (!this.privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
+                if (this.info) {
+                    dump('[INFO:SPOT TESTS]');
+                }
                 exchange.options['type'] = 'spot';
                 await this.runPublicTests(exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
+                if (this.info) {
+                    dump('[INFO:SWAP TESTS]');
+                }
                 exchange.options['type'] = 'swap';
                 await this.runPublicTests(exchange, swapSymbol);
             }
         }
-        if (privateTest || privateOnly) {
+        if (this.privateTest || this.privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 exchange.options['defaultType'] = 'spot';
                 await this.runPrivateTests(exchange, spotSymbol);
@@ -600,8 +643,8 @@ export default class testMainClass extends baseMainTestClass {
             throw new Error('Failed private tests [' + market['type'] + ']: ' + errors.join(', '));
         }
         else {
-            if (info) {
-                dump(this.padEnd('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
+            if (this.info) {
+                dump(this.addPadding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
             }
         }
     }
@@ -610,14 +653,13 @@ export default class testMainClass extends baseMainTestClass {
         if (exchange.alias) {
             return;
         }
-        if (sandbox || getExchangeProp(exchange, 'sandbox')) {
+        if (this.sandbox || getExchangeProp(exchange, 'sandbox')) {
             exchange.setSandboxMode(true);
         }
         await this.loadExchange(exchange);
         await this.testExchange(exchange, symbol);
     }
 }
-;
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass()).init(exchange, exchangeSymbol);
+(new testMainClass()).init(exchangeId, exchangeSymbol);
