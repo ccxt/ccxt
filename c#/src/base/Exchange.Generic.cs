@@ -68,13 +68,16 @@ public partial class Exchange
 
         var a = (dict)aa;
         var b = (dict)bb;
-        var keys = new List<string>(b.Keys);
-        foreach (string key in keys)
-        {
-            // a.Add(key, b[key]);
-            a[(string)key] = b[key];
-        }
-        return a;
+        var outDict = new dict();
+        var keysA = new List<string>(a.Keys);
+        foreach (string key in keysA)
+            outDict[(string)key] = a[key];
+
+        var keysB = new List<string>(b.Keys);
+        foreach (string key in keysB)
+            outDict[(string)key] = b[key];
+
+        return outDict;
     }
 
     public dict deepExtend(params object[] objs)

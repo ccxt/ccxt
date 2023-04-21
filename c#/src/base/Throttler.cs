@@ -68,7 +68,7 @@ public class Throttler
 
     }
 
-    public Task throttle(object cost2)
+    public async Task<Task> throttle(object cost2)
     {
         var cost = (cost2 != null) ? float.Parse(cost2.ToString(), CultureInfo.InvariantCulture) : this.config["cost"];
         if (this.queue.Count > (int)this.config["maxCapacity"])
@@ -80,7 +80,7 @@ public class Throttler
         if (!this.running)
         {
             this.running = true;
-            this.loop();
+            await this.loop();
         }
         return t;
     }
