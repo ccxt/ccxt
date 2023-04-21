@@ -1036,7 +1036,7 @@ class Exchange(object):
         for key, value in params.items():
             if isinstance(value, bool):
                 params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params, doseq)
+        return _urlencode.urlencode(params, doseq, quote_via=_urlencode.quote)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
