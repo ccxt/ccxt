@@ -11,6 +11,8 @@ public partial class Exchange
     public HttpClient client { get; set; } = new HttpClient();
     public string id { get; set; } = "Exchange";
 
+    public bool alias { get; set; } = false;
+
     public string version { get; set; } = "";
     public string userAgent { get; set; }
     public bool verbose { get; set; } = true;
@@ -101,6 +103,8 @@ public partial class Exchange
 
     public dict tokenBucket { get; set; } = new dict();
     public Throttler throttler { get; set; }
+
+    public object httpProxy { get; set; }
 
     public virtual object describe()
     {
@@ -322,6 +326,8 @@ public partial class Exchange
         this.userAgents = SafeValue(extendedProperties, "userAgents") as dict;
         this.timeout = SafeInteger(extendedProperties, "timeout", 10000) ?? 10000;
         this.id = SafeString(extendedProperties, "id");
+
+        this.alias = (bool)SafeValue(extendedProperties, "alias", false);
 
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");

@@ -44,13 +44,15 @@ public partial class Exchange
 
     };
 
-    public virtual string decimalToPrecision(object x, object roundingMode2, object numPrecisionDigits2, object countmode2 = null, object paddingMode = null)
+    public virtual string decimalToPrecision(object x, object roundingMode2, object numPrecisionDigits2, object countmode2 = null, object paddingMode = null) => DecimalToPrecision(x, roundingMode2, numPrecisionDigits2, countmode2, paddingMode);
+
+    public static string DecimalToPrecision(object x, object roundingMode2, object numPrecisionDigits2, object countmode2 = null, object paddingMode = null)
     {
         countmode2 = countmode2 ?? DECIMAL_PLACES;
         paddingMode = paddingMode ?? NO_PADDING;
         var countMode = (int)countmode2;
         var roundingMode = (int)roundingMode2;
-        Trace.Assert(precision != null);
+        // Trace.Assert(precision != null);
         var numPrecisionDigits = Convert.ToDouble(numPrecisionDigits2, CultureInfo.InvariantCulture);
         if (countMode == TICK_SIZE)
         {
@@ -71,7 +73,7 @@ public partial class Exchange
             var toNearest = Math.Pow(10, Math.Abs(-(float)numPrecisionDigits));
             if (roundingMode == ROUND)
             {
-                var res = decimalToPrecision(parsedX / toNearest, roundingMode, 0, countmode2, paddingMode);
+                var res = DecimalToPrecision(parsedX / toNearest, roundingMode, 0, countmode2, paddingMode);
                 return (toNearest * float.Parse(res, CultureInfo.InvariantCulture)).ToString();
             }
             if (roundingMode == TRUNCATE)
@@ -82,13 +84,13 @@ public partial class Exchange
         /*handle tick size */
         if (countMode == TICK_SIZE)
         {
-            var precisionDigitsString = decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
-            var newNumPrecisionDigits = precisionFromString(precisionDigitsString);
+            var precisionDigitsString = DecimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+            var newNumPrecisionDigits = PrecisionFromString(precisionDigitsString);
             var missing = parsedX % numPrecisionDigits;
             // See: https://github.com/ccxt/ccxt/pull/6486
-            missing = Convert.ToDouble(decimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING), CultureInfo.InvariantCulture);
-            var fpError = decimalToPrecision(missing / numPrecisionDigits, ROUND, Math.Max(newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
-            var fpErrorResult = precisionFromString(fpError);
+            missing = Convert.ToDouble(DecimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING), CultureInfo.InvariantCulture);
+            var fpError = DecimalToPrecision(missing / numPrecisionDigits, ROUND, Math.Max(newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
+            var fpErrorResult = PrecisionFromString(fpError);
             if (fpErrorResult != 0)
             {
                 if (roundingMode == ROUND)
@@ -121,11 +123,11 @@ public partial class Exchange
                     parsedX = parsedX - missing;
                 }
             }
-            return decimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
+            return DecimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
         }
 
         /*  Convert to a string (if needed), skip leading minus sign (if any)   */
-        var str = numberToString(x);
+        var str = NumberToString(x);
         var isNegative = str[0] == '-';
         var strStart = isNegative ? 1 : 0;
         var strEnd = str.Length;
@@ -277,7 +279,9 @@ public partial class Exchange
         return new string(charArray);
     }
 
-    public virtual int precisionFromString(object value2)
+    public virtual int precisionFromString(object value2) => PrecisionFromString(value2);
+
+    public static int PrecisionFromString(object value2)
     {
         if (value2 == null)
             return 0;
@@ -292,7 +296,9 @@ public partial class Exchange
     }
 
 
-    public virtual string numberToString(object number)
+    public virtual string numberToString(object number) => NumberToString(number);
+
+    public static string NumberToString(object number)
 
     {
         if (number == null)

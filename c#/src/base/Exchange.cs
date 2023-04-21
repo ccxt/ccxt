@@ -479,5 +479,12 @@ public partial class Exchange
         return value;
     }
 
-
+    public object convertToBigInt(object value)
+    {
+        if (value.GetType() == typeof(float).GetType())
+        {
+            return Convert.ToInt64(value);
+        }
+        return value;
+    }
 }

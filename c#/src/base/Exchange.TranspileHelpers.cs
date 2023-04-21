@@ -577,7 +577,7 @@ public partial class Exchange
         else if (value.GetType() == typeof(List<object>))
         {
             // check here if index is out of bounds
-            var parsed = (int)key;
+            int parsed = Convert.ToInt32(key);
             var listLength = getArrayLength(value);
             if (parsed >= listLength)
             {
@@ -587,7 +587,7 @@ public partial class Exchange
         }
         else if (value.GetType() == typeof(List<string>))
         {
-            var parsed = (int)key;
+            int parsed = Convert.ToInt32(key);
             var listLength = getArrayLength(value);
             if (parsed >= listLength)
             {
@@ -597,7 +597,7 @@ public partial class Exchange
         }
         else if (value.GetType() == typeof(List<Int64>))
         {
-            var parsed = (int)key;
+            int parsed = Convert.ToInt32(key);
             return ((List<Int64>)value)[parsed];
         }
         // check this last, avoid reflection
@@ -619,7 +619,9 @@ public partial class Exchange
         }
     }
 
-    public async Task<List<object>> promiseAll(object promisesObj)
+    public async Task<List<object>> promiseAll(object promisesObj) => await PromiseAll(promisesObj);
+
+    public static async Task<List<object>> PromiseAll(object promisesObj)
     {
         var promises = (List<object>)promisesObj;
         var tasks = new List<Task<object>>();
@@ -663,6 +665,17 @@ public partial class Exchange
     public static object callDynamically(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
+        if (args.Length == 0)
+        {
+            args = new object[] { null };
+        }
         return obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+    }
+
+    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
+    {
+        args ??= new object[] { };
+        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+        return await ((Task<object>)res);
     }
 }

@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- <Nullable>enable</Nullable> -->
     <Nullable>enable</Nullable>
-    <NoWarn>1998,CS0168, CS0108, CS8604, CS8625, CS8600, CS8601, CS8603</NoWarn>
+    <NoWarn>1998,CS0168, CS0108, CS8604, CS8625, CS8600, CS8601, CS8602, CS8603, CS8625, CS8618</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>CCXT</PackageId>

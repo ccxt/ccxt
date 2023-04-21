@@ -235,6 +235,8 @@ public partial class Exchange
             var dict = (dict)obj;
             foreach (var key2 in keys)
             {
+                if (key2 == null)
+                    continue;
                 var key = key2.ToString();
                 if (dict.ContainsKey(key))
                 {
