@@ -178,7 +178,7 @@ export default class testMainClass extends baseMainTestClass {
                         const existing = getExchangeProp (exchange, key, {});
                         finalValue = exchange.deepExtend (existing, exchangeSettings[key]);
                     } else {
-                        finalValue = getExchangeProp (exchange, key, exchangeSettings[key]);
+                        finalValue = exchangeSettings[key];
                     }
                     setExchangeProp (exchange, key, finalValue);
                 }
