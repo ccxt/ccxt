@@ -5,7 +5,7 @@ using System.Linq;
 using System.Globalization;
 using System.Numerics;
 
-namespace Main
+namespace ccxt
 {
 
 

@@ -164,18 +164,18 @@ partial class bithumb : Exchange
         * @returns {[object]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object result = new List<object>() {};
-        object quoteCurrencies = this.safeValue(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-        object quotes = new List<object>(((Dictionary<string,object>)quoteCurrencies).Keys);
+        object result = new List<object>() { };
+        object quoteCurrencies = this.safeValue(this.options, "quoteCurrencies", new Dictionary<string, object>() { });
+        object quotes = new List<object>(((Dictionary<string, object>)quoteCurrencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
         {
             object quote = getValue(quotes, i);
             object quoteId = quote;
-            object extension = this.safeValue(quoteCurrencies, quote, new Dictionary<string, object>() {});
+            object extension = this.safeValue(quoteCurrencies, quote, new Dictionary<string, object>() { });
             object method = add("publicGetTickerALL", quote);
             object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
             object data = this.safeValue(response, "data");
-            object currencyIds = new List<object>(((Dictionary<string,object>)data).Keys);
+            object currencyIds = new List<object>(((Dictionary<string, object>)data).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
             {
                 object currencyId = getValue(currencyIds, j);
@@ -251,7 +251,7 @@ partial class bithumb : Exchange
             { "info", response },
         };
         object balances = this.safeValue(response, "data");
-        object codes = new List<object>(((Dictionary<string,object>)this.currencies).Keys);
+        object codes = new List<object>(((Dictionary<string, object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
@@ -326,7 +326,7 @@ partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeValue(response, "data", new Dictionary<string, object>() { });
         object timestamp = this.safeInteger(data, "timestamp");
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
@@ -393,9 +393,9 @@ partial class bithumb : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object result = new Dictionary<string, object>() {};
-        object quoteCurrencies = this.safeValue(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-        object quotes = new List<object>(((Dictionary<string,object>)quoteCurrencies).Keys);
+        object result = new Dictionary<string, object>() { };
+        object quoteCurrencies = this.safeValue(this.options, "quoteCurrencies", new Dictionary<string, object>() { });
+        object quotes = new List<object>(((Dictionary<string, object>)quoteCurrencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
         {
             object quote = getValue(quotes, i);
@@ -422,10 +422,10 @@ partial class bithumb : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeValue(response, "data", new Dictionary<string, object>() { });
             object timestamp = this.safeInteger(data, "date");
             object tickers = this.omit(data, "date");
-            object currencyIds = new List<object>(((Dictionary<string,object>)tickers).Keys);
+            object currencyIds = new List<object>(((Dictionary<string, object>)tickers).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
             {
                 object currencyId = getValue(currencyIds, j);
@@ -476,7 +476,7 @@ partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeValue(response, "data", new Dictionary<string, object>() { });
         return this.parseTicker(data, market);
     }
 
@@ -492,7 +492,7 @@ partial class bithumb : Exchange
         //         '15.41503692' // 거래량
         //     ]
         //
-        return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)};
+        return new List<object> { this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5) };
     }
 
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -540,7 +540,7 @@ partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeValue(response, "data", new List<object>() { });
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -584,7 +584,8 @@ partial class bithumb : Exchange
                     transactionTime = add("0", transactionTime);
                 }
                 timestamp = this.parse8601(add(add(transactionDate, " "), transactionTime));
-            } else
+            }
+            else
             {
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
@@ -595,7 +596,7 @@ partial class bithumb : Exchange
         }
         object type = null;
         object side = this.safeString(trade, "type");
-        side = ((bool) isTrue((isEqual(side, "ask")))) ? "sell" : "buy";
+        side = ((bool)isTrue((isEqual(side, "ask")))) ? "sell" : "buy";
         object id = this.safeString(trade, "cont_no");
         market = this.safeMarket(null, market);
         object priceString = this.safeString(trade, "price");
@@ -666,7 +667,7 @@ partial class bithumb : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeValue(response, "data", new List<object>() { });
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -696,8 +697,9 @@ partial class bithumb : Exchange
         if (isTrue(isEqual(type, "limit")))
         {
             ((Dictionary<string, object>)request)["price"] = price;
-            ((Dictionary<string, object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
-        } else
+            ((Dictionary<string, object>)request)["type"] = ((bool)isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
+        }
+        else
         {
             method = add("privatePostTradeMarket", this.capitalize(side));
         }
@@ -705,7 +707,7 @@ partial class bithumb : Exchange
         object id = this.safeString(response, "order_id");
         if (isTrue(isEqual(id, null)))
         {
-            throw new InvalidOrder ((string)add(this.id, " createOrder() did not return an order id")) ;
+            throw new InvalidOrder((string)add(this.id, " createOrder() did not return an order id"));
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
@@ -729,7 +731,7 @@ partial class bithumb : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired((string)add(this.id, " fetchOrder() requires a symbol argument"));
         }
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -827,7 +829,7 @@ partial class bithumb : Exchange
         //
         object timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
         object sideProperty = this.safeValue2(order, "type", "side");
-        object side = ((bool) isTrue((isEqual(sideProperty, "bid")))) ? "buy" : "sell";
+        object side = ((bool)isTrue((isEqual(sideProperty, "bid")))) ? "buy" : "sell";
         object status = this.parseOrderStatus(this.safeString(order, "order_status"));
         object price = this.safeString2(order, "order_price", "price");
         object type = "limit";
@@ -842,7 +844,8 @@ partial class bithumb : Exchange
             if (isTrue(isEqual(status, "closed")))
             {
                 remaining = "0";
-            } else if (isTrue(!isEqual(status, "canceled")))
+            }
+            else if (isTrue(!isEqual(status, "canceled")))
             {
                 remaining = amount;
             }
@@ -862,7 +865,7 @@ partial class bithumb : Exchange
             symbol = getValue(market, "symbol");
         }
         object id = this.safeString(order, "order_id");
-        object rawTrades = this.safeValue(order, "contract", new List<object>() {});
+        object rawTrades = this.safeValue(order, "contract", new List<object>() { });
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -904,7 +907,7 @@ partial class bithumb : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired((string)add(this.id, " fetchOpenOrders() requires a symbol argument"));
         }
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -939,7 +942,7 @@ partial class bithumb : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeValue(response, "data", new List<object>() { });
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -955,18 +958,18 @@ partial class bithumb : Exchange
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object side_in_params = (((Dictionary<string,object>)parameters).ContainsKey(toStringOrNull("side")));
+        object side_in_params = (((Dictionary<string, object>)parameters).ContainsKey(toStringOrNull("side")));
         if (!isTrue(side_in_params))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
+            throw new ArgumentsRequired((string)add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)"));
         }
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a `symbol` argument")) ;
+            throw new ArgumentsRequired((string)add(this.id, " cancelOrder() requires a `symbol` argument"));
         }
         object market = this.market(symbol);
-        object side = ((bool) isTrue((isEqual(getValue(parameters, "side"), "buy")))) ? "bid" : "ask";
-        parameters = this.omit(parameters, new List<object>() {"side", "currency"});
+        object side = ((bool)isTrue((isEqual(getValue(parameters, "side"), "buy")))) ? "bid" : "ask";
+        parameters = this.omit(parameters, new List<object>() { "side", "currency" });
         // https://github.com/ccxt/ccxt/issues/6771
         object request = new Dictionary<string, object>() {
             { "order_id", id },
@@ -1016,8 +1019,9 @@ partial class bithumb : Exchange
             object destination = this.safeString(parameters, "destination");
             if (isTrue(isTrue((isEqual(tag, null))) && isTrue((isEqual(destination, null)))))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
-            } else if (isTrue(!isEqual(tag, null)))
+                throw new ArgumentsRequired((string)add(add(add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param"));
+            }
+            else if (isTrue(!isEqual(tag, null)))
             {
                 ((Dictionary<string, object>)request)["destination"] = tag;
             }
@@ -1090,11 +1094,12 @@ partial class bithumb : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((Dictionary<string,object>)query).Keys))))
+            if (isTrue(getArrayLength(new List<object>(((Dictionary<string, object>)query).Keys))))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
-        } else
+        }
+        else
         {
             this.checkRequiredCredentials();
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
@@ -1126,7 +1131,7 @@ partial class bithumb : Exchange
         {
             return null;  // fallback to default error handler
         }
-        if (isTrue(((Dictionary<string,object>)response).ContainsKey(toStringOrNull("status"))))
+        if (isTrue(((Dictionary<string, object>)response).ContainsKey(toStringOrNull("status"))))
         {
             //
             //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
@@ -1138,7 +1143,8 @@ partial class bithumb : Exchange
                 if (isTrue(isEqual(status, "0000")))
                 {
                     return null;  // no error
-                } else if (isTrue(isEqual(message, "거래 진행중인 내역이 존재하지 않습니다")))
+                }
+                else if (isTrue(isEqual(message, "거래 진행중인 내역이 존재하지 않습니다")))
                 {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return null;  // no error
@@ -1146,7 +1152,7 @@ partial class bithumb : Exchange
                 object feedback = add(add(this.id, " "), body);
                 this.throwExactlyMatchedException(this.exceptions, status, feedback);
                 this.throwExactlyMatchedException(this.exceptions, message, feedback);
-                throw new ExchangeError ((string)feedback) ;
+                throw new ExchangeError((string)feedback);
             }
         }
         return null;
