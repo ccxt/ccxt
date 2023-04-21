@@ -86,7 +86,6 @@ public class Tests
 
         exchangeId = "huobi";
         info = true;
-        var instance = Exchange.MagicallyCreateInstance(exchangeId);
         var testClass = new testMainClass();
         testClass.init(exchangeId, symbol).Wait();
     }
