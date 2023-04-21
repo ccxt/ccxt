@@ -173,8 +173,14 @@ export default class testMainClass extends baseMainTestClass {
             for (let i = 0; i < settingKeys.length; i++) {
                 const key = settingKeys[i];
                 if (exchangeSettings[key]) {
-                    const existing = getExchangeProp (exchange, key, {});
-                    setExchangeProp (exchange, key, exchange.deepExtend (existing, exchangeSettings[key]));
+                    let finalValue = undefined;
+                    if (typeof exchangeSettings[key] === 'object') {
+                        const existing = getExchangeProp (exchange, key, {});
+                        finalValue = exchange.deepExtend (existing, exchangeSettings[key]);
+                    } else {
+                        finalValue = getExchangeProp (exchange, key, exchangeSettings[key]);
+                    }
+                    setExchangeProp (exchange, key, finalValue);
                 }
             }
             // support simple proxy
