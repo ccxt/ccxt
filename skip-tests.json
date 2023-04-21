@@ -727,6 +727,7 @@
     },
     "yobit": {
         "skipMethods": {
+            "fetchTickers": "all tickers request exceedes max url length",
             "fetchCurrencies": "info key is missing"
         }
     },
