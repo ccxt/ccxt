@@ -50,7 +50,7 @@ export default class phemex extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistories': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
