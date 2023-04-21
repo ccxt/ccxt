@@ -230,7 +230,6 @@ export default class yobit extends Exchange {
                 'XRA': 'Ratecoin',
             },
             'options': {
-                // 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': true,
                 'fetchTickersMaxLength': 512,
                 'networks': {
@@ -555,9 +554,9 @@ export default class yobit extends Exchange {
         if (symbols === undefined) {
             const numIds = this.ids.length;
             ids = this.ids.join ('-');
-            const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchTickersMaxLength']) {
+            const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 512);
+            // max URL length is 512 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > maxLength) {
                 throw new ArgumentsRequired (this.id + ' fetchTickers() has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
