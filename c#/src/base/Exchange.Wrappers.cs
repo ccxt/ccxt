@@ -181,6 +181,11 @@ public partial class Exchange
         var res = await this.fetchLedger(code, since, limit, parameters);
         return ((object)res);
     }
+    public async Task<Dictionary<string, object>> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLedgerEntry(id, code, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);

@@ -1,12 +1,9 @@
 import Transpiler from "ast-transpiler";
 import ts from "typescript";
-
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
-import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
 import { platform } from 'process'
-import { pathToFileURL } from 'url'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
@@ -14,12 +11,9 @@ import {Transpiler as OldTranspiler} from "./transpile.js";
 import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
+import { isMainEntry } from "./transpile.js";
 
 const promisedWriteFile = promisify (fs.writeFile);
-
-const tsFilename = './ccxt.d.ts'
-const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
-const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 
@@ -505,19 +499,13 @@ class NewTranspiler {
             return
         }
 
-        this.transpileExchangeTests()
+        this.transpileBaseMethods (exchangeBase)
 
-        // crypto, precision, datetime
-        // this.transpileBaseTestsToCSharp();
 
-        // Exchange tests
-        // this.transpileExchangeTestsToCsharp();
+        this.transpileTests()
 
-        // this.transpileBaseMethods (exchangeBase)
 
         // this.transpileErrorHierarchy ({ tsFilename })
-
-        // this.transpileTests ()
 
         log.bright.green ('Transpiled successfully.')
     }
@@ -538,7 +526,7 @@ class NewTranspiler {
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
-        log.green ('[ast-transpiler] Transpiled', allFiles.length, 'exchanges in', elapsed, 'ms');
+        log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
         const flatResult = workerResult.flat();
         return flatResult;
     }
@@ -648,7 +636,7 @@ class NewTranspiler {
         const csharp = this.transpiler.transpileCSharpByPath(jsFile);
         let content = csharp.content;
         content = this.regexAll (content, [
-            [ /\s*object\sfunction\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
             [/assert/g, 'Assert'],
         ]).trim ()
 
@@ -789,6 +777,7 @@ class NewTranspiler {
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
             [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
+            [ /object exchange =/g, 'Exchange exchange =' ],
             [ /throw new Error/g, 'throw new Exception' ],
             [/class testMainClass : baseMainTestClass/g, 'public partial class testMainClass : BaseTest'],
         ])
@@ -886,19 +875,25 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            log.magenta ('[csharp] Transpiling from', paths[idx])
             overwriteFile (tests[idx].csharpFile, csharp);
         });
     }
+
+    transpileTests(){
+        this.transpileBaseTestsToCSharp();
+        this.transpileExchangeTests();
+    }
 }
 
-const metaUrlRaw = import.meta.url
-const metaUrl = metaUrlRaw.substring(0, metaUrlRaw.lastIndexOf(".")) // remove extension
-const url = pathToFileURL(process.argv[1]);
-if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `node module`
+if (isMainEntry(import.meta.url)) { // called directly like `node module`
+    const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
+    const transpiler = new NewTranspiler ();
 
-    const transpiler = new NewTranspiler ()
-    await transpiler.transpileEverything ();
+    if (test) {
+        transpiler.transpileTests ()
+    } else {
+        await transpiler.transpileEverything ();
+    }
 
 } else { // if required as a module
 

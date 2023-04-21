@@ -16,27 +16,42 @@ public partial class testMainClass : BaseTest
     public bool sandbox = false;
     public object envVars = null;
     public dict testFiles = new dict();
-    public bool privateOnly = Tests.privateOnly;
+    public bool privateTestOnly = Tests.privateOnly;
     public bool privateTest = Tests.privateTests;
     public bool info = Tests.info;
-
+    public bool verbose = Tests.verbose;
+    public bool debug = Tests.debug;
+    public static string httpsAgent = "";
+    public static string ext = ".cs";
 
     public class AuthenticationError : Exchange.AuthenticationError
     {
 
     }
 
+    public static Exchange initExchange(object exchangeId, object exchangeArgs = null)
+    {
+        var exchange = Exchange.MagicallyCreateInstance((string)exchangeId);
+        return exchange;
+    }
+
+    public static bool getCliArgValue(string option)
+    {
+        if (Tests.args.Contains(option))
+            return true;
+        return false;
+    }
+
 
     public testMainClass()
     {
         initEnv();
-        fillTestFiles();
 
     }
 
-    void fillTestFiles()
+    async Task setTestFiles(object exchange, object properties)
     {
-        var hasDict = this.exchange.has as dict;
+        var hasDict = properties as dict;
         var hasKeys = hasDict.Keys;
         foreach (var key in hasKeys)
         {
@@ -61,6 +76,11 @@ public partial class testMainClass : BaseTest
             parsedObject[key] = value;
         }
         envVars = parsedObject;
+    }
+
+    async static Task close(object exchange)
+    {
+        // stub
     }
 
     public static void dump(params object[] values)
@@ -146,7 +166,7 @@ public partial class testMainClass : BaseTest
         exchange.proxy = http_proxy as string;
     }
 
-    public string get_test_name(object str2)
+    public string getTestName(object str2)
     {
         var str = (string)str2;
         return "test" + char.ToUpper(str[0]) + str.Substring(1);

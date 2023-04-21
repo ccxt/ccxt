@@ -31,24 +31,14 @@ public class Tests
     public static bool privateOnly = false;
     public static bool baseTests = false;
     public static bool info = false;
+    public static bool debug = false;
+
+    public static string[] args;
 
     public static BaseTest tests = new BaseTest();
 
     static void InitOptions(string[] args)
     {
-        if (args.Contains("--verbose"))
-            verbose = true;
-        if (args.Contains("--sandbox"))
-            sandbox = true;
-        if (args.Contains("--private"))
-            privateTests = true;
-        if (args.Contains("--private-only"))
-            privateOnly = true;
-        if (args.Contains("--base"))
-            baseTests = true;
-        if (args.Contains("--info"))
-            info = true;
-
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
@@ -84,30 +74,21 @@ public class Tests
         exchanges = parsedKey;
     }
 
-    static void CheckIfShouldSkip(Exchange exchange)
-    {
-        var exchangeSettings = exchanges[exchange.id] as dict;
-        var skip = exchangeSettings["skip"] as bool?;
-        Console.WriteLine("skip: " + skip);
-        if (skip == true)
-            Environment.Exit(0);
-    }
-
     static void Main(string[] args)
     {
 
+        Tests.args = args;
         ReadConfig();
         InitOptions(args);
 
         if (baseTests)
             RunBaseTests();
-        // else
-        //     // CheckIfShouldSkip(exchange);
-        var baseInstance = new BaseTest();
+
+        exchangeId = "huobi";
+        info = true;
         var instance = Exchange.MagicallyCreateInstance(exchangeId);
         var testClass = new testMainClass();
-        // instance.verbose = true;
-        testClass.init(instance, symbol).Wait();
+        testClass.init(exchangeId, symbol).Wait();
     }
 
     static void RunBaseTests()
