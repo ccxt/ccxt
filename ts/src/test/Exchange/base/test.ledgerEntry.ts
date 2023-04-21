@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testLedgerItem (exchange, method, entry, requestedCode, now) {
+function testLedgerEntry (exchange, method, entry, requestedCode, now) {
     const format = {
         'info': {},
         'id': 'x1234',
@@ -33,4 +33,4 @@ function testLedgerItem (exchange, method, entry, requestedCode, now) {
     testSharedMethods.assertFee (exchange, method, entry['fee']);
 }
 
-export default testLedgerItem;
+export default testLedgerEntry;
