@@ -117,7 +117,7 @@ function set_test_files ($holderClass, $properties) {
 
 function close($exchange) {
     return Async\async (function() {
-        //stub
+        // stub
         return true;
     })();
 }

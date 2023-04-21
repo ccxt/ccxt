@@ -116,7 +116,7 @@ async function setTestFiles (holderClass, properties) {
 }
 
 async function close (exchange) {
-    return exchange.close ();
+    // stub
 }
 
 // *********************************

@@ -167,6 +167,7 @@ async def set_test_files(holderClass, properties):
             imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name)
             holderClass.testFiles[name] = imp  # getattr(imp, finalName)
 
+
 async def close(exchange):
     await exchange.close()
 
