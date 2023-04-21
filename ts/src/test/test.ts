@@ -135,7 +135,8 @@ export default class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
         const symbolStr = symbol !== undefined ? symbol : 'all';
-        console.log ('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
+        const testingString = "\nTesting [" + ext + "] Exchange: " +  exchangeId + ' Symbol:' + symbolStr + "\n";
+        console.log (testingString);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
