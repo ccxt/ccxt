@@ -82,7 +82,7 @@ public partial class Exchange
 
     public object safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var result = safeString2(obj, new List<object> { key1, key2 }, defaultValue);
+        var result = safeString2(obj, key1, key2, defaultValue);
         return result == null ? defaultValue : ((string)result).ToUpper();
     }
 
@@ -146,7 +146,7 @@ public partial class Exchange
     public static Int64? SafeIntegerN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = SafeValueN(obj, keys, defaultValue);
-        if (result == null)
+        if (result == null || result.ToString().Length == 0)
             if (defaultValue != null)
                 return Convert.ToInt64(defaultValue);
             else

@@ -273,7 +273,7 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
             object value = getValue(marketValues, i);
-            if (isTrue(((Dictionary<string,object>)this.markets_by_id).ContainsKey(toStringOrNull(getValue(value, "id")))))
+            if (isTrue(inOp(this.markets_by_id, getValue(value, "id"))))
             {
                 ((List<object>)((object)getValue(this.markets_by_id, getValue(value, "id")))).Add(value);
             } else
@@ -303,7 +303,7 @@ public partial class Exchange
                 object market = getValue(values, i);
                 object defaultCurrencyPrecision = ((bool) isTrue((isEqual(this.precisionMode, DECIMAL_PLACES)))) ? 8 : this.parseNumber("1e-8");
                 object marketPrecision = this.safeValue(market, "precision", new Dictionary<string, object>() {});
-                if (isTrue(((Dictionary<string,object>)market).ContainsKey(toStringOrNull("base"))))
+                if (isTrue(inOp(market, "base")))
                 {
                     object currencyPrecision = this.safeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision);
                     object currency = new Dictionary<string, object>() {
@@ -314,7 +314,7 @@ public partial class Exchange
                     };
                     ((List<object>)baseCurrencies).Add(currency);
                 }
-                if (isTrue(((Dictionary<string,object>)market).ContainsKey(toStringOrNull("quote"))))
+                if (isTrue(inOp(market, "quote")))
                 {
                     object currencyPrecision = this.safeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision);
                     object currency = new Dictionary<string, object>() {
@@ -535,7 +535,7 @@ public partial class Exchange
             for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
             {
                 ((Dictionary<string, object>)getValue(reducedFees, i))["cost"] = this.safeNumber(getValue(reducedFees, i), "cost");
-                if (isTrue(((Dictionary<string,object>)getValue(reducedFees, i)).ContainsKey(toStringOrNull("rate"))))
+                if (isTrue(inOp(getValue(reducedFees, i), "rate")))
                 {
                     ((Dictionary<string, object>)getValue(reducedFees, i))["rate"] = this.safeNumber(getValue(reducedFees, i), "rate");
                 }
@@ -543,7 +543,7 @@ public partial class Exchange
             if (isTrue(!isTrue(parseFee) && isTrue((isEqual(reducedLength, 0)))))
             {
                 ((Dictionary<string, object>)fee)["cost"] = this.safeNumber(fee, "cost");
-                if (isTrue(((Dictionary<string,object>)fee).ContainsKey(toStringOrNull("rate"))))
+                if (isTrue(inOp(fee, "rate")))
                 {
                     ((Dictionary<string, object>)fee)["rate"] = this.safeNumber(fee, "rate");
                 }
@@ -645,7 +645,7 @@ public partial class Exchange
             ((Dictionary<string, object>)entry)["cost"] = this.safeNumber(entry, "cost");
             object feeNew = this.safeValue(entry, "fee", new Dictionary<string, object>() {});
             ((Dictionary<string, object>)feeNew)["cost"] = this.safeNumber(feeNew, "cost");
-            if (isTrue(((Dictionary<string,object>)feeNew).ContainsKey(toStringOrNull("rate"))))
+            if (isTrue(inOp(feeNew, "rate")))
             {
                 ((Dictionary<string, object>)feeNew)["rate"] = this.safeNumber(feeNew, "rate");
             }
@@ -854,7 +854,7 @@ public partial class Exchange
             for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
             {
                 ((Dictionary<string, object>)getValue(reducedFees, i))["cost"] = this.safeNumber(getValue(reducedFees, i), "cost");
-                if (isTrue(((Dictionary<string,object>)getValue(reducedFees, i)).ContainsKey(toStringOrNull("rate"))))
+                if (isTrue(inOp(getValue(reducedFees, i), "rate")))
                 {
                     ((Dictionary<string, object>)getValue(reducedFees, i))["rate"] = this.safeNumber(getValue(reducedFees, i), "rate");
                 }
@@ -862,7 +862,7 @@ public partial class Exchange
             if (isTrue(!isTrue(parseFee) && isTrue((isEqual(reducedLength, 0)))))
             {
                 ((Dictionary<string, object>)fee)["cost"] = this.safeNumber(fee, "cost");
-                if (isTrue(((Dictionary<string,object>)fee).ContainsKey(toStringOrNull("rate"))))
+                if (isTrue(inOp(fee, "rate")))
                 {
                     ((Dictionary<string, object>)fee)["rate"] = this.safeNumber(fee, "rate");
                 }
@@ -880,7 +880,7 @@ public partial class Exchange
             if (isTrue(!isEqual(tradeFee, null)))
             {
                 ((Dictionary<string, object>)tradeFee)["cost"] = this.safeNumber(tradeFee, "cost");
-                if (isTrue(((Dictionary<string,object>)tradeFee).ContainsKey(toStringOrNull("rate"))))
+                if (isTrue(inOp(tradeFee, "rate")))
                 {
                     ((Dictionary<string, object>)tradeFee)["rate"] = this.safeNumber(tradeFee, "rate");
                 }
@@ -953,12 +953,12 @@ public partial class Exchange
                 {
 
                 }
-                if (!isTrue((((Dictionary<string,object>)reduced).ContainsKey(toStringOrNull(feeCurrencyCode)))))
+                if (!isTrue((inOp(reduced, feeCurrencyCode))))
                 {
                     ((Dictionary<string, object>)reduced)[(string)feeCurrencyCode] = new Dictionary<string, object>() {};
                 }
                 object rateKey = ((bool) isTrue((isEqual(rate, null)))) ? "" : rate;
-                if (isTrue(((Dictionary<string,object>)getValue(reduced, feeCurrencyCode)).ContainsKey(toStringOrNull(rateKey))))
+                if (isTrue(inOp(getValue(reduced, feeCurrencyCode), rateKey)))
                 {
                     ((Dictionary<string, object>)getValue(getValue(reduced, feeCurrencyCode), rateKey))["cost"] = Precise.stringAdd(getValue(getValue(getValue(reduced, feeCurrencyCode), rateKey), "cost"), cost);
                 } else
@@ -1254,7 +1254,7 @@ public partial class Exchange
         if (isTrue(isEqual(network, code)))
         {
             return network;
-        } else if (isTrue(((Dictionary<string,object>)aliases).ContainsKey(toStringOrNull(network))))
+        } else if (isTrue(inOp(aliases, network)))
         {
             return getValue(aliases, network);
         } else
@@ -1287,7 +1287,7 @@ public partial class Exchange
             {
                 // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
                 object defaultNetworkCodeReplacements = this.safeValue(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
-                if (isTrue(((Dictionary<string,object>)defaultNetworkCodeReplacements).ContainsKey(toStringOrNull(currencyCode))))
+                if (isTrue(inOp(defaultNetworkCodeReplacements, currencyCode)))
                 {
                     // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
                     object replacementObject = getValue(defaultNetworkCodeReplacements, currencyCode); // i.e. { 'ERC20': 'ETH' }
@@ -1331,7 +1331,7 @@ public partial class Exchange
         if (isTrue(!isEqual(currencyCode, null)))
         {
             object defaultNetworkCodeReplacements = this.safeValue(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
-            if (isTrue(((Dictionary<string,object>)defaultNetworkCodeReplacements).ContainsKey(toStringOrNull(currencyCode))))
+            if (isTrue(inOp(defaultNetworkCodeReplacements, currencyCode)))
             {
                 object replacementObject = this.safeValue(defaultNetworkCodeReplacements, currencyCode, new Dictionary<string, object>() {});
                 networkCode = this.safeString(replacementObject, networkCode, networkCode);
@@ -1378,7 +1378,7 @@ public partial class Exchange
     {
         object defaultNetworkCode = null;
         object defaultNetworks = this.safeValue(this.options, "defaultNetworks", new Dictionary<string, object>() {});
-        if (isTrue(((Dictionary<string,object>)defaultNetworks).ContainsKey(toStringOrNull(currencyCode))))
+        if (isTrue(inOp(defaultNetworks, currencyCode)))
         {
             // if currency had set its network in "defaultNetworks", use it
             defaultNetworkCode = getValue(defaultNetworks, currencyCode);
@@ -1420,7 +1420,7 @@ public partial class Exchange
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 object networkId = ((bool) isTrue(isIndexedByUnifiedNetworkCode)) ? networkCode : this.networkCodeToId(networkCode, currencyCode);
-                if (isTrue(((Dictionary<string,object>)indexedNetworkEntries).ContainsKey(toStringOrNull(networkId))))
+                if (isTrue(inOp(indexedNetworkEntries, networkId)))
                 {
                     chosenNetworkId = networkId;
                 } else
@@ -1438,7 +1438,7 @@ public partial class Exchange
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
                 object defaultNetworkId = ((bool) isTrue(isIndexedByUnifiedNetworkCode)) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, currencyCode);
-                chosenNetworkId = ((bool) isTrue((((Dictionary<string,object>)indexedNetworkEntries).ContainsKey(toStringOrNull(defaultNetworkId))))) ? defaultNetworkId : getValue(availableNetworkIds, 0);
+                chosenNetworkId = ((bool) isTrue((inOp(indexedNetworkEntries, defaultNetworkId)))) ? defaultNetworkId : getValue(availableNetworkIds, 0);
             }
         }
         return chosenNetworkId;
@@ -1507,7 +1507,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchTradingLimits")))
         {
-            if (isTrue(isTrue(reload) || !isTrue((((Dictionary<string,object>)this.options).ContainsKey(toStringOrNull("limitsLoaded"))))))
+            if (isTrue(isTrue(reload) || !isTrue((inOp(this.options, "limitsLoaded")))))
             {
                 object response = await this.fetchTradingLimits(symbols);
                 for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -1862,7 +1862,7 @@ public partial class Exchange
         {
             return currency;
         }
-        if (isTrue(isTrue(isTrue(isTrue((!isEqual(currency, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((((Dictionary<string,object>)this.currencies_by_id).ContainsKey(toStringOrNull(currencyId))))) && isTrue((!isEqual(getValue(this.currencies_by_id, currencyId), null)))))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(currency, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))) && isTrue((!isEqual(getValue(this.currencies_by_id, currencyId), null)))))
         {
             return getValue(this.currencies_by_id, currencyId);
         }
@@ -1925,7 +1925,7 @@ public partial class Exchange
         };
         if (isTrue(!isEqual(marketId, null)))
         {
-            if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((((Dictionary<string,object>)this.markets_by_id).ContainsKey(toStringOrNull(marketId))))))
+            if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
             {
                 object markets = getValue(this.markets_by_id, marketId);
                 object numMarkets = getArrayLength(markets);
@@ -2052,7 +2052,7 @@ public partial class Exchange
                 { "updated", time },
             });
         }
-        if (!isTrue((((Dictionary<string,object>)this.status).ContainsKey(toStringOrNull("info")))))
+        if (!isTrue((inOp(this.status, "info"))))
         {
             ((Dictionary<string, object>)this.status)["info"] = null;
         }
@@ -2117,7 +2117,7 @@ public partial class Exchange
     public virtual object getSupportedMapping(object key, object mapping = null)
     {
         mapping ??= new Dictionary<string, object>();
-        if (isTrue(((Dictionary<string,object>)mapping).ContainsKey(toStringOrNull(key))))
+        if (isTrue(inOp(mapping, key)))
         {
             return getValue(mapping, key);
         } else
@@ -2251,7 +2251,7 @@ public partial class Exchange
 
     public virtual void throwExactlyMatchedException(object exact, object str, object message)
     {
-        if (isTrue(isTrue(!isEqual(str, null)) && isTrue(((Dictionary<string,object>)exact).ContainsKey(toStringOrNull(str)))))
+        if (isTrue(isTrue(!isEqual(str, null)) && isTrue(inOp(exact, str))))
         {
             throwDynamicException(getValue(exact, str), message);
         }
@@ -2495,10 +2495,10 @@ public partial class Exchange
         }
         if (isTrue(((code).GetType() == typeof(string))))
         {
-            if (isTrue(((Dictionary<string,object>)this.currencies).ContainsKey(toStringOrNull(code))))
+            if (isTrue(inOp(this.currencies, code)))
             {
                 return getValue(this.currencies, code);
-            } else if (isTrue(((Dictionary<string,object>)this.currencies_by_id).ContainsKey(toStringOrNull(code))))
+            } else if (isTrue(inOp(this.currencies_by_id, code)))
             {
                 return getValue(this.currencies_by_id, code);
             }
@@ -2514,10 +2514,10 @@ public partial class Exchange
         }
         if (isTrue(((symbol).GetType() == typeof(string))))
         {
-            if (isTrue(((Dictionary<string,object>)this.markets).ContainsKey(toStringOrNull(symbol))))
+            if (isTrue(inOp(this.markets, symbol)))
             {
                 return getValue(this.markets, symbol);
-            } else if (isTrue(((Dictionary<string,object>)this.markets_by_id).ContainsKey(toStringOrNull(symbol))))
+            } else if (isTrue(inOp(this.markets_by_id, symbol)))
             {
                 object markets = getValue(this.markets_by_id, symbol);
                 object defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -3224,10 +3224,10 @@ public partial class Exchange
          */
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object lowercaseAccount = ((string)account).ToLower();
-        if (isTrue(((Dictionary<string,object>)accountsByType).ContainsKey(toStringOrNull(lowercaseAccount))))
+        if (isTrue(inOp(accountsByType, lowercaseAccount)))
         {
             return getValue(accountsByType, lowercaseAccount);
-        } else if (isTrue(isTrue((((Dictionary<string,object>)this.markets).ContainsKey(toStringOrNull(account)))) || isTrue((((Dictionary<string,object>)this.markets_by_id).ContainsKey(toStringOrNull(account))))))
+        } else if (isTrue(isTrue((inOp(this.markets, account))) || isTrue((inOp(this.markets_by_id, account)))))
         {
             object market = this.market(account);
             return getValue(market, "id");

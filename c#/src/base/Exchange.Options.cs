@@ -339,6 +339,7 @@ public partial class Exchange
         this.has = SafeValue(extendedProperties, "has") as dict;
         this.httpExceptions = SafeValue(extendedProperties, "httpExceptions") as dict;
         this.exceptions = SafeValue(extendedProperties, "exceptions") as dict;
+        this.markets = SafeValue(extendedProperties, "markets") as dict;
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
     }
 }

@@ -678,4 +678,66 @@ public partial class Exchange
         var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
         return await ((Task<object>)res);
     }
+
+    public bool inOp(object obj, object key) => InOp(obj, key);
+
+    public static bool InOp(object obj, object key)
+    {
+        if (obj == null || key == null)
+        {
+            return false;
+        }
+        if (obj.GetType() == typeof(List<object>))
+        {
+            return ((List<object>)obj).Contains(key);
+        }
+        else if (obj.GetType() == typeof(List<string>))
+        {
+            return ((List<string>)obj).Contains((string)key);
+        }
+        else if (obj.GetType() == typeof(List<Int64>))
+        {
+            return ((List<Int64>)obj).Contains((Int64)key);
+        }
+        else if (obj.GetType() == typeof(dict))
+        {
+            return ((dict)obj).ContainsKey((string)key);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public string slice(object str2, object idx1, object idx2) => Slice(str2, idx1, idx2);
+
+    public static string Slice(object str2, object idx1, object idx2)
+    {
+        var str = (string)str2;
+        var start = idx1 != null ? (int)idx1 : -1;
+        if (idx2 == null)
+        {
+            if (start < 0)
+            {
+                return str[(str.Length + start)..];
+            }
+            else
+            {
+                return str[start..];
+            }
+        }
+        else
+        {
+            var end = (int)idx2;
+            if (start < 0)
+            {
+                start = str.Length + start;
+            }
+            if (end < 0)
+            {
+                end = str.Length + end;
+            }
+            return str[start..end];
+        }
+    }
 }
