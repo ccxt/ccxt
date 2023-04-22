@@ -35,9 +35,9 @@ export default class stex extends stexRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'method': {
-                    'watchOrders': 'private-user_orders_u_{user_id}', // can also be private-del_order_u_{user_id}
-                }
+                'watchOrders': {
+                    'method': 'private-user_orders_u_{user_id}',  // can also be private-del_order_u_{user_id}
+                },
             },
             'streaming': {
                 'keepAlive': 60000,
@@ -179,12 +179,18 @@ export default class stex extends stexRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const userId = ''; // TODO: get userId
-        // private-order_user_data_u{user_id}c{currency_pair_id}
-        // private-user_orders_u_{user_id}
-        // private-del_order_u{user_id}c{currency_pair_id}
-        // private-del_order_u_{user_id}
-        const name = 'open_orders';
+        const userId = '';  // TODO: get userId
+        const options = this.safeValue (this.options, 'watchOrder');
+        const method = this.safeString (options, 'method', 'private-user_orders_u_{user_id}');
+        let name = this.safeString (params, 'method', method);
+        if (name === 'private-user_orders_u_{user_id}' || name === 'private-order_user_data_u{user_id}c{currency_pair_id}') {
+            name = 'private-user_orders_u_' + userId;
+        } else if (method === 'private-del_order_u_{user_id}' || name === 'private-del_order_u{user_id}c{currency_pair_id}') {
+            name = 'private-del_order_u_' + userId;
+        }
+        if (symbol !== undefined) {
+            name = name + 'c';
+        }
         const orders = await this.subscribe (name, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit); // TODO: shouldn't be restricted to 1 symbol
