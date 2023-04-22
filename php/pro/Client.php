@@ -47,6 +47,7 @@ class Client {
     public $lastPong = null;
     public $ping = null;
     public $verbose = false; // verbose output
+    public $asyncproxy = false;
     public $gunzip = false;
     public $inflate = false;
     public $throttle = null;
@@ -132,7 +133,15 @@ class Client {
         }
 
         $this->connected = new Future();
-        $connector = new React\Socket\Connector();
+        if(!$this->asyncproxy) {
+            $connector = new React\Socket\Connector();
+        } else {
+            $context = array(
+                'tcp' => $this->asyncproxy,
+                'dns' => false,
+            );
+            $connector = new React\Socket\Connector(Loop::get(), $context);
+        }
         if ($this->noOriginHeader) {
             $this->connector = new NoOriginHeaderConnector(Loop::get(), $connector);
         } else {
