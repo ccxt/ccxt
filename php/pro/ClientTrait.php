@@ -58,6 +58,7 @@ trait ClientTrait {
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
                 'throttle' => new Throttle($this->tokenBucket),
+                'asyncproxy' => $this->asyncproxy,
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
