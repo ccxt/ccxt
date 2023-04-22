@@ -51,9 +51,18 @@ public partial class Exchange
 
     public List<object> filterBy(object aa, object key, object value)
     {
-        var a = (List<object>)aa;
+        // var targetA = (List<object>)aa;
+        var targetA = new List<object>() { };
+        if (aa.GetType() == typeof(List<object>))
+        {
+            targetA = (List<object>)aa;
+        }
+        else
+        {
+            targetA = ((dict)aa).Values.ToList();
+        }
         var outList = new List<object>();
-        foreach (object elem in a)
+        foreach (object elem in targetA)
         {
             if (((dict)elem)[(string)key].ToString() == value.ToString())
             {
@@ -168,35 +177,80 @@ public partial class Exchange
 
     public dict indexBy(object a, object key2)
     {
-        var key = (string)key2;
-        var outDict = new dict();
+        // var key = (string)key2;
+        // var outDict = new dict();
 
-        List<object> input = null;
+        // List<object> input = null;
+        // if (a.GetType() == typeof(List<object>))
+        // {
+        //     input = (List<object>)a;
+        // }
+        // else if (a.GetType() == typeof(List<string>))
+        // {
+        //     input = ((List<string>)a).Select(s => (object)s).ToList();
+        // }
+        // else if (a.GetType() == (typeof(dict)))
+        // {
+        //     input = new List<object>();
+        //     foreach (string key3 in ((dict)a).Keys)
+        //     {
+        //         input.Add(((dict)a)[key3]);
+        //     }
+        // }
+
+        // foreach (object elem in input)
+        // {
+        //     var elem2 = (dict)elem;
+        //     if (elem2.ContainsKey(key))
+        //     {
+        //         // outDict.Add(((dict)elem)[key].ToString(), elem);
+        //         outDict[(((dict)elem)[key]).ToString()] = elem2;
+        //     }
+        // }
+        // return outDict;
+        var outDict = new dict();
+        var targetX = new List<object>() { };
         if (a.GetType() == typeof(List<object>))
         {
-            input = (List<object>)a;
+            targetX = (List<object>)a;
         }
-        else if (a.GetType() == typeof(List<string>))
+        else
         {
-            input = ((List<string>)a).Select(s => (object)s).ToList();
+            targetX = ((dict)a).Values.ToList();
         }
-        else if (a.GetType() == (typeof(dict)))
+        foreach (object elem in targetX)
         {
-            input = new List<object>();
-            foreach (string key3 in ((dict)a).Keys)
+            // var elem2 = (dict)elem;
+            if (elem.GetType() == typeof(dict))
             {
-                input.Add(((dict)a)[key3]);
+                var elem2 = (dict)elem;
+                if (elem2.ContainsKey((string)key2))
+                {
+                    outDict[elem2[(string)key2].ToString()] = elem2;
+                }
             }
-        }
+            else if (elem.GetType() == typeof(List<string>) || elem.GetType() == typeof(List<object>))
+            {
+                var index = Convert.ToInt32(key2);
+                if (elem.GetType() == typeof(List<string>))
+                {
+                    var elem2 = (List<string>)elem;
+                    if (elem2.Count > 0)
+                    {
+                        outDict[elem2[index].ToString()] = elem2;
+                    }
+                }
+                if (elem.GetType() == typeof(List<object>))
+                {
+                    var elem2 = (List<object>)elem;
+                    if (elem2.Count > 0)
+                    {
+                        outDict[elem2[index].ToString()] = elem2;
+                    }
+                }
 
-        foreach (object elem in input)
-        {
-            var elem2 = (dict)elem;
-            if (elem2.ContainsKey(key))
-            {
-                // outDict.Add(((dict)elem)[key].ToString(), elem);
-                outDict[(((dict)elem)[key]).ToString()] = elem2;
             }
+
         }
         return outDict;
     }

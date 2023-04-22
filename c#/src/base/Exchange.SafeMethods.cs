@@ -185,7 +185,21 @@ public partial class Exchange
     public static object SafeStringN(object obj, object keys, object defaultValue = null)
     {
         var result = SafeValueN(obj, keys, defaultValue);
-        var returnResult = result == null ? defaultValue : (result).ToString();
+        if (result == null)
+            return defaultValue;
+        string returnResult = null;
+        if (result.GetType() == typeof(float))
+        {
+            returnResult = ((float)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else if (result.GetType() == typeof(double))
+        {
+            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            returnResult = result.ToString();
+        }
         if (returnResult != null)
         {
             var stringRest = (string)returnResult;
