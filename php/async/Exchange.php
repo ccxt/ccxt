@@ -45,6 +45,7 @@ class Exchange extends \ccxt\Exchange {
     public $reloadingMarkets = null;
     public $tokenBucket;
     public $throttle;
+    public $asyncproxy = false;
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -58,8 +59,10 @@ class Exchange extends \ccxt\Exchange {
     public function __construct($options = array()) {
         parent::__construct($options);
         /*
-        composer require clue/http-proxy-react
-        $proxy = new \Clue\React\HttpProxy\ProxyConnector('127.0.0.1:38700');
+        composer require clue/http-proxy-react clue/socks-react clue/reactphp-ssh-proxy
+        $proxy = new \Clue\React\HttpProxy\ProxyConnector('127.0.0.1:38700');  // http proxy
+        $proxy = new \Clue\React\Socks\Client('socks://127.0.0.1:38700');  // socks proxy
+        $proxy = new \Clue\React\SshProxy\SshSocksConnector('ssh://127.0.0.1:38700');  // ssh proxy
         $connector = new React\Socket\Connector(array(
             'tcp' => $proxy,
             'timeout' => 3.0,
@@ -76,12 +79,13 @@ class Exchange extends \ccxt\Exchange {
         $context = array(
             'timeout' => $this->timeout
         );
-        if(isset($options['myproxy']) && !empty($options['myproxy'])) {
+        if(isset($options['asyncproxy']) && !empty($options['asyncproxy'])) {
             $context = array(
                 'timeout' => $this->timeout,
                 'tcp' => $options['myproxy'],
                 'dns' => false,
             );
+            $this->asyncproxy = $options['asyncproxy'];
         }
         $connector = new React\Socket\Connector(Loop::get(), $context);
         if ($this->browser === null) {
