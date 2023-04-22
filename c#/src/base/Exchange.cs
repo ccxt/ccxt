@@ -84,12 +84,14 @@ public partial class Exchange
                     }
 
                     // calculate the endpoint
-                    string input = string.Join("/", paths) + "/" + key + "/" + endpoint;
+                    // string input = string.Join("/", paths) + "/" + key + "/" + endpoint;
                     string pattern = @"[^a-zA-Z0-9]";
                     Regex rgx = new Regex(pattern);
-                    var result = rgx.Split(input);
+                    var result = rgx.Split(endpoint);
                     // create unified endpoint name
-                    var completePaths = result.Where(x => x.Length > 0).Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
+                    var listKey = new List<string>() { key };
+                    var pathParts = paths.Concat(listKey).Concat(result.Where(x => x.Length > 0));
+                    var completePaths = pathParts.Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
                     var path = string.Join("", completePaths);
                     path = char.ToLower(path[0]) + path.Substring(1); // lowercase first letter
                     var apiObj = paths.Count > 1 ? (object)paths : paths[0];

@@ -80,9 +80,10 @@ public partial class Exchange
         return outDict;
     }
 
-    public dict deepExtend(params object[] objs)
+    public object deepExtend2(params object[] objs)
     {
-        var outDict = new dict();
+        // old implementation
+        object outDict = new dict();
         foreach (object obj in objs)
         {
             var obj2 = obj;
@@ -90,30 +91,69 @@ public partial class Exchange
             {
                 obj2 = new dict();
             }
-            var keys = new List<string>(((dict)obj2).Keys);
-            foreach (string key in keys)
+            if (obj2.GetType() == typeof(dict))
             {
-                var value = ((dict)obj2)[key];
-                if (value != null && value.GetType() == typeof(dict))
+                var keys = new List<string>(((dict)obj2).Keys);
+                foreach (string key in keys)
                 {
-                    if (outDict.ContainsKey(key))
+
+                    var value = ((dict)obj2)[key];
+                    if (value != null && value.GetType() == typeof(dict))
                     {
-                        outDict[key] = deepExtend(outDict[key], value);
+                        if (((dict)outDict).ContainsKey(key))
+                        {
+                            ((dict)outDict)[key] = deepExtend2(((dict)outDict)[key], value);
+                        }
+                        else
+                        {
+                            ((dict)outDict)[key] = deepExtend2(value);
+                        }
                     }
                     else
                     {
-                        outDict[key] = deepExtend(value);
+                        ((dict)outDict)[key] = value;
                     }
                 }
-                else
-                {
-                    outDict[key] = value;
-                }
+            }
+            else
+            {
+                outDict = obj;
             }
         }
         return outDict;
     }
 
+
+
+    public object deepExtend(params object[] objs)
+    {
+        object outObj = null;
+        foreach (object x in objs)
+        {
+            if (x == null)
+                continue;
+
+            if (x.GetType() == typeof(dict))
+            {
+                if (outObj == null || outObj.GetType() != typeof(dict))
+                    outObj = new dict();
+
+                var dictX = (dict)x;
+                var dictXKeys = new List<string>(dictX.Keys);
+                foreach (string k in dictXKeys)
+                {
+                    var arg1 = ((dict)outObj).ContainsKey(k) ? ((dict)outObj)[k] : null;
+                    var arg2 = dictX.ContainsKey(k) ? dictX[k] : null;
+                    ((dict)outObj)[(string)k] = deepExtend(arg1, arg2);
+                }
+            }
+            else
+            {
+                outObj = x;
+            }
+        }
+        return outObj;
+    }
     public bool inArray(object elem, object list2)
     {
         var list = (List<object>)list2;
