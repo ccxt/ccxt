@@ -243,6 +243,7 @@ export default class stex extends stexRest {
     }
 
     handleTrade (client: Client, message) {
+        // TODO
         //
         // snapshot
         //
@@ -329,6 +330,7 @@ export default class stex extends stexRest {
     }
 
     parseWsTrade (trade, market = undefined) {
+        // TODO
         //
         //    {
         //        "feed": "trade",
@@ -367,6 +369,7 @@ export default class stex extends stexRest {
     }
 
     parseWsOrderTrade (trade, market = undefined) {
+        // TODO
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -419,6 +422,7 @@ export default class stex extends stexRest {
     }
 
     handleOrder (client: Client, message) {
+        // TODO
         //
         //  update (verbose)
         //
@@ -526,6 +530,7 @@ export default class stex extends stexRest {
     }
 
     handleOrderSnapshot (client: Client, message) {
+        // TODO
         //
         // verbose
         //
@@ -585,6 +590,7 @@ export default class stex extends stexRest {
     }
 
     parseWsOrder (order, market = undefined) {
+        // TODO
         //
         // update
         //
@@ -666,6 +672,7 @@ export default class stex extends stexRest {
     }
 
     handleTicker (client: Client, message) {
+        // TODO
         //
         //    {
         //        time: 1680811086487,
@@ -728,6 +735,7 @@ export default class stex extends stexRest {
     }
 
     parseWsTicker (ticker, market = undefined) {
+        // TODO
         //
         //    {
         //        time: 1680811086487,
@@ -806,6 +814,7 @@ export default class stex extends stexRest {
     }
 
     handleOrderBookSnapshot (client: Client, message) {
+        // TODO
         //
         //    {
         //        "feed": "book_snapshot",
@@ -865,6 +874,7 @@ export default class stex extends stexRest {
     }
 
     handleOrderBook (client: Client, message) {
+        // TODO
         //
         //    {
         //        "feed": "book",
@@ -896,6 +906,7 @@ export default class stex extends stexRest {
     }
 
     handleBalance (client: Client, message) {
+        // TODO
         //
         // snapshot
         //
@@ -1111,6 +1122,7 @@ export default class stex extends stexRest {
     }
 
     handleMyTrades (client: Client, message) {
+        // TODO
         //
         //    {
         //        "feed": "fills_snapshot",
@@ -1163,6 +1175,7 @@ export default class stex extends stexRest {
     }
 
     parseWsMyTrade (trade, market = undefined) {
+        // TODO
         //
         //    {
         //        "instrument": "FI_XBTUSD_200925",
@@ -1208,6 +1221,7 @@ export default class stex extends stexRest {
     }
 
     handleMessage (client, message) {
+        // TODO
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
