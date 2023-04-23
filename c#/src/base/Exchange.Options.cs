@@ -1,14 +1,10 @@
-using System.Net.Http.Headers;
-using System.Text.Json.Serialization;
-
 namespace ccxt;
-using ccxt;
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
 public partial class Exchange
 {
-    public HttpClient client { get; set; } = new HttpClient();
+    public HttpClient client { get; set; }
     public string id { get; set; } = "Exchange";
 
     public bool alias { get; set; } = false;
@@ -38,11 +34,11 @@ public partial class Exchange
 
     public dict markets_by_id { get; set; } = null;
 
-    public List<object> symbols { get; set; } = new List<object>();
+    public List<object> symbols { get; set; } = new list();
 
-    public List<object> codes { get; set; } = new List<object>();
+    public List<object> codes { get; set; } = new list();
 
-    public List<object> ids { get; set; } = new List<object>();
+    public List<object> ids { get; set; } = new list();
 
     public bool substituteCommonCurrencyCodes { get; set; } = false;
 
@@ -80,7 +76,11 @@ public partial class Exchange
     public string password { get; set; }
     public string uid { get; set; }
 
-    public dict userAgents;
+    public dict userAgents { get; set; } = new dict(){
+        {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},
+        {"chrome39","Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"},
+        {"chrome100","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"}
+    };
 
     public string twofa { get; set; }
     public string privateKey { get; set; }
@@ -323,7 +323,8 @@ public partial class Exchange
         this.token = SafeString(extendedProperties, "token", "");
         this.uid = SafeString(extendedProperties, "uid", "");
 
-        this.userAgents = SafeValue(extendedProperties, "userAgents") as dict;
+        this.userAgents = SafeValue(extendedProperties, "userAgents", userAgents) as dict;
+        this.userAgent = SafeString(extendedProperties, "userAgent");
         this.timeout = SafeInteger(extendedProperties, "timeout", 10000) ?? 10000;
         this.id = SafeString(extendedProperties, "id");
 

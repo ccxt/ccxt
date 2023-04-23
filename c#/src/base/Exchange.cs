@@ -1,15 +1,8 @@
 using System.Net.Http.Headers;
-using System.Text.Json.Serialization;
 using System.Text;
-using System.Text.Json;
-using System;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Net;
 
 namespace ccxt;
 
@@ -25,10 +18,24 @@ public partial class Exchange
         transformApiNew(this.api);
 
         this.initRestLimiter();
+        this.initHttpClient();
 
         if (this.markets != null)
         {
             this.setMarkets(this.markets);
+        }
+    }
+
+    private void initHttpClient()
+    {
+        if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
+        {
+            var proxy = new WebProxy(this.httpProxy.ToString());
+            this.client = new HttpClient(new HttpClientHandler { Proxy = proxy });
+        }
+        else
+        {
+            this.client = new HttpClient();
         }
     }
 
@@ -140,7 +147,7 @@ public partial class Exchange
         foreach (string key in headersList)
         {
 
-            if (key != "Content-Type")
+            if (key.ToLower() != "content-type")
             {
                 client.DefaultRequestHeaders.Add(key, headers[key].ToString());
             }

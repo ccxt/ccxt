@@ -82,6 +82,7 @@ public partial class BaseTest
     public static Task<List<object>> promiseAll(object a) => ccxt.Exchange.PromiseAll(a);
     public static object getValue(object a, object b) => Exchange.GetValue(a, b);
 
+    public static bool inOp(object a, object b) => Exchange.InOp(a, b);
     public static int getIndexOf(object a, object b) => Exchange.getIndexOf(a, b);
     public static object getArrayLength(object a) => Exchange.getArrayLength(a);
     public static bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);

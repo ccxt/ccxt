@@ -344,8 +344,8 @@ export default class kuna extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/9868
                 const slicedId = id.slice (1);
                 const index = slicedId.indexOf (quoteId);
-                const slice = slicedId.slice (index);
-                if ((index > 0) && (slice === quoteId)) {
+                const slicePart = slicedId.slice (index);
+                if ((index > 0) && (slicePart === quoteId)) {
                     // usd gets matched before usdt in usdtusd USDT/USD
                     // https://github.com/ccxt/ccxt/issues/9868
                     const baseId = id[0] + slicedId.replace (quoteId, '');

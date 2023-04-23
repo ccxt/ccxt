@@ -748,7 +748,7 @@ export default class zb extends Exchange {
             const fees = {};
             for (let j = 0; j < currency.length; j++) {
                 const networkItem = currency[j];
-                const network = this.safeString (networkItem, 'chainName');
+                const network = this.safeString2 (networkItem, 'chainName', 'mainChainName');
                 // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber (networkItem, 'fee');
                 const depositEnable = this.safeValue (networkItem, 'canDeposit');
@@ -4301,7 +4301,9 @@ export default class zb extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [ section, version, access ] = api;
+        const section = this.safeString (api, 0);
+        const version = this.safeString (api, 1);
+        const access = this.safeString (api, 2);
         let url = this.implodeHostname (this.urls['api'][section][version][access]);
         if (access === 'public') {
             if (path === 'getFeeInfo') {

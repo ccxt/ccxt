@@ -1943,7 +1943,8 @@ export default class bitrue extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [ version, access ] = api;
+        const version = this.safeString (api, 0);
+        const access = this.safeString (api, 1);
         let url = this.urls['api'][version] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (access === 'private') {

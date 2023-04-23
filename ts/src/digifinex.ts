@@ -528,7 +528,10 @@ export default class digifinex extends Exchange {
          */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const method = this.safeString (options, 'method', 'fetch_markets_v2');
-        return await this[method] (params);
+        if (method === 'fetch_markets_v2') {
+            return await this.fetchMarketsV2 (params);
+        }
+        return await this.fetchMarketsV1 (params);
     }
 
     async fetchMarketsV2 (params = {}) {

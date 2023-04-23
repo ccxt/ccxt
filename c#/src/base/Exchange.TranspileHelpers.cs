@@ -465,6 +465,10 @@ public partial class Exchange
 
     public static object mathMin(object a, object b)
     {
+        if (a == null || b == null)
+        {
+            return null;
+        }
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
         if (a.GetType() == typeof(Int64))
@@ -474,6 +478,14 @@ public partial class Exchange
         else if (a.GetType() == typeof(double))
         {
             return Math.Min((double)a, (double)b);
+        }
+        else if (a.GetType() == typeof(float))
+        {
+            return Math.Min((float)a, (float)b);
+        }
+        else if (a.GetType() == typeof(int))
+        {
+            return Math.Min((int)a, (int)b);
         }
         else
         {
@@ -719,7 +731,9 @@ public partial class Exchange
         {
             if (start < 0)
             {
-                return str[(str.Length + start)..];
+                var innerStart = str.Length + start;
+                innerStart = innerStart < 0 ? 0 : innerStart;
+                return str[(innerStart)..];
             }
             else
             {

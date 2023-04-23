@@ -266,6 +266,8 @@ public partial class Exchange
                     //     return returnValue;
                     // if ((returnValue.GetType() == typeof(Int64)))
                     //     return Convert.ToInt64(returnValue);
+                    if (returnValue == null || returnValue.ToString().Length == 0)
+                        continue;
 
                     return returnValue;
                 }
