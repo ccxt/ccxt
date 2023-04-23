@@ -645,7 +645,7 @@ class gemini extends \ccxt\async\gemini {
             'nonce' => $this->nonce(),
         );
         $b64 = base64_encode($this->json($payload));
-        $signature = $this->hmac($b64, $this->encode($this->secret), 'sha384', 'hex');
+        $signature = $this->hmac($this->encode($b64), $this->encode($this->secret), 'sha384', 'hex');
         $defaultOptions = array(
             'ws' => array(
                 'options' => array(
