@@ -219,8 +219,9 @@ class testMainClass extends baseMainTestClass {
         $skippedSettings = io_file_read ($skippedFile);
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
-        if ($exchange->safe_value($skippedSettingsForExchange, 'skip')) {
-            dump ('[SKIPPED] exchange', $exchangeId);
+        $skipReason = $exchange->safe_value($skippedSettingsForExchange, 'skip');
+        if ($skipReason !== null) {
+            dump ('[SKIPPED] exchange', $exchangeId, $skipReason);
             exit_script ();
         }
         if ($exchange->alias) {

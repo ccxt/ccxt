@@ -8,6 +8,10 @@ import sys
 import time  # noqa: F401
 from traceback import format_tb
 
+import importlib  # noqa: E402
+import glob  # noqa: E402
+import re
+
 # ------------------------------------------------------------------------------
 # logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
@@ -46,19 +50,6 @@ parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
 parser.parse_args(namespace=argv)
 
-sandbox = argv.sandbox
-privateOnly = argv.privateOnly
-privateTest = argv.private
-verbose = argv.verbose
-nonce = argv.nonce
-exchangeName = argv.exchange
-exchangeSymbol = argv.symbol
-info = argv.info
-
-print('\nTESTING (PY)', {'exchange': exchangeName, 'symbol': exchangeSymbol or 'all'}, '\n')
-
-exchange = getattr(ccxt, exchangeName)({'verbose': verbose})
-
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
@@ -67,44 +58,14 @@ if 'site-packages' in os.path.dirname(ccxt.__file__):
 
 # ------------------------------------------------------------------------------
 
-# this logic is being transpiled from async->sync python, so the below variable tells runtime whether or sync tests are being run
-# to trick transpiler regexes, we have to: A) divide "token" and "bucket"; B)dont use word "a s y n c" together in the code
-is_asynchronous = ('token_' + 'bucket') in locals()
-
-skip_tests = ['test_throttle']
-
-import importlib  # noqa: E402
-import glob  # noqa: E402
-testFiles = {}
-if is_asynchronous:
-    for file_path in glob.glob(current_dir + '/async/test_*.py'):
-        name = os.path.basename(file_path)[:-3]
-        if not (name in skip_tests):
-            imp = importlib.import_module('ccxt.test.async.' + name)
-            testFiles[name] = imp  # getattr(imp, finalName)
-else:
-    for file_path in glob.glob(current_dir + '/sync/test_*.py'):
-        name = os.path.basename(file_path)[:-3]
-        if not (name in skip_tests):
-            imp = importlib.import_module('ccxt.test.sync.' + name)
-            testFiles[name] = imp  # getattr(imp, finalName)
-
-
-# print a colored string
-def dump(*args):
-    print(' '.join([str(arg) for arg in args]))
-
-
-# print an error string
-def dump_error(*args):
-    string = ' '.join([str(arg) for arg in args])
-    print(string)
-    sys.stderr.write(string + "\n")
-    sys.stderr.flush()
-
-
 Error = Exception
-# ------------------------------------------------------------------------------
+
+# # print an error string
+# def dump_error(*args):
+#     string = ' '.join([str(arg) for arg in args])
+#     print(string)
+#     sys.stderr.write(string + "\n")
+#     sys.stderr.flush()
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
@@ -113,26 +74,41 @@ def handle_all_unhandled_exceptions(type, value, traceback):
 
 
 sys.excepthook = handle_all_unhandled_exceptions
-
 # ------------------------------------------------------------------------------
 
-# non-transpiled commons
-import re
-
-
-def get_test_name(methodName):
-    snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()
-    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
-    full_name = 'test_' + snake_cased
-    return full_name
-
-
-rootDir = current_dir + '/../../../'
-envVars = os.environ
+# non-transpiled part, but shared names among langs
 
 
 class baseMainTestClass():
     pass
+
+
+is_synchronous = 'async' not in os.path.basename(__file__)
+
+rootDir = current_dir + '/../../../'
+envVars = os.environ
+ext = 'py'
+httpsAgent = None
+
+
+def dump(*args):
+    print(' '.join([str(arg) for arg in args]))
+
+
+def get_cli_arg_value(arg):
+    arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
+    with_hyphen = '--' + arg
+    arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
+    without_hyphen = arg.replace('--', '')
+    arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
+    return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
+
+
+def get_test_name(methodName):
+    snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()  # snake_case
+    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
+    full_name = 'test_' + snake_cased
+    return full_name
 
 
 def io_file_exists(path):
@@ -148,17 +124,17 @@ def io_file_read(path, decode=True):
         return content
 
 
+def call_method(testFiles, methodName, exchange, args):
+    return getattr(testFiles[methodName], methodName)(exchange, *args)
+
+
 def exception_message(exc):
     return '[' + type(exc).__name__ + '] ' + str(exc)[0:500]
 
 
-def call_method(methodName, exchange, args):
-    return getattr(testFiles[methodName], methodName)(exchange, *args)
-
-
 def add_proxy(exchange, http_proxy):
     # just add a simple redirect through proxy
-    exchange.aiohttp_proxy = http_proxy
+    exchange.aiohttp_proxy = http_proxy  # todo: needs to be same a js/php with redirect proxy prop
 
 
 def exit_script():
@@ -177,8 +153,24 @@ def set_exchange_prop(exchange, prop, value):
     setattr(exchange, prop, value)
 
 
-def test_throttle():
-    importlib.import_module(current_dir + '/test_throttle.py')
+def init_exchange(exchangeId, args):
+    return getattr(ccxt, exchangeId)(args)
+
+
+def set_test_files(holderClass, properties):
+    skip_tests = ['test_throttle']
+    setattr(holderClass, 'testFiles', {})
+    syncAsync = 'async' if not is_synchronous else 'sync'
+    for file_path in glob.glob(current_dir + '/' + syncAsync + '/test_*.py'):
+        name = os.path.basename(file_path)[:-3]
+        if not (name in skip_tests):
+            imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name)
+            holderClass.testFiles[name] = imp  # getattr(imp, finalName)
+
+
+def close(exchange):
+    exchange.close()
+
 # *********************************
 # ***** AUTO-TRANSPILER-START *****
 # -*- coding: utf-8 -*-
@@ -192,9 +184,37 @@ from ccxt.base.errors import AuthenticationError
 
 class testMainClass(baseMainTestClass):
 
-    def init(self, exchange, symbol):
+    def parse_cli_args(self):
+        self.info = get_cli_arg_value('--info')
+        self.verbose = get_cli_arg_value('--verbose')
+        self.debug = get_cli_arg_value('--debug')
+        self.privateTest = get_cli_arg_value('--private')
+        self.privateTestOnly = get_cli_arg_value('--privateOnly')
+        self.sandbox = get_cli_arg_value('--sandbox')
+
+    def init(self, exchangeId, symbol):
+        self.parse_cli_args()
+        symbolStr = symbol is not symbol if None else 'all'
+        print('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
+        exchangeArgs = {
+            'verbose': self.verbose,
+            'debug': self.debug,
+            'httpsAgent': httpsAgent,
+            'enableRateLimit': True,
+            'timeout': 20000,
+        }
+        exchange = init_exchange(exchangeId, exchangeArgs)
+        self.import_files(exchange)
         self.expand_settings(exchange, symbol)
         self.start_test(exchange, symbol)
+        close(exchange)
+
+    def import_files(self, exchange):
+        # exchange tests
+        self.testFiles = {}
+        properties = list(exchange.has.keys())
+        properties.append('loadMarkets')
+        set_test_files(self, properties)
 
     def expand_settings(self, exchange, symbol):
         exchangeId = exchange.id
@@ -234,8 +254,9 @@ class testMainClass(baseMainTestClass):
         skippedSettings = io_file_read(skippedFile)
         skippedSettingsForExchange = exchange.safe_value(skippedSettings, exchangeId, {})
         # others
-        if exchange.safe_value(skippedSettingsForExchange, 'skip'):
-            dump('[SKIPPED] exchange', exchangeId)
+        skipReason = exchange.safe_value(skippedSettingsForExchange, 'skip')
+        if skipReason is not None:
+            dump('[SKIPPED] exchange', exchangeId, skipReason)
             exit_script()
         if exchange.alias:
             dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol)
@@ -244,10 +265,10 @@ class testMainClass(baseMainTestClass):
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
 
-    def pad_end(self, message, size):
+    def add_padding(self, message, size):
         # has to be transpilable
         res = ''
-        missingSpace = size - len(message)
+        missingSpace = size - len(message) - 0  # - 0 is added just to trick transpile to treat the .length string for php
         if missingSpace > 0:
             for i in range(0, missingSpace):
                 res += ' '
@@ -264,18 +285,18 @@ class testMainClass(baseMainTestClass):
             skipMessage = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
         elif methodName in self.skippedMethods:
             skipMessage = '[INFO:SKIPPED_TEST]'
-        elif not (methodNameInTest in testFiles):
+        elif not (methodNameInTest in self.testFiles):
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]'
         if skipMessage:
-            if info:
-                dump(self.pad_end(skipMessage, 25), exchange.id, methodNameInTest)
+            if self.info:
+                dump(self.add_padding(skipMessage, 25), exchange.id, methodNameInTest)
             return
         argsStringified = '(' + ','.join(args) + ')'
-        if info:
-            dump(self.pad_end('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
+        if self.info:
+            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         result = None
         try:
-            result = call_method(methodNameInTest, exchange, args)
+            result = call_method(self.testFiles, methodNameInTest, exchange, args)
             if isPublic:
                 self.checkedPublicTests[methodNameInTest] = True
         except Exception as e:
@@ -326,13 +347,13 @@ class testMainClass(baseMainTestClass):
             testArgs = tests[testName]
             promises.append(self.test_safe(testName, exchange, testArgs, True))
         # todo - not yet ready in other langs too
-        # promises.append(test_throttle())
+        # promises.append(testThrottle())
         (promises)
-        if info:
-            dump(self.pad_end('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
+        if self.info:
+            dump(self.add_padding('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id)
 
     def load_exchange(self, exchange):
-        markets = exchange.load_markets()
+        exchange.load_markets()
         assert isinstance(exchange.markets, dict), '.markets is not an object'
         assert isinstance(exchange.symbols, list), '.symbols is not an array'
         symbolsLength = len(exchange.symbols)
@@ -368,7 +389,7 @@ class testMainClass(baseMainTestClass):
         exchangeSpecificSymbols = exchange.symbols
         for i in range(0, len(exchangeSpecificSymbols)):
             symbol = exchangeSpecificSymbols[i]
-            if exchange.inArray(symbol, symbols):
+            if exchange.in_array(symbol, symbols):
                 resultSymbols.append(symbol)
         resultMsg = ''
         resultLength = len(resultSymbols)
@@ -482,7 +503,8 @@ class testMainClass(baseMainTestClass):
                 marketsArrayForCurrentCode = exchange.filter_by(currentTypeMarkets, 'base', currentCode)
                 indexedMkts = exchange.index_by(marketsArrayForCurrentCode, 'symbol')
                 symbolsArrayForCurrentCode = list(indexedMkts.keys())
-                if len(symbolsArrayForCurrentCode):
+                symbolsLength = len(symbolsArrayForCurrentCode)
+                if symbolsLength:
                     symbol = self.get_test_symbol(exchange, spot, symbolsArrayForCurrentCode)
                     break
         # if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
@@ -515,14 +537,18 @@ class testMainClass(baseMainTestClass):
             dump('Selected SPOT SYMBOL:', spotSymbol)
         if swapSymbol is not None:
             dump('Selected SWAP SYMBOL:', swapSymbol)
-        if not privateOnly:
+        if not self.privateTestOnly:
             if exchange.has['spot'] and spotSymbol is not None:
+                if self.info:
+                    dump('[INFO:SPOT TESTS]')
                 exchange.options['type'] = 'spot'
                 self.run_public_tests(exchange, spotSymbol)
             if exchange.has['swap'] and swapSymbol is not None:
+                if self.info:
+                    dump('[INFO:SWAP TESTS]')
                 exchange.options['type'] = 'swap'
                 self.run_public_tests(exchange, swapSymbol)
-        if privateTest or privateOnly:
+        if self.privateTest or self.privateTestOnly:
             if exchange.has['spot'] and spotSymbol is not None:
                 exchange.options['defaultType'] = 'spot'
                 self.run_private_tests(exchange, spotSymbol)
@@ -618,14 +644,14 @@ class testMainClass(baseMainTestClass):
         if len(errors) > 0:
             raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
         else:
-            if info:
-                dump(self.pad_end('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
+            if self.info:
+                dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
     def start_test(self, exchange, symbol):
         # we don't need to test aliases
         if exchange.alias:
             return
-        if sandbox or get_exchange_prop(exchange, 'sandbox'):
+        if self.sandbox or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         self.load_exchange(exchange)
         self.test_exchange(exchange, symbol)
@@ -635,4 +661,4 @@ class testMainClass(baseMainTestClass):
 
 
 if __name__ == '__main__':
-    (testMainClass().init(exchange, exchangeSymbol))
+    (testMainClass().init(argv.exchange, argv.symbol))

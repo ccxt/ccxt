@@ -13,6 +13,5 @@ include_once __DIR__ . '/../base/test_order_book.php';
 function test_fetch_l2_order_book($exchange, $symbol) {
     $method = 'fetchL2OrderBook';
     $order_book = $exchange->fetch_l2_order_book($symbol);
-    assert(is_array($order_book), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($order_book));
     test_order_book($exchange, $method, $order_book, $symbol);
 }

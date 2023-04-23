@@ -64,6 +64,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function v2_get_md_v2_ticker_24hr_all($params = array()) {
         return $this->request('md/v2/ticker/24hr/all', 'v2', 'GET', $params);
     }
+    public function v2_get_api_data_public_data_funding_rate_history($params = array()) {
+        return $this->request('api-data/public/data/funding-rate-history', 'v2', 'GET', $params);
+    }
     public function private_get_spot_orders_active($params = array()) {
         return $this->request('spot/orders/active', 'private', 'GET', $params);
     }
@@ -330,6 +333,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     }
     public function v2GetMdV2Ticker24hrAll($params = array()) {
         return $this->request('md/v2/ticker/24hr/all', 'v2', 'GET', $params);
+    }
+    public function v2GetApiDataPublicDataFundingRateHistory($params = array()) {
+        return $this->request('api-data/public/data/funding-rate-history', 'v2', 'GET', $params);
     }
     public function privateGetSpotOrdersActive($params = array()) {
         return $this->request('spot/orders/active', 'private', 'GET', $params);

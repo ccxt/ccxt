@@ -50,7 +50,7 @@ export default class phemex extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistories': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
@@ -151,6 +151,7 @@ export default class phemex extends Exchange {
                         'md/v2/trade': 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr/all': 5, // ?id=<id>
+                        'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'private': {
@@ -4154,6 +4155,58 @@ export default class phemex extends Exchange {
             '11': 'failed', // 'Failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap'] || market['settle'] !== 'USDT') {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() supports USDT swap contracts only');
+        }
+        const customSymbol = '.' + market['id'] + 'FR8H'; // phemex requires a custom symbol for funding rate history
+        const request = {
+            'symbol': customSymbol,
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v2GetApiDataPublicDataFundingRateHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code":"0",
+        //        "msg":"OK",
+        //        "data":{
+        //           "rows":[
+        //              {
+        //                 "symbol":".BTCUSDTFR8H",
+        //                 "fundingRate":"0.0001",
+        //                 "fundingTime":"1682064000000",
+        //                 "intervalSeconds":"28800"
+        //              }
+        //           ]
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const rates = this.safeValue (data, 'rows');
+        const result = [];
+        for (let i = 0; i < rates.length; i++) {
+            const item = rates[i];
+            const timestamp = this.safeInteger (item, 'fundingTime');
+            result.push ({
+                'info': item,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (item, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

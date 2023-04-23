@@ -258,5 +258,6 @@ export default class phemex extends Exchange {
         status: string;
     };
     parseTransferStatus(status: any): string;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
 }
