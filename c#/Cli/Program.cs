@@ -79,7 +79,7 @@ public static class Program
             return;
         }
 
-        // options
+        // // options
         var flags = args
             .Where(x => x.StartsWith("-"))
             .ToList();
@@ -94,14 +94,11 @@ public static class Program
         InitOptions(instance, flags);
         SetCredentials(instance);
 
-
         try
         {
             Console.WriteLine(JsonConvert.SerializeObject(parameters, Formatting.Indented));
-            if (parameters.Count == 0)
-            {
-                parameters = (new object[] { null }).ToList();
-            }
+            var task = instance.loadMarkets();
+            task.Wait();
             var method = instance.GetType().GetMethod(methodName);
             var parametersNumber = method.GetParameters().Length;
             var missing = parametersNumber - parameters.Count;
@@ -112,9 +109,12 @@ public static class Program
                     parameters.Add(null);
                 }
             }
-            var result = method.Invoke(instance, parameters.ToArray()) as Task<object>;
-            result.Wait();
-            Console.WriteLine(JsonConvert.SerializeObject(result.Result, Formatting.Indented));
+
+            var result = method.Invoke(instance, parameters.ToArray());
+            Console.WriteLine("Before cast");
+            ((Task)result).Wait();
+            var resultNew = result.GetType().GetProperty("Result").GetValue(result, null);
+            Console.WriteLine(JsonConvert.SerializeObject(resultNew, Formatting.Indented));
         }
         catch (Exception e)
         {
