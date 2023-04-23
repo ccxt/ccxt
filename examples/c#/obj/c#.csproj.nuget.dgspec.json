@@ -1,0 +1,130 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/cjg/Git/ccxt7/ccxt/examples/c#/c#.csproj": {}
+  },
+  "projects": {
+    "/Users/cjg/Git/ccxt7/ccxt/c#/src/src.csproj": {
+      "version": "0.0.1",
+      "restore": {
+        "projectUniqueName": "/Users/cjg/Git/ccxt7/ccxt/c#/src/src.csproj",
+        "projectName": "CCXT",
+        "projectPath": "/Users/cjg/Git/ccxt7/ccxt/c#/src/src.csproj",
+        "packagesPath": "/Users/cjg/.nuget/packages/",
+        "outputPath": "/Users/cjg/Git/ccxt7/ccxt/c#/src/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/cjg/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net7.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net7.0": {
+            "targetAlias": "net7.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "dependencies": {
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[*, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/7.0.202/RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/cjg/Git/ccxt7/ccxt/examples/c#/c#.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/cjg/Git/ccxt7/ccxt/examples/c#/c#.csproj",
+        "projectName": "c#",
+        "projectPath": "/Users/cjg/Git/ccxt7/ccxt/examples/c#/c#.csproj",
+        "packagesPath": "/Users/cjg/.nuget/packages/",
+        "outputPath": "/Users/cjg/Git/ccxt7/ccxt/examples/c#/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/cjg/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net7.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net7.0": {
+            "targetAlias": "net7.0",
+            "projectReferences": {
+              "/Users/cjg/Git/ccxt7/ccxt/c#/src/src.csproj": {
+                "projectPath": "/Users/cjg/Git/ccxt7/ccxt/c#/src/src.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "dependencies": {
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/7.0.202/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

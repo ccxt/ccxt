@@ -1,14 +1,14 @@
 ﻿using ccxt;
+using Newtonsoft.Json;
 
 namespace examples;
 
-class Examples
+partial class Examples
 {
     public static void Main(string[] args)
     {
-        var exchange = new Binance();
-        var markets = exchange.FetchMarkets();
-        markets.Wait();
-        Console.WriteLine(JsonConvert.SerializeObject(result.Result, Formatting.Indented));
+        FetchMarkets();
+        FetchTrades();
+        FetchOrderBook();
     }
 }
