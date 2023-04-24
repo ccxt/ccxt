@@ -1929,7 +1929,7 @@ export default class kucoin extends Exchange {
         const stopTriggered = this.safeValue (order, 'stopTriggered', false);
         const isActive = this.safeValue (order, 'isActive');
         let status = undefined;
-        if (isActive === true) {
+        if ((isActive === true) || ('orderId' in order)) {
             status = 'open';
         }
         if (stop) {
@@ -1937,7 +1937,7 @@ export default class kucoin extends Exchange {
             if (responseStatus === 'NEW') {
                 status = 'open';
             } else if (!isActive && !stopTriggered) {
-                status = 'cancelled';
+                status = 'canceled';
             }
         }
         if (cancelExist) {
