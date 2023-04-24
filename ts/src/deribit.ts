@@ -640,6 +640,8 @@ export default class deribit extends Exchange {
             const instrumentsResult = this.safeValue (instrumentsResponse, 'result', []);
             for (let k = 0; k < instrumentsResult.length; k++) {
                 const market = instrumentsResult[k];
+                const kind = this.safeString (market, 'kind');
+                const isSpot = (kind === 'spot');
                 const id = this.safeString (market, 'instrument_name');
                 const baseId = this.safeString (market, 'base_currency');
                 const quoteId = this.safeString (market, 'counter_currency');
@@ -647,7 +649,6 @@ export default class deribit extends Exchange {
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 const settle = this.safeCurrencyCode (settleId);
-                const kind = this.safeString (market, 'kind');
                 const settlementPeriod = this.safeValue (market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
                 const future = !swap && (kind.indexOf ('future') >= 0);
@@ -662,8 +663,12 @@ export default class deribit extends Exchange {
                     type = 'future';
                 } else if (option) {
                     type = 'option';
+                } else if (isSpot) {
+                    type = 'spot';
                 }
-                if (!isComboMarket) {
+                if (isSpot) {
+                    symbol = base + '/' + quote;
+                } else if (!isComboMarket) {
                     symbol = base + '/' + quote + ':' + settle;
                     if (option || future) {
                         symbol = symbol + '-' + this.yymmdd (expiry, '');
@@ -687,13 +692,13 @@ export default class deribit extends Exchange {
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': type,
-                    'spot': false,
+                    'spot': isSpot,
                     'margin': false,
                     'swap': swap,
                     'future': future,
                     'option': option,
                     'active': this.safeValue (market, 'is_active'),
-                    'contract': true,
+                    'contract': !isSpot,
                     'linear': (settle === quote),
                     'inverse': (settle !== quote),
                     'taker': this.safeNumber (market, 'taker_commission'),
