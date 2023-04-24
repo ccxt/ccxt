@@ -59,7 +59,7 @@
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
     "cli.ts": "node --loader ts-node/esm examples/ts/cli.ts",
-    "cli.cs": "dotnet run --project \"./c#/Cli/Cli.csproj\"",
+    "cli.cs": "dotnet run --project \"./c#/cli/cli.csproj\"",
     "export-exchanges": "node build/export-exchanges",
     "capabilities": "node ./examples/js/exchange-capabilities.js",
     "git-ignore-generated-files": "node build/git-ignore-generated-files.cjs",

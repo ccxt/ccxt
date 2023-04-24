@@ -86,7 +86,7 @@ public static class Program
 
         var parameters = args[2..]
             .Where(x => !x.StartsWith("-"))
-            .Select(x => (object)x)
+            .Select(x => x.StartsWith("{") ? (dict)JsonHelper.Deserialize(x) : (object)x)
             .ToList();
 
         var instance = Exchange.MagicallyCreateInstance(exchangeName);
@@ -111,8 +111,6 @@ public static class Program
             }
 
             var result = method.Invoke(instance, parameters.ToArray());
-            Console.WriteLine("Before cast");
-            ((Task)result).Wait();
             var resultNew = result.GetType().GetProperty("Result").GetValue(result, null);
             Console.WriteLine(JsonConvert.SerializeObject(resultNew, Formatting.Indented));
         }
@@ -120,7 +118,5 @@ public static class Program
         {
             Console.WriteLine(e);
         }
-
-
     }
 }
