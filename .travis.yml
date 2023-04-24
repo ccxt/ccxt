@@ -25,15 +25,10 @@ before_install:
 - php -i | grep php.ini
 - php --version
 - composer install
-- wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb # install dotnet
-- sudo dpkg -i packages-microsoft-prod.deb
-- sudo apt install apt-transport-https
 - sudo apt update -y
 - sudo apt install dotnet-sdk-6.0 -y
-- sudo apt install apt-transport-https -y
-- sudo apt update -y
-- sudo apt install dotnet-runtime-6.0 -y
 script:
+- dotnet --version
 - npm run force-build
 - npm run test-base
 - npm run test-base-ws
