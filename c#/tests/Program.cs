@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+
 using ccxt;
 namespace Tests; // Note: actual namespace depends on the project name.
 
@@ -39,6 +40,8 @@ public class Tests
 
     static void InitOptions(string[] args)
     {
+        var isBase = args.Contains("--base");
+        baseTests = isBase;
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
@@ -82,10 +85,12 @@ public class Tests
         InitOptions(args);
 
         if (baseTests)
+        {
             RunBaseTests();
+            return;
+        }
 
         var testClass = new testMainClass();
-        // exchangeId = "binance";
         testClass.init(exchangeId, symbol).Wait();
     }
 
@@ -95,7 +100,7 @@ public class Tests
         Helper.Green(" [C#] Precision tests passed");
         tests.DateTimeTests();
         Helper.Green(" [C#] Precision tests passed");
-        // tests.CryptoTests();
-        // Helper.Green(" [C#] Crypto tests passed");
+        tests.CryptoTests();
+        Helper.Green(" [C#] Crypto tests passed");
     }
 }

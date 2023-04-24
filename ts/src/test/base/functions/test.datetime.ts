@@ -1,10 +1,10 @@
 // @ts-nocheck
 /* eslint-disable */
-import {Exchange} from '../../../../ccxt.js';
+import {ccxt, Exchange} from '../../../../ccxt.js';
 import assert from 'assert';
 import { functions } from '../../../../ccxt.js';
 const { ROUND_UP, ROUND_DOWN } = functions;
-const exchange = new Exchange ({
+const exchange = new ccxt.Exchange ({
     'id': 'regirock',
 });
 
