@@ -7201,24 +7201,26 @@ export default class bybit extends Exchange {
         symbols = this.marketSymbols(symbols);
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         let settle = this.safeString(params, 'settleCoin');
+        let paramsOmitted = undefined;
         if (settle === undefined) {
-            [settle, params] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', settle);
+            [settle, paramsOmitted] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', settle);
         }
         const isUsdcSettled = settle === 'USDC';
-        const [subType, query] = this.handleSubTypeAndParams('fetchPositions', undefined, params);
+        let subType = undefined;
+        [subType, paramsOmitted] = this.handleSubTypeAndParams('fetchPositions', undefined, paramsOmitted);
         const isInverse = subType === 'inverse';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
             throw new ArgumentsRequired(this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
         }
         if ((enableUnifiedMargin || enableUnifiedAccount) && !isInverse) {
-            return await this.fetchUnifiedPositions(symbols, query);
+            return await this.fetchUnifiedPositions(symbols, params);
         }
         else if (isUsdcSettled) {
-            return await this.fetchUSDCPositions(symbols, query);
+            return await this.fetchUSDCPositions(symbols, paramsOmitted);
         }
         else {
-            return await this.fetchDerivativesPositions(symbols, query);
+            return await this.fetchDerivativesPositions(symbols, params);
         }
     }
     parsePosition(position, market = undefined) {

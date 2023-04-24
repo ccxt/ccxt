@@ -7078,22 +7078,24 @@ class bybit extends Exchange {
         $symbols = $this->market_symbols($symbols);
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $settle = $this->safe_string($params, 'settleCoin');
+        $paramsOmitted = null;
         if ($settle === null) {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
+            list($settle, $paramsOmitted) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
         }
         $isUsdcSettled = $settle === 'USDC';
-        list($subType, $query) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
+        $subType = null;
+        list($subType, $paramsOmitted) = $this->handle_sub_type_and_params('fetchPositions', null, $paramsOmitted);
         $isInverse = $subType === 'inverse';
         $isLinearSettle = $isUsdcSettled || ($settle === 'USDT');
         if ($isInverse && $isLinearSettle) {
             throw new ArgumentsRequired($this->id . ' fetchPositions with inverse $subType requires $settle to not be USDT or USDC');
         }
         if (($enableUnifiedMargin || $enableUnifiedAccount) && !$isInverse) {
-            return $this->fetch_unified_positions($symbols, $query);
+            return $this->fetch_unified_positions($symbols, $params);
         } elseif ($isUsdcSettled) {
-            return $this->fetch_usdc_positions($symbols, $query);
+            return $this->fetch_usdc_positions($symbols, $paramsOmitted);
         } else {
-            return $this->fetch_derivatives_positions($symbols, $query);
+            return $this->fetch_derivatives_positions($symbols, $params);
         }
     }
 

@@ -6693,20 +6693,22 @@ class bybit(Exchange):
         symbols = self.market_symbols(symbols)
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         settle = self.safe_string(params, 'settleCoin')
+        paramsOmitted = None
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, paramsOmitted = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
         isUsdcSettled = settle == 'USDC'
-        subType, query = self.handle_sub_type_and_params('fetchPositions', None, params)
+        subType = None
+        subType, paramsOmitted = self.handle_sub_type_and_params('fetchPositions', None, paramsOmitted)
         isInverse = subType == 'inverse'
         isLinearSettle = isUsdcSettled or (settle == 'USDT')
         if isInverse and isLinearSettle:
             raise ArgumentsRequired(self.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC')
         if (enableUnifiedMargin or enableUnifiedAccount) and not isInverse:
-            return self.fetch_unified_positions(symbols, query)
+            return self.fetch_unified_positions(symbols, params)
         elif isUsdcSettled:
-            return self.fetch_usdc_positions(symbols, query)
+            return self.fetch_usdc_positions(symbols, paramsOmitted)
         else:
-            return self.fetch_derivatives_positions(symbols, query)
+            return self.fetch_derivatives_positions(symbols, params)
 
     def parse_position(self, position, market=None):
         #
