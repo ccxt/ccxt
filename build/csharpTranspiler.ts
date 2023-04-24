@@ -383,7 +383,7 @@ class NewTranspiler {
         overwriteFile (WRAPPER_FILE, file);
     }
 
-    transpileErrorHierarchy ({ tsFilename }) {
+    transpileErrorHierarchy () {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
@@ -500,8 +500,7 @@ class NewTranspiler {
 
         const options = { csharpFolder, exchanges }
 
-
-        const classes = await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
         if (child) {
             return
@@ -512,8 +511,7 @@ class NewTranspiler {
 
         this.transpileTests()
 
-
-        // this.transpileErrorHierarchy ({ tsFilename })
+        this.transpileErrorHierarchy ()
 
         log.bright.green ('Transpiled successfully.')
     }
