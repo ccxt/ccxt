@@ -68,6 +68,7 @@ export default class phemex extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -1318,6 +1319,38 @@ export default class phemex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     // spot
+         * @see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             // linear
+         * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
+        const query = this.omit (params, 'type');
+        let defaultMethod = undefined;
+        if (type === 'spot') {
+            defaultMethod = 'v1GetMdSpotTicker24hrAll';
+        } else if (subType === 'inverse') {
+            defaultMethod = 'v1GetMdTicker24hrAll';
+        } else {
+            defaultMethod = 'v2GetMdV2Ticker24hrAll';
+        }
+        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
+        const response = await this[method] (query);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTickers (result, symbols);
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
