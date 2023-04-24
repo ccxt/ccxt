@@ -98,11 +98,9 @@ function testMarket (exchange, method, market) {
         assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
     }
     const targetKeys = [ 'cost', 'amount', 'price' ];
-    // check precisions
+    // precision checks
     for (let i = 0; i < targetKeys.length; i++) {
-        const key = targetKeys[i];
-        // todo: should be migrated into assertGreater after TickSize handling is implemented
-        testSharedMethods.assertGreaterOrEqual (exchange, method, market['precision'], key, '0');
+        testSharedMethods.checkPrecisionAccuracy (exchange, method, market['precision'], targetKeys[i]);
     }
     // check limits
     for (let i = 0; i < targetKeys.length; i++) {
@@ -110,6 +108,10 @@ function testMarket (exchange, method, market) {
         const limitEntry = market['limits'][key];
         testSharedMethods.assertGreaterOrEqual (exchange, method, limitEntry, 'min', '0');
         testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', '0');
+        const minString = exchange.safeValue (limitEntry, 'min');
+        if (minString !== undefined) {
+            testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', minString);
+        }
     }
 }
 

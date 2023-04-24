@@ -1,6 +1,7 @@
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
+import { TICK_SIZE } from '../../../base/functions/number';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
@@ -188,6 +189,46 @@ function assertLessOrEqual (exchange, method, entry, key, compareTo) {
     }
 }
 
+function assertEqual (exchange, method, entry, key, compareTo) {
+    const logText = logTemplate (exchange, method, entry);
+    const value = exchange.safeString (entry, key);
+    if (value !== undefined) {
+        let keyStr = undefined;
+        if (typeof key === 'string') {
+            keyStr = key;
+        } else {
+            keyStr = key.toString ();
+        }
+        let compareToStr = undefined;
+        if (typeof compareTo === 'string') {
+            compareToStr = compareTo;
+        } else {
+            compareToStr = compareTo.toString ();
+        }
+        assert (Precise.stringEq (value, compareTo), keyStr + ' key (with a value of ' + value + ') was expected to be equal to ' + compareToStr + logText);
+    }
+}
+
+function assertNonEqual (exchange, method, entry, key, compareTo) {
+    const logText = logTemplate (exchange, method, entry);
+    const value = exchange.safeString (entry, key);
+    if (value !== undefined) {
+        let keyStr = undefined;
+        if (typeof key === 'string') {
+            keyStr = key;
+        } else {
+            keyStr = key.toString ();
+        }
+        let compareToStr = undefined;
+        if (typeof compareTo === 'string') {
+            compareToStr = compareTo;
+        } else {
+            compareToStr = compareTo.toString ();
+        }
+        assert (!Precise.stringEq (value, compareTo), keyStr + ' key (with a value of ' + value + ') was expected not to be equal to ' + compareToStr + logText);
+    }
+}
+
 function assertInArray (exchange, method, entry, key, expectedArray) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeValue (entry, key);
@@ -233,6 +274,38 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
     }
 }
 
+
+function assertInteger (exchange, method, entry, key) {
+    const logText = logTemplate (exchange, method, entry);
+    if (entry !== undefined) {
+        const value = exchange.safeNumber (entry, key);
+        if (value !== undefined) {
+            const isInteger = (value % 1) === 0;
+            const valString = value.toString ();
+            assert (isInteger, key + ' key (with value ' + valString + ') is not an integer' + logText);
+        }
+    }
+}
+
+function checkPrecisionAccuracy (exchange, method, entry, key) {
+    const isTickSizePrecisionMode = exchange.precisionMode === TICK_SIZE;
+    if (isTickSizePrecisionMode) {
+        // TICK_SIZE should be above zero
+        assertGreater (exchange, method, entry, key, '0');
+        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        const decimalNumbers = [ '2', '3', '4', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16' ];
+        for (let i = 0; i < decimalNumbers.length; i++) {
+            const num = decimalNumbers[i];
+            const numStr = exchange.numberToString (num);
+            assertNonEqual (exchange, method, entry, key, numStr);
+        }
+    } else {
+        assertInteger (exchange, method, entry, key); // should be integer
+        assertLessOrEqual (exchange, method, entry, key, '18'); // should be under 18 decimals
+        assertGreaterOrEqual (exchange, method, entry, key, '-8'); // in real-world cases, there would not be less than that
+    }
+}
+
 export default {
     logTemplate,
     assertTimestamp,
@@ -247,4 +320,8 @@ export default {
     assertGreaterOrEqual,
     assertLess,
     assertLessOrEqual,
+    assertEqual,
+    assertNonEqual,
+    assertInteger,
+    checkPrecisionAccuracy,
 };

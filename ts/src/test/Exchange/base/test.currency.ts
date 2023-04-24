@@ -26,7 +26,7 @@ function testCurrency (exchange, method, entry) {
     testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
     //
-    testSharedMethods.assertGreater (exchange, method, entry, 'precision', '0');
+    testSharedMethods.checkPrecisionAccuracy (exchange, method, entry, 'precision');
     testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'fee', '0');
     const limits = exchange.safeValue (entry, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
@@ -35,6 +35,16 @@ function testCurrency (exchange, method, entry) {
     testSharedMethods.assertGreaterOrEqual (exchange, method, withdrawLimits, 'max', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, method, depositLimits, 'min', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, method, depositLimits, 'max', '0');
+    // max should be more than min (withdrawal limits)
+    const minStringWithdrawal = exchange.safeValue (withdrawLimits, 'min');
+    if (minStringWithdrawal !== undefined) {
+        testSharedMethods.assertGreater (exchange, method, withdrawLimits, 'max', minStringWithdrawal);
+    }
+    // max should be more than min (deposit limits)
+    const minStringDeposit = exchange.safeValue (depositLimits, 'min');
+    if (minStringDeposit !== undefined) {
+        testSharedMethods.assertGreater (exchange, method, depositLimits, 'max', minStringDeposit);
+    }
 }
 
 export default testCurrency;
