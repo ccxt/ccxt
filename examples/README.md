@@ -247,6 +247,8 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 
 [Présentation de projet - Créer un Bot Telegram de A à Z (+CCXT)](https://www.youtube.com/watch?v=yayJKRtg5M4) – La création d'un bot Telegram en Node.js, qui va rechercher des informations sur les différentes marketpalce de crypto-monnaies, et cela via la librairie CCXT.
 
+[ربات آربیتراژ با CCXT و پایتون - آموزش ساخت ربات آربیتراژ ارز دیجیتال - ویژه مبتدیان](https://www.youtube.com/watch?v=GmIrL0btU-4) – A CCXT Tutorial On Quick Arbs In Persian language
+
 [Simple trading bot in JavaScript using ~40 lines of code](https://www.tuicool.com/articles/vqymAj3) – A demo of how to make a trading bot with CCXT.
 
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.

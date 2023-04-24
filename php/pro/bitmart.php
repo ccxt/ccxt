@@ -6,13 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class bitmart extends \ccxt\async\bitmart {
-
-    use ClientTrait;
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
@@ -35,7 +33,7 @@ class bitmart extends \ccxt\async\bitmart {
             'options' => array(
                 'defaultType' => 'spot',
                 'watchOrderBook' => array(
-                    'depth' => 'depth5', // depth5, depth400
+                    'depth' => 'depth5', // depth5, depth20, depth50
                 ),
                 'ws' => array(
                     'inflate' => true,
@@ -91,7 +89,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -111,19 +109,19 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function watch_ticker($symbol, $params = array ()) {
+    public function watch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} $params extra parameters specific to the bitmart api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->subscribe('ticker', $symbol, $params));
         }) ();
     }
 
-    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -131,7 +129,7 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bitmart api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
@@ -151,7 +149,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders(Client $client, $message) {
         //
         // {
         //     "data":array(
@@ -249,6 +247,7 @@ class bitmart extends \ccxt\async\bitmart {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => null,
@@ -260,7 +259,7 @@ class bitmart extends \ccxt\async\bitmart {
         ), $market);
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(Client $client, $message) {
         //
         //     {
         //         $table => 'spot/trade',
@@ -294,7 +293,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $message;
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(Client $client, $message) {
         //
         //     {
         //         $data => array(
@@ -324,7 +323,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $message;
     }
 
-    public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -333,7 +332,7 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the bitmart api endpoint
-             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -348,7 +347,7 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(Client $client, $message) {
         //
         //     {
         //         $data => array(
@@ -383,7 +382,7 @@ class bitmart extends \ccxt\async\bitmart {
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $parsed = $this->parse_ohlcv($candle, $market);
-            $parsed[0] = intval($parsed[0] / $durationInMs) * $durationInMs;
+            $parsed[0] = $this->parse_to_int($parsed[0] / $durationInMs) * $durationInMs;
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
@@ -397,17 +396,17 @@ class bitmart extends \ccxt\async\bitmart {
         }
     }
 
-    public function watch_order_book($symbol, $limit = null, $params = array ()) {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bitmart api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
-            $depth = $this->safe_string($options, 'depth', 'depth400');
+            $depth = $this->safe_string($options, 'depth', 'depth50');
             $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
             return $orderbook->limit ();
         }) ();
@@ -425,7 +424,7 @@ class bitmart extends \ccxt\async\bitmart {
         }
     }
 
-    public function handle_order_book_message($client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
         //         $asks => array(
@@ -459,7 +458,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $orderbook;
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(Client $client, $message) {
         //
         //     {
         //         $data => array(
@@ -509,49 +508,49 @@ class bitmart extends \ccxt\async\bitmart {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->implode_hostname($this->urls['api']['ws']['private']);
-            $messageHash = 'login';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ('authenticated');
-                $timestamp = (string) $this->milliseconds();
-                $memo = $this->uid;
-                $path = 'bitmart.WebSocket';
-                $auth = $timestamp . '#' . $memo . '#' . $path;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'op' => $messageHash,
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-            }
-            return Async\await($future);
-        }) ();
+        $this->check_required_credentials();
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']);
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $timestamp = (string) $this->milliseconds();
+            $memo = $this->uid;
+            $path = 'bitmart.WebSocket';
+            $auth = $timestamp . '#' . $memo . '#' . $path;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            $operation = 'login';
+            $request = array(
+                'op' => $operation,
+                'args' => array(
+                    $this->apiKey,
+                    $timestamp,
+                    $signature,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, $message) {
         //
         //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
         //
         return $message;
     }
 
-    public function handle_authenticate($client, $message) {
+    public function handle_authenticate(Client $client, $message) {
         //
-        //     array( event => 'login', success => true )
+        //     array( event => 'login' )
         //
-        $client->resolve ($message, 'authenticated');
-        return $message;
+        $messageHash = 'authenticated';
+        $client->resolve ($message, $messageHash);
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, $message) {
         //
         //     array( event => 'error', $message => 'Invalid sign', $errorCode => 30013 )
         //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
@@ -566,21 +565,21 @@ class bitmart extends \ccxt\async\bitmart {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
             }
+            return false;
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
-                $client->reject ($e, 'authenticated');
-                $method = 'login';
-                if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
-                    unset($client->subscriptions[$method]);
+                $messageHash = 'authenticated';
+                $client->reject ($e, $messageHash);
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
                 }
-                return false;
             }
+            return true;
         }
-        return $message;
     }
 
-    public function handle_message($client, $message) {
-        if (!$this->handle_error_message($client, $message)) {
+    public function handle_message(Client $client, $message) {
+        if ($this->handle_error_message($client, $message)) {
             return;
         }
         //
@@ -631,7 +630,8 @@ class bitmart extends \ccxt\async\bitmart {
             $methods = array(
                 'depth' => array($this, 'handle_order_book'),
                 'depth5' => array($this, 'handle_order_book'),
-                'depth400' => array($this, 'handle_order_book'),
+                'depth20' => array($this, 'handle_order_book'),
+                'depth50' => array($this, 'handle_order_book'),
                 'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trade'),
                 // ...

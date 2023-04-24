@@ -1,11 +1,14 @@
-"use strict"
 
-const { execSync } = require ('child_process')
-const log          = require ('ololog').noLocate
-const { groupBy }  = require ('../ccxt.js')
+import { execSync } from 'child_process';
+import log  from 'ololog';
+import ccxt from '../js/ccxt.js';
+import { isMainEntry } from './transpile.js';
 const { values }   = Object
-const assert       = require ('assert')
+import assert from 'assert';
+import * as url from 'node:url';
 
+const { groupBy } = ccxt;
+log.noLocate();
 function cleanupOldTags () {
 
     const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (t => {
@@ -55,6 +58,8 @@ function cleanupOldTags () {
     }
 
     log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
+    log.unlimited.bright.red (tagsToDelete)
+    log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
 
     if (!process.argv.includes ('--paper')) {
 
@@ -76,7 +81,7 @@ function cleanupOldTags () {
 // ============================================================================
 // main entry point
 
-if (require.main === module) {
+if (isMainEntry(import.meta.url)) {
 
     // if called directly like `node module`
 
@@ -89,6 +94,6 @@ if (require.main === module) {
 
 // ============================================================================
 
-module.exports = {
+export default {
     cleanupOldTags,
-}
+};
