@@ -25,7 +25,7 @@
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
     "transpileCSharp": "node --loader ts-node/esm build/csharpTranspiler.ts",
-    "buildCsharp": "dotnet build c#",
+    "buildCsharp": "dotnet build c\\#/ccxt.sln",
     "csharp": "npm run transpileCSharp && npm run buildCsharp",
     "tsBuild": "tsc || true",
     "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
