@@ -25,8 +25,9 @@ before_install:
 - php -i | grep php.ini
 - php --version
 - composer install
-- sudo apt update -y
-- sudo apt install dotnet-sdk-6.0 -y
+- wget https://dot.net/v1/dotnet-install.sh
+- chmod +x dotnet-install.sh
+- ./dotnet-install.sh -c Current
 script:
 - dotnet --version
 - npm run force-build
