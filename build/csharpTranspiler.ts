@@ -478,6 +478,7 @@ class NewTranspiler {
         if (parts.length > 1) {
             const baseMethods = parts[1]
             const fileHeader = this.getCsharpImports(undefined).concat([
+                this.createGeneratedHeader().join('\n'),
                 "public partial class Exchange\n{\n\n"
             ]).join("\n");
 
