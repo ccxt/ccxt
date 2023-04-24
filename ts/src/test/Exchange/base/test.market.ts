@@ -108,7 +108,7 @@ function testMarket (exchange, method, market) {
         const limitEntry = market['limits'][key];
         testSharedMethods.assertGreaterOrEqual (exchange, method, limitEntry, 'min', '0');
         testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', '0');
-        const minString = exchange.safeValue (limitEntry, 'min');
+        const minString = exchange.safeString (limitEntry, 'min');
         if (minString !== undefined) {
             testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', minString);
         }

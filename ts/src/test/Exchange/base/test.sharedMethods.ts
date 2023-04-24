@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import { TICK_SIZE } from '../../../base/functions/number';
+import { TICK_SIZE } from '../../../base/functions/number.js';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
@@ -296,7 +296,7 @@ function checkPrecisionAccuracy (exchange, method, entry, key) {
         const decimalNumbers = [ '2', '3', '4', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16' ];
         for (let i = 0; i < decimalNumbers.length; i++) {
             const num = decimalNumbers[i];
-            const numStr = exchange.numberToString (num);
+            const numStr = num;
             assertNonEqual (exchange, method, entry, key, numStr);
         }
     } else {
