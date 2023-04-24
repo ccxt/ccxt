@@ -184,8 +184,14 @@ class testMainClass extends baseMainTestClass {
             for ($i = 0; $i < count($settingKeys); $i++) {
                 $key = $settingKeys[$i];
                 if ($exchangeSettings[$key]) {
-                    $existing = get_exchange_prop ($exchange, $key, array());
-                    set_exchange_prop ($exchange, $key, $exchange->deep_extend($existing, $exchangeSettings[$key]));
+                    $finalValue = null;
+                    if (gettype($exchangeSettings[$key]) === 'array') {
+                        $existing = get_exchange_prop ($exchange, $key, array());
+                        $finalValue = $exchange->deep_extend($existing, $exchangeSettings[$key]);
+                    } else {
+                        $finalValue = $exchangeSettings[$key];
+                    }
+                    set_exchange_prop ($exchange, $key, $finalValue);
                 }
             }
             // support simple $proxy
@@ -510,14 +516,20 @@ class testMainClass extends baseMainTestClass {
         // if there wasn't found any $symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if ($symbol === null) {
             $activeMarkets = $exchange->filter_by($currentTypeMarkets, 'active', true);
-            $activeSymbols = is_array($activeMarkets) ? array_keys($activeMarkets) : array();
+            $activeSymbols = array();
+            for ($i = 0; $i < count($activeMarkets); $i++) {
+                $activeSymbols[] = $activeMarkets[$i]['symbol'];
+            }
             $symbol = $this->get_test_symbol($exchange, $spot, $activeSymbols);
         }
         if ($symbol === null) {
             $values = is_array($currentTypeMarkets) ? array_values($currentTypeMarkets) : array();
-            $first = $values[0];
-            if ($first !== null) {
-                $symbol = $first['symbol'];
+            $valuesLength = count($values);
+            if ($valuesLength > 0) {
+                $first = $values[0];
+                if ($first !== null) {
+                    $symbol = $first['symbol'];
+                }
             }
         }
         return $symbol;

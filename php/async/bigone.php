@@ -773,8 +773,12 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'type', '');
             $params = $this->omit($params, 'type');
-            $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
-            $response = Async\await($this->$method ($params));
+            $response = null;
+            if ($type === 'funding' || $type === 'fund') {
+                $response = Async\await($this->privateGetFundAccounts ($params));
+            } else {
+                $response = Async\await($this->privateGetAccounts ($params));
+            }
             //
             //     {
             //         "code":0,

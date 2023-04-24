@@ -159,8 +159,15 @@ export default class testMainClass extends baseMainTestClass {
             for (let i = 0; i < settingKeys.length; i++) {
                 const key = settingKeys[i];
                 if (exchangeSettings[key]) {
-                    const existing = getExchangeProp(exchange, key, {});
-                    setExchangeProp(exchange, key, exchange.deepExtend(existing, exchangeSettings[key]));
+                    let finalValue = undefined;
+                    if (typeof exchangeSettings[key] === 'object') {
+                        const existing = getExchangeProp(exchange, key, {});
+                        finalValue = exchange.deepExtend(existing, exchangeSettings[key]);
+                    }
+                    else {
+                        finalValue = exchangeSettings[key];
+                    }
+                    setExchangeProp(exchange, key, finalValue);
                 }
             }
             // support simple proxy
@@ -483,14 +490,20 @@ export default class testMainClass extends baseMainTestClass {
         // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if (symbol === undefined) {
             const activeMarkets = exchange.filterBy(currentTypeMarkets, 'active', true);
-            const activeSymbols = Object.keys(activeMarkets);
+            const activeSymbols = [];
+            for (let i = 0; i < activeMarkets.length; i++) {
+                activeSymbols.push(activeMarkets[i]['symbol']);
+            }
             symbol = this.getTestSymbol(exchange, spot, activeSymbols);
         }
         if (symbol === undefined) {
             const values = Object.values(currentTypeMarkets);
-            const first = values[0];
-            if (first !== undefined) {
-                symbol = first['symbol'];
+            const valuesLength = values.length;
+            if (valuesLength > 0) {
+                const first = values[0];
+                if (first !== undefined) {
+                    symbol = first['symbol'];
+                }
             }
         }
         return symbol;

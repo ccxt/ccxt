@@ -753,8 +753,12 @@ class bigone extends Exchange {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', '');
         $params = $this->omit($params, 'type');
-        $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
-        $response = $this->$method ($params);
+        $response = null;
+        if ($type === 'funding' || $type === 'fund') {
+            $response = $this->privateGetFundAccounts ($params);
+        } else {
+            $response = $this->privateGetAccounts ($params);
+        }
         //
         //     {
         //         "code":0,

@@ -730,8 +730,11 @@ class bigone(Exchange):
         self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        method = 'privateGet' + self.capitalize(type) + 'Accounts'
-        response = getattr(self, method)(params)
+        response = None
+        if type == 'funding' or type == 'fund':
+            response = self.privateGetFundAccounts(params)
+        else:
+            response = self.privateGetAccounts(params)
         #
         #     {
         #         "code":0,

@@ -599,7 +599,7 @@ class gemini(ccxt.async_support.gemini):
             'nonce': self.nonce(),
         }
         b64 = self.string_to_base64(self.json(payload))
-        signature = self.hmac(b64, self.encode(self.secret), hashlib.sha384, 'hex')
+        signature = self.hmac(self.encode(b64), self.encode(self.secret), hashlib.sha384, 'hex')
         defaultOptions = {
             'ws': {
                 'options': {

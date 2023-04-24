@@ -770,8 +770,12 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', '');
         params = this.omit (params, 'type');
-        const method = 'privateGet' + this.capitalize (type) + 'Accounts';
-        const response = await this[method] (params);
+        let response = undefined;
+        if (type === 'funding' || type === 'fund') {
+            response = await this.privateGetFundAccounts (params);
+        } else {
+            response = await this.privateGetAccounts (params);
+        }
         //
         //     {
         //         "code":0,

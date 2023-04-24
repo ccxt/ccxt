@@ -232,8 +232,13 @@ class testMainClass(baseMainTestClass):
             for i in range(0, len(settingKeys)):
                 key = settingKeys[i]
                 if exchangeSettings[key]:
-                    existing = get_exchange_prop(exchange, key, {})
-                    set_exchange_prop(exchange, key, exchange.deep_extend(existing, exchangeSettings[key]))
+                    finalValue = None
+                    if isinstance(exchangeSettings[key], dict):
+                        existing = get_exchange_prop(exchange, key, {})
+                        finalValue = exchange.deep_extend(existing, exchangeSettings[key])
+                    else:
+                        finalValue = exchangeSettings[key]
+                    set_exchange_prop(exchange, key, finalValue)
             # support simple proxy
             proxy = get_exchange_prop(exchange, 'httpProxy')
             if proxy:
@@ -511,13 +516,17 @@ class testMainClass(baseMainTestClass):
         # if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if symbol is None:
             activeMarkets = exchange.filter_by(currentTypeMarkets, 'active', True)
-            activeSymbols = list(activeMarkets.keys())
+            activeSymbols = []
+            for i in range(0, len(activeMarkets)):
+                activeSymbols.append(activeMarkets[i]['symbol'])
             symbol = self.get_test_symbol(exchange, spot, activeSymbols)
         if symbol is None:
             values = list(currentTypeMarkets.values())
-            first = values[0]
-            if first is not None:
-                symbol = first['symbol']
+            valuesLength = len(values)
+            if valuesLength > 0:
+                first = values[0]
+                if first is not None:
+                    symbol = first['symbol']
         return symbol
 
     async def test_exchange(self, exchange, providedSymbol=None):
