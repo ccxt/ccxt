@@ -20,10 +20,8 @@ public partial class testMainClass : BaseTest
     {
         this.parseCliArgs();
         object symbolStr = ((bool) isTrue(!isEqual(symbol, null))) ? symbol : "all";
-        Console.WriteLine("\nTESTING ", ext, new Dictionary<string, object>() {
-            { "exchange", exchangeId },
-            { "symbol", symbolStr },
-        }, "\n");
+        object testingString = add(add(add(add(add(add("\nTesting [", ext), "] Exchange: "), exchangeId), " Symbol:"), symbolStr), "\n");
+        Console.WriteLine(testingString);
         object exchangeArgs = new Dictionary<string, object>() {
             { "verbose", this.verbose },
             { "debug", this.debug },
@@ -66,8 +64,16 @@ public partial class testMainClass : BaseTest
                 object key = getValue(settingKeys, i);
                 if (isTrue(getValue(exchangeSettings, key)))
                 {
-                    // const existing = getExchangeProp (exchange, key, {});
-                    setExchangeProp(exchange, key, getValue(exchangeSettings, key));
+                    object finalValue = null;
+                    if (isTrue(((getValue(exchangeSettings, key)).GetType() == typeof(Dictionary<string, object>))))
+                    {
+                        object existing = getExchangeProp(exchange, key, new Dictionary<string, object>() {});
+                        finalValue = exchange.deepExtend(existing, getValue(exchangeSettings, key));
+                    } else
+                    {
+                        finalValue = getValue(exchangeSettings, key);
+                    }
+                    setExchangeProp(exchange, key, finalValue);
                 }
             }
             // support simple proxy
@@ -88,7 +94,7 @@ public partial class testMainClass : BaseTest
             {
                 object fullKey = add(add(exchangeId, "_"), credential);
                 object credentialEnvName = ((string)fullKey).ToUpper(); // example: KRAKEN_APIKEY
-                object credentialValue = ((bool) isTrue((((Dictionary<string,object>)envVars).ContainsKey(toStringOrNull(credentialEnvName))))) ? getValue(envVars, credentialEnvName) : null;
+                object credentialValue = ((bool) isTrue((inOp(envVars, credentialEnvName)))) ? getValue(envVars, credentialEnvName) : null;
                 if (isTrue(credentialValue))
                 {
                     setExchangeProp(exchange, credential, credentialValue);
@@ -135,19 +141,19 @@ public partial class testMainClass : BaseTest
     {
         object methodNameInTest = getTestName(methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
-        if (isTrue(isTrue(!isTrue(isPublic) && isTrue((((Dictionary<string,object>)this.checkedPublicTests).ContainsKey(toStringOrNull(methodNameInTest))))) && isTrue((!isEqual(methodName, "fetchCurrencies")))))
+        if (isTrue(isTrue(!isTrue(isPublic) && isTrue((inOp(this.checkedPublicTests, methodNameInTest)))) && isTrue((!isEqual(methodName, "fetchCurrencies")))))
         {
             return null;
         }
         object skipMessage = null;
         object isFetchOhlcvEmulated = (isTrue(isEqual(methodName, "fetchOHLCV")) && isTrue(isEqual(getValue(exchange.has, "fetchOHLCV"), "emulated"))); // todo: remove emulation from base
-        if (isTrue(isTrue(isTrue((!isEqual(methodName, "loadMarkets"))) && isTrue((!isTrue((((Dictionary<string,object>)exchange.has).ContainsKey(toStringOrNull(methodName)))) || !isTrue(getValue(exchange.has, methodName))))) || isTrue(isFetchOhlcvEmulated)))
+        if (isTrue(isTrue(isTrue((!isEqual(methodName, "loadMarkets"))) && isTrue((!isTrue((inOp(exchange.has, methodName))) || !isTrue(getValue(exchange.has, methodName))))) || isTrue(isFetchOhlcvEmulated)))
         {
             skipMessage = "[INFO:UNSUPPORTED_TEST]"; // keep it aligned with the longest message
-        } else if (isTrue(((Dictionary<string,object>)this.skippedMethods).ContainsKey(toStringOrNull(methodName))))
+        } else if (isTrue(inOp(this.skippedMethods, methodName)))
         {
             skipMessage = "[INFO:SKIPPED_TEST]";
-        } else if (!isTrue((((Dictionary<string,object>)this.testFiles).ContainsKey(toStringOrNull(methodNameInTest)))))
+        } else if (!isTrue((inOp(this.testFiles, methodNameInTest))))
         {
             skipMessage = "[INFO:UNIMPLEMENTED_TEST]";
         }
@@ -311,7 +317,7 @@ public partial class testMainClass : BaseTest
         object code = getValue(codes, 0);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
-            if (isTrue(((Dictionary<string,object>)exchange.currencies).ContainsKey(toStringOrNull(getValue(codes, i)))))
+            if (isTrue(inOp(exchange.currencies, getValue(codes, i))))
             {
                 return getValue(codes, i);
             }
@@ -370,16 +376,24 @@ public partial class testMainClass : BaseTest
         if (isTrue(isEqual(symbol, null)))
         {
             object activeMarkets = exchange.filterBy(currentTypeMarkets, "active", true);
-            object activeSymbols = new List<object>(((Dictionary<string,object>)activeMarkets).Keys);
+            object activeSymbols = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(activeMarkets)); postFixIncrement(ref i))
+            {
+                ((List<object>)activeSymbols).Add(getValue(getValue(activeMarkets, i), "symbol"));
+            }
             symbol = this.getTestSymbol(exchange, spot, activeSymbols);
         }
         if (isTrue(isEqual(symbol, null)))
         {
             object values = new List<object>(((Dictionary<string,object>)currentTypeMarkets).Values);
-            object first = getValue(values, 0);
-            if (isTrue(!isEqual(first, null)))
+            object valuesLength = getArrayLength(values);
+            if (isTrue(isGreaterThan(valuesLength, 0)))
             {
-                symbol = getValue(first, "symbol");
+                object first = getValue(values, 0);
+                if (isTrue(!isEqual(first, null)))
+                {
+                    symbol = getValue(first, "symbol");
+                }
             }
         }
         return symbol;
