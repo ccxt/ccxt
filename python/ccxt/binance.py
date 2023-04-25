@@ -964,6 +964,7 @@ class binance(Exchange):
                     'delivery': 'CMFUTURE',  # backwards compatbility
                     'linear': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
+                    'option': 'OPTION',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -971,6 +972,7 @@ class binance(Exchange):
                     'MARGIN': 'margin',
                     'UMFUTURE': 'linear',
                     'CMFUTURE': 'inverse',
+                    'OPTION': 'option',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -5023,7 +5025,8 @@ class binance(Exchange):
                 toSpot = toId == 'MAIN'
                 funding = fromId == 'FUNDING' or toId == 'FUNDING'
                 mining = fromId == 'MINING' or toId == 'MINING'
-                prohibitedWithIsolated = fromFuture or toFuture or mining or funding
+                option = fromId == 'OPTION' or toId == 'OPTION'
+                prohibitedWithIsolated = fromFuture or toFuture or mining or funding or option
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
                     raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
                 elif toSpot and fromIsolated:
