@@ -29,8 +29,8 @@ before_install:
 - sudo dpkg -i packages-microsoft-prod.deb
 - rm packages-microsoft-prod.deb
 - sudo apt update
-- apt install dotnet-sdk-7.0
-- apt install dotnet-runtime-7.0
+- sudo apt install dotnet-sdk-7.0
+- sudo apt install dotnet-runtime-7.0
 
 script:
 - dotnet --version
