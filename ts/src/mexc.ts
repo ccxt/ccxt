@@ -3903,6 +3903,38 @@ export default class mexc extends Exchange {
         return result;
     }
 
+    async createDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name mexc3#createDepositAddress
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+         * @description create a currency deposit address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.network the blockchain network name
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.spotPrivatePostCapitalDepositAddress (this.extend (request, params));
+        //     {
+        //        "coin": "EOS",
+        //        "network": "EOS",
+        //        "address": "zzqqqqqqqqqq",
+        //        "memo": "MX10068"
+        //     }
+        return {
+            'info': response,
+            'currency': this.safeString (response, 'coin'),
+            'network': this.safeString (response, 'network'),
+            'address': this.safeString (response, 'address'),
+            'tag': this.safeString (response, 'memo'),
+        };
+    }
+
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
