@@ -25,11 +25,13 @@ before_install:
 - php -i | grep php.ini
 - php --version
 - composer install
-- wget https://dot.net/v1/dotnet-install.sh
-- chmod +x dotnet-install.sh
-- ./dotnet-install.sh -c Current
-- sudo snap install dotnet-sdk --classic --beta
-- sudo snap alias dotnet-sdk.dotnet dotnet
+- wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+- sudo dpkg -i packages-microsoft-prod.deb
+- rm packages-microsoft-prod.deb
+- sudo apt update
+- apt install dotnet-sdk-7.0
+- apt install dotnet-runtime-7.0
+
 script:
 - dotnet --version
 - npm run force-build
