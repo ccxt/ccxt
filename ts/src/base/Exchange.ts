@@ -3160,7 +3160,10 @@ export default class Exchange {
     }
 
     throwExactlyMatchedException (exact, string, message) {
-        if (string !== undefined && string in exact) {
+        if (string === undefined) {
+            return;
+        }
+        if (string in exact) {
             throw new exact[string] (message);
         }
     }
