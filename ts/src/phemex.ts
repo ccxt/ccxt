@@ -1321,7 +1321,7 @@ export default class phemex extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchTickers
@@ -1334,10 +1334,15 @@ export default class phemex extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeValue (symbols, 0);
+            market = this.market (first);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const query = this.omit (params, 'type');
         let defaultMethod = undefined;
         if (type === 'spot') {
