@@ -2181,17 +2181,29 @@ class Transpiler {
                 return str.
                     replace (/\$exchange\[\$method\]/g, '$exchange->$method').
                     replace (/\$test_shared_methods\->/g, '').
+                    replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
                     replace (/Precise\->/g, 'Precise::');
             }
-            const phpAsync = !tests.base ? phpVarNameFix(result[0].content) : '';
-            const phpSync = phpVarNameFix(result[1].content);
-            const pythonSync = replaceAsert (result[2].content);
-            const pythonAsync = !tests.base ? replaceAsert (result[3].content): '';
+            let phpAsync = !tests.base ? phpVarNameFix(result[0].content) : '';
+            let phpSync = phpVarNameFix(result[1].content);
+            let pythonSync = replaceAsert (result[2].content);
+            let pythonAsync = !tests.base ? replaceAsert (result[3].content): '';
+
+            const exchangeCamelCaseProps = (str) => {
+                // replace all snake_case exchange props to camelCase
+                return str.
+                    replace (/precision_mode/g, 'precisionMode');
+            };
+            phpAsync = exchangeCamelCaseProps(phpAsync);
+            phpSync = exchangeCamelCaseProps(phpSync);
+            pythonSync = exchangeCamelCaseProps(pythonSync);
+            pythonAsync = exchangeCamelCaseProps(pythonAsync);
 
             const imports = result[0].imports;
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
+            const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
 
             let pythonHeaderSync = []
@@ -2199,6 +2211,10 @@ class Transpiler {
             let phpHeaderSync = []
             let phpHeaderAsync = []
 
+            if (usesTickSize) {
+                pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+                pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+            }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
@@ -2250,9 +2266,6 @@ class Transpiler {
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
 
-            const finalPhpContentSync = phpPreambleSync + phpSync;
-            const finalPyContentSync = pythonPreambleSync + pythonSync;
-
             if (!test.base) {
                 let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
                 phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
@@ -2264,6 +2277,9 @@ class Transpiler {
                 log.magenta ('→', test.phpFileAsync.yellow)
                 overwriteFile (test.phpFileAsync, finalPhpContentAsync)
             }
+
+            const finalPhpContentSync = phpPreambleSync + phpSync;
+            const finalPyContentSync = pythonPreambleSync + pythonSync;
 
             log.magenta ('→', test.phpFile.yellow)
             overwriteFile (test.phpFile, finalPhpContentSync)

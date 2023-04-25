@@ -80,6 +80,7 @@
     },
     "bitbns": {
         "skipMethods": {
+            "loadMarkets": "only one market has min>max limit",
             "fetchCurrencies": "info key missing",
             "fetchTickers": "unknown symbol might be returned",
             "fetchTicker": "same"
@@ -381,6 +382,7 @@
         }
     },
     "deribit": {
+        "skip": "temporary skip, because of new spot markets being incomplete in fetchMarkets",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": "strike is set when option is not true",

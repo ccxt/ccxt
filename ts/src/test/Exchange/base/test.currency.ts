@@ -11,6 +11,7 @@ function testCurrency (exchange, method, entry) {
         'deposit': true, // deposit enabled
         'precision': exchange.parseNumber ('0.0001'), // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
         'fee': exchange.parseNumber ('0.001'), //
+        'networks': {},
         'limits': {
             'withdraw': {
                 'min': exchange.parseNumber ('0.01'),
@@ -36,12 +37,12 @@ function testCurrency (exchange, method, entry) {
     testSharedMethods.assertGreaterOrEqual (exchange, method, depositLimits, 'min', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, method, depositLimits, 'max', '0');
     // max should be more than min (withdrawal limits)
-    const minStringWithdrawal = exchange.safeValue (withdrawLimits, 'min');
+    const minStringWithdrawal = exchange.safeString (withdrawLimits, 'min');
     if (minStringWithdrawal !== undefined) {
         testSharedMethods.assertGreater (exchange, method, withdrawLimits, 'max', minStringWithdrawal);
     }
     // max should be more than min (deposit limits)
-    const minStringDeposit = exchange.safeValue (depositLimits, 'min');
+    const minStringDeposit = exchange.safeString (depositLimits, 'min');
     if (minStringDeposit !== undefined) {
         testSharedMethods.assertGreater (exchange, method, depositLimits, 'max', minStringDeposit);
     }
