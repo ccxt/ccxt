@@ -28,7 +28,7 @@ before_install:
 - wget https://dot.net/v1/dotnet-install.sh
 - chmod +x dotnet-install.sh
 - ./dotnet-install.sh -c Current
-- sudo snap install dotnet-sdk
+- sudo snap install dotnet-sdk --classic
 script:
 - dotnet --version
 - npm run force-build
