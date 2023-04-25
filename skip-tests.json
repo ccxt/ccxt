@@ -618,7 +618,8 @@
     },
     "phemex": {
         "skipMethods": {
-            "loadMarkets": "contractSize might be set to 0"
+            "loadMarkets": "contractSize might be set to 0",
+            "fetchTickers": "quoteVolume <= baseVolume * high"
         }
     },
     "okcoin": {
