@@ -1,5 +1,6 @@
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
+import Precise from '../../../base/Precise.js';
 
 function testMarket (exchange, method, market) {
     const format = {
@@ -57,27 +58,74 @@ function testMarket (exchange, method, market) {
     testSharedMethods.assertSymbol (exchange, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
     //
+    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
+    testSharedMethods.assertInArray (exchange, method, market, 'type', validTypes);
+    // check if string is consistent with 'type'
+    if (market['spot'] === true) {
+        assert (market['type'] === 'spot', 'market type must be "spot" when spot is true' + logText);
+    } else if (market['swap'] === true) {
+        assert (market['type'] === 'swap', 'market type must be "swap" when swap is true' + logText);
+    } else if (market['future'] === true) {
+        assert (market['type'] === 'future', 'market type must be "future" when future is true' + logText);
+    } else if (market['option'] === true) {
+        assert (market['type'] === 'option', 'market type must be "option" when option is true' + logText);
+    }
+    // margin check
+    if (market['spot']) {
+        // if it's spot market, 'margin' can be either true/false or undefined
+        testSharedMethods.assertInArray (exchange, method, market, 'margin', [ true, false, undefined ]);
+    } else {
+        // otherwise, it must be false
+        assert (market['margin'] === false, 'market margin must be false when spot is false' + logText);
+    }
+    // typical values
     testSharedMethods.assertGreater (exchange, method, market, 'contractSize', '0');
     testSharedMethods.assertGreater (exchange, method, market, 'expiry', '0');
     testSharedMethods.assertGreater (exchange, method, market, 'strike', '0');
     testSharedMethods.assertInArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
     testSharedMethods.assertGreater (exchange, method, market, 'taker', '-100');
     testSharedMethods.assertGreater (exchange, method, market, 'maker', '-100');
-    if (market['contract']) {
-        assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
+    // 'contract' boolean check
+    if (market['future'] || market['swap'] || market['option']) {
+        // if it's some kind of contract market, then `conctract` should be true
+        assert (market['contract'], 'market contract must be true when "future", "swap" or "option" is true' + logText);
     } else {
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is false' + logText);
     }
+    const contractSize = exchange.safeString (market, 'contractSize');
+    // contract fields
+    if (market['contract']) {
+        // linear & inverse should have different values (true/false)
+        assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
+        // contract size should be defined
+        assert (contractSize !== undefined, '"contractSize" must be defined when "contract" is true' + logText);
+        // contract size should be above zero
+        assert (Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+        // settle should be defined
+        assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" must be defined when "contract" is true' + logText);
+        // spot should be false
+        assert (market['spot'] === false, 'market spot must be false when "contract" is true' + logText);
+    } else {
+        // linear & inverse needs to be undefined
+        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
+        // contract size should be undefined
+        assert (contractSize === undefined, '"contractSize" must be undefined when "contract" is false' + logText);
+        // settle should be undefined
+        assert ((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be defined when "contract" is true' + logText);
+        // spot should be true
+        assert (market['spot'] === true, 'market spot must be false when "contract" is true' + logText);
+    }
+    // option fields
     if (market['option']) {
+        // if option, then strike and optionType should be defined
         assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
         assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
+    } else {
+        // if not option, then strike and optionType should be undefined
+        assert (market['strike'] === undefined, '"strike" must be undefined when "option" is false' + logText);
+        assert (market['optionType'] === undefined, '"optionType" must be undefined when "option" is false' + logText);
     }
-    const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
-    testSharedMethods.assertInArray (exchange, method, market, 'type', validTypes);
-    const types = validTypes;
-    for (let i = 0; i < types.length; i++) {
-        testSharedMethods.assertInArray (exchange, method, market, types[i], [ true, false, undefined ]);
-    }
+    // future, swap and option should be mutually exclusive
     if (market['future']) {
         assert (!market['swap'] && !market['option'], 'market swap and option must be false when "future" is true' + logText);
     } else if (market['swap']) {
@@ -85,26 +133,26 @@ function testMarket (exchange, method, market) {
     } else if (market['option']) {
         assert (!market['future'] && !market['swap'], 'market future and swap must be false when "option" is true' + logText);
     }
-    if (market['linear']) {
-        assert (!market['inverse'], 'market inverse must be false when "linear" is true' + logText);
-    } else if (market['inverse']) {
-        assert (!market['linear'], 'market linear must be false when "inverse" is true' + logText);
-    }
-    if (market['future']) {
+    // expiry field
+    if (market['future'] || market['option']) {
+        // future or option markets need 'expiry' and 'expiryDatetime'
         assert (market['expiry'] !== undefined, '"expiry" must be defined when "future" is true' + logText);
         assert (market['expiryDatetime'] !== undefined, '"expiryDatetime" must be defined when "future" is true' + logText);
-    }
-    if (market['expiry'] !== undefined) {
+        // expiry datetime should be correct
         assert (market['expiryDatetime'] === exchange.iso8601 (market['expiry']), 'expiryDatetime must be equal to expiry in iso8601 format' + logText);
+    } else {
+        // otherwise, they need to be undefined
+        assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
     }
-    const targetKeys = [ 'cost', 'amount', 'price' ];
-    // precision checks
-    for (let i = 0; i < targetKeys.length; i++) {
-        testSharedMethods.checkPrecisionAccuracy (exchange, method, market['precision'], targetKeys[i]);
+    // check precisions
+    const precisionKeys = Object.keys (market['precision']);
+    for (let i = 0; i < precisionKeys.length; i++) {
+        testSharedMethods.checkPrecisionAccuracy (exchange, method, market['precision'], precisionKeys[i]);
     }
     // check limits
-    for (let i = 0; i < targetKeys.length; i++) {
-        const key = targetKeys[i];
+    const limitsKeys = Object.keys (market['limits']);
+    for (let i = 0; i < limitsKeys.length; i++) {
+        const key = limitsKeys[i];
         const limitEntry = market['limits'][key];
         testSharedMethods.assertGreaterOrEqual (exchange, method, limitEntry, 'min', '0');
         testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', '0');
