@@ -2093,6 +2093,7 @@ class Transpiler {
         let bodyPhpSync = phpReform (phpRemovedStart);
         bodyPhpSync = bodyPhpSync.replace (/ccxt(\\)+async/g, 'ccxt');
         bodyPhpSync = bodyPhpSync.replace ('(this,','($this,');
+        bodyPhpSync = bodyPhpSync.replace (/Async\\await\((.*?)\);/g, '$1;');
         overwriteFile (files.phpFileSync, bodyPhpSync);
     }
 

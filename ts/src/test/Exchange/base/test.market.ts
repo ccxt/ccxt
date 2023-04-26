@@ -31,9 +31,9 @@ function testMarket (exchange, method, market) {
         'settleId': 'Xyz',
         'precision': {
             // todo : handle precision types after another PR is merged
-            'price': exchange.parseNumber ('8'), // integer or fraction
-            'amount': exchange.parseNumber ('8'), // integer or fraction
-            'cost': exchange.parseNumber ('8'), // integer or fraction
+            'price': exchange.parseNumber ('0.001'), // integer or fraction
+            'amount': exchange.parseNumber ('0.001'), // integer or fraction
+            'cost': exchange.parseNumber ('0.001'), // integer or fraction
         },
         // value limits when placing orders on this market
         'limits': {
