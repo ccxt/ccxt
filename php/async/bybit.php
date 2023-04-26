@@ -244,6 +244,8 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/info' => 1,
                         'v5/spot-lever-token/reference' => 1,
                         'v5/announcements/index' => 1,
+                        'v5/spot-cross-margin-trade/pledge-token' => 1,
+                        'v5/spot-cross-margin-trade/borrow-token' => 1,
                     ),
                 ),
                 'private' => array(
@@ -398,6 +400,10 @@ class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members' => 10,
                         'v5/user/query-api' => 10,
+                        'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
                     ),
                     'post' => array(
                         // inverse swap
@@ -584,6 +590,9 @@ class bybit extends Exchange {
                         'v5/user/update-sub-api' => 10,
                         'v5/user/delete-api' => 10,
                         'v5/user/delete-sub-api' => 10,
+                        'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                     ),
                     'delete' => array(
                         // spot
