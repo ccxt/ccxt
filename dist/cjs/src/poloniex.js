@@ -244,6 +244,7 @@ class poloniex extends poloniex$1 {
             'exceptions': {
                 'exact': {
                     // General
+                    '200': errors.CancelPending,
                     '500': errors.ExchangeNotAvailable,
                     '603': errors.RequestTimeout,
                     '601': errors.BadRequest,
