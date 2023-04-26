@@ -3926,6 +3926,9 @@ export default class mexc extends Exchange {
             'coin': currency['id'],
         };
         const networkCode = this.safeString (params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' createDepositAddress requires a `network` parameter');
+        }
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId !== undefined) {
             request['network'] = networkId;
