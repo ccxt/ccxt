@@ -55,7 +55,6 @@ diff=$(git diff origin/master --name-only)
 # begin debug
 echo "$cached_timestamp_file"
 echo "$cached_url_file"
-echo "$diff"
 # end debug
 
 echo "last build url: $(cat "$cached_url_file" 2> /dev/null)"
