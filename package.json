@@ -27,7 +27,7 @@
     "transpileCSharp": "node --loader ts-node/esm build/csharpTranspiler.ts",
     "buildCsharp": "dotnet build c\\#/ccxt.sln",
     "debug":"cat -n c#/src/base/Exchange.Wrappers.cs",
-    "csharp": "npm run transpileCSharp && cat -n c#/src/base/Exchange.Wrappers.cs && npm run buildCsharp",
+    "csharp": "npm run transpileCSharp && npm run buildCsharp",
     "tsBuild": "tsc || true",
     "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
     "emitTypes": "node build/generateImplicitAPI.js && node build/emitTypes.js",
