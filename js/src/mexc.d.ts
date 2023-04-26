@@ -109,6 +109,13 @@ export default class mexc extends Exchange {
         info: any;
     };
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<any[]>;
+    createDepositAddress(code: string, params?: {}): Promise<{
+        info: any;
+        currency: string;
+        network: string;
+        address: string;
+        tag: string;
+    }>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

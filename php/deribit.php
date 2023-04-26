@@ -548,6 +548,7 @@ class deribit extends Exchange {
         //
         $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
         $result = array();
+        $seenMarkets = array(); // we might have duplicated markets in the raw data
         for ($i = 0; $i < count($currenciesResult); $i++) {
             $currencyId = $this->safe_string($currenciesResult[$i], 'currency');
             $request = array(
@@ -672,56 +673,59 @@ class deribit extends Exchange {
                 }
                 $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
                 $tickSize = $this->safe_number($market, 'tick_size');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => $settle,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => $settleId,
-                    'type' => $type,
-                    'spot' => $isSpot,
-                    'margin' => false,
-                    'swap' => $swap,
-                    'future' => $future,
-                    'option' => $option,
-                    'active' => $this->safe_value($market, 'is_active'),
-                    'contract' => !$isSpot,
-                    'linear' => ($settle === $quote),
-                    'inverse' => ($settle !== $quote),
-                    'taker' => $this->safe_number($market, 'taker_commission'),
-                    'maker' => $this->safe_number($market, 'maker_commission'),
-                    'contractSize' => $this->safe_number($market, 'contract_size'),
-                    'expiry' => $expiry,
-                    'expiryDatetime' => $this->iso8601($expiry),
-                    'strike' => $strike,
-                    'optionType' => $optionType,
-                    'precision' => array(
-                        'amount' => $minTradeAmount,
-                        'price' => $tickSize,
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
+                if (!$this->safe_value($seenMarkets, $symbol, false)) {
+                    $seenMarkets[$symbol] = true;
+                    $result[] = array(
+                        'id' => $id,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'settle' => $settle,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                        'settleId' => $settleId,
+                        'type' => $type,
+                        'spot' => $isSpot,
+                        'margin' => false,
+                        'swap' => $swap,
+                        'future' => $future,
+                        'option' => $option,
+                        'active' => $this->safe_value($market, 'is_active'),
+                        'contract' => !$isSpot,
+                        'linear' => ($settle === $quote),
+                        'inverse' => ($settle !== $quote),
+                        'taker' => $this->safe_number($market, 'taker_commission'),
+                        'maker' => $this->safe_number($market, 'maker_commission'),
+                        'contractSize' => $this->safe_number($market, 'contract_size'),
+                        'expiry' => $expiry,
+                        'expiryDatetime' => $this->iso8601($expiry),
+                        'strike' => $strike,
+                        'optionType' => $optionType,
+                        'precision' => array(
+                            'amount' => $minTradeAmount,
+                            'price' => $tickSize,
                         ),
-                        'amount' => array(
-                            'min' => $minTradeAmount,
-                            'max' => null,
+                        'limits' => array(
+                            'leverage' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'amount' => array(
+                                'min' => $minTradeAmount,
+                                'max' => null,
+                            ),
+                            'price' => array(
+                                'min' => $tickSize,
+                                'max' => null,
+                            ),
+                            'cost' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'price' => array(
-                            'min' => $tickSize,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $market,
-                );
+                        'info' => $market,
+                    );
+                }
             }
         }
         return $result;

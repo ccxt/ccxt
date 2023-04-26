@@ -130,7 +130,7 @@ import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
-import Future from './ws/Future.js';
+import { createFuture, Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
@@ -1117,9 +1117,9 @@ export default class Exchange {
         return undefined;
     }
 
-    spawn (method, ... args) {
-        const future = Future ()
-        method.apply (this, args).then ((future as any).resolve).catch ((future as any).reject)
+    spawn (method, ... args): Future {
+        const future = createFuture ()
+        method.apply (this, args).then (future.resolve).catch (future.reject)
         return future
     }
 

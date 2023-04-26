@@ -229,7 +229,6 @@ class yobit extends Exchange {
                 'XRA' => 'Ratecoin',
             ),
             'options' => array(
-                // 'fetchTickersMaxLength' => 2048,
                 'fetchOrdersRequiresSymbol' => true,
                 'fetchTickersMaxLength' => 512,
                 'networks' => array(
@@ -543,10 +542,10 @@ class yobit extends Exchange {
         $ids = null;
         if ($symbols === null) {
             $numIds = count($this->ids);
-            $ids = implode('-', $ids);
-            $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
-            // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
+            $ids = implode('-', $this->ids);
+            $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 512);
+            // max URL length is 512 $symbols, including http schema, hostname, tld, etc...
+            if (strlen($ids) > $maxLength) {
                 throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
             }
         } else {
