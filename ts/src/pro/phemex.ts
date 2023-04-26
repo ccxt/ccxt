@@ -649,7 +649,7 @@ export default class phemex extends phemexRest {
     }
 
     handleDelta (bookside, delta, market = undefined) {
-        const bidAsk = this.parseBidAsk (delta, 0, 1, market);
+        const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 

@@ -429,13 +429,13 @@ export default class ascendex extends Exchange {
             const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString2 (currency, 'status', 'statusCode');
             const active = (status === 'Normal');
-            const margin = ('borrowAssetCode' in currency);
+            const marginInside = ('borrowAssetCode' in currency);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': margin,
+                'margin': marginInside,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
                 'deposit': undefined,
@@ -3040,7 +3040,7 @@ export default class ascendex extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {'code': 6010, 'message': 'Not enough balance.'}
@@ -3058,5 +3058,6 @@ export default class ascendex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

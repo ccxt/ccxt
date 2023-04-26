@@ -1001,5 +1001,6 @@ export default class coinmate extends Exchange {
             }
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 }

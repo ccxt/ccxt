@@ -425,11 +425,11 @@ export default class probit extends Exchange {
             // sometimes the withdrawal fee is an empty object
             // [ { 'amount': '0.015', 'priority': 1, 'currency_id': 'ETH' }, {} ]
             for (let j = 0; j < withdrawalFees.length; j++) {
-                const withdrawalFee = withdrawalFees[j];
-                const amount = this.safeNumber (withdrawalFee, 'amount');
-                const priority = this.safeInteger (withdrawalFee, 'priority');
+                const withdrawalFeeInner = withdrawalFees[j];
+                const amount = this.safeNumber (withdrawalFeeInner, 'amount');
+                const priority = this.safeInteger (withdrawalFeeInner, 'priority');
                 if ((amount !== undefined) && (priority !== undefined)) {
-                    fees.push (withdrawalFee);
+                    fees.push (withdrawalFeeInner);
                 }
             }
             const withdrawalFeesByPriority = this.sortBy (fees, 'priority');
@@ -1662,7 +1662,7 @@ export default class probit extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('errorCode' in response) {
             const errorCode = this.safeString (response, 'errorCode');
@@ -1674,5 +1674,6 @@ export default class probit extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

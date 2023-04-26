@@ -528,7 +528,10 @@ export default class digifinex extends Exchange {
          */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const method = this.safeString (options, 'method', 'fetch_markets_v2');
-        return await this[method] (params);
+        if (method === 'fetch_markets_v2') {
+            return await this.fetchMarketsV2 (params);
+        }
+        return await this.fetchMarketsV1 (params);
     }
 
     async fetchMarketsV2 (params = {}) {
@@ -3072,11 +3075,11 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (data, 'instrument_id');
-            const symbol = this.safeSymbol (marketId);
+            const symbolInner = this.safeSymbol (marketId);
             const timestamp = this.safeInteger (entry, 'time');
             rates.push ({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeString (entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -3903,11 +3906,11 @@ export default class digifinex extends Exchange {
 
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fall back to default error handler
+            return undefined; // fall back to default error handler
         }
         const code = this.safeString (response, 'code');
         if ((code === '0') || (code === '200')) {
-            return; // no error
+            return undefined; // no error
         }
         const feedback = this.id + ' ' + responseBody;
         if (code === undefined) {
