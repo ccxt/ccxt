@@ -293,6 +293,7 @@ export default class binance extends Exchange {
                         'managed-subaccount/fetch-future-asset': 0.1,
                         'managed-subaccount/marginAsset': 0.1,
                         'managed-subaccount/info': 0.4,
+                        'managed-subaccount/deposit/address': 0.1,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -939,6 +940,7 @@ export default class binance extends Exchange {
                     'delivery': 'CMFUTURE',
                     'linear': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
+                    'option': 'OPTION',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -946,6 +948,7 @@ export default class binance extends Exchange {
                     'MARGIN': 'margin',
                     'UMFUTURE': 'linear',
                     'CMFUTURE': 'inverse',
+                    'OPTION': 'option',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -5391,7 +5394,8 @@ export default class binance extends Exchange {
                 const toSpot = toId === 'MAIN';
                 const funding = fromId === 'FUNDING' || toId === 'FUNDING';
                 const mining = fromId === 'MINING' || toId === 'MINING';
-                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
+                const option = fromId === 'OPTION' || toId === 'OPTION';
+                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding || option;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest(this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 }

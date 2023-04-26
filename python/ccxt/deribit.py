@@ -641,6 +641,8 @@ class deribit(Exchange):
             instrumentsResult = self.safe_value(instrumentsResponse, 'result', [])
             for k in range(0, len(instrumentsResult)):
                 market = instrumentsResult[k]
+                kind = self.safe_string(market, 'kind')
+                isSpot = (kind == 'spot')
                 id = self.safe_string(market, 'instrument_name')
                 baseId = self.safe_string(market, 'base_currency')
                 quoteId = self.safe_string(market, 'counter_currency')
@@ -648,7 +650,6 @@ class deribit(Exchange):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 settle = self.safe_currency_code(settleId)
-                kind = self.safe_string(market, 'kind')
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
                 future = not swap and (kind.find('future') >= 0)
@@ -663,7 +664,11 @@ class deribit(Exchange):
                     type = 'future'
                 elif option:
                     type = 'option'
-                if not isComboMarket:
+                elif isSpot:
+                    type = 'spot'
+                if isSpot:
+                    symbol = base + '/' + quote
+                elif not isComboMarket:
                     symbol = base + '/' + quote + ':' + settle
                     if option or future:
                         symbol = symbol + '-' + self.yymmdd(expiry, '')
@@ -684,13 +689,13 @@ class deribit(Exchange):
                     'quoteId': quoteId,
                     'settleId': settleId,
                     'type': type,
-                    'spot': False,
+                    'spot': isSpot,
                     'margin': False,
                     'swap': swap,
                     'future': future,
                     'option': option,
                     'active': self.safe_value(market, 'is_active'),
-                    'contract': True,
+                    'contract': not isSpot,
                     'linear': (settle == quote),
                     'inverse': (settle != quote),
                     'taker': self.safe_number(market, 'taker_commission'),

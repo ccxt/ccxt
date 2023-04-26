@@ -244,6 +244,8 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/info' => 1,
                         'v5/spot-lever-token/reference' => 1,
                         'v5/announcements/index' => 1,
+                        'v5/spot-cross-margin-trade/pledge-token' => 1,
+                        'v5/spot-cross-margin-trade/borrow-token' => 1,
                     ),
                 ),
                 'private' => array(
@@ -398,6 +400,10 @@ class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members' => 10,
                         'v5/user/query-api' => 10,
+                        'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
                     ),
                     'post' => array(
                         // inverse swap
@@ -584,6 +590,9 @@ class bybit extends Exchange {
                         'v5/user/update-sub-api' => 10,
                         'v5/user/delete-api' => 10,
                         'v5/user/delete-sub-api' => 10,
+                        'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                     ),
                     'delete' => array(
                         // spot
@@ -7226,22 +7235,24 @@ class bybit extends Exchange {
             $symbols = $this->market_symbols($symbols);
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $settle = $this->safe_string($params, 'settleCoin');
+            $paramsOmitted = null;
             if ($settle === null) {
-                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
+                list($settle, $paramsOmitted) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
             }
             $isUsdcSettled = $settle === 'USDC';
-            list($subType, $query) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
+            $subType = null;
+            list($subType, $paramsOmitted) = $this->handle_sub_type_and_params('fetchPositions', null, $paramsOmitted);
             $isInverse = $subType === 'inverse';
             $isLinearSettle = $isUsdcSettled || ($settle === 'USDT');
             if ($isInverse && $isLinearSettle) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions with inverse $subType requires $settle to not be USDT or USDC');
             }
             if (($enableUnifiedMargin || $enableUnifiedAccount) && !$isInverse) {
-                return Async\await($this->fetch_unified_positions($symbols, $query));
+                return Async\await($this->fetch_unified_positions($symbols, $params));
             } elseif ($isUsdcSettled) {
-                return Async\await($this->fetch_usdc_positions($symbols, $query));
+                return Async\await($this->fetch_usdc_positions($symbols, $paramsOmitted));
             } else {
-                return Async\await($this->fetch_derivatives_positions($symbols, $query));
+                return Async\await($this->fetch_derivatives_positions($symbols, $params));
             }
         }) ();
     }

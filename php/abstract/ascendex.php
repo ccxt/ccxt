@@ -157,6 +157,9 @@ abstract class ascendex extends \ccxt\Exchange {
     public function v2_public_get_futures_ticker($params = array()) {
         return $this->request('futures/ticker', array('v2', 'public'), 'GET', $params);
     }
+    public function v2_private_data_get_order_hist($params = array()) {
+        return $this->request('order/hist', array('v2', 'private', 'data'), 'GET', $params);
+    }
     public function v2_private_get_account_info($params = array()) {
         return $this->request('account/info', array('v2', 'private'), 'GET', $params);
     }
@@ -366,6 +369,9 @@ abstract class ascendex extends \ccxt\Exchange {
     }
     public function v2PublicGetFuturesTicker($params = array()) {
         return $this->request('futures/ticker', array('v2', 'public'), 'GET', $params);
+    }
+    public function v2PrivateDataGetOrderHist($params = array()) {
+        return $this->request('order/hist', array('v2', 'private', 'data'), 'GET', $params);
     }
     public function v2PrivateGetAccountInfo($params = array()) {
         return $this->request('account/info', array('v2', 'private'), 'GET', $params);

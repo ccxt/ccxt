@@ -290,6 +290,7 @@ class binance extends Exchange {
                         'managed-subaccount/fetch-future-asset' => 0.1,
                         'managed-subaccount/marginAsset' => 0.1,
                         'managed-subaccount/info' => 0.4,
+                        'managed-subaccount/deposit/address' => 0.1,
                         // lending endpoints
                         'lending/daily/product/list' => 0.1,
                         'lending/daily/userLeftQuota' => 0.1,
@@ -936,6 +937,7 @@ class binance extends Exchange {
                     'delivery' => 'CMFUTURE', // backwards compatbility
                     'linear' => 'UMFUTURE',
                     'inverse' => 'CMFUTURE',
+                    'option' => 'OPTION',
                 ),
                 'accountsById' => array(
                     'MAIN' => 'spot',
@@ -943,6 +945,7 @@ class binance extends Exchange {
                     'MARGIN' => 'margin',
                     'UMFUTURE' => 'linear',
                     'CMFUTURE' => 'inverse',
+                    'OPTION' => 'option',
                 ),
                 'networks' => array(
                     'ERC20' => 'ETH',
@@ -5265,7 +5268,8 @@ class binance extends Exchange {
                 $toSpot = $toId === 'MAIN';
                 $funding = $fromId === 'FUNDING' || $toId === 'FUNDING';
                 $mining = $fromId === 'MINING' || $toId === 'MINING';
-                $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
+                $option = $fromId === 'OPTION' || $toId === 'OPTION';
+                $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding || $option;
                 if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                     throw new BadRequest($this->id . ' transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
                 } elseif ($toSpot && $fromIsolated) {

@@ -264,6 +264,8 @@
         }
     },
     "btctradeua": {
+        "skip": true,
+        "//": "25/04 exchange not available",
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value",
             "fetchCurrencies": "info key is missing",
@@ -618,7 +620,8 @@
     },
     "phemex": {
         "skipMethods": {
-            "loadMarkets": "contractSize might be set to 0"
+            "loadMarkets": "contractSize might be set to 0",
+            "fetchTickers": "quoteVolume <= baseVolume * high"
         }
     },
     "okcoin": {

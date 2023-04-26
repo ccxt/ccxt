@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.78 (2023-04-26)
+
+### 3.0.77 (2023-04-25)
+
+### 3.0.76 (2023-04-24)
+
+
+### Features
+
+* **Deribit:** add spot markets ([d561ecf](https://github.com/ccxt/ccxt/commit/d561ecffb0e7f4ca894a6285f0aa1c3d2c097dcc))
+
 ### 3.0.75 (2023-04-23)
 
 ### 3.0.74 (2023-04-21)
