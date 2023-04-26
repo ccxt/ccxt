@@ -444,7 +444,7 @@ class bigone extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $timestamp = $this->safe_integer($data, 'timestamp');
+            $timestamp = $this->safe_integer($data, 'Timestamp');
             return $this->parse_to_int($timestamp / 1000000);
         }) ();
     }
@@ -773,8 +773,12 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'type', '');
             $params = $this->omit($params, 'type');
-            $method = 'privateGet' . $this->capitalize($type) . 'Accounts';
-            $response = Async\await($this->$method ($params));
+            $response = null;
+            if ($type === 'funding' || $type === 'fund') {
+                $response = Async\await($this->privateGetFundAccounts ($params));
+            } else {
+                $response = Async\await($this->privateGetAccounts ($params));
+            }
             //
             //     {
             //         "code":0,

@@ -195,7 +195,9 @@ export type implicitReturnType = any;
 
 // must be an integer in other langs
 export type IndexType = number | string;
+
 export type Int = number;
 
-export type OrderSide  = 'buy' | 'sell';
+export type OrderSide = 'buy' | 'sell';
+
 export type OrderType = 'limit' | 'market';

@@ -292,6 +292,7 @@ export default class binance extends Exchange {
                         'managed-subaccount/fetch-future-asset': 0.1,
                         'managed-subaccount/marginAsset': 0.1,
                         'managed-subaccount/info': 0.4,
+                        'managed-subaccount/deposit/address': 0.1,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -938,6 +939,7 @@ export default class binance extends Exchange {
                     'delivery': 'CMFUTURE', // backwards compatbility
                     'linear': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
+                    'option': 'OPTION',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -945,6 +947,7 @@ export default class binance extends Exchange {
                     'MARGIN': 'margin',
                     'UMFUTURE': 'linear',
                     'CMFUTURE': 'inverse',
+                    'OPTION': 'option',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -2075,7 +2078,7 @@ export default class binance extends Exchange {
             contract = true;
             option = true;
             settleId = (settleId === undefined) ? 'USDT' : settleId;
-        } else {
+        } else if (expiry !== undefined) {
             future = true;
         }
         const settle = this.safeCurrencyCode (settleId);
@@ -5319,7 +5322,8 @@ export default class binance extends Exchange {
                 const toSpot = toId === 'MAIN';
                 const funding = fromId === 'FUNDING' || toId === 'FUNDING';
                 const mining = fromId === 'MINING' || toId === 'MINING';
-                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
+                const option = fromId === 'OPTION' || toId === 'OPTION';
+                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding || option;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 } else if (toSpot && fromIsolated) {
@@ -8003,7 +8007,7 @@ export default class binance extends Exchange {
         //      ...
         //  ]
         //
-        return this.parseOpenInterests (response, symbol, since, limit);
+        return this.parseOpenInterests (response, market, since, limit);
     }
 
     async fetchOpenInterest (symbol: string, params = {}) {
@@ -8072,7 +8076,7 @@ export default class binance extends Exchange {
     }
 
     parseOpenInterest (interest, market = undefined) {
-        const timestamp = this.safeInteger (interest, 'timestamp');
+        const timestamp = this.safeInteger2 (interest, 'timestamp', 'time');
         const id = this.safeString (interest, 'symbol');
         const amount = this.safeNumber2 (interest, 'sumOpenInterest', 'openInterest');
         const value = this.safeNumber2 (interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');

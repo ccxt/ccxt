@@ -272,7 +272,7 @@ class ndax extends \ccxt\async\ndax {
                 $duration = intval($interval) * 1000;
                 $timestamp = $this->safe_integer($ohlcv, 0);
                 $parsed = array(
-                    intval((($timestamp / $duration) * (string) $duration)),
+                    $this->parse_to_int(($timestamp / $duration) * $duration),
                     $this->safe_float($ohlcv, 3),
                     $this->safe_float($ohlcv, 1),
                     $this->safe_float($ohlcv, 2),

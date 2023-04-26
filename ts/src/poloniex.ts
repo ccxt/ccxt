@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, CancelPending } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -246,6 +246,7 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
+                    '200': CancelPending, // { "orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : "" }
                     '500': ExchangeNotAvailable, // Internal System Error
                     '603': RequestTimeout, // Internal Request Timeout
                     '601': BadRequest, // Invalid Parameter
@@ -800,7 +801,7 @@ export default class poloniex extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const side = this.safeStringLower (trade, 'side');
+        const side = this.safeStringLower2 (trade, 'side', 'takerSide');
         let fee = undefined;
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
@@ -2080,9 +2081,11 @@ export default class poloniex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCostString),
+                'rate': undefined,
             },
         };
     }

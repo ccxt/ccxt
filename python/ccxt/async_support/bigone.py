@@ -432,7 +432,7 @@ class bigone(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(data, 'timestamp')
+        timestamp = self.safe_integer(data, 'Timestamp')
         return self.parse_to_int(timestamp / 1000000)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
@@ -730,8 +730,11 @@ class bigone(Exchange):
         await self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        method = 'privateGet' + self.capitalize(type) + 'Accounts'
-        response = await getattr(self, method)(params)
+        response = None
+        if type == 'funding' or type == 'fund':
+            response = await self.privateGetFundAccounts(params)
+        else:
+            response = await self.privateGetAccounts(params)
         #
         #     {
         #         "code":0,

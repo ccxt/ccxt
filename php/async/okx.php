@@ -1285,27 +1285,19 @@ class okx extends Exchange {
                 $chains = $dataByCurrencyId[$currencyId];
                 $networks = array();
                 $currencyActive = false;
-                $depositEnabled = null;
-                $withdrawEnabled = null;
+                $depositEnabled = false;
+                $withdrawEnabled = false;
                 $maxPrecision = null;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $canDeposit = $this->safe_value($chain, 'canDep');
+                    $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
                     $canWithdraw = $this->safe_value($chain, 'canWd');
+                    $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
                     $canInternal = $this->safe_value($chain, 'canInternal');
                     $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
                     $currencyActive = ($active) ? $active : $currencyActive;
                     $networkId = $this->safe_string($chain, 'chain');
-                    if ($canDeposit && !$depositEnabled) {
-                        $depositEnabled = true;
-                    } elseif (!$canDeposit) {
-                        $depositEnabled = false;
-                    }
-                    if ($canWithdraw && !$withdrawEnabled) {
-                        $withdrawEnabled = true;
-                    } elseif (!$canWithdraw) {
-                        $withdrawEnabled = false;
-                    }
                     if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                         $parts = explode('-', $networkId);
                         $chainPart = $this->safe_string($parts, 1, $networkId);
@@ -3882,10 +3874,10 @@ class okx extends Exchange {
                 'dest' => '4', // 2 = OKCoin International, 3 = OKX 4 = others
                 'amt' => $this->number_to_string($amount),
             );
-            $networks = $this->safe_value($this->options, 'networks', array());
             $network = $this->safe_string($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
             if ($network !== null) {
+                $networks = $this->safe_value($this->options, 'networks', array());
+                $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
                 $request['chain'] = $currency['id'] . '-' . $network;
                 $params = $this->omit($params, 'network');
             }

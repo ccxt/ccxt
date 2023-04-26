@@ -425,6 +425,7 @@ class bitget extends \ccxt\async\bitget {
             $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
             if ($storedOrderBook === null) {
                 $storedOrderBook = $this->counted_order_book(array());
+                $storedOrderBook['symbol'] = $symbol;
             }
             $asks = $this->safe_value($rawOrderBook, 'asks', array());
             $bids = $this->safe_value($rawOrderBook, 'bids', array());

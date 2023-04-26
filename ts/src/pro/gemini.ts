@@ -643,7 +643,7 @@ export default class gemini extends geminiRest {
             'nonce': this.nonce (),
         };
         const b64 = this.stringToBase64 (this.json (payload));
-        const signature = this.hmac (b64, this.encode (this.secret), sha384, 'hex');
+        const signature = this.hmac (this.encode (b64), this.encode (this.secret), sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {

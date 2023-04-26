@@ -1628,7 +1628,7 @@ class hollaex(Exchange):
         url = self.urls['api']['rest'] + path
         if api == 'private':
             self.check_required_credentials()
-            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', int((self.timeout / str(1000))))
+            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(self.timeout / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
             expiresString = str(expires)
             auth = method + path + expiresString

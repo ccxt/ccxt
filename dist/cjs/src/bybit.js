@@ -235,6 +235,8 @@ class bybit extends bybit$1 {
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
                         'v5/announcements/index': 1,
+                        'v5/spot-cross-margin-trade/pledge-token': 1,
+                        'v5/spot-cross-margin-trade/borrow-token': 1,
                     },
                 },
                 'private': {
@@ -389,6 +391,10 @@ class bybit extends bybit$1 {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/spot-cross-margin-trade/loan-info': 1,
+                        'v5/spot-cross-margin-trade/account': 1,
+                        'v5/spot-cross-margin-trade/orders': 1,
+                        'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
                     },
                     'post': {
                         // inverse swap
@@ -575,6 +581,9 @@ class bybit extends bybit$1 {
                         'v5/user/update-sub-api': 10,
                         'v5/user/delete-api': 10,
                         'v5/user/delete-sub-api': 10,
+                        'v5/spot-cross-margin-trade/loan': 2.5,
+                        'v5/spot-cross-margin-trade/repay': 2.5,
+                        'v5/spot-cross-margin-trade/switch': 2.5, // 20/s => cost = 50 / 20 = 2.5
                     },
                     'delete': {
                         // spot
@@ -3522,9 +3531,9 @@ class bybit extends bybit$1 {
         if (isLimit) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const exchangeSpecificParam = this.safeString(params, 'time_in_force');
-        const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        const timeInForce = this.safeStringLower(params, 'timeInForce'); // this is same as exchange specific param
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, timeInForce === 'PostOnly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }
@@ -3637,8 +3646,10 @@ class bybit extends bybit$1 {
             }
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
-        const isPostOnly = this.isPostOnly(upperCaseType === 'MARKET', type === 'LIMIT_MAKER', params);
-        if (isPostOnly) {
+        const isMarket = (upperCaseType === 'MARKET');
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, type === 'LIMIT_MAKER', params);
+        if (postOnly) {
             request['orderType'] = 'LIMIT_MAKER';
         }
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'orderLinkId');
@@ -3728,7 +3739,8 @@ class bybit extends bybit$1 {
         }
         const exchangeSpecificParam = this.safeString(params, 'time_in_force');
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }
@@ -3831,9 +3843,9 @@ class bybit extends bybit$1 {
         if (isLimit) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const exchangeSpecificParam = this.safeString(params, 'time_in_force');
-        const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        const timeInForce = this.safeStringLower(params, 'timeInForce'); // same as exchange specific param
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, timeInForce === 'PostOnly', params);
         if (postOnly) {
             request['timeInForce'] = 'PostOnly';
         }
@@ -3847,7 +3859,7 @@ class bybit extends bybit$1 {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
         let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const stopLoss = this.safeNumber(params, 'stopLoss');
         const takeProfit = this.safeNumber(params, 'takeProfit');
@@ -3937,7 +3949,8 @@ class bybit extends bybit$1 {
         }
         const exchangeSpecificParam = this.safeString(params, 'time_in_force');
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
         if (postOnly) {
             request['time_in_force'] = 'PostOnly';
         }
@@ -7194,24 +7207,26 @@ class bybit extends bybit$1 {
         symbols = this.marketSymbols(symbols);
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         let settle = this.safeString(params, 'settleCoin');
+        let paramsOmitted = undefined;
         if (settle === undefined) {
-            [settle, params] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', settle);
+            [settle, paramsOmitted] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', settle);
         }
         const isUsdcSettled = settle === 'USDC';
-        const [subType, query] = this.handleSubTypeAndParams('fetchPositions', undefined, params);
+        let subType = undefined;
+        [subType, paramsOmitted] = this.handleSubTypeAndParams('fetchPositions', undefined, paramsOmitted);
         const isInverse = subType === 'inverse';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
             throw new errors.ArgumentsRequired(this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
         }
         if ((enableUnifiedMargin || enableUnifiedAccount) && !isInverse) {
-            return await this.fetchUnifiedPositions(symbols, query);
+            return await this.fetchUnifiedPositions(symbols, params);
         }
         else if (isUsdcSettled) {
-            return await this.fetchUSDCPositions(symbols, query);
+            return await this.fetchUSDCPositions(symbols, paramsOmitted);
         }
         else {
-            return await this.fetchDerivativesPositions(symbols, query);
+            return await this.fetchDerivativesPositions(symbols, params);
         }
     }
     parsePosition(position, market = undefined) {

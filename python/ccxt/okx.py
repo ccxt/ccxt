@@ -1264,25 +1264,19 @@ class okx(Exchange):
             chains = dataByCurrencyId[currencyId]
             networks = {}
             currencyActive = False
-            depositEnabled = None
-            withdrawEnabled = None
+            depositEnabled = False
+            withdrawEnabled = False
             maxPrecision = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 canDeposit = self.safe_value(chain, 'canDep')
+                depositEnabled = canDeposit if (canDeposit) else depositEnabled
                 canWithdraw = self.safe_value(chain, 'canWd')
+                withdrawEnabled = canWithdraw if (canWithdraw) else withdrawEnabled
                 canInternal = self.safe_value(chain, 'canInternal')
                 active = True if (canDeposit and canWithdraw and canInternal) else False
                 currencyActive = active if (active) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
-                if canDeposit and not depositEnabled:
-                    depositEnabled = True
-                elif not canDeposit:
-                    depositEnabled = False
-                if canWithdraw and not withdrawEnabled:
-                    withdrawEnabled = True
-                elif not canWithdraw:
-                    withdrawEnabled = False
                 if (networkId is not None) and (networkId.find('-') >= 0):
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
@@ -3667,10 +3661,10 @@ class okx(Exchange):
             'dest': '4',  # 2 = OKCoin International, 3 = OKX 4 = others
             'amt': self.number_to_string(amount),
         }
-        networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network.upper(), network)  # handle ETH>ERC20 alias
         if network is not None:
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string(networks, network.upper(), network)  # handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network
             params = self.omit(params, 'network')
         fee = self.safe_string(params, 'fee')

@@ -1563,6 +1563,7 @@ class woo(Exchange):
         addressFrom = self.safe_string(transaction, 'source_address')
         timestamp = self.safe_timestamp(transaction, 'created_time')
         return {
+            'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdraw_id'),
             'txid': self.safe_string(transaction, 'tx_id'),
             'timestamp': timestamp,
@@ -1571,13 +1572,15 @@ class woo(Exchange):
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': self.safe_string(transaction, 'extra'),
+            'tagFrom': None,
+            'tagTo': None,
             'type': movementDirection,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'updated': self.safe_timestamp(transaction, 'updated_time'),
+            'comment': None,
             'fee': fee,
-            'info': transaction,
         }
 
     def parse_transaction_status(self, status):

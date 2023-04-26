@@ -1328,7 +1328,7 @@ class bittrex(Exchange):
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
         if since is not None:
-            startDate = int((since / str(1000))) * 1000
+            startDate = self.parse_to_int(since / 1000) * 1000
             request['startDate'] = self.iso8601(startDate)
         if limit is not None:
             request['pageSize'] = limit
@@ -1401,7 +1401,7 @@ class bittrex(Exchange):
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
         if since is not None:
-            startDate = int((since / str(1000))) * 1000
+            startDate = self.parse_to_int(since / 1000) * 1000
             request['startDate'] = self.iso8601(startDate)
         if limit is not None:
             request['pageSize'] = limit

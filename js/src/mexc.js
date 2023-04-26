@@ -33,7 +33,7 @@ export default class mexc extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'createDepositAddress': undefined,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
@@ -337,18 +337,13 @@ export default class mexc extends Exchange {
             'precisionMode': TICK_SIZE,
             'timeframes': {
                 '1m': '1m',
-                '3m': '3m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
-                '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
                 '8h': '8h',
-                '12h': '12h',
                 '1d': '1d',
-                '3d': '3d',
                 '1w': '1w',
                 '1M': '1M', // spot, swap
             },
@@ -383,19 +378,12 @@ export default class mexc extends Exchange {
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
-                        '3m': '3m',
                         '5m': '5m',
                         '15m': '15m',
                         '30m': '30m',
-                        '1h': '1h',
-                        '2h': '2h',
+                        '1h': '60m',
                         '4h': '4h',
-                        '6h': '6h',
-                        '8h': '8h',
-                        '12h': '12h',
                         '1d': '1d',
-                        '3d': '3d',
-                        '1w': '1w',
                         '1M': '1M',
                     },
                     'swap': {
@@ -1277,7 +1265,7 @@ export default class mexc extends Exchange {
                 costString = this.safeString(trade, 'quoteQty');
                 const isBuyer = this.safeValue(trade, 'isBuyer');
                 const isMaker = this.safeValue(trade, 'isMaker');
-                const buyerMaker = this.safeString2(trade, 'isBuyerMaker', 'm');
+                const buyerMaker = this.safeValue2(trade, 'isBuyerMaker', 'm');
                 if (isMaker !== undefined) {
                     takerOrMaker = isMaker ? 'maker' : 'taker';
                 }
@@ -3884,6 +3872,12 @@ export default class mexc extends Exchange {
         const request = {
             'coin': currency['id'],
         };
+        const networkCode = this.safeString(params, 'network');
+        const networkId = this.networkCodeToId(networkCode, code);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        params = this.omit(params, 'network');
         const response = await this.spotPrivateGetCapitalDepositAddress(this.extend(request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -3902,6 +3896,46 @@ export default class mexc extends Exchange {
             });
         }
         return result;
+    }
+    async createDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name mexc3#createDepositAddress
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+         * @description create a currency deposit address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.network the blockchain network name
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const networkCode = this.safeString(params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired(this.id + ' createDepositAddress requires a `network` parameter');
+        }
+        const networkId = this.networkCodeToId(networkCode, code);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        params = this.omit(params, 'network');
+        const response = await this.spotPrivatePostCapitalDepositAddress(this.extend(request, params));
+        //     {
+        //        "coin": "EOS",
+        //        "network": "EOS",
+        //        "address": "zzqqqqqqqqqq",
+        //        "memo": "MX10068"
+        //     }
+        return {
+            'info': response,
+            'currency': this.safeString(response, 'coin'),
+            'network': this.safeString(response, 'network'),
+            'address': this.safeString(response, 'address'),
+            'tag': this.safeString(response, 'memo'),
+        };
     }
     async fetchDepositAddress(code, params = {}) {
         /**

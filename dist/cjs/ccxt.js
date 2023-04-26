@@ -120,6 +120,7 @@ var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
+var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zb = require('./src/zb.js');
@@ -183,7 +184,7 @@ var zb$1 = require('./src/pro/zb.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.62';
+const version = '3.0.78';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -294,6 +295,7 @@ const exchanges = {
     'wazirx': wazirx,
     'whitebit': whitebit,
     'woo': woo,
+    'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
     'zb': zb,
@@ -505,6 +507,7 @@ exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
+exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zb = zb;

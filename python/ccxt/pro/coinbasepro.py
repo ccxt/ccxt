@@ -633,6 +633,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             self.handle_deltas(orderbook['bids'], self.safe_value(message, 'bids', []))
             orderbook['timestamp'] = None
             orderbook['datetime'] = None
+            orderbook['symbol'] = symbol
             client.resolve(orderbook, messageHash)
         elif type == 'l2update':
             orderbook = self.orderbooks[symbol]

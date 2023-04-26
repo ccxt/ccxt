@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.binance import binance
+from ccxt.base.errors import InvalidOrder
 
 
 class binanceusdm(binance):
@@ -36,6 +37,14 @@ class binanceusdm(binance):
                 'leverageBrackets': None,
                 'marginTypes': {},
                 'marginModes': {},
+            },
+            # https://binance-docs.github.io/apidocs/futures/en/#error-codes
+            'exceptions': {
+                'exact': {
+                    '-5021': InvalidOrder,  # {"code":-502,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected."}
+                    '-5022': InvalidOrder,  # {"code":-5022,"msg":"Due to the order could not be executed, the Post Only order will be rejected."}
+                    '-5028': InvalidOrder,  # {"code":-5028,"msg":"Timestamp for self request is outside of the ME recvWindow."}
+                },
             },
         })
 

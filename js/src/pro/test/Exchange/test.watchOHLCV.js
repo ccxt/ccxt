@@ -6,9 +6,8 @@
 
 'use strict';
 // ----------------------------------------------------------------------------
-import log from 'ololog';
 import assert from 'assert';
-import testOHLCV from '../../../test/Exchange/test.ohlcv.js';
+import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import errors from '../../../base/errors.js';
 /*  ------------------------------------------------------------------------ */
 export default async (exchange, symbol) => {
@@ -20,14 +19,14 @@ export default async (exchange, symbol) => {
         'bitvavo',
         'zb',
         'woo',
-        'bitget', // timeframes structure differs from rest 
+        'bitget', // timeframes structure differs from rest
     ];
     if (skippedExchanges.includes(exchange.id)) {
-        log(exchange.id, method + '() test skipped');
+        console.log(exchange.id, method + '() test skipped');
         return;
     }
     if (!exchange.has[method]) {
-        log(exchange.id, 'does not support', method + '() method');
+        console.log(exchange.id, 'does not support', method + '() method');
         return;
     }
     const timeframe = (exchange.timeframes && ('1m' in exchange.timeframes)) ? '1m' : Object.keys(exchange.timeframes)[0];
@@ -42,7 +41,7 @@ export default async (exchange, symbol) => {
             // log (symbol.green, method, 'returned', Object.values (response).length.toString ().green, 'ohlcvs')
             for (let i = 0; i < response.length; i++) {
                 const current = response[i];
-                testOHLCV(exchange, current, symbol, now);
+                testOHLCV(exchange, method, current, symbol, now);
                 if (i > 0) {
                     const previous = response[i - 1];
                     if (current[0] && previous[0]) {
@@ -59,11 +58,11 @@ export default async (exchange, symbol) => {
                 ohlcv[5],
             ]);
             if (response.length > 0) {
-                log(exchange.iso8601(now), exchange.id, timeframe, symbol, response.length, 'candles', JSON.stringify(response[response.length - 1]));
+                console.log(exchange.iso8601(now), exchange.id, timeframe, symbol, response.length, 'candles', JSON.stringify(response[response.length - 1]));
             }
         }
         catch (e) {
-            log(e);
+            console.log(e);
             if (!(e instanceof errors.NetworkError)) {
                 throw e;
             }

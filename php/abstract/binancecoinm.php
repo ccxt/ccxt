@@ -310,6 +310,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapi_get_managed_subaccount_info($params = array()) {
         return $this->request('managed-subaccount/info', 'sapi', 'GET', $params);
     }
+    public function sapi_get_managed_subaccount_deposit_address($params = array()) {
+        return $this->request('managed-subaccount/deposit/address', 'sapi', 'GET', $params);
+    }
     public function sapi_get_lending_daily_product_list($params = array()) {
         return $this->request('lending/daily/product/list', 'sapi', 'GET', $params);
     }
@@ -1758,6 +1761,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiGetManagedSubaccountInfo($params = array()) {
         return $this->request('managed-subaccount/info', 'sapi', 'GET', $params);
+    }
+    public function sapiGetManagedSubaccountDepositAddress($params = array()) {
+        return $this->request('managed-subaccount/deposit/address', 'sapi', 'GET', $params);
     }
     public function sapiGetLendingDailyProductList($params = array()) {
         return $this->request('lending/daily/product/list', 'sapi', 'GET', $params);

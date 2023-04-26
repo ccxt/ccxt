@@ -1425,7 +1425,7 @@ class bittrex extends Exchange {
                 $request['currencySymbol'] = $currency['id'];
             }
             if ($since !== null) {
-                $startDate = intval(($since / (string) 1000)) * 1000;
+                $startDate = $this->parse_to_int($since / 1000) * 1000;
                 $request['startDate'] = $this->iso8601($startDate);
             }
             if ($limit !== null) {
@@ -1512,7 +1512,7 @@ class bittrex extends Exchange {
                 $request['currencySymbol'] = $currency['id'];
             }
             if ($since !== null) {
-                $startDate = intval(($since / (string) 1000)) * 1000;
+                $startDate = $this->parse_to_int($since / 1000) * 1000;
                 $request['startDate'] = $this->iso8601($startDate);
             }
             if ($limit !== null) {

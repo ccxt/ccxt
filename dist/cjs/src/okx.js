@@ -1265,29 +1265,19 @@ class okx extends okx$1 {
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
             let currencyActive = false;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let depositEnabled = false;
+            let withdrawEnabled = false;
             let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const canDeposit = this.safeValue(chain, 'canDep');
+                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
                 const canWithdraw = this.safeValue(chain, 'canWd');
+                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
                 const canInternal = this.safeValue(chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString(chain, 'chain');
-                if (canDeposit && !depositEnabled) {
-                    depositEnabled = true;
-                }
-                else if (!canDeposit) {
-                    depositEnabled = false;
-                }
-                if (canWithdraw && !withdrawEnabled) {
-                    withdrawEnabled = true;
-                }
-                else if (!canWithdraw) {
-                    withdrawEnabled = false;
-                }
                 if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
                     const parts = networkId.split('-');
                     const chainPart = this.safeString(parts, 1, networkId);
@@ -3862,10 +3852,10 @@ class okx extends okx$1 {
             'dest': '4',
             'amt': this.numberToString(amount),
         };
-        const networks = this.safeValue(this.options, 'networks', {});
         let network = this.safeString(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
         if (network !== undefined) {
+            const networks = this.safeValue(this.options, 'networks', {});
+            network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
             request['chain'] = currency['id'] + '-' + network;
             params = this.omit(params, 'network');
         }

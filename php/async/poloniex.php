@@ -250,6 +250,7 @@ class poloniex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // General
+                    '200' => '\\ccxt\\CancelPending', // array( "orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : "" )
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal System Error
                     '603' => '\\ccxt\\RequestTimeout', // Internal Request Timeout
                     '601' => '\\ccxt\\BadRequest', // Invalid Parameter
@@ -806,7 +807,7 @@ class poloniex extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $side = $this->safe_string_lower($trade, 'side');
+        $side = $this->safe_string_lower_2($trade, 'side', 'takerSide');
         $fee = null;
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
@@ -2090,9 +2091,11 @@ class poloniex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCostString),
+                'rate' => null,
             ),
         );
     }

@@ -1561,7 +1561,7 @@ export default class gemini extends Exchange {
             }, query);
             let payload = this.json(request);
             payload = this.stringToBase64(payload);
-            const signature = this.hmac(payload, this.encode(this.secret), sha384);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
             headers = {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': this.apiKey,

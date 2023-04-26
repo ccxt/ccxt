@@ -4,17 +4,10 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// ----------------------------------------------------------------------------
-import testOrderBook from './test.orderbook.js';
-// ----------------------------------------------------------------------------
-export default async (exchange, symbol) => {
+import testOrderBook from './base/test.orderBook.js';
+async function testFetchL2OrderBook(exchange, symbol) {
     const method = 'fetchL2OrderBook';
-    if (exchange.has[method]) {
-        const orderbook = await exchange[method](symbol);
-        testOrderBook(exchange, orderbook, method, symbol);
-        return orderbook;
-    }
-    else {
-        console.log(method + '() is not supported');
-    }
-};
+    const orderBook = await exchange.fetchL2OrderBook(symbol);
+    testOrderBook(exchange, method, orderBook, symbol);
+}
+export default testFetchL2OrderBook;

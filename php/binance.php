@@ -290,6 +290,7 @@ class binance extends Exchange {
                         'managed-subaccount/fetch-future-asset' => 0.1,
                         'managed-subaccount/marginAsset' => 0.1,
                         'managed-subaccount/info' => 0.4,
+                        'managed-subaccount/deposit/address' => 0.1,
                         // lending endpoints
                         'lending/daily/product/list' => 0.1,
                         'lending/daily/userLeftQuota' => 0.1,
@@ -936,6 +937,7 @@ class binance extends Exchange {
                     'delivery' => 'CMFUTURE', // backwards compatbility
                     'linear' => 'UMFUTURE',
                     'inverse' => 'CMFUTURE',
+                    'option' => 'OPTION',
                 ),
                 'accountsById' => array(
                     'MAIN' => 'spot',
@@ -943,6 +945,7 @@ class binance extends Exchange {
                     'MARGIN' => 'margin',
                     'UMFUTURE' => 'linear',
                     'CMFUTURE' => 'inverse',
+                    'OPTION' => 'option',
                 ),
                 'networks' => array(
                     'ERC20' => 'ETH',
@@ -2067,7 +2070,7 @@ class binance extends Exchange {
             $contract = true;
             $option = true;
             $settleId = ($settleId === null) ? 'USDT' : $settleId;
-        } else {
+        } elseif ($expiry !== null) {
             $future = true;
         }
         $settle = $this->safe_currency_code($settleId);
@@ -2198,9 +2201,10 @@ class binance extends Exchange {
                 'max' => $this->safe_number($filter, 'maxQty'),
             );
         }
-        if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
-            $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
+        if ((is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) || (is_array($filtersByType) && array_key_exists('NOTIONAL', $filtersByType))) { // notional added in 12/04/23 to $spot testnet
+            $filter = $this->safe_value_2($filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', array());
             $entry['limits']['cost']['min'] = $this->safe_number_2($filter, 'minNotional', 'notional');
+            $entry['limits']['cost']['max'] = $this->safe_number($filter, 'maxNotional');
         }
         return $entry;
     }
@@ -5264,7 +5268,8 @@ class binance extends Exchange {
                 $toSpot = $toId === 'MAIN';
                 $funding = $fromId === 'FUNDING' || $toId === 'FUNDING';
                 $mining = $fromId === 'MINING' || $toId === 'MINING';
-                $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
+                $option = $fromId === 'OPTION' || $toId === 'OPTION';
+                $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding || $option;
                 if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                     throw new BadRequest($this->id . ' transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
                 } elseif ($toSpot && $fromIsolated) {
@@ -7883,7 +7888,7 @@ class binance extends Exchange {
         //      ...
         //  )
         //
-        return $this->parse_open_interests($response, $symbol, $since, $limit);
+        return $this->parse_open_interests($response, $market, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
@@ -7950,7 +7955,7 @@ class binance extends Exchange {
     }
 
     public function parse_open_interest($interest, $market = null) {
-        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $timestamp = $this->safe_integer_2($interest, 'timestamp', 'time');
         $id = $this->safe_string($interest, 'symbol');
         $amount = $this->safe_number_2($interest, 'sumOpenInterest', 'openInterest');
         $value = $this->safe_number_2($interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');

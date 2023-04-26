@@ -1376,7 +1376,12 @@ class novadax extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fee' => null,
+            'comment' => null,
+            'fee' => array(
+                'currency' => null,
+                'cost' => null,
+                'rate' => null,
+            ),
         );
     }
 

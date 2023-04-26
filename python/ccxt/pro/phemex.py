@@ -25,6 +25,7 @@ class phemex(ccxt.async_support.phemex):
                 'watchOrders': True,
                 'watchOrderBook': True,
                 'watchOHLCV': True,
+                'watchPositions': None,  # TODO
             },
             'urls': {
                 'test': {
@@ -129,6 +130,63 @@ class phemex(ccxt.async_support.phemex):
         }
         return result
 
+    def parse_perpetual_ticker(self, ticker, market=None):
+        #
+        #    [
+        #        "STXUSDT",
+        #        "0.64649",
+        #        "0.8628",
+        #        "0.61215",
+        #        "0.71737",
+        #        "4519387",
+        #        "3210827.98166",
+        #        "697635",
+        #        "0.71720205",
+        #        "0.71720205",
+        #        "0.0001",
+        #        "0.0001",
+        #    ]
+        #
+        marketId = self.safe_string(ticker, 0)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        lastString = self.from_ep(self.safe_string(ticker, 4), market)
+        last = self.parse_number(lastString)
+        quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 6), market))
+        baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 5), market))
+        change = None
+        percentage = None
+        average = None
+        openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 1), market))
+        open = self.parse_number(openString)
+        if (openString is not None) and (lastString is not None):
+            change = self.parse_number(Precise.string_sub(lastString, openString))
+            average = self.parse_number(Precise.string_div(Precise.string_add(lastString, openString), '2'))
+            percentage = self.parse_number(Precise.string_mul(Precise.string_sub(Precise.string_div(lastString, openString), '1'), '100'))
+        result = {
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'high': self.parse_number(self.from_ep(self.safe_string(ticker, 2), market)),
+            'low': self.parse_number(self.from_ep(self.safe_string(ticker, 3), market)),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': None,  # previous day close
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }
+        return result
+
     def handle_ticker(self, client: Client, message):
         #
         #     {
@@ -166,33 +224,83 @@ class phemex(ccxt.async_support.phemex):
         #         timestamp: 1592845585373374500
         #     }
         #
-        name = 'market24h'
-        ticker = self.safe_value(message, name)
-        result = None
-        if ticker is None:
-            name = 'spot_market24h'
-            ticker = self.safe_value(message, name)
-            result = self.parse_ticker(ticker)
-        else:
-            result = self.parse_swap_ticker(ticker)
-        symbol = result['symbol']
-        messageHash = name + ':' + symbol
-        timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        self.tickers[symbol] = result
-        client.resolve(result, messageHash)
+        # perpetual
+        #
+        #    {
+        #        data: [
+        #            [
+        #                "STXUSDT",
+        #                "0.64649",
+        #                "0.8628",
+        #                "0.61215",
+        #                "0.71737",
+        #                "4519387",
+        #                "3210827.98166",
+        #                "697635",
+        #                "0.71720205",
+        #                "0.71720205",
+        #                "0.0001",
+        #                "0.0001",
+        #            ],
+        #            ...
+        #        ],
+        #        fields: [
+        #            "symbol",
+        #            "openRp",
+        #            "highRp",
+        #            "lowRp",
+        #            "lastRp",
+        #            "volumeRq",
+        #            "turnoverRv",
+        #            "openInterestRv",
+        #            "indexRp",
+        #            "markRp",
+        #            "fundingRateRr",
+        #            "predFundingRateRr",
+        #        ],
+        #        method: "perp_market24h_pack_p.update",
+        #        timestamp: "1677094918686806209",
+        #        type: "snapshot",
+        #    }
+        #
+        tickers = []
+        if 'market24h' in message:
+            ticker = self.safe_value(message, 'market24h')
+            tickers.append(self.parse_swap_ticker(ticker))
+        elif 'spot_market24h' in message:
+            ticker = self.safe_value(message, 'spot_market24h')
+            tickers.append(self.parse_ticker(ticker))
+        elif 'data' in message:
+            data = self.safe_value(message, 'data', [])
+            for i in range(0, len(data)):
+                tickers.append(self.parse_perpetual_ticker(data[i]))
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            symbol = ticker['symbol']
+            messageHash = 'ticker:' + symbol
+            timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
+            ticker['timestamp'] = timestamp
+            ticker['datetime'] = self.iso8601(timestamp)
+            self.tickers[symbol] = ticker
+            client.resolve(ticker, messageHash)
 
     async def watch_balance(self, params={}):
         """
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-account-order-position-aop
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-account-order-position-aop
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-wallet-order-messages
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict params: extra parameters specific to the phemex api endpoint
+        :param str params['settle']: set to USDT to use hedged perpetual api
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
-        type, query = self.handle_market_type_and_params('watchBalance', None, params)
-        messageHash = type + ':balance'
-        return await self.subscribe_private(type, messageHash, query)
+        type = None
+        type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        usePerpetualApi = self.safe_string(params, 'settle') == 'USDT'
+        messageHash = ':balance'
+        messageHash = 'perpetual' + messageHash if usePerpetualApi else type + messageHash
+        return await self.subscribe_private(type, messageHash, params)
 
     def handle_balance(self, type, client, message):
         # spot
@@ -214,17 +322,27 @@ class phemex(ccxt.async_support.phemex):
         #           userID: 2647224
         #         }
         #    ]
-        #
         # swap
         #    [
-        #         {
-        #           accountBalanceEv: 0,
-        #           accountID: 26472240001,
-        #           bonusBalanceEv: 0,
-        #           currency: 'BTC',
-        #           totalUsedBalanceEv: 0,
-        #           userID: 2647224
-        #         }
+        #        {
+        #            accountBalanceEv: 0,
+        #            accountID: 26472240001,
+        #            bonusBalanceEv: 0,
+        #            currency: 'BTC',
+        #            totalUsedBalanceEv: 0,
+        #            userID: 2647224
+        #        }
+        #    ]
+        # perpetual
+        #    [
+        #        {
+        #            "accountBalanceRv": "1508.452588802237",
+        #            "accountID": 9328670003,
+        #            "bonusBalanceRv": "0",
+        #            "currency": "USDT",
+        #            "totalUsedBalanceRv": "343.132599666883",
+        #            "userID": 932867
+        #        }
         #    ]
         #
         self.balance['info'] = message
@@ -235,14 +353,20 @@ class phemex(ccxt.async_support.phemex):
             currency = self.safe_value(self.currencies, code, {})
             scale = self.safe_integer(currency, 'valueScale', 8)
             account = self.account()
-            usedEv = self.safe_string(balance, 'totalUsedBalanceEv')
-            if usedEv is None:
-                lockedTradingBalanceEv = self.safe_string(balance, 'lockedTradingBalanceEv')
-                lockedWithdrawEv = self.safe_string(balance, 'lockedWithdrawEv')
-                usedEv = Precise.string_add(lockedTradingBalanceEv, lockedWithdrawEv)
-            totalEv = self.safe_string_2(balance, 'accountBalanceEv', 'balanceEv')
-            account['used'] = self.from_en(usedEv, scale)
-            account['total'] = self.from_en(totalEv, scale)
+            used = self.safe_string(balance, 'totalUsedBalanceRv')
+            if used is None:
+                usedEv = self.safe_string(balance, 'totalUsedBalanceEv')
+                if usedEv is None:
+                    lockedTradingBalanceEv = self.safe_string(balance, 'lockedTradingBalanceEv')
+                    lockedWithdrawEv = self.safe_string_2(balance, 'lockedWithdrawEv', 'lockedWithdrawRv')
+                    usedEv = Precise.string_add(lockedTradingBalanceEv, lockedWithdrawEv)
+                used = self.from_en(usedEv, scale)
+            total = self.safe_string(balance, 'accountBalanceRv')
+            if total is None:
+                totalEv = self.safe_string_2(balance, 'accountBalanceEv', 'balanceEv')
+                total = self.from_en(totalEv, scale)
+            account['used'] = used
+            account['total'] = total
             self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
         messageHash = type + ':balance'
@@ -260,6 +384,20 @@ class phemex(ccxt.async_support.phemex):
         #         ],
         #         type: 'snapshot'
         #     }
+        #  perpetual
+        #     {
+        #         sequence: 1230197759,
+        #         symbol: "BTCUSDT",
+        #         trades_p: [
+        #             [
+        #                 1677094244729433000,
+        #                 "Buy",
+        #                 "23800.4",
+        #                 "2.455",
+        #             ],
+        #         ],
+        #         type: "snapshot",
+        #     }
         #
         name = 'trade'
         marketId = self.safe_string(message, 'symbol')
@@ -271,7 +409,7 @@ class phemex(ccxt.async_support.phemex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        trades = self.safe_value(message, 'trades', [])
+        trades = self.safe_value_2(message, 'trades', 'trades_p', [])
         parsed = self.parse_trades(trades, market)
         for i in range(0, len(parsed)):
             stored.append(parsed[i])
@@ -289,17 +427,35 @@ class phemex(ccxt.async_support.phemex):
         #         symbol: 'sBTCUSDT',
         #         type: 'snapshot'
         #     }
+        # perpetual
+        #     {
+        #         kline_p: [
+        #             [
+        #                 1677094560,
+        #                 60,
+        #                 "23746.2",
+        #                 "23746.1",
+        #                 "23757.6",
+        #                 "23736.9",
+        #                 "23754.8",
+        #                 "34.273",
+        #                 "813910.208",
+        #             ],
+        #         ],
+        #         sequence: 1230786017,
+        #         symbol: "BTCUSDT",
+        #         type: "incremental",
+        #     }
         #
-        name = 'kline'
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        candles = self.safe_value(message, name, [])
+        candles = self.safe_value_2(message, 'kline', 'kline_p', [])
         first = self.safe_value(candles, 0, [])
         interval = self.safe_string(first, 1)
         timeframe = self.find_timeframe(interval)
         if timeframe is not None:
-            messageHash = name + ':' + timeframe + ':' + symbol
+            messageHash = 'kline:' + timeframe + ':' + symbol
             ohlcvs = self.parse_ohlcvs(candles, market)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -314,6 +470,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_ticker(self, symbol: str, params={}):
         """
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-24-hours-ticker
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-24-hours-ticker
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the phemex api endpoint
@@ -322,11 +481,15 @@ class phemex(ccxt.async_support.phemex):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        name = 'spot_market24h' if market['spot'] else 'market24h'
+        isSwap = market['swap']
+        settleIsUSDT = market['settle'] == 'USDT'
+        name = 'spot_market24h'
+        if isSwap:
+            name = 'perp_market24h_pack_p' if settleIsUSDT else 'market24h'
         url = self.urls['api']['ws']
         requestId = self.request_id()
         subscriptionHash = name + '.subscribe'
-        messageHash = name + ':' + symbol
+        messageHash = 'ticker:' + symbol
         subscribe = {
             'method': subscriptionHash,
             'id': requestId,
@@ -337,6 +500,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-trade
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-trade
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-trade
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
@@ -349,8 +515,10 @@ class phemex(ccxt.async_support.phemex):
         symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
-        name = 'trade'
-        messageHash = name + ':' + symbol
+        isSwap = market['swap']
+        settleIsUSDT = market['settle'] == 'USDT'
+        name = 'trade_p' if (isSwap and settleIsUSDT) else 'trade'
+        messageHash = 'trade:' + symbol
         method = name + '.subscribe'
         subscribe = {
             'method': method,
@@ -367,6 +535,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -378,8 +549,10 @@ class phemex(ccxt.async_support.phemex):
         symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
-        name = 'orderbook'
-        messageHash = name + ':' + symbol
+        isSwap = market['swap']
+        settleIsUSDT = market['settle'] == 'USDT'
+        name = 'orderbook_p' if (isSwap and settleIsUSDT) else 'orderbook'
+        messageHash = 'orderbook:' + symbol
         method = name + '.subscribe'
         subscribe = {
             'method': method,
@@ -394,6 +567,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-kline
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-kline
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-kline
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -407,8 +583,10 @@ class phemex(ccxt.async_support.phemex):
         symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
-        name = 'kline'
-        messageHash = name + ':' + timeframe + ':' + symbol
+        isSwap = market['swap']
+        settleIsUSDT = market['settle'] == 'USDT'
+        name = 'kline_p' if (isSwap and settleIsUSDT) else 'kline'
+        messageHash = 'kline:' + timeframe + ':' + symbol
         method = name + '.subscribe'
         subscribe = {
             'method': method,
@@ -453,6 +631,28 @@ class phemex(ccxt.async_support.phemex):
         #         timestamp: 1592908460404461600,
         #         type: 'snapshot'
         #     }
+        #  perpetual
+        #    {
+        #        depth: 30,
+        #        orderbook_p: {
+        #            asks: [
+        #                [
+        #                    "23788.5",
+        #                    "0.13",
+        #                ],
+        #            ],
+        #            bids: [
+        #                [
+        #                    "23787.8",
+        #                    "1.836",
+        #                ],
+        #            ],
+        #        },
+        #        sequence: 1230347368,
+        #        symbol: "BTCUSDT",
+        #        timestamp: "1677093457306978852",
+        #        type: "snapshot",
+        #    }
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
@@ -464,7 +664,7 @@ class phemex(ccxt.async_support.phemex):
         nonce = self.safe_integer(message, 'sequence')
         timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
         if type == 'snapshot':
-            book = self.safe_value(message, 'book', {})
+            book = self.safe_value_2(message, 'book', 'orderbook_p', {})
             snapshot = self.customParseOrderBook(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
             snapshot['nonce'] = nonce
             orderbook = self.order_book(snapshot, depth)
@@ -473,7 +673,7 @@ class phemex(ccxt.async_support.phemex):
         else:
             orderbook = self.safe_value(self.orderbooks, symbol)
             if orderbook is not None:
-                changes = self.safe_value(message, 'book', {})
+                changes = self.safe_value_2(message, 'book', 'orderbook_p', {})
                 asks = self.safe_value(changes, 'asks', [])
                 bids = self.safe_value(changes, 'bids', [])
                 self.handle_deltas(orderbook['asks'], asks, market)
@@ -494,16 +694,19 @@ class phemex(ccxt.async_support.phemex):
         :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         await self.load_markets()
-        messageHash = 'trades'
         market = None
         type = None
+        messageHash = 'trades:'
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            messageHash = messageHash + ':' + market['symbol']
+            messageHash = messageHash + market['symbol']
+            if market['settle'] == 'USDT':
+                params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         if symbol is None:
-            messageHash = messageHash + ':' + type
+            settle = self.safe_string(params, 'settle')
+            messageHash = (messageHash + 'perpetual') if (settle == 'USDT') else (messageHash + type)
         trades = await self.subscribe_private(type, messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -511,32 +714,97 @@ class phemex(ccxt.async_support.phemex):
 
     def handle_my_trades(self, client: Client, message):
         #
-        # [
-        #    {
-        #       "avgPriceEp":4138763000000,
-        #       "baseCurrency":"BTC",
-        #       "baseQtyEv":0,
-        #       "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
-        #       "execBaseQtyEv":30100,
-        #       "execFeeEv":31,
-        #       "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
-        #       "execPriceEp":4138763000000,
-        #       "execQuoteQtyEv":1245767663,
-        #       "feeCurrency":"BTC",
-        #       "lastLiquidityInd":"RemovedLiquidity",
-        #       "ordType":"Market",
-        #       "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
-        #       "priceEp":4549022000000,
-        #       "qtyType":"ByQuote",
-        #       "quoteCurrency":"USDT",
-        #       "quoteQtyEv":1248000000,
-        #       "side":"Buy",
-        #       "symbol":"sBTCUSDT",
-        #       "tradeType":"Trade",
-        #       "transactTimeNs":"1650442617609928764",
-        #       "userID":2647224
-        #    }
-        #  ]
+        # swap
+        #    [
+        #        {
+        #            "avgPriceEp":4138763000000,
+        #            "baseCurrency":"BTC",
+        #            "baseQtyEv":0,
+        #            "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        #            "execBaseQtyEv":30100,
+        #            "execFeeEv":31,
+        #            "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
+        #            "execPriceEp":4138763000000,
+        #            "execQuoteQtyEv":1245767663,
+        #            "feeCurrency":"BTC",
+        #            "lastLiquidityInd":"RemovedLiquidity",
+        #            "ordType":"Market",
+        #            "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        #            "priceEp":4549022000000,
+        #            "qtyType":"ByQuote",
+        #            "quoteCurrency":"USDT",
+        #            "quoteQtyEv":1248000000,
+        #            "side":"Buy",
+        #            "symbol":"sBTCUSDT",
+        #            "tradeType":"Trade",
+        #            "transactTimeNs":"1650442617609928764",
+        #            "userID":2647224
+        #        }
+        #    ]
+        # perpetual
+        #    [
+        #        {
+        #            "accountID": 9328670003,
+        #            "action": "New",
+        #            "actionBy": "ByUser",
+        #            "actionTimeNs": 1666858780876924611,
+        #            "addedSeq": 77751555,
+        #            "apRp": "0",
+        #            "bonusChangedAmountRv": "0",
+        #            "bpRp": "0",
+        #            "clOrdID": "c0327a7d-9064-62a9-28f6-2db9aaaa04e0",
+        #            "closedPnlRv": "0",
+        #            "closedSize": "0",
+        #            "code": 0,
+        #            "cumFeeRv": "0",
+        #            "cumQty": "0",
+        #            "cumValueRv": "0",
+        #            "curAccBalanceRv": "1508.489893982237",
+        #            "curAssignedPosBalanceRv": "24.62786650928",
+        #            "curBonusBalanceRv": "0",
+        #            "curLeverageRr": "-10",
+        #            "curPosSide": "Buy",
+        #            "curPosSize": "0.043",
+        #            "curPosTerm": 1,
+        #            "curPosValueRv": "894.0689",
+        #            "curRiskLimitRv": "1000000",
+        #            "currency": "USDT",
+        #            "cxlRejReason": 0,
+        #            "displayQty": "0.003",
+        #            "execFeeRv": "0",
+        #            "execID": "00000000-0000-0000-0000-000000000000",
+        #            "execPriceRp": "20723.7",
+        #            "execQty": "0",
+        #            "execSeq": 77751555,
+        #            "execStatus": "New",
+        #            "execValueRv": "0",
+        #            "feeRateRr": "0",
+        #            "leavesQty": "0.003",
+        #            "leavesValueRv": "63.4503",
+        #            "message": "No error",
+        #            "ordStatus": "New",
+        #            "ordType": "Market",
+        #            "orderID": "fa64c6f2-47a4-4929-aab4-b7fa9bbc4323",
+        #            "orderQty": "0.003",
+        #            "pegOffsetValueRp": "0",
+        #            "posSide": "Long",
+        #            "priceRp": "21150.1",
+        #            "relatedPosTerm": 1,
+        #            "relatedReqNum": 11,
+        #            "side": "Buy",
+        #            "slTrigger": "ByMarkPrice",
+        #            "stopLossRp": "0",
+        #            "stopPxRp": "0",
+        #            "symbol": "BTCUSDT",
+        #            "takeProfitRp": "0",
+        #            "timeInForce": "ImmediateOrCancel",
+        #            "tpTrigger": "ByLastPrice",
+        #            "tradeType": "Amend",
+        #            "transactTimeNs": 1666858780881545305,
+        #            "userID": 932867
+        #        },
+        #        ...
+        #    ]
         #
         channel = 'trades'
         tradesLength = len(message)
@@ -556,7 +824,7 @@ class phemex(ccxt.async_support.phemex):
             cachedTrades.append(parsed)
             symbol = parsed['symbol']
             if type is None:
-                type = market['type']
+                type = 'perpetual' if (market['settle'] == 'USDT') else market['type']
             marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
@@ -577,16 +845,18 @@ class phemex(ccxt.async_support.phemex):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        messageHash = 'orders'
+        messageHash = 'orders:'
         market = None
         type = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            messageHash = messageHash + ':' + market['symbol']
+            messageHash = messageHash + market['symbol']
+            if market['settle'] == 'USDT':
+                params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         if symbol is None:
-            messageHash = messageHash + ':' + type
+            messageHash = (messageHash + 'perpetual') if (params['settle'] == 'USDT') else (messageHash + type)
         orders = await self.subscribe_private(type, messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -683,6 +953,73 @@ class phemex(ccxt.async_support.phemex):
         #            }
         #        ]
         #  },
+        # perpetual
+        #    [
+        #        {
+        #          accountID: 40183400003,
+        #          action: 'New',
+        #          actionBy: 'ByUser',
+        #          actionTimeNs: '1674110665380190869',
+        #          addedSeq: 678760103,
+        #          apRp: '0',
+        #          bonusChangedAmountRv: '0',
+        #          bpRp: '0',
+        #          clOrdID: '',
+        #          cl_req_code: 0,
+        #          closedPnlRv: '0',
+        #          closedSize: '0',
+        #          code: 0,
+        #          cumFeeRv: '0',
+        #          cumQty: '0.001',
+        #          cumValueRv: '20.849',
+        #          curAccBalanceRv: '19.9874906',
+        #          curAssignedPosBalanceRv: '0',
+        #          curBonusBalanceRv: '0',
+        #          curLeverageRr: '-10',
+        #          curPosSide: 'Buy',
+        #          curPosSize: '0.001',
+        #          curPosTerm: 1,
+        #          curPosValueRv: '20.849',
+        #          curRiskLimitRv: '1000000',
+        #          currency: 'USDT',
+        #          cxlRejReason: 0,
+        #          displayQty: '0.001',
+        #          execFeeRv: '0.0125094',
+        #          execID: 'b88d2950-04a2-52d8-8927-346059900242',
+        #          execPriceRp: '20849',
+        #          execQty: '0.001',
+        #          execSeq: 678760103,
+        #          execStatus: 'TakerFill',
+        #          execValueRv: '20.849',
+        #          feeRateRr: '0.0006',
+        #          lastLiquidityInd: 'RemovedLiquidity',
+        #          leavesQty: '0',
+        #          leavesValueRv: '0',
+        #          message: 'No error',
+        #          ordStatus: 'Filled',
+        #          ordType: 'Market',
+        #          orderID: '79620ed2-54c6-4645-a35c-7057e687c576',
+        #          orderQty: '0.001',
+        #          pegOffsetProportionRr: '0',
+        #          pegOffsetValueRp: '0',
+        #          posSide: 'Long',
+        #          priceRp: '21476.3',
+        #          relatedPosTerm: 1,
+        #          relatedReqNum: 4,
+        #          side: 'Buy',
+        #          slTrigger: 'ByMarkPrice',
+        #          stopLossRp: '0',
+        #          stopPxRp: '0',
+        #          symbol: 'BTCUSDT',
+        #          takeProfitRp: '0',
+        #          timeInForce: 'ImmediateOrCancel',
+        #          tpTrigger: 'ByLastPrice',
+        #          tradeType: 'Trade',
+        #          transactTimeNs: '1674110665387882268',
+        #          userID: 4018340
+        #        },
+        #        ...
+        #    ]
         #
         trades = []
         parsedOrders = []
@@ -720,7 +1057,8 @@ class phemex(ccxt.async_support.phemex):
             symbol = parsed['symbol']
             market = self.market(symbol)
             if type is None:
-                type = market['type']
+                isUsdt = market['settle'] == 'USDT'
+                type = 'perpetual' if isUsdt else market['type']
             marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
@@ -732,61 +1070,126 @@ class phemex(ccxt.async_support.phemex):
 
     def parse_ws_swap_order(self, order, market=None):
         #
-        # {
-        #     "accountID":26472240002,
-        #     "action":"Cancel",
-        #     "actionBy":"ByUser",
-        #     "actionTimeNs":"1650450096104760797",
-        #     "addedSeq":26975849309,
-        #     "bonusChangedAmountEv":0,
-        #     "clOrdID":"d9675963-5e4e-6fc8-898a-ec8b934c1c61",
-        #     "closedPnlEv":0,
-        #     "closedSize":0,
-        #     "code":0,
-        #     "cumQty":0,
-        #     "cumValueEv":0,
-        #     "curAccBalanceEv":400079,
-        #     "curAssignedPosBalanceEv":0,
-        #     "curBonusBalanceEv":0,
-        #     "curLeverageEr":0,
-        #     "curPosSide":"None",
-        #     "curPosSize":0,
-        #     "curPosTerm":1,
-        #     "curPosValueEv":0,
-        #     "curRiskLimitEv":5000000000,
-        #     "currency":"USD",
-        #     "cxlRejReason":0,
-        #     "displayQty":0,
-        #     "execFeeEv":0,
-        #     "execID":"00000000-0000-0000-0000-000000000000",
-        #     "execPriceEp":0,
-        #     "execQty":1,
-        #     "execSeq":26975862338,
-        #     "execStatus":"Canceled",
-        #     "execValueEv":0,
-        #     "feeRateEr":0,
-        #     "leavesQty":0,
-        #     "leavesValueEv":0,
-        #     "message":"No error",
-        #     "ordStatus":"Canceled",
-        #     "ordType":"Limit",
-        #     "orderID":"8141deb9-8f94-48f6-9421-a4e3a791537b",
-        #     "orderQty":1,
-        #     "pegOffsetValueEp":0,
-        #     "priceEp":9521,
-        #     "relatedPosTerm":1,
-        #     "relatedReqNum":4,
-        #     "side":"Buy",
-        #     "slTrigger":"ByMarkPrice",
-        #     "stopLossEp":0,
-        #     "stopPxEp":0,
-        #     "symbol":"ADAUSD",
-        #     "takeProfitEp":0,
-        #     "timeInForce":"GoodTillCancel",
-        #     "tpTrigger":"ByLastPrice",
-        #     "transactTimeNs":"1650450096108143014",
-        #     "userID":2647224
-        #  }
+        # swap
+        #    {
+        #        "accountID":26472240002,
+        #        "action":"Cancel",
+        #        "actionBy":"ByUser",
+        #        "actionTimeNs":"1650450096104760797",
+        #        "addedSeq":26975849309,
+        #        "bonusChangedAmountEv":0,
+        #        "clOrdID":"d9675963-5e4e-6fc8-898a-ec8b934c1c61",
+        #        "closedPnlEv":0,
+        #        "closedSize":0,
+        #        "code":0,
+        #        "cumQty":0,
+        #        "cumValueEv":0,
+        #        "curAccBalanceEv":400079,
+        #        "curAssignedPosBalanceEv":0,
+        #        "curBonusBalanceEv":0,
+        #        "curLeverageEr":0,
+        #        "curPosSide":"None",
+        #        "curPosSize":0,
+        #        "curPosTerm":1,
+        #        "curPosValueEv":0,
+        #        "curRiskLimitEv":5000000000,
+        #        "currency":"USD",
+        #        "cxlRejReason":0,
+        #        "displayQty":0,
+        #        "execFeeEv":0,
+        #        "execID":"00000000-0000-0000-0000-000000000000",
+        #        "execPriceEp":0,
+        #        "execQty":1,
+        #        "execSeq":26975862338,
+        #        "execStatus":"Canceled",
+        #        "execValueEv":0,
+        #        "feeRateEr":0,
+        #        "leavesQty":0,
+        #        "leavesValueEv":0,
+        #        "message":"No error",
+        #        "ordStatus":"Canceled",
+        #        "ordType":"Limit",
+        #        "orderID":"8141deb9-8f94-48f6-9421-a4e3a791537b",
+        #        "orderQty":1,
+        #        "pegOffsetValueEp":0,
+        #        "priceEp":9521,
+        #        "relatedPosTerm":1,
+        #        "relatedReqNum":4,
+        #        "side":"Buy",
+        #        "slTrigger":"ByMarkPrice",
+        #        "stopLossEp":0,
+        #        "stopPxEp":0,
+        #        "symbol":"ADAUSD",
+        #        "takeProfitEp":0,
+        #        "timeInForce":"GoodTillCancel",
+        #        "tpTrigger":"ByLastPrice",
+        #        "transactTimeNs":"1650450096108143014",
+        #        "userID":2647224
+        #    }
+        # perpetual
+        #    {
+        #        accountID: 40183400003,
+        #        action: 'New',
+        #        actionBy: 'ByUser',
+        #        actionTimeNs: '1674110665380190869',
+        #        addedSeq: 678760103,
+        #        apRp: '0',
+        #        bonusChangedAmountRv: '0',
+        #        bpRp: '0',
+        #        clOrdID: '',
+        #        cl_req_code: 0,
+        #        closedPnlRv: '0',
+        #        closedSize: '0',
+        #        code: 0,
+        #        cumFeeRv: '0',
+        #        cumQty: '0.001',
+        #        cumValueRv: '20.849',
+        #        curAccBalanceRv: '19.9874906',
+        #        curAssignedPosBalanceRv: '0',
+        #        curBonusBalanceRv: '0',
+        #        curLeverageRr: '-10',
+        #        curPosSide: 'Buy',
+        #        curPosSize: '0.001',
+        #        curPosTerm: 1,
+        #        curPosValueRv: '20.849',
+        #        curRiskLimitRv: '1000000',
+        #        currency: 'USDT',
+        #        cxlRejReason: 0,
+        #        displayQty: '0.001',
+        #        execFeeRv: '0.0125094',
+        #        execID: 'b88d2950-04a2-52d8-8927-346059900242',
+        #        execPriceRp: '20849',
+        #        execQty: '0.001',
+        #        execSeq: 678760103,
+        #        execStatus: 'TakerFill',
+        #        execValueRv: '20.849',
+        #        feeRateRr: '0.0006',
+        #        lastLiquidityInd: 'RemovedLiquidity',
+        #        leavesQty: '0',
+        #        leavesValueRv: '0',
+        #        message: 'No error',
+        #        ordStatus: 'Filled',
+        #        ordType: 'Market',
+        #        orderID: '79620ed2-54c6-4645-a35c-7057e687c576',
+        #        orderQty: '0.001',
+        #        pegOffsetProportionRr: '0',
+        #        pegOffsetValueRp: '0',
+        #        posSide: 'Long',
+        #        priceRp: '21476.3',
+        #        relatedPosTerm: 1,
+        #        relatedReqNum: 4,
+        #        side: 'Buy',
+        #        slTrigger: 'ByMarkPrice',
+        #        stopLossRp: '0',
+        #        stopPxRp: '0',
+        #        symbol: 'BTCUSDT',
+        #        takeProfitRp: '0',
+        #        timeInForce: 'ImmediateOrCancel',
+        #        tpTrigger: 'ByLastPrice',
+        #        tradeType: 'Trade',
+        #        transactTimeNs: '1674110665387882268',
+        #        userID: 4018340
+        #    }
         #
         id = self.safe_string(order, 'orderID')
         clientOrderId = self.safe_string(order, 'clOrdID')
@@ -798,13 +1201,12 @@ class phemex(ccxt.async_support.phemex):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parseOrderType(self.safe_string(order, 'ordType'))
-        price = self.parse_number(self.from_ep(self.safe_string(order, 'priceEp'), market))
+        price = self.safe_string(order, 'priceRp', self.from_ep(self.safe_string(order, 'priceEp'), market))
         amount = self.safe_string(order, 'orderQty')
         filled = self.safe_string(order, 'cumQty')
         remaining = self.safe_string(order, 'leavesQty')
         timestamp = self.safe_integer_product(order, 'actionTimeNs', 0.000001)
-        costEv = self.safe_string(order, 'cumValueEv')
-        cost = self.from_ev(costEv, market)
+        cost = self.safe_string(order, 'cumValueRv', self.from_ev(self.safe_string(order, 'cumValueEv'), market))
         lastTradeTimestamp = self.safe_integer_product(order, 'transactTimeNs', 0.000001)
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
@@ -937,20 +1339,23 @@ class phemex(ccxt.async_support.phemex):
             method = client.subscriptions[id]
             del client.subscriptions[id]
             return method(client, message)
-        if ('market24h' in message) or ('spot_market24h' in message):
+        method = self.safe_string(message, 'method', '')
+        if ('market24h' in message) or ('spot_market24h' in message) or (method.find('perp_market24h_pack_p') >= 0):
             return self.handle_ticker(client, message)
-        elif 'trades' in message:
+        elif ('trades' in message) or ('trades_p' in message):
             return self.handle_trades(client, message)
-        elif 'kline' in message:
+        elif ('kline' in message) or ('kline_p' in message):
             return self.handle_ohlcv(client, message)
-        elif 'book' in message:
+        elif ('book' in message) or ('orderbook_p' in message):
             return self.handle_order_book(client, message)
-        if 'orders' in message:
-            orders = self.safe_value(message, 'orders', {})
+        if ('orders' in message) or ('orders_p' in message):
+            orders = self.safe_value_2(message, 'orders', 'orders_p', {})
             self.handle_orders(client, orders)
-        if ('accounts' in message) or ('wallets' in message):
+        if ('accounts' in message) or ('accounts_p' in message) or ('wallets' in message):
             type = 'swap' if ('accounts' in message) else 'spot'
-            accounts = self.safe_value_2(message, 'accounts', 'wallets', [])
+            if 'accounts_p' in message:
+                type = 'perpetual'
+            accounts = self.safe_value_n(message, ['accounts', 'accounts_p', 'wallets'], [])
             self.handle_balance(type, client, accounts)
 
     def handle_authenticate(self, client: Client, message):
@@ -979,7 +1384,13 @@ class phemex(ccxt.async_support.phemex):
         await self.authenticate()
         url = self.urls['api']['ws']
         requestId = self.seconds()
-        channel = 'wo.subscribe' if (type == 'spot') else 'aop.subscribe'
+        settleIsUSDT = (self.safe_value(params, 'settle', '') == 'USDT')
+        params = self.omit(params, 'settle')
+        channel = 'aop.subscribe'
+        if type == 'spot':
+            channel = 'wo.subscribe'
+        if settleIsUSDT:
+            channel = 'aop_p.subscribe'
         request = {
             'id': requestId,
             'method': channel,

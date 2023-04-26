@@ -185,7 +185,14 @@ class kucoin extends kucoin$1 {
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
-                        'trade-fees': 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
+                        'trade-fees': 1.3333,
+                        'hf/accounts/ledgers': 3.33,
+                        'hf/orders/active': 2,
+                        'hf/orders/active/symbols': 20,
+                        'hf/orders/done': 2,
+                        'hf/orders/{orderId}': 1,
+                        'hf/orders/client-order/{clientOid}': 2,
+                        'hf/fills': 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
                     },
                     'post': {
                         'accounts': 1,
@@ -209,6 +216,11 @@ class kucoin extends kucoin$1 {
                         'sub/user': 1,
                         'sub/api-key': 1,
                         'sub/api-key/update': 1,
+                        'hf/orders': 0.4,
+                        'hf/orders/sync': 1.33,
+                        'hf/orders/multi': 20,
+                        'hf/orders/multi/sync': 20,
+                        'hf/orders/alter': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -220,6 +232,12 @@ class kucoin extends kucoin$1 {
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
                         'sub/api-key': 1,
+                        'hf/orders/{orderId}': 0.4,
+                        'hf/orders/sync/{orderId}': 0.4,
+                        'hf/orders/client-order/{clientOid}': 0.4,
+                        'hf/orders/sync/client-order/{clientOid}': 0.4,
+                        'hf/orders/cancel/{orderId}': 1,
+                        'hf/orders': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
                     },
                 },
                 'futuresPublic': {
@@ -436,12 +454,32 @@ class kucoin extends kucoin$1 {
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
-                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
+                            'deposit-addresses': 'v1',
+                            'hf/accounts/ledgers': 'v1',
+                            'hf/orders/active': 'v1',
+                            'hf/orders/active/symbols': 'v1',
+                            'hf/orders/done': 'v1',
+                            'hf/orders/{orderId}': 'v1',
+                            'hf/orders/client-order/{clientOid}': 'v1',
+                            'hf/fills': 'v1',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
                             'accounts': 'v1',
+                            'hf/orders': 'v1',
+                            'hf/orders/sync': 'v1',
+                            'hf/orders/multi': 'v1',
+                            'hf/orders/multi/sync': 'v1',
+                            'hf/orders/alter': 'v1',
+                        },
+                        'DELETE': {
+                            'hf/orders/{orderId}': 'v1',
+                            'hf/orders/sync/{orderId}': 'v1',
+                            'hf/orders/client-order/{clientOid}': 'v1',
+                            'hf/orders/sync/client-order/{clientOid}': 'v1',
+                            'hf/orders/cancel/{orderId}': 'v1',
+                            'hf/orders': 'v1',
                         },
                     },
                     'futuresPrivate': {
@@ -483,6 +521,7 @@ class kucoin extends kucoin$1 {
                     'future': 'contract',
                     'swap': 'contract',
                     'mining': 'pool',
+                    'hf': 'trade_hf',
                 },
                 'networks': {
                     'Native': 'bech32',

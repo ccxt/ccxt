@@ -69,7 +69,7 @@ class phemex(Exchange):
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistories': False,
-                'fetchFundingRateHistory': False,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
@@ -87,6 +87,7 @@ class phemex(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -170,6 +171,7 @@ class phemex(Exchange):
                         'md/v2/trade': 5,  # ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr/all': 5,  # ?id=<id>
+                        'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'private': {
@@ -1105,7 +1107,7 @@ class phemex(Exchange):
             if not self.in_array(limit, possibleLimitValues):
                 limit = 100
             request['limit'] = limit
-        method = 'publicGetMdKline'
+        method = 'publicGetMdV2Kline'
         if market['linear'] or market['settle'] == 'USDT':
             method = 'publicGetMdV2KlineLast'
         response = getattr(self, method)(self.extend(request, params))
@@ -1282,6 +1284,38 @@ class phemex(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
 
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     # spot
+        see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             # linear
+        see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       # inverse
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbols is not None:
+            first = self.safe_value(symbols, 0)
+            market = self.market(first)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
+        query = self.omit(params, 'type')
+        defaultMethod = None
+        if type == 'spot':
+            defaultMethod = 'v1GetMdSpotTicker24hrAll'
+        elif subType == 'inverse':
+            defaultMethod = 'v1GetMdTicker24hrAll'
+        else:
+            defaultMethod = 'v2GetMdV2Ticker24hrAll'
+        method = self.safe_string(self.options, 'fetchTickersMethod', defaultMethod)
+        response = getattr(self, method)(query)
+        result = self.safe_value(response, 'result', [])
+        return self.parse_tickers(result, symbols)
+
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
@@ -1397,6 +1431,67 @@ class phemex(Exchange):
         #         "orderID": "b63bc982-be3a-45e0-8974-43d6375fb626",
         #         "clOrdID": "uuid-1577463487504",
         #         "execStatus": "MakerFill"
+        #     }
+        # perpetual
+        #     {
+        #         "accountID": 9328670003,
+        #         "action": "New",
+        #         "actionBy": "ByUser",
+        #         "actionTimeNs": 1666858780876924611,
+        #         "addedSeq": 77751555,
+        #         "apRp": "0",
+        #         "bonusChangedAmountRv": "0",
+        #         "bpRp": "0",
+        #         "clOrdID": "c0327a7d-9064-62a9-28f6-2db9aaaa04e0",
+        #         "closedPnlRv": "0",
+        #         "closedSize": "0",
+        #         "code": 0,
+        #         "cumFeeRv": "0",
+        #         "cumQty": "0",
+        #         "cumValueRv": "0",
+        #         "curAccBalanceRv": "1508.489893982237",
+        #         "curAssignedPosBalanceRv": "24.62786650928",
+        #         "curBonusBalanceRv": "0",
+        #         "curLeverageRr": "-10",
+        #         "curPosSide": "Buy",
+        #         "curPosSize": "0.043",
+        #         "curPosTerm": 1,
+        #         "curPosValueRv": "894.0689",
+        #         "curRiskLimitRv": "1000000",
+        #         "currency": "USDT",
+        #         "cxlRejReason": 0,
+        #         "displayQty": "0.003",
+        #         "execFeeRv": "0",
+        #         "execID": "00000000-0000-0000-0000-000000000000",
+        #         "execPriceRp": "20723.7",
+        #         "execQty": "0",
+        #         "execSeq": 77751555,
+        #         "execStatus": "New",
+        #         "execValueRv": "0",
+        #         "feeRateRr": "0",
+        #         "leavesQty": "0.003",
+        #         "leavesValueRv": "63.4503",
+        #         "message": "No error",
+        #         "ordStatus": "New",
+        #         "ordType": "Market",
+        #         "orderID": "fa64c6f2-47a4-4929-aab4-b7fa9bbc4323",
+        #         "orderQty": "0.003",
+        #         "pegOffsetValueRp": "0",
+        #         "posSide": "Long",
+        #         "priceRp": "21150.1",
+        #         "relatedPosTerm": 1,
+        #         "relatedReqNum": 11,
+        #         "side": "Buy",
+        #         "slTrigger": "ByMarkPrice",
+        #         "stopLossRp": "0",
+        #         "stopPxRp": "0",
+        #         "symbol": "BTCUSDT",
+        #         "takeProfitRp": "0",
+        #         "timeInForce": "ImmediateOrCancel",
+        #         "tpTrigger": "ByLastPrice",
+        #         "tradeType": "Amend",
+        #         "transactTimeNs": 1666858780881545305,
+        #         "userID": 932867
         #     }
         #
         # swap - USDT
@@ -3831,6 +3926,53 @@ class phemex(Exchange):
             '11': 'failed',  # 'Failed',
         }
         return self.safe_string(statuses, status, status)
+
+    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap'] or market['settle'] != 'USDT':
+            raise BadRequest(self.id + ' fetchFundingRateHistory() supports USDT swap contracts only')
+        customSymbol = '.' + market['id'] + 'FR8H'  # phemex requires a custom symbol for funding rate history
+        request = {
+            'symbol': customSymbol,
+        }
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.v2GetApiDataPublicDataFundingRateHistory(self.extend(request, params))
+        #
+        #    {
+        #        "code":"0",
+        #        "msg":"OK",
+        #        "data":{
+        #           "rows":[
+        #              {
+        #                 "symbol":".BTCUSDTFR8H",
+        #                 "fundingRate":"0.0001",
+        #                 "fundingTime":"1682064000000",
+        #                 "intervalSeconds":"28800"
+        #              }
+        #           ]
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        rates = self.safe_value(data, 'rows')
+        result = []
+        for i in range(0, len(rates)):
+            item = rates[i]
+            timestamp = self.safe_integer(item, 'fundingTime')
+            result.append({
+                'info': item,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(item, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

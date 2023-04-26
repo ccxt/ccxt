@@ -244,6 +244,8 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/info' => 1,
                         'v5/spot-lever-token/reference' => 1,
                         'v5/announcements/index' => 1,
+                        'v5/spot-cross-margin-trade/pledge-token' => 1,
+                        'v5/spot-cross-margin-trade/borrow-token' => 1,
                     ),
                 ),
                 'private' => array(
@@ -398,6 +400,10 @@ class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members' => 10,
                         'v5/user/query-api' => 10,
+                        'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
                     ),
                     'post' => array(
                         // inverse swap
@@ -584,6 +590,9 @@ class bybit extends Exchange {
                         'v5/user/update-sub-api' => 10,
                         'v5/user/delete-api' => 10,
                         'v5/user/delete-sub-api' => 10,
+                        'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                     ),
                     'delete' => array(
                         // spot
@@ -3526,9 +3535,9 @@ class bybit extends Exchange {
             if ($isLimit) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
             if ($postOnly) {
                 $request['timeInForce'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {
@@ -3635,8 +3644,10 @@ class bybit extends Exchange {
                 }
                 $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             }
-            $isPostOnly = $this->is_post_only($upperCaseType === 'MARKET', $type === 'LIMIT_MAKER', $params);
-            if ($isPostOnly) {
+            $isMarket = ($upperCaseType === 'MARKET');
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $type === 'LIMIT_MAKER', $params);
+            if ($postOnly) {
                 $request['orderType'] = 'LIMIT_MAKER';
             }
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
@@ -3728,7 +3739,8 @@ class bybit extends Exchange {
             }
             $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
             if ($postOnly) {
                 $request['timeInForce'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {
@@ -3829,9 +3841,9 @@ class bybit extends Exchange {
             if ($isLimit) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // same specific param
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'PostOnly', $params);
             if ($postOnly) {
                 $request['timeInForce'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {
@@ -3842,7 +3854,7 @@ class bybit extends Exchange {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
             $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
+            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
             $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
             $stopLoss = $this->safe_number($params, 'stopLoss');
             $takeProfit = $this->safe_number($params, 'takeProfit');
@@ -3932,7 +3944,8 @@ class bybit extends Exchange {
             }
             $exchangeSpecificParam = $this->safe_string($params, 'time_in_force');
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
+            $postOnly = null;
+            list($postOnly, $params) = $this->handle_post_only($isMarket, $exchangeSpecificParam === 'PostOnly', $params);
             if ($postOnly) {
                 $request['time_in_force'] = 'PostOnly';
             } elseif ($timeInForce === 'gtc') {
@@ -7222,22 +7235,24 @@ class bybit extends Exchange {
             $symbols = $this->market_symbols($symbols);
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $settle = $this->safe_string($params, 'settleCoin');
+            $paramsOmitted = null;
             if ($settle === null) {
-                list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
+                list($settle, $paramsOmitted) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
             }
             $isUsdcSettled = $settle === 'USDC';
-            list($subType, $query) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
+            $subType = null;
+            list($subType, $paramsOmitted) = $this->handle_sub_type_and_params('fetchPositions', null, $paramsOmitted);
             $isInverse = $subType === 'inverse';
             $isLinearSettle = $isUsdcSettled || ($settle === 'USDT');
             if ($isInverse && $isLinearSettle) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions with inverse $subType requires $settle to not be USDT or USDC');
             }
             if (($enableUnifiedMargin || $enableUnifiedAccount) && !$isInverse) {
-                return Async\await($this->fetch_unified_positions($symbols, $query));
+                return Async\await($this->fetch_unified_positions($symbols, $params));
             } elseif ($isUsdcSettled) {
-                return Async\await($this->fetch_usdc_positions($symbols, $query));
+                return Async\await($this->fetch_usdc_positions($symbols, $paramsOmitted));
             } else {
-                return Async\await($this->fetch_derivatives_positions($symbols, $query));
+                return Async\await($this->fetch_derivatives_positions($symbols, $params));
             }
         }) ();
     }

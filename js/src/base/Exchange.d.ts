@@ -481,6 +481,7 @@ export default class Exchange {
     loadOrderBook(client: any, messageHash: any, symbol: any, limit?: any, params?: {}): Promise<void>;
     handleDeltas(orderbook: any, deltas: any, nonce?: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
+    convertToBigInt(value: string): bigint;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

@@ -110,6 +110,7 @@ interface binance {
     sapiGetManagedSubaccountFetchFutureAsset (params?: {}): Promise<implicitReturnType>;
     sapiGetManagedSubaccountMarginAsset (params?: {}): Promise<implicitReturnType>;
     sapiGetManagedSubaccountInfo (params?: {}): Promise<implicitReturnType>;
+    sapiGetManagedSubaccountDepositAddress (params?: {}): Promise<implicitReturnType>;
     sapiGetLendingDailyProductList (params?: {}): Promise<implicitReturnType>;
     sapiGetLendingDailyUserLeftQuota (params?: {}): Promise<implicitReturnType>;
     sapiGetLendingDailyUserRedemptionQuota (params?: {}): Promise<implicitReturnType>;

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.62'
+__version__ = '3.0.78'
 
 # -----------------------------------------------------------------------------
 
@@ -1036,7 +1036,7 @@ class Exchange(object):
         for key, value in params.items():
             if isinstance(value, bool):
                 params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params, doseq)
+        return _urlencode.urlencode(params, doseq, quote_via=_urlencode.quote)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
@@ -1707,6 +1707,9 @@ class Exchange(object):
             if value == timeframe:
                 return key
         return None
+
+    def convert_to_big_int(self, value):
+        return int(value) if isinstance(value, str) else value
 
     # ########################################################################
     # ########################################################################
@@ -2424,19 +2427,19 @@ class Exchange(object):
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
         return self.extend(ticker, {
-            'bid': self.safe_number(ticker, 'bid'),
+            'bid': self.omit_zero(self.safe_number(ticker, 'bid')),
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.omit_zero(self.safe_number(ticker, 'ask')),
             'askVolume': self.safe_number(ticker, 'askVolume'),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'open': self.parse_number(open),
-            'close': self.parse_number(close),
-            'last': self.parse_number(last),
+            'high': self.omit_zero(self.safe_number(ticker, 'high')),
+            'low': self.omit_zero(self.safe_number(ticker, 'low')),
+            'open': self.omit_zero(self.parse_number(open)),
+            'close': self.omit_zero(self.parse_number(close)),
+            'last': self.omit_zero(self.parse_number(last)),
             'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
-            'average': self.parse_number(average),
-            'vwap': self.parse_number(vwap),
+            'average': self.omit_zero(self.parse_number(average)),
+            'vwap': self.omit_zero(self.parse_number(vwap)),
             'baseVolume': self.parse_number(baseVolume),
             'quoteVolume': self.parse_number(quoteVolume),
             'previousClose': self.safe_number(ticker, 'previousClose'),

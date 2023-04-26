@@ -318,6 +318,7 @@ class binance(Exchange):
                         'managed-subaccount/fetch-future-asset': 0.1,
                         'managed-subaccount/marginAsset': 0.1,
                         'managed-subaccount/info': 0.4,
+                        'managed-subaccount/deposit/address': 0.1,
                         # lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -964,6 +965,7 @@ class binance(Exchange):
                     'delivery': 'CMFUTURE',  # backwards compatbility
                     'linear': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
+                    'option': 'OPTION',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -971,6 +973,7 @@ class binance(Exchange):
                     'MARGIN': 'margin',
                     'UMFUTURE': 'linear',
                     'CMFUTURE': 'inverse',
+                    'OPTION': 'option',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -2052,7 +2055,7 @@ class binance(Exchange):
             contract = True
             option = True
             settleId = 'USDT' if (settleId is None) else settleId
-        else:
+        elif expiry is not None:
             future = True
         settle = self.safe_currency_code(settleId)
         spot = not contract
@@ -2173,9 +2176,10 @@ class binance(Exchange):
                 'min': self.safe_number(filter, 'minQty'),
                 'max': self.safe_number(filter, 'maxQty'),
             }
-        if 'MIN_NOTIONAL' in filtersByType:
-            filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
+        if ('MIN_NOTIONAL' in filtersByType) or ('NOTIONAL' in filtersByType):  # notional added in 12/04/23 to spot testnet
+            filter = self.safe_value_2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {})
             entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
+            entry['limits']['cost']['max'] = self.safe_number(filter, 'maxNotional')
         return entry
 
     def parse_balance_helper(self, entry):
@@ -5022,7 +5026,8 @@ class binance(Exchange):
                 toSpot = toId == 'MAIN'
                 funding = fromId == 'FUNDING' or toId == 'FUNDING'
                 mining = fromId == 'MINING' or toId == 'MINING'
-                prohibitedWithIsolated = fromFuture or toFuture or mining or funding
+                option = fromId == 'OPTION' or toId == 'OPTION'
+                prohibitedWithIsolated = fromFuture or toFuture or mining or funding or option
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
                     raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
                 elif toSpot and fromIsolated:
@@ -7427,7 +7432,7 @@ class binance(Exchange):
         #      ...
         #  ]
         #
-        return self.parse_open_interests(response, symbol, since, limit)
+        return self.parse_open_interests(response, market, since, limit)
 
     async def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -7489,7 +7494,7 @@ class binance(Exchange):
             return self.parse_open_interest(response, market)
 
     def parse_open_interest(self, interest, market=None):
-        timestamp = self.safe_integer(interest, 'timestamp')
+        timestamp = self.safe_integer_2(interest, 'timestamp', 'time')
         id = self.safe_string(interest, 'symbol')
         amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')
         value = self.safe_number_2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd')

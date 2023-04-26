@@ -1233,7 +1233,8 @@ export default class Exchange {
                             client.send (message);
                         }).catch ((e) => { throw e });
                     } else {
-                        client.send (message);
+                        client.send (message)
+                        .catch ((e) => { throw e });;
                     }
                 }
             }
@@ -1316,6 +1317,10 @@ export default class Exchange {
     getCacheIndex (orderbook, deltas) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;
+    }
+
+    convertToBigInt(value: string) {
+        return BigInt(value); // used on XT
     }
 
     /* eslint-enable */
@@ -2180,19 +2185,19 @@ export default class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend (ticker, {
-            'bid': this.safeNumber (ticker, 'bid'),
+            'bid': this.omitZero (this.safeNumber (ticker, 'bid')),
             'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.omitZero (this.safeNumber (ticker, 'ask')),
             'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'open': this.parseNumber (open),
-            'close': this.parseNumber (close),
-            'last': this.parseNumber (last),
+            'high': this.omitZero (this.safeNumber (ticker, 'high')),
+            'low': this.omitZero (this.safeNumber (ticker, 'low')),
+            'open': this.omitZero (this.parseNumber (open)),
+            'close': this.omitZero (this.parseNumber (close)),
+            'last': this.omitZero (this.parseNumber (last)),
             'change': this.parseNumber (change),
             'percentage': this.parseNumber (percentage),
-            'average': this.parseNumber (average),
-            'vwap': this.parseNumber (vwap),
+            'average': this.omitZero (this.parseNumber (average)),
+            'vwap': this.omitZero (this.parseNumber (vwap)),
             'baseVolume': this.parseNumber (baseVolume),
             'quoteVolume': this.parseNumber (quoteVolume),
             'previousClose': this.safeNumber (ticker, 'previousClose'),

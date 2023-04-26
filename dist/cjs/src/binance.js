@@ -290,6 +290,7 @@ class binance extends binance$1 {
                         'managed-subaccount/fetch-future-asset': 0.1,
                         'managed-subaccount/marginAsset': 0.1,
                         'managed-subaccount/info': 0.4,
+                        'managed-subaccount/deposit/address': 0.1,
                         // lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -936,6 +937,7 @@ class binance extends binance$1 {
                     'delivery': 'CMFUTURE',
                     'linear': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
+                    'option': 'OPTION',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -943,6 +945,7 @@ class binance extends binance$1 {
                     'MARGIN': 'margin',
                     'UMFUTURE': 'linear',
                     'CMFUTURE': 'inverse',
+                    'OPTION': 'option',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -2076,7 +2079,7 @@ class binance extends binance$1 {
             option = true;
             settleId = (settleId === undefined) ? 'USDT' : settleId;
         }
-        else {
+        else if (expiry !== undefined) {
             future = true;
         }
         const settle = this.safeCurrencyCode(settleId);
@@ -2212,9 +2215,10 @@ class binance extends binance$1 {
                 'max': this.safeNumber(filter, 'maxQty'),
             };
         }
-        if ('MIN_NOTIONAL' in filtersByType) {
-            const filter = this.safeValue(filtersByType, 'MIN_NOTIONAL', {});
+        if (('MIN_NOTIONAL' in filtersByType) || ('NOTIONAL' in filtersByType)) { // notional added in 12/04/23 to spot testnet
+            const filter = this.safeValue2(filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', {});
             entry['limits']['cost']['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
+            entry['limits']['cost']['max'] = this.safeNumber(filter, 'maxNotional');
         }
         return entry;
     }
@@ -5387,7 +5391,8 @@ class binance extends binance$1 {
                 const toSpot = toId === 'MAIN';
                 const funding = fromId === 'FUNDING' || toId === 'FUNDING';
                 const mining = fromId === 'MINING' || toId === 'MINING';
-                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
+                const option = fromId === 'OPTION' || toId === 'OPTION';
+                const prohibitedWithIsolated = fromFuture || toFuture || mining || funding || option;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new errors.BadRequest(this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
                 }
@@ -8080,7 +8085,7 @@ class binance extends binance$1 {
         //      ...
         //  ]
         //
-        return this.parseOpenInterests(response, symbol, since, limit);
+        return this.parseOpenInterests(response, market, since, limit);
     }
     async fetchOpenInterest(symbol, params = {}) {
         /**
@@ -8150,7 +8155,7 @@ class binance extends binance$1 {
         }
     }
     parseOpenInterest(interest, market = undefined) {
-        const timestamp = this.safeInteger(interest, 'timestamp');
+        const timestamp = this.safeInteger2(interest, 'timestamp', 'time');
         const id = this.safeString(interest, 'symbol');
         const amount = this.safeNumber2(interest, 'sumOpenInterest', 'openInterest');
         const value = this.safeNumber2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');

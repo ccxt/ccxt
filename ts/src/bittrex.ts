@@ -1416,7 +1416,7 @@ export default class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt ((since / 1000).toString ()) * 1000;
+            const startDate = this.parseToInt (since / 1000) * 1000;
             request['startDate'] = this.iso8601 (startDate);
         }
         if (limit !== undefined) {
@@ -1503,7 +1503,7 @@ export default class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt ((since / 1000).toString ()) * 1000;
+            const startDate = this.parseToInt (since / 1000) * 1000;
             request['startDate'] = this.iso8601 (startDate);
         }
         if (limit !== undefined) {

@@ -252,6 +252,8 @@ class bybit(Exchange):
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
                         'v5/announcements/index': 1,
+                        'v5/spot-cross-margin-trade/pledge-token': 1,
+                        'v5/spot-cross-margin-trade/borrow-token': 1,
                     },
                 },
                 'private': {
@@ -406,6 +408,10 @@ class bybit(Exchange):
                         # user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
                     },
                     'post': {
                         # inverse swap
@@ -592,6 +598,9 @@ class bybit(Exchange):
                         'v5/user/update-sub-api': 10,
                         'v5/user/delete-api': 10,
                         'v5/user/delete-sub-api': 10,
+                        'v5/spot-cross-margin-trade/loan': 2.5,  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay': 2.5,  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                     },
                     'delete': {
                         # spot
@@ -3371,9 +3380,9 @@ class bybit(Exchange):
         isLimit = lowerCaseType == 'limit'
         if isLimit:
             request['price'] = self.price_to_precision(symbol, price)
-        exchangeSpecificParam = self.safe_string(params, 'time_in_force')
-        timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3465,8 +3474,10 @@ class bybit(Exchange):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
             request['orderPrice'] = self.price_to_precision(symbol, price)
-        isPostOnly = self.is_post_only(upperCaseType == 'MARKET', type == 'LIMIT_MAKER', params)
-        if isPostOnly:
+        isMarket = (upperCaseType == 'MARKET')
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, type == 'LIMIT_MAKER', params)
+        if postOnly:
             request['orderType'] = 'LIMIT_MAKER'
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
@@ -3547,7 +3558,8 @@ class bybit(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3637,9 +3649,9 @@ class bybit(Exchange):
         isLimit = lowerCaseType == 'limit'
         if isLimit:
             request['price'] = self.price_to_precision(symbol, price)
-        exchangeSpecificParam = self.safe_string(params, 'time_in_force')
-        timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        timeInForce = self.safe_string_lower(params, 'timeInForce')  # same specific param
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, timeInForce == 'PostOnly', params)
         if postOnly:
             request['timeInForce'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -3649,7 +3661,7 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
         takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
         stopLoss = self.safe_number(params, 'stopLoss')
         takeProfit = self.safe_number(params, 'takeProfit')
@@ -3729,7 +3741,8 @@ class bybit(Exchange):
             request['orderPrice'] = self.price_to_precision(symbol, price)
         exchangeSpecificParam = self.safe_string(params, 'time_in_force')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        postOnly = None
+        postOnly, params = self.handle_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
         if postOnly:
             request['time_in_force'] = 'PostOnly'
         elif timeInForce == 'gtc':
@@ -6690,20 +6703,22 @@ class bybit(Exchange):
         symbols = self.market_symbols(symbols)
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         settle = self.safe_string(params, 'settleCoin')
+        paramsOmitted = None
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, paramsOmitted = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
         isUsdcSettled = settle == 'USDC'
-        subType, query = self.handle_sub_type_and_params('fetchPositions', None, params)
+        subType = None
+        subType, paramsOmitted = self.handle_sub_type_and_params('fetchPositions', None, paramsOmitted)
         isInverse = subType == 'inverse'
         isLinearSettle = isUsdcSettled or (settle == 'USDT')
         if isInverse and isLinearSettle:
             raise ArgumentsRequired(self.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC')
         if (enableUnifiedMargin or enableUnifiedAccount) and not isInverse:
-            return await self.fetch_unified_positions(symbols, query)
+            return await self.fetch_unified_positions(symbols, params)
         elif isUsdcSettled:
-            return await self.fetch_usdc_positions(symbols, query)
+            return await self.fetch_usdc_positions(symbols, paramsOmitted)
         else:
-            return await self.fetch_derivatives_positions(symbols, query)
+            return await self.fetch_derivatives_positions(symbols, params)
 
     def parse_position(self, position, market=None):
         #

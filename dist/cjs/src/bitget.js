@@ -635,7 +635,7 @@ class bitget extends bitget$1 {
                     '40016': errors.PermissionDenied,
                     '40017': errors.ExchangeError,
                     '40018': errors.PermissionDenied,
-                    '40019': errors.InvalidOrder,
+                    '40019': errors.BadRequest,
                     '40102': errors.BadRequest,
                     '40103': errors.BadRequest,
                     '40104': errors.ExchangeError,
@@ -1612,18 +1612,19 @@ class bitget extends bitget$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchOrderBook', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'publicSpotGetMarketDepth',
-            'swap': 'publicMixGetMarketDepth',
-        });
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicSpotGetMarketDepth(this.extend(request, params));
+        }
+        else {
+            response = await this.publicMixGetMarketDepth(this.extend(request, params));
+        }
         //
         //     {
         //       code: '00000',
@@ -1729,12 +1730,14 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchTicker', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'publicSpotGetMarketTicker',
-            'swap': 'publicMixGetMarketTicker',
-        });
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        const extended = this.extend(request, params);
+        if (market['spot']) {
+            response = await this.publicSpotGetMarketTicker(extended);
+        }
+        else {
+            response = await this.publicMixGetMarketTicker(extended);
+        }
         //
         //     {
         //         code: '00000',
@@ -1777,12 +1780,8 @@ class bitget extends bitget$1 {
             market = this.market(symbol);
         }
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
-        const method = this.getSupportedMapping(type, {
-            'spot': 'publicSpotGetMarketTickers',
-            'swap': 'publicMixGetMarketTickers',
-        });
         const request = {};
-        if (method === 'publicMixGetMarketTickers') {
+        if (type !== 'spot') {
             let subType = undefined;
             [subType, params] = this.handleSubTypeAndParams('fetchTickers', undefined, params);
             let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
@@ -1791,7 +1790,14 @@ class bitget extends bitget$1 {
             }
             request['productType'] = productType;
         }
-        const response = await this[method](this.extend(request, params));
+        const extended = this.extend(request, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.publicSpotGetMarketTickers(extended);
+        }
+        else {
+            response = await this.publicMixGetMarketTickers(extended);
+        }
         //
         // spot
         //
@@ -1952,12 +1958,14 @@ class bitget extends bitget$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchTrades', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'publicSpotGetMarketFills',
-            'swap': 'publicMixGetMarketFills',
-        });
-        const response = await this[method](this.extend(request, query));
+        const extended = this.extend(request, params);
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicSpotGetMarketFills(extended);
+        }
+        else {
+            response = await this.publicMixGetMarketFills(extended);
+        }
         //
         //     {
         //       code: '00000',
@@ -2122,15 +2130,11 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchOHLCV', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'publicSpotGetMarketCandles',
-            'swap': 'publicMixGetMarketCandles',
-        });
-        const until = this.safeInteger2(query, 'until', 'till');
+        const until = this.safeInteger2(params, 'until', 'till');
         if (limit === undefined) {
             limit = 100;
         }
+        const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe(timeframe);
@@ -2147,7 +2151,7 @@ class bitget extends bitget$1 {
                 request['before'] = until;
             }
         }
-        else if (market['swap']) {
+        else if (market['contract']) {
             request['granularity'] = selectedTimeframe;
             const now = this.milliseconds();
             if (since === undefined) {
@@ -2164,8 +2168,15 @@ class bitget extends bitget$1 {
                 }
             }
         }
-        const ommitted = this.omit(query, ['until', 'till']);
-        const response = await this[method](this.extend(request, ommitted));
+        const ommitted = this.omit(params, ['until', 'till']);
+        const extended = this.extend(request, ommitted);
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicSpotGetMarketCandles(extended);
+        }
+        else {
+            response = await this.publicMixGetMarketCandles(extended);
+        }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         const data = this.safeValue(response, 'data', response);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
@@ -2422,6 +2433,7 @@ class bitget extends bitget$1 {
         let method = this.getSupportedMapping(marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
+            'future': 'privateMixPostOrderPlaceOrder',
         });
         const exchangeSpecificTifParam = this.safeStringN(params, ['force', 'timeInForceValue', 'timeInForce']);
         let postOnly = undefined;
@@ -2570,6 +2582,7 @@ class bitget extends bitget$1 {
         let method = this.getSupportedMapping(marketType, {
             'spot': 'privateSpotPostPlanModifyPlan',
             'swap': 'privateMixPostPlanModifyPlan',
+            'future': 'privateMixPostPlanModifyPlan',
         });
         if (triggerPrice !== undefined) {
             // default triggerType to market price for unification
@@ -2651,6 +2664,7 @@ class bitget extends bitget$1 {
         let method = this.getSupportedMapping(marketType, {
             'spot': 'privateSpotPostTradeCancelOrder',
             'swap': 'privateMixPostOrderCancelOrder',
+            'future': 'privateMixPostOrderCancelOrder',
         });
         const request = {
             'symbol': market['id'],
@@ -2699,7 +2713,7 @@ class bitget extends bitget$1 {
             request['symbol'] = market['id'];
             request['orderIds'] = ids;
         }
-        else if (type === 'swap') {
+        else {
             method = 'privateMixPostOrderCancelBatchOrders';
             request['symbol'] = market['id'];
             request['marginCoin'] = market['quote'];
@@ -2831,6 +2845,7 @@ class bitget extends bitget$1 {
         const method = this.getSupportedMapping(marketType, {
             'spot': 'privateSpotPostTradeOrderInfo',
             'swap': 'privateMixGetOrderDetail',
+            'future': 'privateMixGetOrderDetail',
         });
         const request = {
             'symbol': market['id'],
@@ -2915,6 +2930,7 @@ class bitget extends bitget$1 {
         let method = this.getSupportedMapping(marketType, {
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
+            'future': 'privateMixGetOrderCurrent',
         });
         const stop = this.safeValue(query, 'stop');
         if (stop) {
@@ -3107,6 +3123,7 @@ class bitget extends bitget$1 {
         let method = this.getSupportedMapping(marketType, {
             'spot': 'privateSpotPostTradeHistory',
             'swap': 'privateMixGetOrderHistory',
+            'future': 'privateMixGetOrderHistory',
         });
         const stop = this.safeValue(params, 'stop');
         if (stop) {
@@ -3406,6 +3423,7 @@ class bitget extends bitget$1 {
         const method = this.getSupportedMapping(marketType, {
             'spot': 'privateSpotPostTradeFills',
             'swap': 'privateMixGetOrderFills',
+            'future': 'privateMixGetOrderFills',
         });
         const request = {
             'symbol': market['id'],
