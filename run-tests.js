@@ -232,7 +232,7 @@ const testExchange = async (exchange) => {
             { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
         ]);
 
-        const specificLangSet = (Object.values (langKeys).filter (x => x)).length;
+        const specificLangSet = (Object.values (langKeys).filter (x => x)).length > 0;
         const selectedTests  = allTests.filter (t => langKeys[t.key]);
         const scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
         if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
