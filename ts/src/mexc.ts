@@ -3898,8 +3898,8 @@ export default class mexc extends Exchange {
             const depositAddress = response[i];
             const coin = this.safeString (depositAddress, 'coin');
             const currencyInner = this.currency (coin);
-            const networkId = this.safeString (depositAddress, 'network');
-            const network = this.safeNetwork (networkId);
+            const networkIdInner = this.safeString (depositAddress, 'network');
+            const network = this.safeNetwork (networkIdInner);
             const address = this.safeString (depositAddress, 'address', undefined);
             const tag = this.safeString2 (depositAddress, 'tag', 'memo', undefined);
             result.push ({
