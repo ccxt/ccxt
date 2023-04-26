@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import binance from './binance.js';
-import { InvalidOrder } from './base/errors.js';
+import { InvalidOrder } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
