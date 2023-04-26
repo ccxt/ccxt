@@ -243,7 +243,6 @@ class yobit(Exchange):
                 'XRA': 'Ratecoin',
             },
             'options': {
-                # 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': True,
                 'fetchTickersMaxLength': 512,
                 'networks': {
@@ -542,10 +541,10 @@ class yobit(Exchange):
         ids = None
         if symbols is None:
             numIds = len(self.ids)
-            ids = '-'.join(ids)
-            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
-            # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > self.options['fetchTickersMaxLength']:
+            ids = '-'.join(self.ids)
+            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 512)
+            # max URL length is 512 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > maxLength:
                 raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
             newIds = self.market_ids(symbols)
