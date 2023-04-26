@@ -104,7 +104,19 @@ public partial class Exchange
     public dict tokenBucket { get; set; } = new dict();
     public Throttler throttler { get; set; }
 
-    public object httpProxy { get; set; }
+    private string httpProxyValue = "";
+    public object httpProxy
+    {
+        get
+        {
+            return this.httpProxyValue;
+        }
+        set
+        {
+            httpProxyValue = value as string;
+            this.initHttpClient(); // recreate httpClient with new proxy, maybe find a better way to do this
+        }
+    }
 
     public virtual object describe()
     {
