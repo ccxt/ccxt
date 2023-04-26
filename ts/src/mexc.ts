@@ -3883,6 +3883,12 @@ export default class mexc extends Exchange {
         const request = {
             'coin': currency['id'],
         };
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode, code);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        params = this.omit (params, 'network');
         const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -3919,6 +3925,12 @@ export default class mexc extends Exchange {
         const request = {
             'coin': currency['id'],
         };
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode, code);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        params = this.omit (params, 'network');
         const response = await this.spotPrivatePostCapitalDepositAddress (this.extend (request, params));
         //     {
         //        "coin": "EOS",
