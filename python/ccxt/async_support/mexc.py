@@ -46,7 +46,7 @@ class mexc(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
-                'createDepositAddress': None,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'deposit': None,
@@ -3639,6 +3639,11 @@ class mexc(Exchange):
         request = {
             'coin': currency['id'],
         }
+        networkCode = self.safe_string(params, 'network')
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is not None:
+            request['network'] = networkId
+        params = self.omit(params, 'network')
         response = await self.spotPrivateGetCapitalDepositAddress(self.extend(request, params))
         result = []
         for i in range(0, len(response)):
@@ -3656,6 +3661,42 @@ class mexc(Exchange):
                 'tag': tag,
             })
         return result
+
+    async def create_deposit_address(self, code: str, params={}):
+        """
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['network']: the blockchain network name
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        networkCode = self.safe_string(params, 'network')
+        if networkCode is None:
+            raise ArgumentsRequired(self.id + ' createDepositAddress requires a `network` parameter')
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is not None:
+            request['network'] = networkId
+        params = self.omit(params, 'network')
+        response = await self.spotPrivatePostCapitalDepositAddress(self.extend(request, params))
+        #     {
+        #        "coin": "EOS",
+        #        "network": "EOS",
+        #        "address": "zzqqqqqqqqqq",
+        #        "memo": "MX10068"
+        #     }
+        return {
+            'info': response,
+            'currency': self.safe_string(response, 'coin'),
+            'network': self.safe_string(response, 'network'),
+            'address': self.safe_string(response, 'address'),
+            'tag': self.safe_string(response, 'memo'),
+        }
 
     async def fetch_deposit_address(self, code: str, params={}):
         """

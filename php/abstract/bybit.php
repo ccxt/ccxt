@@ -295,6 +295,12 @@ abstract class bybit extends \ccxt\Exchange {
     public function public_get_v5_announcements_index($params = array()) {
         return $this->request('v5/announcements/index', 'public', 'GET', $params);
     }
+    public function public_get_v5_spot_cross_margin_trade_pledge_token($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/pledge-token', 'public', 'GET', $params);
+    }
+    public function public_get_v5_spot_cross_margin_trade_borrow_token($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/borrow-token', 'public', 'GET', $params);
+    }
     public function private_get_v2_private_order_list($params = array()) {
         return $this->request('v2/private/order/list', 'private', 'GET', $params);
     }
@@ -720,6 +726,18 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_get_v5_user_query_api($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params);
+    }
+    public function private_get_v5_spot_cross_margin_trade_loan_info($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', $params);
+    }
+    public function private_get_v5_spot_cross_margin_trade_account($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/account', 'private', 'GET', $params);
+    }
+    public function private_get_v5_spot_cross_margin_trade_orders($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/orders', 'private', 'GET', $params);
+    }
+    public function private_get_v5_spot_cross_margin_trade_repay_history($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/repay-history', 'private', 'GET', $params);
     }
     public function private_post_v2_private_order_create($params = array()) {
         return $this->request('v2/private/order/create', 'private', 'POST', $params);
@@ -1237,6 +1255,15 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_post_v5_user_delete_sub_api($params = array()) {
         return $this->request('v5/user/delete-sub-api', 'private', 'POST', $params);
     }
+    public function private_post_v5_spot_cross_margin_trade_loan($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/loan', 'private', 'POST', $params);
+    }
+    public function private_post_v5_spot_cross_margin_trade_repay($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/repay', 'private', 'POST', $params);
+    }
+    public function private_post_v5_spot_cross_margin_trade_switch($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/switch', 'private', 'POST', $params);
+    }
     public function private_delete_spot_v1_order($params = array()) {
         return $this->request('spot/v1/order', 'private', 'DELETE', $params);
     }
@@ -1539,6 +1566,12 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function publicGetV5AnnouncementsIndex($params = array()) {
         return $this->request('v5/announcements/index', 'public', 'GET', $params);
+    }
+    public function publicGetV5SpotCrossMarginTradePledgeToken($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/pledge-token', 'public', 'GET', $params);
+    }
+    public function publicGetV5SpotCrossMarginTradeBorrowToken($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/borrow-token', 'public', 'GET', $params);
     }
     public function privateGetV2PrivateOrderList($params = array()) {
         return $this->request('v2/private/order/list', 'private', 'GET', $params);
@@ -1965,6 +1998,18 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetV5UserQueryApi($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params);
+    }
+    public function privateGetV5SpotCrossMarginTradeLoanInfo($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', $params);
+    }
+    public function privateGetV5SpotCrossMarginTradeAccount($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/account', 'private', 'GET', $params);
+    }
+    public function privateGetV5SpotCrossMarginTradeOrders($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/orders', 'private', 'GET', $params);
+    }
+    public function privateGetV5SpotCrossMarginTradeRepayHistory($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/repay-history', 'private', 'GET', $params);
     }
     public function privatePostV2PrivateOrderCreate($params = array()) {
         return $this->request('v2/private/order/create', 'private', 'POST', $params);
@@ -2481,6 +2526,15 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5UserDeleteSubApi($params = array()) {
         return $this->request('v5/user/delete-sub-api', 'private', 'POST', $params);
+    }
+    public function privatePostV5SpotCrossMarginTradeLoan($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/loan', 'private', 'POST', $params);
+    }
+    public function privatePostV5SpotCrossMarginTradeRepay($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/repay', 'private', 'POST', $params);
+    }
+    public function privatePostV5SpotCrossMarginTradeSwitch($params = array()) {
+        return $this->request('v5/spot-cross-margin-trade/switch', 'private', 'POST', $params);
     }
     public function privateDeleteSpotV1Order($params = array()) {
         return $this->request('spot/v1/order', 'private', 'DELETE', $params);

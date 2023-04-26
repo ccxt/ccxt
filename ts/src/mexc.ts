@@ -32,7 +32,7 @@ export default class mexc extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'createDepositAddress': undefined,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
@@ -3883,6 +3883,12 @@ export default class mexc extends Exchange {
         const request = {
             'coin': currency['id'],
         };
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode, code);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        params = this.omit (params, 'network');
         const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -3901,6 +3907,47 @@ export default class mexc extends Exchange {
             });
         }
         return result;
+    }
+
+    async createDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name mexc3#createDepositAddress
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+         * @description create a currency deposit address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @param {string|undefined} params.network the blockchain network name
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const networkCode = this.safeString (params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' createDepositAddress requires a `network` parameter');
+        }
+        const networkId = this.networkCodeToId (networkCode, code);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
+        }
+        params = this.omit (params, 'network');
+        const response = await this.spotPrivatePostCapitalDepositAddress (this.extend (request, params));
+        //     {
+        //        "coin": "EOS",
+        //        "network": "EOS",
+        //        "address": "zzqqqqqqqqqq",
+        //        "memo": "MX10068"
+        //     }
+        return {
+            'info': response,
+            'currency': this.safeString (response, 'coin'),
+            'network': this.safeString (response, 'network'),
+            'address': this.safeString (response, 'address'),
+            'tag': this.safeString (response, 'memo'),
+        };
     }
 
     async fetchDepositAddress (code: string, params = {}) {

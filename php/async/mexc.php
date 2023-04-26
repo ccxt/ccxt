@@ -39,7 +39,7 @@ class mexc extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
-                'createDepositAddress' => null,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
@@ -3905,6 +3905,12 @@ class mexc extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
             );
+            $networkCode = $this->safe_string($params, 'network');
+            $networkId = $this->network_code_to_id($networkCode, $code);
+            if ($networkId !== null) {
+                $request['network'] = $networkId;
+            }
+            $params = $this->omit($params, 'network');
             $response = Async\await($this->spotPrivateGetCapitalDepositAddress (array_merge($request, $params)));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
@@ -3923,6 +3929,47 @@ class mexc extends Exchange {
                 );
             }
             return $result;
+        }) ();
+    }
+
+    public function create_deposit_address(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+             * create a $currency deposit address
+             * @param {string} $code unified $currency $code of the $currency for the deposit address
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string|null} $params->network the blockchain network name
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['id'],
+            );
+            $networkCode = $this->safe_string($params, 'network');
+            if ($networkCode === null) {
+                throw new ArgumentsRequired($this->id . ' createDepositAddress requires a `network` parameter');
+            }
+            $networkId = $this->network_code_to_id($networkCode, $code);
+            if ($networkId !== null) {
+                $request['network'] = $networkId;
+            }
+            $params = $this->omit($params, 'network');
+            $response = Async\await($this->spotPrivatePostCapitalDepositAddress (array_merge($request, $params)));
+            //     {
+            //        "coin" => "EOS",
+            //        "network" => "EOS",
+            //        "address" => "zzqqqqqqqqqq",
+            //        "memo" => "MX10068"
+            //     }
+            return array(
+                'info' => $response,
+                'currency' => $this->safe_string($response, 'coin'),
+                'network' => $this->safe_string($response, 'network'),
+                'address' => $this->safe_string($response, 'address'),
+                'tag' => $this->safe_string($response, 'memo'),
+            );
         }) ();
     }
 

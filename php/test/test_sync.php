@@ -166,7 +166,7 @@ class testMainClass extends baseMainTestClass {
         $this->testFiles = array();
         $properties = is_array($exchange->has) ? array_keys($exchange->has) : array();
         $properties[] = 'loadMarkets';
-        set_test_files (this, $properties);
+        set_test_files ($this, $properties);
     }
 
     public function expand_settings($exchange, $symbol) {

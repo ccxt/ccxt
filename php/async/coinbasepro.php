@@ -917,7 +917,12 @@ class coinbasepro extends Exchange {
                 } else {
                     $limit = min (300, $limit);
                 }
-                $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframe * 1000, $since));
+                $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
+                if (fmod($since, $parsedTimeframeMilliseconds) === 0) {
+                    $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframeMilliseconds, $since));
+                } else {
+                    $request['end'] = $this->iso8601($this->sum($limit * $parsedTimeframeMilliseconds, $since));
+                }
             }
             $response = Async\await($this->publicGetProductsIdCandles (array_merge($request, $params)));
             //

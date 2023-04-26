@@ -17,6 +17,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -263,6 +264,7 @@ class poloniex(Exchange):
             'exceptions': {
                 'exact': {
                     # General
+                    '200': CancelPending,  # {"orderId" : "173928661399957504", "clientOrderId" : "", "state" : "PENDING_CANCEL", "code" : 200, "message" : ""}
                     '500': ExchangeNotAvailable,  # Internal System Error
                     '603': RequestTimeout,  # Internal Request Timeout
                     '601': BadRequest,  # Invalid Parameter
