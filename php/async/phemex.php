@@ -75,6 +75,7 @@ class phemex extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -1324,6 +1325,43 @@ class phemex extends Exchange {
             //
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_ticker($result, $market);
+        }) ();
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols-2     // spot
+             * @see https://phemex-docs.github.io/#$query-24-ticker-for-all-$symbols             // linear
+             * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols       // inverse
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the phemex api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbols !== null) {
+                $first = $this->safe_value($symbols, 0);
+                $market = $this->market($first);
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
+            $query = $this->omit($params, 'type');
+            $defaultMethod = null;
+            if ($type === 'spot') {
+                $defaultMethod = 'v1GetMdSpotTicker24hrAll';
+            } elseif ($subType === 'inverse') {
+                $defaultMethod = 'v1GetMdTicker24hrAll';
+            } else {
+                $defaultMethod = 'v2GetMdV2Ticker24hrAll';
+            }
+            $method = $this->safe_string($this->options, 'fetchTickersMethod', $defaultMethod);
+            $response = Async\await($this->$method ($query));
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_tickers($result, $symbols);
         }) ();
     }
 

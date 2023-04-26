@@ -87,6 +87,7 @@ class phemex(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -1282,6 +1283,38 @@ class phemex(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
+
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     # spot
+        see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             # linear
+        see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       # inverse
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbols is not None:
+            first = self.safe_value(symbols, 0)
+            market = self.market(first)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
+        query = self.omit(params, 'type')
+        defaultMethod = None
+        if type == 'spot':
+            defaultMethod = 'v1GetMdSpotTicker24hrAll'
+        elif subType == 'inverse':
+            defaultMethod = 'v1GetMdTicker24hrAll'
+        else:
+            defaultMethod = 'v2GetMdV2Ticker24hrAll'
+        method = self.safe_string(self.options, 'fetchTickersMethod', defaultMethod)
+        response = await getattr(self, method)(query)
+        result = self.safe_value(response, 'result', [])
+        return self.parse_tickers(result, symbols)
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
