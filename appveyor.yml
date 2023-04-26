@@ -1,4 +1,3 @@
-image: Visual Studio 2022
 environment:
   matrix:
     - nodejs_version: '14'
