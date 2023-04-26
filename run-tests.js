@@ -234,7 +234,7 @@ const testExchange = async (exchange) => {
 
         const specificLangSet = (Object.values (langKeys).filter (x => x)).length > 0;
         const selectedTests  = allTests.filter (t => langKeys[t.key]);
-        const scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
+        let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
         if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
             // some exchanges are failing in php async tests with this error:
             // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
