@@ -306,6 +306,21 @@ function checkPrecisionAccuracy (exchange, method, entry, key) {
     }
 }
 
+function assertValidCurrencyIdAndCode (exchange, method, entry, currencyId, currencyCode) {
+    const logText = logTemplate (exchange, method, entry);
+    const undefinedValues = currencyId === undefined && currencyCode === undefined;
+    const definedValues = currencyId !== undefined && currencyCode !== undefined;
+    assert (undefinedValues || definedValues, 'currencyId and currencyCode should be either both defined or both undefined' + logText);
+    if (definedValues) {
+        // check by code
+        const currencyByCode = exchange.currency (currencyCode);
+        assert (currencyByCode['id'] === currencyId, 'currencyId ' + currencyId + ' does not match currency of code: ' + currencyCode + logText);
+        // check by id
+        const currencyById = exchange.safeCurrency (currencyId);
+        assert (currencyById['code'] === currencyCode, 'currencyCode ' + currencyCode + ' does not match currency of id: ' + currencyId + logText);
+    }
+}
+
 export default {
     logTemplate,
     assertTimestamp,
@@ -324,4 +339,5 @@ export default {
     assertNonEqual,
     assertInteger,
     checkPrecisionAccuracy,
+    assertValidCurrencyIdAndCode,
 };

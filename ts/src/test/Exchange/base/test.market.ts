@@ -154,13 +154,20 @@ function testMarket (exchange, method, market) {
     for (let i = 0; i < limitsKeys.length; i++) {
         const key = limitsKeys[i];
         const limitEntry = market['limits'][key];
+        // min >= 0
         testSharedMethods.assertGreaterOrEqual (exchange, method, limitEntry, 'min', '0');
+        // max >= 0
         testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', '0');
+        // max >= min
         const minString = exchange.safeString (limitEntry, 'min');
         if (minString !== undefined) {
             testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', minString);
         }
     }
+    // check whether valid currency ID and CODE is used
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, method, market, market['baseId'], market['base']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, method, market, market['quoteId'], market['quote']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, method, market, market['settleId'], market['settle']);
 }
 
 export default testMarket;

@@ -46,6 +46,8 @@ function testCurrency (exchange, method, entry) {
     if (minStringDeposit !== undefined) {
         testSharedMethods.assertGreater (exchange, method, depositLimits, 'max', minStringDeposit);
     }
+    // check valid ID & CODE
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, method, entry, entry['id'], entry['code']);
     // todo: networks check
 }
 
