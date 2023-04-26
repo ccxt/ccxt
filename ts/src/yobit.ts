@@ -230,6 +230,7 @@ export default class yobit extends Exchange {
                 'XRA': 'Ratecoin',
             },
             'options': {
+                // 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': true,
                 'fetchTickersMaxLength': 512,
                 'networks': {
@@ -553,10 +554,10 @@ export default class yobit extends Exchange {
         let ids = undefined;
         if (symbols === undefined) {
             const numIds = this.ids.length;
-            ids = this.ids.join ('-');
-            const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 512);
-            // max URL length is 512 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > maxLength) {
+            ids = ids.join ('-');
+            const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
+            // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > this.options['fetchTickersMaxLength']) {
                 throw new ArgumentsRequired (this.id + ' fetchTickers() has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
@@ -1021,8 +1022,8 @@ export default class yobit extends Exchange {
         const request = {};
         const market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['pair'] = market['id'];
+            const marketInner = this.market (symbol);
+            request['pair'] = marketInner['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
         //
@@ -1248,7 +1249,7 @@ export default class yobit extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1295,5 +1296,6 @@ export default class yobit extends Exchange {
                 throw new ExchangeError (feedback); // unknown message
             }
         }
+        return undefined;
     }
 }

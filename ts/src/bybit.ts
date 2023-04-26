@@ -1472,15 +1472,15 @@ export default class bybit extends Exchange {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
-                const data = this.safeValue (response, 'result', {});
-                const rawMarkets = this.safeValue (data, 'list', []);
+                const responseInner = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
+                const dataNew = this.safeValue (responseInner, 'result', {});
+                const rawMarkets = this.safeValue (dataNew, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
                 if (rawMarketsLength === 0) {
                     break;
                 }
                 markets = this.arrayConcat (rawMarkets, markets);
-                paginationCursor = this.safeString (data, 'nextPageCursor');
+                paginationCursor = this.safeString (dataNew, 'nextPageCursor');
             }
         }
         //
@@ -8408,7 +8408,7 @@ export default class bybit extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -8448,5 +8448,6 @@ export default class bybit extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

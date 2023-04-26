@@ -1570,8 +1570,8 @@ export default class coinbasepro extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
                 const account = this.safeValue (this.accountsById, account_id);
-                const code = this.safeString (account, 'code');
-                response[i]['currency'] = code;
+                const codeInner = this.safeString (account, 'code');
+                response[i]['currency'] = codeInner;
             }
         } else {
             response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
@@ -1818,6 +1818,7 @@ export default class coinbasepro extends Exchange {
             }
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
