@@ -1931,14 +1931,14 @@ class krakenfutures extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
         $message = $this->safe_string($response, 'error');
         if ($message === null) {
-            return;
+            return null;
         }
         $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

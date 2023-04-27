@@ -836,7 +836,7 @@ class coinone(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if 'result' in response:
             result = response['result']
             if result != 'success':
@@ -849,3 +849,4 @@ class coinone(Exchange):
                 raise ExchangeError(feedback)
         else:
             raise ExchangeError(self.id + ' ' + body)
+        return None

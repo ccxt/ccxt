@@ -822,10 +822,10 @@ class lbank extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $query = $this->keysort(array_merge(array(
+            $queryInner = $this->keysort(array_merge(array(
                 'api_key' => $this->apiKey,
             ), $params));
-            $queryString = $this->rawencode($query);
+            $queryString = $this->rawencode($queryInner);
             $message = strtoupper($this->hash($this->encode($queryString), 'md5'));
             $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
             $pem = null;
@@ -847,7 +847,7 @@ class lbank extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $success = $this->safe_string($response, 'result');
         if ($success === 'false') {
@@ -894,5 +894,6 @@ class lbank extends Exchange {
             ), $errorCode, '\\ccxt\\ExchangeError');
             throw new $ErrorClass($message);
         }
+        return null;
     }
 }

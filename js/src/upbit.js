@@ -1771,7 +1771,7 @@ export default class upbit extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name': 400 } },
@@ -1795,5 +1795,6 @@ export default class upbit extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], name, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

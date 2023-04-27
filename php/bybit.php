@@ -1464,15 +1464,15 @@ class bybit extends Exchange {
         if ($paginationCursor !== null) {
             while ($paginationCursor !== null) {
                 $params['cursor'] = $paginationCursor;
-                $response = $this->publicGetDerivativesV3PublicInstrumentsInfo ($params);
-                $data = $this->safe_value($response, 'result', array());
-                $rawMarkets = $this->safe_value($data, 'list', array());
+                $responseInner = $this->publicGetDerivativesV3PublicInstrumentsInfo ($params);
+                $dataNew = $this->safe_value($responseInner, 'result', array());
+                $rawMarkets = $this->safe_value($dataNew, 'list', array());
                 $rawMarketsLength = count($rawMarkets);
                 if ($rawMarketsLength === 0) {
                     break;
                 }
                 $markets = $this->array_concat($rawMarkets, $markets);
-                $paginationCursor = $this->safe_string($data, 'nextPageCursor');
+                $paginationCursor = $this->safe_string($dataNew, 'nextPageCursor');
             }
         }
         //
@@ -8324,7 +8324,7 @@ class bybit extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     {
@@ -8364,5 +8364,6 @@ class bybit extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+        return null;
     }
 }

@@ -832,11 +832,11 @@ class lbank2 extends Exchange {
             for ($i = 0; $i < count($balances); $i++) {
                 $item = $balances[$i];
                 $currencyId = $this->safe_string($item, 'asset');
-                $code = $this->safe_currency_code($currencyId);
+                $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string($item, 'free');
                 $account['used'] = $this->safe_string($item, 'locked');
-                $result[$code] = $account;
+                $result[$codeInner] = $account;
             }
             return $this->safe_balance($result);
         }
@@ -846,14 +846,15 @@ class lbank2 extends Exchange {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $data[$i];
                 $currencyId = $this->safe_string($item, 'coin');
-                $code = $this->safe_currency_code($currencyId);
+                $codeInner = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string($item, 'usableAmt');
                 $account['used'] = $this->safe_string($item, 'freezeAmt');
-                $result[$code] = $account;
+                $result[$codeInner] = $account;
             }
             return $this->safe_balance($result);
         }
+        return null;
     }
 
     public function fetch_balance($params = array ()) {
@@ -2065,17 +2066,17 @@ class lbank2 extends Exchange {
                 $canWithdraw = $this->safe_value($item, 'canWithDraw');
                 if ($canWithdraw === 'true') {
                     $currencyId = $this->safe_string($item, 'assetCode');
-                    $code = $this->safe_currency_code($currencyId);
+                    $codeInner = $this->safe_currency_code($currencyId);
                     $chain = $this->safe_string($item, 'chain');
                     $network = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
                     if ($network === null) {
-                        $network = $code;
+                        $network = $codeInner;
                     }
                     $fee = $this->safe_string($item, 'fee');
-                    if ($withdrawFees[$code] === null) {
-                        $withdrawFees[$code] = array();
+                    if ($withdrawFees[$codeInner] === null) {
+                        $withdrawFees[$codeInner] = array();
                     }
-                    $withdrawFees[$code][$network] = $this->parse_number($fee);
+                    $withdrawFees[$codeInner][$network] = $this->parse_number($fee);
                 }
             }
             return array(
@@ -2376,7 +2377,7 @@ class lbank2 extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $success = $this->safe_string($response, 'result');
         if ($success === 'false') {
@@ -2488,5 +2489,6 @@ class lbank2 extends Exchange {
             ), $errorCode, '\\ccxt\\ExchangeError');
             throw new $ErrorClass($message);
         }
+        return null;
     }
 }

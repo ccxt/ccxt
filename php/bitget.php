@@ -2067,7 +2067,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m') {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         // spot
         //
@@ -3678,11 +3678,11 @@ class bitget extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
-            $symbol = $this->safe_symbol($marketId, $market);
+            $symbolInner = $this->safe_symbol($marketId, $market);
             $timestamp = $this->safe_integer($entry, 'settleTime');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
+                'symbol' => $symbolInner,
                 'fundingRate' => $this->safe_string($entry, 'fundingRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -4267,7 +4267,7 @@ class bitget extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         // spot
@@ -4308,6 +4308,7 @@ class bitget extends Exchange {
         if ($nonZeroErrorCode || $nonEmptyMessage) {
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -4334,9 +4335,9 @@ class bitget extends Exchange {
                 $auth .= $body;
             } else {
                 if ($params) {
-                    $query = '?' . $this->urlencode($this->keysort($params));
-                    $url .= $query;
-                    $auth .= $query;
+                    $queryInner = '?' . $this->urlencode($this->keysort($params));
+                    $url .= $queryInner;
+                    $auth .= $queryInner;
                 }
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');

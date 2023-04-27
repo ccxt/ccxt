@@ -915,9 +915,9 @@ class whitebit(Exchange):
             keys = list(response.keys())
             for i in range(0, len(keys)):
                 marketId = keys[i]
-                market = self.safe_market(marketId, None, '_')
+                marketNew = self.safe_market(marketId, None, '_')
                 rawTrades = self.safe_value(response, marketId, [])
-                parsed = self.parse_trades(rawTrades, market, since, limit)
+                parsed = self.parse_trades(rawTrades, marketNew, since, limit)
                 results = self.array_concat(results, parsed)
             results = self.sort_by_2(results, 'timestamp', 'id')
             tail = (since is None)
@@ -1329,10 +1329,10 @@ class whitebit(Exchange):
         results = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_market(marketId, None, '_')
+            marketNew = self.safe_market(marketId, None, '_')
             orders = response[marketId]
             for j in range(0, len(orders)):
-                order = self.parse_order(orders[j], market)
+                order = self.parse_order(orders[j], marketNew)
                 results.append(self.extend(order, {'status': 'closed'}))
         results = self.sort_by(results, 'timestamp')
         results = self.filter_by_symbol_since_limit(results, symbol, since, limit)
@@ -1976,9 +1976,9 @@ class whitebit(Exchange):
             message = self.safe_string(response, 'message')
             # For these cases where we have a generic code variable error key
             # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            code = self.safe_integer(response, 'code')
+            codeNew = self.safe_integer(response, 'code')
             hasErrorStatus = status is not None and status != '200'
-            if hasErrorStatus or code is not None:
+            if hasErrorStatus or codeNew is not None:
                 feedback = self.id + ' ' + body
                 errorInfo = message
                 if hasErrorStatus:
@@ -1993,3 +1993,4 @@ class whitebit(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)
+        return None

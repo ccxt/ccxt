@@ -479,9 +479,9 @@ class gemini(Exchange):
             #
         promises = await asyncio.gather(*promises)
         for i in range(0, len(promises)):
-            response = promises[i]
-            marketId = self.safe_string_lower(response, 'symbol')
-            result[marketId] = self.parse_market(response)
+            responseInner = promises[i]
+            marketId = self.safe_string_lower(responseInner, 'symbol')
+            result[marketId] = self.parse_market(responseInner)
         return self.to_array(result)
 
     def parse_market(self, response):
@@ -1511,7 +1511,7 @@ class gemini(Exchange):
             if isinstance(body, str):
                 feedback = self.id + ' ' + body
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {
         #         "result": "error",
@@ -1521,13 +1521,14 @@ class gemini(Exchange):
         #
         result = self.safe_string(response, 'result')
         if result == 'error':
-            reason = self.safe_string(response, 'reason')
+            reasonInner = self.safe_string(response, 'reason')
             message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + message
-            self.throw_exactly_matched_exception(self.exceptions['exact'], reason, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], reasonInner, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
 
     async def create_deposit_address(self, code: str, params={}):
         """

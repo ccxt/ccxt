@@ -1299,6 +1299,7 @@ class timex extends Exchange {
                 'withdraw' => array( 'min' => $fee, 'max' => null ),
                 'amount' => array( 'min' => null, 'max' => null ),
             ),
+            'networks' => array(),
         );
     }
 
@@ -1521,7 +1522,7 @@ class timex extends Exchange {
 
     public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($statusCode >= 400) {
             //
@@ -1540,5 +1541,6 @@ class timex extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

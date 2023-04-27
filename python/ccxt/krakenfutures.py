@@ -1847,12 +1847,12 @@ class krakenfutures(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         message = self.safe_string(response, 'error')
         if message is None:
-            return
+            return None
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

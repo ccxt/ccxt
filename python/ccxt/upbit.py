@@ -1675,7 +1675,7 @@ class upbit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #   {'error': {'message': "Missing request parameter error. Check the required parameters!", 'name': 400}},
         #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"}},
@@ -1697,3 +1697,4 @@ class upbit(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], name, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

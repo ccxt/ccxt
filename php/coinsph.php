@@ -1741,7 +1741,7 @@ class coinsph extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $responseCode = $this->safe_string($response, 'code', null);
         if (($responseCode !== null) && ($responseCode !== '200') && ($responseCode !== '0')) {
@@ -1750,5 +1750,6 @@ class coinsph extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

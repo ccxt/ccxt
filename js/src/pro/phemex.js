@@ -634,7 +634,7 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleDelta(bookside, delta, market = undefined) {
-        const bidAsk = this.parseBidAsk(delta, 0, 1, market);
+        const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas, market = undefined) {

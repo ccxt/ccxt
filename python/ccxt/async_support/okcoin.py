@@ -1715,8 +1715,8 @@ class okcoin(Exchange):
             if self.safe_string(balance, 'margin_mode') == 'fixed':
                 contracts = self.safe_value(balance, 'contracts', [])
                 free = totalAvailBalance
-                for i in range(0, len(contracts)):
-                    contract = contracts[i]
+                for j in range(0, len(contracts)):
+                    contract = contracts[j]
                     fixedBalance = self.safe_string(contract, 'fixed_balance')
                     realizedPnl = self.safe_string(contract, 'realized_pnl')
                     marginFrozen = self.safe_string(contract, 'margin_frozen')
@@ -3643,7 +3643,7 @@ class okcoin(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         feedback = self.id + ' ' + body
         if code == 503:
             # {"message":"name resolution failed"}
@@ -3662,3 +3662,4 @@ class okcoin(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message
+        return None

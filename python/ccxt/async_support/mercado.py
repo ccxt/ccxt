@@ -818,7 +818,7 @@ class mercado(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         # todo add a unified standard handleErrors with self.exceptions in describe()
         #
@@ -827,3 +827,4 @@ class mercado(Exchange):
         errorMessage = self.safe_value(response, 'error_message')
         if errorMessage is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

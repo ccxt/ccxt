@@ -712,7 +712,7 @@ class zaif extends zaif$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"error": "unsupported currency_pair"}
@@ -728,6 +728,7 @@ class zaif extends zaif$1 {
         if (!success) {
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

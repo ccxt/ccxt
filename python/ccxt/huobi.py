@@ -1423,7 +1423,7 @@ class huobi(Exchange):
             value = self.safe_value(types, type)
             if value is True:
                 promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
-            elif value:
+            elif value is not None:
                 subKeys = list(value.keys())
                 for j in range(0, len(subKeys)):
                     subType = subKeys[j]
@@ -2000,20 +2000,20 @@ class huobi(Exchange):
             # we are doing a linear-matching here
             if future and linear:
                 for j in range(0, len(self.symbols)):
-                    symbol = self.symbols[j]
-                    market = self.market(symbol)
-                    contractType = self.safe_string(market['info'], 'contract_type')
-                    if (contractType == 'this_week') and (ticker['symbol'] == (market['baseId'] + '-' + market['quoteId'] + '-CW')):
-                        ticker['symbol'] = market['symbol']
+                    symbolInner = self.symbols[j]
+                    marketInner = self.market(symbolInner)
+                    contractType = self.safe_string(marketInner['info'], 'contract_type')
+                    if (contractType == 'this_week') and (ticker['symbol'] == (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CW')):
+                        ticker['symbol'] = marketInner['symbol']
                         break
-                    elif (contractType == 'next_week') and (ticker['symbol'] == (market['baseId'] + '-' + market['quoteId'] + '-NW')):
-                        ticker['symbol'] = market['symbol']
+                    elif (contractType == 'next_week') and (ticker['symbol'] == (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NW')):
+                        ticker['symbol'] = marketInner['symbol']
                         break
-                    elif (contractType == 'this_quarter') and (ticker['symbol'] == (market['baseId'] + '-' + market['quoteId'] + '-CQ')):
-                        ticker['symbol'] = market['symbol']
+                    elif (contractType == 'this_quarter') and (ticker['symbol'] == (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CQ')):
+                        ticker['symbol'] = marketInner['symbol']
                         break
-                    elif (contractType == 'next_quarter') and (ticker['symbol'] == (market['baseId'] + '-' + market['quoteId'] + '-NQ')):
-                        ticker['symbol'] = market['symbol']
+                    elif (contractType == 'next_quarter') and (ticker['symbol'] == (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NQ')):
+                        ticker['symbol'] = marketInner['symbol']
                         break
             symbol = ticker['symbol']
             ticker['timestamp'] = timestamp
@@ -3004,8 +3004,8 @@ class huobi(Exchange):
                     symbol = self.safe_symbol(self.safe_string(entry, 'symbol'))
                     balances = self.safe_value(entry, 'list')
                     subResult = {}
-                    for i in range(0, len(balances)):
-                        balance = balances[i]
+                    for j in range(0, len(balances)):
+                        balance = balances[j]
                         currencyId = self.safe_string(balance, 'currency')
                         code = self.safe_currency_code(currencyId)
                         subResult[code] = self.parse_margin_balance_helper(balance, code, subResult)
@@ -3537,9 +3537,9 @@ class huobi(Exchange):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol for ' + marketType + ' orders')
-            market = self.market(symbol)
-            request['contract_code'] = market['id']
-            if market['linear']:
+            marketInner = self.market(symbol)
+            request['contract_code'] = marketInner['id']
+            if marketInner['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
@@ -3547,11 +3547,11 @@ class huobi(Exchange):
                     method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders'
                 elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders'
-            elif market['inverse']:
-                if market['future']:
+            elif marketInner['inverse']:
+                if marketInner['future']:
                     method = 'contractPrivatePostApiV1ContractOpenorders'
-                    request['symbol'] = market['settleId']
-                elif market['swap']:
+                    request['symbol'] = marketInner['settleId']
+                elif marketInner['swap']:
                     method = 'contractPrivatePostSwapApiV1SwapOpenorders'
             if limit is not None:
                 request['page_size'] = limit
@@ -4267,9 +4267,9 @@ class huobi(Exchange):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders')
-            market = self.market(symbol)
-            request['contract_code'] = market['id']
-            if market['linear']:
+            marketInner = self.market(symbol)
+            request['contract_code'] = marketInner['id']
+            if marketInner['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
@@ -4277,11 +4277,11 @@ class huobi(Exchange):
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
                 elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel'
-            elif market['inverse']:
-                if market['future']:
+            elif marketInner['inverse']:
+                if marketInner['future']:
                     method = 'contractPrivatePostApiV1ContractCancel'
-                    request['symbol'] = market['settleId']
-                elif market['swap']:
+                    request['symbol'] = marketInner['settleId']
+                elif marketInner['swap']:
                     method = 'contractPrivatePostSwapApiV1SwapCancel'
                 else:
                     raise NotSupported(self.id + ' cancelOrders() does not support ' + marketType + ' markets')
@@ -4382,9 +4382,9 @@ class huobi(Exchange):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol for ' + marketType + ' orders')
-            market = self.market(symbol)
-            request['contract_code'] = market['id']
-            if market['linear']:
+            marketInner = self.market(symbol)
+            request['contract_code'] = marketInner['id']
+            if marketInner['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
@@ -4392,10 +4392,10 @@ class huobi(Exchange):
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancelallall'
                 elif marginMode == 'cross':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall'
-            elif market['inverse']:
+            elif marketInner['inverse']:
                 if marketType == 'future':
                     method = 'contractPrivatePostApiV1ContractCancelall'
-                    request['symbol'] = market['settleId']
+                    request['symbol'] = marketInner['settleId']
                 elif marketType == 'swap':
                     method = 'contractPrivatePostSwapApiV1SwapCancelall'
                 else:
@@ -5055,11 +5055,11 @@ class huobi(Exchange):
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(entry, 'contract_code')
-            symbol = self.safe_symbol(marketId)
+            symbolInner = self.safe_symbol(marketId)
             timestamp = self.safe_integer(entry, 'funding_time')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_number(entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -5362,7 +5362,7 @@ class huobi(Exchange):
             hostnames = self.safe_value(self.urls['hostnames'], type)
             if not isinstance(hostnames, str):
                 hostnames = self.safe_value(hostnames, levelOneNestedPath)
-                if (not isinstance(hostname, str)) and (levelTwoNestedPath is not None):
+                if (not isinstance(hostnames, str)) and (levelTwoNestedPath is not None):
                     hostnames = self.safe_value(hostnames, levelTwoNestedPath)
             hostname = hostnames
             url += self.implode_params(path, params)
@@ -5405,7 +5405,7 @@ class huobi(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'status' in response:
             #
             #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
@@ -5424,6 +5424,7 @@ class huobi(Exchange):
             feedback = self.id + ' ' + body
             code = self.safe_string(response, 'code')
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+        return None
 
     def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

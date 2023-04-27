@@ -553,7 +553,6 @@ export default class deribit extends Exchange {
         //
         const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
         const result = [];
-        const seenMarkets = {}; // we might have duplicated markets in the raw data
         for (let i = 0; i < currenciesResult.length; i++) {
             const currencyId = this.safeString(currenciesResult[i], 'currency');
             const request = {
@@ -681,59 +680,56 @@ export default class deribit extends Exchange {
                 }
                 const minTradeAmount = this.safeNumber(market, 'min_trade_amount');
                 const tickSize = this.safeNumber(market, 'tick_size');
-                if (!this.safeValue(seenMarkets, symbol, false)) {
-                    seenMarkets[symbol] = true;
-                    result.push({
-                        'id': id,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'settle': settle,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                        'settleId': settleId,
-                        'type': type,
-                        'spot': isSpot,
-                        'margin': false,
-                        'swap': swap,
-                        'future': future,
-                        'option': option,
-                        'active': this.safeValue(market, 'is_active'),
-                        'contract': !isSpot,
-                        'linear': (settle === quote),
-                        'inverse': (settle !== quote),
-                        'taker': this.safeNumber(market, 'taker_commission'),
-                        'maker': this.safeNumber(market, 'maker_commission'),
-                        'contractSize': this.safeNumber(market, 'contract_size'),
-                        'expiry': expiry,
-                        'expiryDatetime': this.iso8601(expiry),
-                        'strike': strike,
-                        'optionType': optionType,
-                        'precision': {
-                            'amount': minTradeAmount,
-                            'price': tickSize,
+                result.push({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': type,
+                    'spot': isSpot,
+                    'margin': false,
+                    'swap': swap,
+                    'future': future,
+                    'option': option,
+                    'active': this.safeValue(market, 'is_active'),
+                    'contract': !isSpot,
+                    'linear': (settle === quote),
+                    'inverse': (settle !== quote),
+                    'taker': this.safeNumber(market, 'taker_commission'),
+                    'maker': this.safeNumber(market, 'maker_commission'),
+                    'contractSize': this.safeNumber(market, 'contract_size'),
+                    'expiry': expiry,
+                    'expiryDatetime': this.iso8601(expiry),
+                    'strike': strike,
+                    'optionType': optionType,
+                    'precision': {
+                        'amount': minTradeAmount,
+                        'price': tickSize,
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
                         },
-                        'limits': {
-                            'leverage': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'amount': {
-                                'min': minTradeAmount,
-                                'max': undefined,
-                            },
-                            'price': {
-                                'min': tickSize,
-                                'max': undefined,
-                            },
-                            'cost': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
+                        'amount': {
+                            'min': minTradeAmount,
+                            'max': undefined,
                         },
-                        'info': market,
-                    });
-                }
+                        'price': {
+                            'min': tickSize,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'info': market,
+                });
             }
         }
         return result;
@@ -2646,7 +2642,7 @@ export default class deribit extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -2669,5 +2665,6 @@ export default class deribit extends Exchange {
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

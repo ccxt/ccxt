@@ -2000,7 +2000,7 @@ class poloniex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {
         #         "code" : 21709,
@@ -2008,9 +2008,10 @@ class poloniex(Exchange):
         #     }
         #
         if 'code' in response:
-            code = response['code']
+            codeInner = response['code']
             message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeInner, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

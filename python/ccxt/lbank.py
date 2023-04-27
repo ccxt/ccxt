@@ -763,10 +763,10 @@ class lbank(Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            query = self.keysort(self.extend({
+            queryInner = self.keysort(self.extend({
                 'api_key': self.apiKey,
             }, params))
-            queryString = self.rawencode(query)
+            queryString = self.rawencode(queryInner)
             message = self.hash(self.encode(queryString), 'md5').upper()
             cacheSecretAsPem = self.safe_value(self.options, 'cacheSecretAsPem', True)
             pem = None
@@ -784,7 +784,7 @@ class lbank(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         success = self.safe_string(response, 'result')
         if success == 'false':
             errorCode = self.safe_string(response, 'error_code')
@@ -829,3 +829,4 @@ class lbank(Exchange):
                 '10022': AuthenticationError,
             }, errorCode, ExchangeError)
             raise ErrorClass(message)
+        return None

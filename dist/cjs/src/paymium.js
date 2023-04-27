@@ -568,12 +568,13 @@ class paymium extends paymium$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errors$1 = this.safeValue(response, 'errors');
         if (errors$1 !== undefined) {
             throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }
 

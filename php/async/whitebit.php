@@ -950,9 +950,9 @@ class whitebit extends Exchange {
                 $keys = is_array($response) ? array_keys($response) : array();
                 for ($i = 0; $i < count($keys); $i++) {
                     $marketId = $keys[$i];
-                    $market = $this->safe_market($marketId, null, '_');
+                    $marketNew = $this->safe_market($marketId, null, '_');
                     $rawTrades = $this->safe_value($response, $marketId, array());
-                    $parsed = $this->parse_trades($rawTrades, $market, $since, $limit);
+                    $parsed = $this->parse_trades($rawTrades, $marketNew, $since, $limit);
                     $results = $this->array_concat($results, $parsed);
                 }
                 $results = $this->sort_by_2($results, 'timestamp', 'id');
@@ -1417,10 +1417,10 @@ class whitebit extends Exchange {
             $results = array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
-                $market = $this->safe_market($marketId, null, '_');
+                $marketNew = $this->safe_market($marketId, null, '_');
                 $orders = $response[$marketId];
                 for ($j = 0; $j < count($orders); $j++) {
-                    $order = $this->parse_order($orders[$j], $market);
+                    $order = $this->parse_order($orders[$j], $marketNew);
                     $results[] = array_merge($order, array( 'status' => 'closed' ));
                 }
             }
@@ -2124,9 +2124,9 @@ class whitebit extends Exchange {
             $message = $this->safe_string($response, 'message');
             // For these cases where we have a generic $code variable error key
             // array("code":0,"message":"Validation failed","errors":array("amount":["Amount must be greater than 0"]))
-            $code = $this->safe_integer($response, 'code');
+            $codeNew = $this->safe_integer($response, 'code');
             $hasErrorStatus = $status !== null && $status !== '200';
-            if ($hasErrorStatus || $code !== null) {
+            if ($hasErrorStatus || $codeNew !== null) {
                 $feedback = $this->id . ' ' . $body;
                 $errorInfo = $message;
                 if ($hasErrorStatus) {
@@ -2145,5 +2145,6 @@ class whitebit extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

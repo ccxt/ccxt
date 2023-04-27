@@ -807,7 +807,7 @@ export default class alpaca extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // default error handler
+            return undefined; // default error handler
         }
         // {
         //     "code": 40110000,
@@ -824,5 +824,6 @@ export default class alpaca extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

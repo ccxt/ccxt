@@ -2253,8 +2253,8 @@ class okx(Exchange):
         """
         stop = self.safe_value(params, 'stop')
         if stop:
-            order = self.cancel_orders([id], symbol, params)
-            return self.safe_value(order, 0)
+            orderInner = self.cancel_orders([id], symbol, params)
+            return self.safe_value(orderInner, 0)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -4723,12 +4723,12 @@ class okx(Exchange):
             entry = data[i]
             timestamp = self.safe_integer(entry, 'ts')
             instId = self.safe_string(entry, 'instId')
-            market = self.safe_market(instId)
+            marketInner = self.safe_market(instId)
             currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
             result.append({
                 'info': entry,
-                'symbol': market['symbol'],
+                'symbol': marketInner['symbol'],
                 'code': code,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -5646,7 +5646,7 @@ class okx(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #    {
         #        "code": "1",
@@ -5679,3 +5679,4 @@ class okx(Exchange):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

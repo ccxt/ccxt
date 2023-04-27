@@ -1494,7 +1494,7 @@ class novadax extends novadax$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"code":"A10003","data":[],"message":"Authentication failed, Invalid accessKey."}
@@ -1507,6 +1507,7 @@ class novadax extends novadax$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

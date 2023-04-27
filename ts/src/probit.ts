@@ -459,6 +459,7 @@ export default class probit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

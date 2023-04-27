@@ -3,7 +3,7 @@ import { Int, OrderSide } from './base/types.js';
 export default class digifinex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any>;
+    fetchMarkets(params?: {}): Promise<any[]>;
     fetchMarketsV2(params?: {}): Promise<any[]>;
     fetchMarketsV1(params?: {}): Promise<any[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
@@ -249,5 +249,5 @@ export default class digifinex extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, response: any, requestHeaders: any, requestBody: any): any;
 }

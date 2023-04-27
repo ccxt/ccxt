@@ -2002,33 +2002,6 @@ class kucoinfutures extends kucoinfutures$1 {
         const responseData = response['data']['items'];
         return this.parseTransactions(responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
-    async fetchTransactionFee(code, params = {}) {
-        /**
-         * @method
-         * @name kucoinfutures#fetchTransactionFee
-         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
-        // throw new BadRequest (this.id + ' fetchTransactionFee() is not supported');
-        return undefined;
-    }
-    async fetchDepositWithdrawFee(code, params = {}) {
-        /**
-         * @method
-         * @name kucoinfutures#fetchDepositWithdrawFee
-         * @description Not supported
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
-        throw new errors.BadRequest(this.id + ' fetchDepositWithdrawFee() is not supported');
-    }
-    async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        // throw new BadRequest (this.id + ' fetchLedger() is not supported yet');
-        return undefined;
-    }
     async fetchMarketLeverageTiers(symbol, params = {}) {
         /**
          * @method

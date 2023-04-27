@@ -762,7 +762,7 @@ class zb(Exchange):
             fees = {}
             for j in range(0, len(currency)):
                 networkItem = currency[j]
-                network = self.safe_string(networkItem, 'chainName')
+                network = self.safe_string_2(networkItem, 'chainName', 'mainChainName')
                 # name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_number(networkItem, 'fee')
                 depositEnable = self.safe_value(networkItem, 'canDeposit')
@@ -3019,11 +3019,11 @@ class zb(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
-            symbol = self.safe_symbol(marketId)
+            symbolInner = self.safe_symbol(marketId)
             timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -3708,8 +3708,8 @@ class zb(Exchange):
                 symbol = self.safe_string_2(params, 'marketName', 'symbol')
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer() requires a symbol argument for isolated margin')
-                market = self.market(symbol)
-                request['marketName'] = self.safe_symbol(market['id'], market, '_')
+                marketInner = self.market(symbol)
+                request['marketName'] = self.safe_symbol(marketInner['id'], marketInner, '_')
             elif (marginMode == 'cross') or (toAccount == 'cross') or (fromAccount == 'cross'):
                 if fromAccount == 'spot' or toAccount == 'cross':
                     method = 'spotV1PrivateGetTransferInCross'
@@ -4017,8 +4017,8 @@ class zb(Exchange):
         if marginMode == 'isolated':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
-            market = self.market(symbol)
-            request['marketName'] = self.safe_symbol(market['id'], market, '_')
+            marketInner = self.market(symbol)
+            request['marketName'] = self.safe_symbol(marketInner['id'], marketInner, '_')
             method = 'spotV1PrivateGetBorrow'
         elif marginMode == 'cross':
             method = 'spotV1PrivateGetDoCrossLoan'
@@ -4056,7 +4056,9 @@ class zb(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        section, version, access = api
+        section = self.safe_string(api, 0)
+        version = self.safe_string(api, 1)
+        access = self.safe_string(api, 2)
         url = self.implode_hostname(self.urls['api'][section][version][access])
         if access == 'public':
             if path == 'getFeeInfo':
@@ -4104,7 +4106,7 @@ class zb(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if body[0] == '{':
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
@@ -4122,3 +4124,4 @@ class zb(Exchange):
                         raise ExchangeNotAvailable(feedback)
                     else:
                         raise ExchangeError(feedback)
+        return None

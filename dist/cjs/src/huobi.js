@@ -1421,7 +1421,7 @@ class huobi extends huobi$1 {
             if (value === true) {
                 promises.push(this.fetchMarketsByTypeAndSubType(type, undefined, params));
             }
-            else if (value) {
+            else if (value !== undefined) {
                 const subKeys = Object.keys(value);
                 for (let j = 0; j < subKeys.length; j++) {
                     const subType = subKeys[j];
@@ -2050,23 +2050,23 @@ class huobi extends huobi$1 {
             // we are doing a linear-matching here
             if (future && linear) {
                 for (let j = 0; j < this.symbols.length; j++) {
-                    const symbol = this.symbols[j];
-                    const market = this.market(symbol);
-                    const contractType = this.safeString(market['info'], 'contract_type');
-                    if ((contractType === 'this_week') && (ticker['symbol'] === (market['baseId'] + '-' + market['quoteId'] + '-CW'))) {
-                        ticker['symbol'] = market['symbol'];
+                    const symbolInner = this.symbols[j];
+                    const marketInner = this.market(symbolInner);
+                    const contractType = this.safeString(marketInner['info'], 'contract_type');
+                    if ((contractType === 'this_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CW'))) {
+                        ticker['symbol'] = marketInner['symbol'];
                         break;
                     }
-                    else if ((contractType === 'next_week') && (ticker['symbol'] === (market['baseId'] + '-' + market['quoteId'] + '-NW'))) {
-                        ticker['symbol'] = market['symbol'];
+                    else if ((contractType === 'next_week') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NW'))) {
+                        ticker['symbol'] = marketInner['symbol'];
                         break;
                     }
-                    else if ((contractType === 'this_quarter') && (ticker['symbol'] === (market['baseId'] + '-' + market['quoteId'] + '-CQ'))) {
-                        ticker['symbol'] = market['symbol'];
+                    else if ((contractType === 'this_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-CQ'))) {
+                        ticker['symbol'] = marketInner['symbol'];
                         break;
                     }
-                    else if ((contractType === 'next_quarter') && (ticker['symbol'] === (market['baseId'] + '-' + market['quoteId'] + '-NQ'))) {
-                        ticker['symbol'] = market['symbol'];
+                    else if ((contractType === 'next_quarter') && (ticker['symbol'] === (marketInner['baseId'] + '-' + marketInner['quoteId'] + '-NQ'))) {
+                        ticker['symbol'] = marketInner['symbol'];
                         break;
                     }
                 }
@@ -3171,8 +3171,8 @@ class huobi extends huobi$1 {
                     const symbol = this.safeSymbol(this.safeString(entry, 'symbol'));
                     const balances = this.safeValue(entry, 'list');
                     const subResult = {};
-                    for (let i = 0; i < balances.length; i++) {
-                        const balance = balances[i];
+                    for (let j = 0; j < balances.length; j++) {
+                        const balance = balances[j];
                         const currencyId = this.safeString(balance, 'currency');
                         const code = this.safeCurrencyCode(currencyId);
                         subResult[code] = this.parseMarginBalanceHelper(balance, code, subResult);
@@ -3770,9 +3770,9 @@ class huobi extends huobi$1 {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol for ' + marketType + ' orders');
             }
-            const market = this.market(symbol);
-            request['contract_code'] = market['id'];
-            if (market['linear']) {
+            const marketInner = this.market(symbol);
+            request['contract_code'] = marketInner['id'];
+            if (marketInner['linear']) {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -3783,12 +3783,12 @@ class huobi extends huobi$1 {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders';
                 }
             }
-            else if (market['inverse']) {
-                if (market['future']) {
+            else if (marketInner['inverse']) {
+                if (marketInner['future']) {
                     method = 'contractPrivatePostApiV1ContractOpenorders';
-                    request['symbol'] = market['settleId'];
+                    request['symbol'] = marketInner['settleId'];
                 }
-                else if (market['swap']) {
+                else if (marketInner['swap']) {
                     method = 'contractPrivatePostSwapApiV1SwapOpenorders';
                 }
             }
@@ -4581,9 +4581,9 @@ class huobi extends huobi$1 {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol for ' + marketType + ' orders');
             }
-            const market = this.market(symbol);
-            request['contract_code'] = market['id'];
-            if (market['linear']) {
+            const marketInner = this.market(symbol);
+            request['contract_code'] = marketInner['id'];
+            if (marketInner['linear']) {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -4594,12 +4594,12 @@ class huobi extends huobi$1 {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancel';
                 }
             }
-            else if (market['inverse']) {
-                if (market['future']) {
+            else if (marketInner['inverse']) {
+                if (marketInner['future']) {
                     method = 'contractPrivatePostApiV1ContractCancel';
-                    request['symbol'] = market['settleId'];
+                    request['symbol'] = marketInner['settleId'];
                 }
-                else if (market['swap']) {
+                else if (marketInner['swap']) {
                     method = 'contractPrivatePostSwapApiV1SwapCancel';
                 }
                 else {
@@ -4712,9 +4712,9 @@ class huobi extends huobi$1 {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol for ' + marketType + ' orders');
             }
-            const market = this.market(symbol);
-            request['contract_code'] = market['id'];
-            if (market['linear']) {
+            const marketInner = this.market(symbol);
+            request['contract_code'] = marketInner['id'];
+            if (marketInner['linear']) {
                 let marginMode = undefined;
                 [marginMode, params] = this.handleMarginModeAndParams('cancelAllOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -4725,10 +4725,10 @@ class huobi extends huobi$1 {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCrossCancelall';
                 }
             }
-            else if (market['inverse']) {
+            else if (marketInner['inverse']) {
                 if (marketType === 'future') {
                     method = 'contractPrivatePostApiV1ContractCancelall';
-                    request['symbol'] = market['settleId'];
+                    request['symbol'] = marketInner['settleId'];
                 }
                 else if (marketType === 'swap') {
                     method = 'contractPrivatePostSwapApiV1SwapCancelall';
@@ -5448,11 +5448,11 @@ class huobi extends huobi$1 {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString(entry, 'contract_code');
-            const symbol = this.safeSymbol(marketId);
+            const symbolInner = this.safeSymbol(marketId);
             const timestamp = this.safeInteger(entry, 'funding_time');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber(entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -5780,7 +5780,7 @@ class huobi extends huobi$1 {
             let hostnames = this.safeValue(this.urls['hostnames'], type);
             if (typeof hostnames !== 'string') {
                 hostnames = this.safeValue(hostnames, levelOneNestedPath);
-                if ((typeof hostname !== 'string') && (levelTwoNestedPath !== undefined)) {
+                if ((typeof hostnames !== 'string') && (levelTwoNestedPath !== undefined)) {
                     hostnames = this.safeValue(hostnames, levelTwoNestedPath);
                 }
             }
@@ -5833,7 +5833,7 @@ class huobi extends huobi$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('status' in response) {
             //
@@ -5856,6 +5856,7 @@ class huobi extends huobi$1 {
             const code = this.safeString(response, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
         }
+        return undefined;
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

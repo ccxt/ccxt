@@ -1768,7 +1768,7 @@ class upbit extends upbit$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name': 400 } },
@@ -1792,6 +1792,7 @@ class upbit extends upbit$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], name, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

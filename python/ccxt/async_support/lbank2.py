@@ -802,11 +802,11 @@ class lbank2(Exchange):
             for i in range(0, len(balances)):
                 item = balances[i]
                 currencyId = self.safe_string(item, 'asset')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string(item, 'free')
                 account['used'] = self.safe_string(item, 'locked')
-                result[code] = account
+                result[codeInner] = account
             return self.safe_balance(result)
         # from privatePostSupplementUserInfo
         isArray = isinstance(data, list)
@@ -814,12 +814,13 @@ class lbank2(Exchange):
             for i in range(0, len(data)):
                 item = data[i]
                 currencyId = self.safe_string(item, 'coin')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string(item, 'usableAmt')
                 account['used'] = self.safe_string(item, 'freezeAmt')
-                result[code] = account
+                result[codeInner] = account
             return self.safe_balance(result)
+        return None
 
     async def fetch_balance(self, params={}):
         """
@@ -1914,15 +1915,15 @@ class lbank2(Exchange):
             canWithdraw = self.safe_value(item, 'canWithDraw')
             if canWithdraw == 'true':
                 currencyId = self.safe_string(item, 'assetCode')
-                code = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(currencyId)
                 chain = self.safe_string(item, 'chain')
                 network = self.safe_string(self.options['inverse-networks'], chain, chain)
                 if network is None:
-                    network = code
+                    network = codeInner
                 fee = self.safe_string(item, 'fee')
-                if withdrawFees[code] is None:
-                    withdrawFees[code] = {}
-                withdrawFees[code][network] = self.parse_number(fee)
+                if withdrawFees[codeInner] is None:
+                    withdrawFees[codeInner] = {}
+                withdrawFees[codeInner][network] = self.parse_number(fee)
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -2188,7 +2189,7 @@ class lbank2(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         success = self.safe_string(response, 'result')
         if success == 'false':
             errorCode = self.safe_string(response, 'error_code')
@@ -2298,3 +2299,4 @@ class lbank2(Exchange):
                 '10702': PermissionDenied,  # 'not allowed deposit',
             }, errorCode, ExchangeError)
             raise ErrorClass(message)
+        return None

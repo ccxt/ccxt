@@ -893,7 +893,7 @@ class mercado extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         // todo add a unified standard handleErrors with $this->exceptions in describe()
@@ -904,5 +904,6 @@ class mercado extends Exchange {
         if ($errorMessage !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
+        return null;
     }
 }

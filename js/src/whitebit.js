@@ -937,9 +937,9 @@ export default class whitebit extends Exchange {
             const keys = Object.keys(response);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
-                const market = this.safeMarket(marketId, undefined, '_');
+                const marketNew = this.safeMarket(marketId, undefined, '_');
                 const rawTrades = this.safeValue(response, marketId, []);
-                const parsed = this.parseTrades(rawTrades, market, since, limit);
+                const parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                 results = this.arrayConcat(results, parsed);
             }
             results = this.sortBy2(results, 'timestamp', 'id');
@@ -1400,10 +1400,10 @@ export default class whitebit extends Exchange {
         let results = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket(marketId, undefined, '_');
+            const marketNew = this.safeMarket(marketId, undefined, '_');
             const orders = response[marketId];
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder(orders[j], market);
+                const order = this.parseOrder(orders[j], marketNew);
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }
@@ -2089,9 +2089,9 @@ export default class whitebit extends Exchange {
             const message = this.safeString(response, 'message');
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            const code = this.safeInteger(response, 'code');
+            const codeNew = this.safeInteger(response, 'code');
             const hasErrorStatus = status !== undefined && status !== '200';
-            if (hasErrorStatus || code !== undefined) {
+            if (hasErrorStatus || codeNew !== undefined) {
                 const feedback = this.id + ' ' + body;
                 let errorInfo = message;
                 if (hasErrorStatus) {
@@ -2111,5 +2111,6 @@ export default class whitebit extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

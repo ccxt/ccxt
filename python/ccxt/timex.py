@@ -1259,6 +1259,7 @@ class timex(Exchange):
                 'withdraw': {'min': fee, 'max': None},
                 'amount': {'min': None, 'max': None},
             },
+            'networks': {},
         }
 
     def parse_ticker(self, ticker, market=None):
@@ -1470,7 +1471,7 @@ class timex(Exchange):
 
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if statusCode >= 400:
             #
             #     {"error":{"timestamp":"05.12.2019T05:25:43.584+0000","status":"BAD_REQUEST","message":"Insufficient ETH balance. Required: 1, actual: 0.","code":4001}}
@@ -1486,3 +1487,4 @@ class timex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             raise ExchangeError(feedback)
+        return None

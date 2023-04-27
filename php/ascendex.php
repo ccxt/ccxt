@@ -426,13 +426,13 @@ class ascendex extends Exchange {
             $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
             $status = $this->safe_string_2($currency, 'status', 'statusCode');
             $active = ($status === 'Normal');
-            $margin = (is_array($currency) && array_key_exists('borrowAssetCode', $currency));
+            $marginInside = (is_array($currency) && array_key_exists('borrowAssetCode', $currency));
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'type' => null,
-                'margin' => $margin,
+                'margin' => $marginInside,
                 'name' => $this->safe_string($currency, 'assetName'),
                 'active' => $active,
                 'deposit' => null,
@@ -449,6 +449,7 @@ class ascendex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
@@ -2981,7 +2982,7 @@ class ascendex extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     array('code' => 6010, 'message' => 'Not enough balance.')
@@ -2999,5 +3000,6 @@ class ascendex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

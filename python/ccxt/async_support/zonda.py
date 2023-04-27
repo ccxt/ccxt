@@ -1632,7 +1632,7 @@ class zonda(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'code' in response:
             #
             # bitbay returns the integer 'success': 1 key from their private API
@@ -1675,3 +1675,4 @@ class zonda(Exchange):
                     error = errors[i]
                     self.throw_exactly_matched_exception(self.exceptions, error, feedback)
                 raise ExchangeError(feedback)
+        return None
