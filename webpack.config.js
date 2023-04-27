@@ -10,7 +10,7 @@ export default {
     path: outputDirectory,
     filename: 'ccxt.browser.js',
     library: {
-      type: 'window', // we are targeting the browser
+      type: 'self', // we are targeting the browser (including webworkers)
       name: 'ccxt',
     },
     chunkFormat: 'array-push',
