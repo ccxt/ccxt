@@ -460,6 +460,7 @@ export default class latoken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

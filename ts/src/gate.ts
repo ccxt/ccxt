@@ -1364,6 +1364,7 @@ export default class gate extends Exchange {
                 'fee': undefined,
                 'fees': [],
                 'limits': this.limits,
+                'networks': {},
             };
         }
         return result;
