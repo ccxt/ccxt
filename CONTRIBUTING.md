@@ -49,6 +49,7 @@ If you found a security issue or a critical vulnerability and reporting it in pu
   - `/js/*` (these are compiled from the typescript version)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
+  - `/c#/*` (except for base classes)
   - `/ccxt.js`
   - `/README.md` (exchange lists are generated automatically)
   - `/package.json`
@@ -115,6 +116,13 @@ If you're not going to develop CCXT and contribute code to the CCXT library, the
   ```shell
   # PHP / Composer
   composer install ccxt
+  ```
+
+- [C# / Nugget](https://github.com/ccxt/ccxt/wiki/Install#php)
+
+  ```shell
+  # C# / Nugget
+  dotnet add ccxt
   ```
 
 ### With Docker
@@ -229,7 +237,7 @@ The module entry points are:
 - `./dist/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
-Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
+Generated versions and docs are transpiled from the source `ccxt.ts` file and files in `./ts/` by the `npm run build` command.
 
 ### Transpiled (generated) files
 
@@ -255,13 +263,23 @@ These Python base classes and files are not transpiled:
 
 #### PHP
 
-These files containing derived exchange classes are transpiled from JS into PHP:
+These files containing derived exchange classes are transpiled from TS into C#:
 
 - `ts/[_a-z].ts` → `php/[_a-z].php`
 
 These PHP base classes and files are not transpiled:
 
 - `php/Exchange.php php/ExchangeError.php php/Precise.php ...`
+
+#### C#
+
+These files containing derived exchange classes are transpiled from TS into C#:
+
+- `ts/src/[_a-z].ts` → `c#/src/exchanges/[_a-z].cs`
+
+These C# base classes and files are not transpiled:
+
+- `c#/base/*`
 
 #### Typescript
 
