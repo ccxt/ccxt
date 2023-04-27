@@ -475,6 +475,8 @@
         }
     },
     "probit": {
+        "skip": true,
+        "//": "27/04 exchanges not available",
 		"skipWs": true,
         "skipMethods": {
             "fetchTickers": "quoteVolume >= baseVolume * low is failing",
