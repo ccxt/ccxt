@@ -887,7 +887,7 @@ class btcalpha extends btcalpha$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
@@ -905,7 +905,7 @@ class btcalpha extends btcalpha$1 {
             throw new errors.DDoSProtection(feedback);
         }
         if (code < 400) {
-            return;
+            return undefined;
         }
         throw new errors.ExchangeError(feedback);
     }

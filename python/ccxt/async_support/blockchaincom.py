@@ -1055,7 +1055,7 @@ class blockchaincom(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         # {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if response is None:
-            return
+            return None
         text = self.safe_string(response, 'text')
         if text is not None:  # if trade currency account is empty returns 200 with rejected order
             if text == 'Insufficient Balance':
@@ -1066,3 +1066,4 @@ class blockchaincom(Exchange):
             feedback = self.id + ' ' + self.json(response)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        return None

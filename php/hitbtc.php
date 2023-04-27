@@ -1480,7 +1480,7 @@ class hitbtc extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code >= 400) {
             $feedback = $this->id . ' ' . $body;
@@ -1491,7 +1491,7 @@ class hitbtc extends Exchange {
             // fallback to default error handler on rate limit errors
             // array("code":429,"message":"Too many requests","description":"Too many requests")
             if ($code === 429) {
-                return;
+                return null;
             }
             // array("error":array("code":20002,"message":"Order not found","description":""))
             if ($body[0] === '{') {
@@ -1506,5 +1506,6 @@ class hitbtc extends Exchange {
             }
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

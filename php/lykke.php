@@ -1255,7 +1255,7 @@ class lykke extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         $error = $this->safe_value($response, 'error', array());
         $errorCode = $this->safe_string($error, 'code');
@@ -1266,5 +1266,6 @@ class lykke extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

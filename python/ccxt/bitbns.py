@@ -1115,7 +1115,7 @@ class bitbns(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"msg":"Invalid Request","status":-1,"code":400}
         #     {"data":[],"status":0,"error":"Nothing to show","code":417}
@@ -1129,3 +1129,4 @@ class bitbns(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

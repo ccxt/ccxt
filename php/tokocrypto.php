@@ -1581,10 +1581,10 @@ class tokocrypto extends Exchange {
         if ($uppercaseType === 'MARKET') {
             $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
             if ($quoteOrderQty) {
-                $quoteOrderQty = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+                $quoteOrderQtyInner = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                 $precision = $market['precision']['price'];
-                if ($quoteOrderQty !== null) {
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
+                if ($quoteOrderQtyInner !== null) {
+                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyInner, TRUNCATE, $precision, $this->precisionMode);
                     $params = $this->omit($params, array( 'quoteOrderQty', 'cost' ));
                 } elseif ($price !== null) {
                     $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
@@ -2334,17 +2334,17 @@ class tokocrypto extends Exchange {
             }
         }
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
-            $message = $this->safe_string($response, 'msg');
+            $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;
-            if ($message !== null) {
+            if ($messageInner !== null) {
                 try {
-                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                    $parsedMessage = json_decode($messageInner, $as_associative_array = true);
                 } catch (Exception $e) {
                     // do nothing
                     $parsedMessage = null;
@@ -2388,6 +2388,7 @@ class tokocrypto extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {

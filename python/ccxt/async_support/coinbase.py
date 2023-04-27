@@ -2617,7 +2617,7 @@ class coinbase(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         feedback = self.id + ' ' + body
         #
         #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
@@ -2654,3 +2654,4 @@ class coinbase(Exchange):
         data = self.safe_value(response, 'data')
         if (data is None) and (not advancedTrade):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
+        return None

@@ -1806,7 +1806,7 @@ class upbit extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //   array( 'error' => array( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' => 400 ) ),
@@ -1830,5 +1830,6 @@ class upbit extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $name, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

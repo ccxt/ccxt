@@ -1452,8 +1452,8 @@ class coinbasepro(Exchange):
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
-                code = self.safe_string(account, 'code')
-                response[i]['currency'] = code
+                codeInner = self.safe_string(account, 'code')
+                response[i]['currency'] = codeInner
         else:
             response = self.privateGetAccountsIdTransfers(self.extend(request, params))
             #
@@ -1669,6 +1669,7 @@ class coinbasepro(Exchange):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = self.fetch2(path, api, method, params, headers, body, config, context)

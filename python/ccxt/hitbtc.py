@@ -1408,7 +1408,7 @@ class hitbtc(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code >= 400:
             feedback = self.id + ' ' + body
             # {"code":504,"message":"Gateway Timeout","description":""}
@@ -1417,7 +1417,7 @@ class hitbtc(Exchange):
             # fallback to default error handler on rate limit errors
             # {"code":429,"message":"Too many requests","description":"Too many requests"}
             if code == 429:
-                return
+                return None
             # {"error":{"code":20002,"message":"Order not found","description":""}}
             if body[0] == '{':
                 if 'error' in response:
@@ -1427,3 +1427,4 @@ class hitbtc(Exchange):
                     if message == 'Duplicate clientOrderId':
                         raise InvalidOrder(feedback)
             raise ExchangeError(feedback)
+        return None

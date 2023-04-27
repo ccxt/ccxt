@@ -1946,14 +1946,14 @@ export default class krakenfutures extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code === 429) {
             throw new DDoSProtection(this.id + ' ' + body);
         }
         const message = this.safeString(response, 'error');
         if (message === undefined) {
-            return;
+            return undefined;
         }
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);

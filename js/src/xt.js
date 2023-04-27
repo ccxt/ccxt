@@ -4000,11 +4000,11 @@ export default class xt extends Exchange {
         for (let i = 0; i < items.length; i++) {
             const entry = items[i];
             const marketId = this.safeString(entry, 'symbol');
-            const symbol = this.safeSymbol(marketId, market);
+            const symbolInner = this.safeSymbol(marketId, market);
             const timestamp = this.safeInteger(entry, 'createdTime');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -4233,12 +4233,13 @@ export default class xt extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
-            const market = this.safeMarket(marketId, undefined, undefined, 'contract');
+            const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             const positionSize = this.safeString(entry, 'positionSize');
             if (positionSize !== '0') {
-                return this.parsePosition(entry, market);
+                return this.parsePosition(entry, marketInner);
             }
         }
+        return undefined;
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
@@ -4293,8 +4294,8 @@ export default class xt extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
-            const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            result.push(this.parsePosition(entry, market));
+            const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
+            result.push(this.parsePosition(entry, marketInner));
         }
         return this.filterByArray(result, 'symbol', undefined, false);
     }
@@ -4411,6 +4412,7 @@ export default class xt extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';

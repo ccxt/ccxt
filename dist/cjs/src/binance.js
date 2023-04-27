@@ -1804,7 +1804,7 @@ class binance extends binance$1 {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [];
+        const promisesRaw = [];
         const rawFetchMarkets = this.safeValue(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         const fetchMarkets = [];
@@ -1818,22 +1818,22 @@ class binance extends binance$1 {
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
-                promises.push(this.publicGetExchangeInfo(params));
+                promisesRaw.push(this.publicGetExchangeInfo(params));
             }
             else if (marketType === 'linear') {
-                promises.push(this.fapiPublicGetExchangeInfo(params));
+                promisesRaw.push(this.fapiPublicGetExchangeInfo(params));
             }
             else if (marketType === 'inverse') {
-                promises.push(this.dapiPublicGetExchangeInfo(params));
+                promisesRaw.push(this.dapiPublicGetExchangeInfo(params));
             }
             else if (marketType === 'option') {
-                promises.push(this.eapiPublicGetExchangeInfo(params));
+                promisesRaw.push(this.eapiPublicGetExchangeInfo(params));
             }
             else {
                 throw new errors.ExchangeError(this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
         }
-        promises = await Promise.all(promises);
+        const promises = await Promise.all(promisesRaw);
         const spotMarkets = this.safeValue(this.safeValue(promises, 0), 'symbols', []);
         const futureMarkets = this.safeValue(this.safeValue(promises, 1), 'symbols', []);
         const deliveryMarkets = this.safeValue(this.safeValue(promises, 2), 'symbols', []);
@@ -3613,10 +3613,10 @@ class binance extends binance$1 {
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
-                const quoteOrderQty = this.safeValue2(params, 'quoteOrderQty', 'cost');
+                const quoteOrderQtyNew = this.safeValue2(params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
-                if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQty, number.TRUNCATE, precision, this.precisionMode);
+                if (quoteOrderQtyNew !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, number.TRUNCATE, precision, this.precisionMode);
                 }
                 else if (price !== undefined) {
                     const amountString = this.numberToString(amount);
@@ -4109,10 +4109,10 @@ class binance extends binance$1 {
             if (market['spot']) {
                 const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
-                    const quoteOrderQty = this.safeValue2(query, 'quoteOrderQty', 'cost');
+                    const quoteOrderQtyNew = this.safeValue2(query, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
-                    if (quoteOrderQty !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQty, number.TRUNCATE, precision, this.precisionMode);
+                    if (quoteOrderQtyNew !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, number.TRUNCATE, precision, this.precisionMode);
                     }
                     else if (price !== undefined) {
                         const amountString = this.numberToString(amount);
@@ -6063,6 +6063,7 @@ class binance extends binance$1 {
             }
             return result;
         }
+        return undefined;
     }
     async futuresTransfer(code, amount, type, params = {}) {
         /**
@@ -6382,8 +6383,8 @@ class binance extends binance$1 {
         let contractsStringAbs = Precise["default"].stringAbs(contractsString);
         if (contractsString === undefined) {
             const entryNotional = Precise["default"].stringMul(Precise["default"].stringMul(leverageString, initialMarginString), entryPriceString);
-            const contractSize = this.safeString(market, 'contractSize');
-            contractsString = Precise["default"].stringDiv(entryNotional, contractSize);
+            const contractSizeNew = this.safeString(market, 'contractSize');
+            contractsString = Precise["default"].stringDiv(entryNotional, contractSizeNew);
             contractsStringAbs = Precise["default"].stringDiv(Precise["default"].stringAdd(contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber(contractsStringAbs);
@@ -7518,17 +7519,17 @@ class binance extends binance$1 {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeValue(response, 'success', true);
         if (!success) {
-            const message = this.safeString(response, 'msg');
+            const messageNew = this.safeString(response, 'msg');
             let parsedMessage = undefined;
-            if (message !== undefined) {
+            if (messageNew !== undefined) {
                 try {
-                    parsedMessage = JSON.parse(message);
+                    parsedMessage = JSON.parse(messageNew);
                 }
                 catch (e) {
                     // do nothing
@@ -7573,6 +7574,7 @@ class binance extends binance$1 {
         if (!success) {
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
+        return undefined;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
         if (('noCoin' in config) && !('coin' in params)) {

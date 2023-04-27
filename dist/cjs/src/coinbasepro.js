@@ -1549,8 +1549,8 @@ class coinbasepro extends coinbasepro$1 {
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString(response[i], 'account_id');
                 const account = this.safeValue(this.accountsById, account_id);
-                const code = this.safeString(account, 'code');
-                response[i]['currency'] = code;
+                const codeInner = this.safeString(account, 'code');
+                response[i]['currency'] = codeInner;
             }
         }
         else {
@@ -1794,6 +1794,7 @@ class coinbasepro extends coinbasepro$1 {
             }
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
+        return undefined;
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         const response = await this.fetch2(path, api, method, params, headers, body, config, context);

@@ -1845,7 +1845,7 @@ class woo(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         #
@@ -1855,6 +1855,7 @@ class woo(Exchange):
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        return None
 
     def parse_income(self, income, market=None):
         #

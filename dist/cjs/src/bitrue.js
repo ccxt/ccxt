@@ -1914,7 +1914,8 @@ class bitrue extends bitrue$1 {
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [version, access] = api;
+        const version = this.safeString(api, 0);
+        const access = this.safeString(api, 1);
         let url = this.urls['api'][version] + '/' + this.implodeParams(path, params);
         params = this.omit(params, this.extractParams(path));
         if (access === 'private') {
@@ -1963,17 +1964,17 @@ class bitrue extends bitrue$1 {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeValue(response, 'success', true);
         if (!success) {
-            const message = this.safeString(response, 'msg');
+            const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;
-            if (message !== undefined) {
+            if (messageInner !== undefined) {
                 try {
-                    parsedMessage = JSON.parse(message);
+                    parsedMessage = JSON.parse(messageInner);
                 }
                 catch (e) {
                     // do nothing
@@ -1995,7 +1996,7 @@ class bitrue extends bitrue$1 {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if ((error === '200') || Precise["default"].stringEquals(error, '0')) {
-                return;
+                return undefined;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
@@ -2010,6 +2011,7 @@ class bitrue extends bitrue$1 {
         if (!success) {
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
+        return undefined;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {

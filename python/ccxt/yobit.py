@@ -243,6 +243,7 @@ class yobit(Exchange):
                 'XRA': 'Ratecoin',
             },
             'options': {
+                # 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': True,
                 'fetchTickersMaxLength': 512,
                 'networks': {
@@ -541,10 +542,10 @@ class yobit(Exchange):
         ids = None
         if symbols is None:
             numIds = len(self.ids)
-            ids = '-'.join(self.ids)
-            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 512)
-            # max URL length is 512 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > maxLength:
+            ids = '-'.join(ids)
+            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
+            # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > self.options['fetchTickersMaxLength']:
                 raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
             newIds = self.market_ids(symbols)
@@ -971,8 +972,8 @@ class yobit(Exchange):
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['pair'] = market['id']
+            marketInner = self.market(symbol)
+            request['pair'] = marketInner['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
         #
         #      {
@@ -1171,7 +1172,7 @@ class yobit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'success' in response:
             #
             # 1 - Liqui only returns the integer 'success' key from their private API
@@ -1213,3 +1214,4 @@ class yobit(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message
+        return None

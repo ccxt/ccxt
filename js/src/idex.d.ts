@@ -48,7 +48,7 @@ export default class idex extends Exchange {
     }>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     fetchDeposit(id: string, code?: string, params?: {}): Promise<{
         info: any;
         id: string;

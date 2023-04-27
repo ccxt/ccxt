@@ -476,10 +476,10 @@ export default class exmo extends Exchange {
             const providers = this.safeValue(cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
-                const type = this.safeString(provider, 'type');
+                const typeInner = this.safeString(provider, 'type');
                 const commissionDesc = this.safeString(provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue(commissionDesc);
-                result[code][type] = fee;
+                result[code][typeInner] = fee;
             }
             result[code]['info'] = providers;
         }
@@ -645,14 +645,14 @@ export default class exmo extends Exchange {
             else {
                 for (let j = 0; j < providers.length; j++) {
                     const provider = providers[j];
-                    const type = this.safeString(provider, 'type');
+                    const typeInner = this.safeString(provider, 'type');
                     const minValue = this.safeNumber(provider, 'min');
                     let maxValue = this.safeNumber(provider, 'max');
                     if (maxValue === 0.0) {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue(provider, 'enabled');
-                    if (type === 'deposit') {
+                    if (typeInner === 'deposit') {
                         if (activeProvider && !depositEnabled) {
                             depositEnabled = true;
                         }
@@ -660,7 +660,7 @@ export default class exmo extends Exchange {
                             depositEnabled = false;
                         }
                     }
-                    else if (type === 'withdraw') {
+                    else if (typeInner === 'withdraw') {
                         if (activeProvider && !withdrawEnabled) {
                             withdrawEnabled = true;
                         }
@@ -670,10 +670,10 @@ export default class exmo extends Exchange {
                     }
                     if (activeProvider) {
                         active = true;
-                        if ((limits[type]['min'] === undefined) || (minValue < limits[type]['min'])) {
-                            limits[type]['min'] = minValue;
-                            limits[type]['max'] = maxValue;
-                            if (type === 'withdraw') {
+                        if ((limits[typeInner]['min'] === undefined) || (minValue < limits[typeInner]['min'])) {
+                            limits[typeInner]['min'] = minValue;
+                            limits[typeInner]['max'] = maxValue;
+                            if (typeInner === 'withdraw') {
                                 const commissionDesc = this.safeString(provider, 'commission_desc');
                                 fee = this.parseFixedFloatValue(commissionDesc);
                             }
@@ -1214,9 +1214,9 @@ export default class exmo extends Exchange {
         }
         const response = await this.privatePostUserTrades(this.extend(request, params));
         let result = [];
-        const marketIds = Object.keys(response);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+        const marketIdsInner = Object.keys(response);
+        for (let i = 0; i < marketIdsInner.length; i++) {
+            const marketId = marketIdsInner[i];
             const resultMarket = this.safeMarket(marketId, undefined, '_');
             const items = response[marketId];
             const trades = this.parseTrades(items, resultMarket, since, limit);
@@ -2080,7 +2080,7 @@ export default class exmo extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if (('result' in response) || ('errmsg' in response)) {
             //
@@ -2112,5 +2112,6 @@ export default class exmo extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }

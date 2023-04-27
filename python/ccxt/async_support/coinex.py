@@ -815,12 +815,12 @@ class coinex(Exchange):
         result = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_market(marketId, None, None, marketType)
-            symbol = market['symbol']
+            marketInner = self.safe_market(marketId, None, None, marketType)
+            symbol = marketInner['symbol']
             ticker = self.parse_ticker({
                 'date': timestamp,
                 'ticker': tickers[marketId],
-            }, market)
+            }, marketInner)
             ticker['symbol'] = symbol
             result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
@@ -3464,10 +3464,10 @@ class coinex(Exchange):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             if marketId.find('_') == -1:  # skip _signprice and _indexprice
-                market = self.safe_market(marketId, None, None, 'swap')
+                marketInner = self.safe_market(marketId, None, None, 'swap')
                 ticker = tickers[marketId]
                 ticker['timestamp'] = timestamp
-                result.append(self.parse_funding_rate(ticker, market))
+                result.append(self.parse_funding_rate(ticker, marketInner))
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
@@ -3574,11 +3574,11 @@ class coinex(Exchange):
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(entry, 'market')
-            symbol = self.safe_symbol(marketId, market, None, 'swap')
+            symbolInner = self.safe_symbol(marketId, market, None, 'swap')
             timestamp = self.safe_timestamp(entry, 'time')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_string(entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -4433,7 +4433,7 @@ class coinex(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
@@ -4455,3 +4455,4 @@ class coinex(Exchange):
             }
             ErrorClass = self.safe_value(responseCodes, code, ExchangeError)
             raise ErrorClass(response['message'])
+        return None

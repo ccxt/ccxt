@@ -1602,7 +1602,7 @@ class latoken extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return;
+            return null;
         }
         //
         // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
@@ -1623,5 +1623,6 @@ class latoken extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

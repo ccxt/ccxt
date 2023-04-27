@@ -915,9 +915,9 @@ export default class phemex extends Exchange {
         }
         return result;
     }
-    parseBidAsk(bidask, priceKey = 0, amountKey = 1, market = undefined) {
+    customParseBidAsk(bidask, priceKey = 0, amountKey = 1, market = undefined) {
         if (market === undefined) {
-            throw new ArgumentsRequired(this.id + ' parseBidAsk() requires a market argument');
+            throw new ArgumentsRequired(this.id + ' customParseBidAsk() requires a market argument');
         }
         let amount = this.safeString(bidask, amountKey);
         if (market['spot']) {
@@ -941,7 +941,7 @@ export default class phemex extends Exchange {
             const orders = [];
             const bidasks = this.safeValue(orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
-                orders.push(this.parseBidAsk(bidasks[k], priceKey, amountKey, market));
+                orders.push(this.customParseBidAsk(bidasks[k], priceKey, amountKey, market));
             }
             result[side] = orders;
         }
@@ -4239,7 +4239,7 @@ export default class phemex extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
@@ -4256,5 +4256,6 @@ export default class phemex extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

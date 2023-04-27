@@ -2518,7 +2518,8 @@ class cryptocom extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        list($type, $access) = $api;
+        $type = $this->safe_string($api, 0);
+        $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$type] . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($access === 'public') {
@@ -2570,5 +2571,6 @@ class cryptocom extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 }

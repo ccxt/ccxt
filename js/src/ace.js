@@ -879,7 +879,7 @@ export default class ace extends Exchange {
         if (trades === undefined) {
             return trades;
         }
-        return await this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1042,7 +1042,7 @@ export default class ace extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to the default error handler
+            return undefined; // fallback to the default error handler
         }
         const feedback = this.id + ' ' + body;
         const status = this.safeNumber(response, 'status', 200);
@@ -1050,5 +1050,6 @@ export default class ace extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], status, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], status, feedback);
         }
+        return undefined;
     }
 }

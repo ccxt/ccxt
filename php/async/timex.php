@@ -1564,7 +1564,7 @@ class timex extends Exchange {
 
     public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($statusCode >= 400) {
             //
@@ -1583,5 +1583,6 @@ class timex extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

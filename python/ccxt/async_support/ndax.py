@@ -301,7 +301,7 @@ class ndax(Exchange):
             request = {
                 'Code': self.totp(self.twofa),
             }
-            response = await self.publicGetAuthenticate2FA(self.extend(request, params))
+            responseInner = await self.publicGetAuthenticate2FA(self.extend(request, params))
             #
             #     {
             #         "Authenticated": True,
@@ -309,9 +309,9 @@ class ndax(Exchange):
             #         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             #     }
             #
-            sessionToken = self.safe_string(response, 'SessionToken')
+            sessionToken = self.safe_string(responseInner, 'SessionToken')
             self.options['sessionToken'] = sessionToken
-            return response
+            return responseInner
         return response
 
     async def fetch_currencies(self, params={}):
@@ -2281,7 +2281,7 @@ class ndax(Exchange):
         if code == 404:
             raise AuthenticationError(self.id + ' ' + body)
         if response is None:
-            return
+            return None
         #
         #     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
         #     {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
@@ -2292,3 +2292,4 @@ class ndax(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)
+        return None

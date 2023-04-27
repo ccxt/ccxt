@@ -1262,7 +1262,7 @@ class lykke extends lykke$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const error = this.safeValue(response, 'error', {});
         const errorCode = this.safeString(error, 'code');
@@ -1273,6 +1273,7 @@ class lykke extends lykke$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

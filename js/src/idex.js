@@ -1465,6 +1465,7 @@ export default class idex extends Exchange {
         if (errorCode !== undefined) {
             throw new ExchangeError(this.id + ' ' + message);
         }
+        return undefined;
     }
     async fetchDeposit(id, code = undefined, params = {}) {
         /**

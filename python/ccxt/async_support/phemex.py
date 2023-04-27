@@ -920,9 +920,9 @@ class phemex(Exchange):
             }
         return result
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
+    def custom_parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
         if market is None:
-            raise ArgumentsRequired(self.id + ' parseBidAsk() requires a market argument')
+            raise ArgumentsRequired(self.id + ' customParseBidAsk() requires a market argument')
         amount = self.safe_string(bidask, amountKey)
         if market['spot']:
             amount = self.from_ev(amount, market)
@@ -944,7 +944,7 @@ class phemex(Exchange):
             orders = []
             bidasks = self.safe_value(orderbook, side)
             for k in range(0, len(bidasks)):
-                orders.append(self.parse_bid_ask(bidasks[k], priceKey, amountKey, market))
+                orders.append(self.custom_parse_bid_ask(bidasks[k], priceKey, amountKey, market))
             result[side] = orders
         result[bidsKey] = self.sort_by(result[bidsKey], 0, True)
         result[asksKey] = self.sort_by(result[asksKey], 0)
@@ -3976,7 +3976,7 @@ class phemex(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
         #     {"code":412,"msg":"Missing parameter - resolution","data":null}
@@ -3991,3 +3991,4 @@ class phemex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

@@ -1424,7 +1424,7 @@ class novadax(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"code":"A10003","data":[],"message":"Authentication failed, Invalid accessKey."}
         #
@@ -1435,3 +1435,4 @@ class novadax(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

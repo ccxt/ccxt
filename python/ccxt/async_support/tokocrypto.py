@@ -1557,10 +1557,10 @@ class tokocrypto(Exchange):
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
             if quoteOrderQty:
-                quoteOrderQty = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+                quoteOrderQtyInner = self.safe_value_2(params, 'quoteOrderQty', 'cost')
                 precision = market['precision']['price']
-                if quoteOrderQty is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+                if quoteOrderQtyInner is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyInner, TRUNCATE, precision, self.precisionMode)
                     params = self.omit(params, ['quoteOrderQty', 'cost'])
                 elif price is not None:
                     request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
@@ -2246,16 +2246,16 @@ class tokocrypto(Exchange):
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_value(response, 'success', True)
         if not success:
-            message = self.safe_string(response, 'msg')
+            messageInner = self.safe_string(response, 'msg')
             parsedMessage = None
-            if message is not None:
+            if messageInner is not None:
                 try:
-                    parsedMessage = json.loads(message)
+                    parsedMessage = json.loads(messageInner)
                 except Exception as e:
                     # do nothing
                     parsedMessage = None
@@ -2289,6 +2289,7 @@ class tokocrypto(Exchange):
             raise ExchangeError(feedback)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         if ('noCoin' in config) and not ('coin' in params):

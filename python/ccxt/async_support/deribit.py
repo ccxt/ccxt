@@ -559,7 +559,6 @@ class deribit(Exchange):
         #
         currenciesResult = self.safe_value(currenciesResponse, 'result', [])
         result = []
-        seenMarkets = {}  # we might have duplicated markets in the raw data
         for i in range(0, len(currenciesResult)):
             currencyId = self.safe_string(currenciesResult[i], 'currency')
             request = {
@@ -680,58 +679,56 @@ class deribit(Exchange):
                             symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
-                if not self.safe_value(seenMarkets, symbol, False):
-                    seenMarkets[symbol] = True
-                    result.append({
-                        'id': id,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'settle': settle,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                        'settleId': settleId,
-                        'type': type,
-                        'spot': isSpot,
-                        'margin': False,
-                        'swap': swap,
-                        'future': future,
-                        'option': option,
-                        'active': self.safe_value(market, 'is_active'),
-                        'contract': not isSpot,
-                        'linear': (settle == quote),
-                        'inverse': (settle != quote),
-                        'taker': self.safe_number(market, 'taker_commission'),
-                        'maker': self.safe_number(market, 'maker_commission'),
-                        'contractSize': self.safe_number(market, 'contract_size'),
-                        'expiry': expiry,
-                        'expiryDatetime': self.iso8601(expiry),
-                        'strike': strike,
-                        'optionType': optionType,
-                        'precision': {
-                            'amount': minTradeAmount,
-                            'price': tickSize,
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'settle': settle,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': settleId,
+                    'type': type,
+                    'spot': isSpot,
+                    'margin': False,
+                    'swap': swap,
+                    'future': future,
+                    'option': option,
+                    'active': self.safe_value(market, 'is_active'),
+                    'contract': not isSpot,
+                    'linear': (settle == quote),
+                    'inverse': (settle != quote),
+                    'taker': self.safe_number(market, 'taker_commission'),
+                    'maker': self.safe_number(market, 'maker_commission'),
+                    'contractSize': self.safe_number(market, 'contract_size'),
+                    'expiry': expiry,
+                    'expiryDatetime': self.iso8601(expiry),
+                    'strike': strike,
+                    'optionType': optionType,
+                    'precision': {
+                        'amount': minTradeAmount,
+                        'price': tickSize,
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': None,
+                            'max': None,
                         },
-                        'limits': {
-                            'leverage': {
-                                'min': None,
-                                'max': None,
-                            },
-                            'amount': {
-                                'min': minTradeAmount,
-                                'max': None,
-                            },
-                            'price': {
-                                'min': tickSize,
-                                'max': None,
-                            },
-                            'cost': {
-                                'min': None,
-                                'max': None,
-                            },
+                        'amount': {
+                            'min': minTradeAmount,
+                            'max': None,
                         },
-                        'info': market,
-                    })
+                        'price': {
+                            'min': tickSize,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'info': market,
+                })
         return result
 
     def parse_balance(self, balance):
@@ -2515,7 +2512,7 @@ class deribit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {
         #         jsonrpc: '2.0',
@@ -2536,3 +2533,4 @@ class deribit(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

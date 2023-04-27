@@ -870,7 +870,7 @@ class mercado extends mercado$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // todo add a unified standard handleErrors with this.exceptions in describe()
@@ -881,6 +881,7 @@ class mercado extends mercado$1 {
         if (errorMessage !== undefined) {
             throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }
 

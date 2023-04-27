@@ -2314,7 +2314,7 @@ class kraken(Exchange):
         if body.find('Rate limit exceeded') >= 0:
             raise RateLimitExceeded(self.id + ' ' + body)
         if response is None:
-            return
+            return None
         if body[0] == '{':
             if not isinstance(response, str):
                 if 'error' in response:
@@ -2325,3 +2325,4 @@ class kraken(Exchange):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions, error, message)
                         raise ExchangeError(message)
+        return None

@@ -493,7 +493,7 @@ class hollaex(Exchange):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = self.publicGetTickers(self.extend(params))
+        response = self.publicGetTickers(params)
         #
         #     {
         #         "bch-usdt": {
@@ -767,7 +767,7 @@ class hollaex(Exchange):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, response, market=None, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None):
+    def parse_ohlcv(self, response, market=None):
         #
         #     {
         #         "time":"2020-03-02T20:00:00.000Z",
@@ -1647,7 +1647,7 @@ class hollaex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if (code >= 400) and (code <= 503):
             #
             #  {"message": "Invalid token"}
@@ -1663,3 +1663,4 @@ class hollaex(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             status = str(code)
             self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
+        return None

@@ -1529,7 +1529,7 @@ class timex extends timex$1 {
     }
     handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (statusCode >= 400) {
             //
@@ -1548,6 +1548,7 @@ class timex extends timex$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

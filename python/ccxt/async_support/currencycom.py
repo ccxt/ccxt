@@ -1818,7 +1818,7 @@ class currencycom(Exchange):
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"code":-1128,"msg":"Combination of optional parameters invalid."}
         #
@@ -1829,3 +1829,4 @@ class currencycom(Exchange):
             message = self.safe_string(response, 'msg')
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)
+        return None

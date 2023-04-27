@@ -1464,14 +1464,14 @@ class bybit(Exchange):
         if paginationCursor is not None:
             while(paginationCursor is not None):
                 params['cursor'] = paginationCursor
-                response = self.publicGetDerivativesV3PublicInstrumentsInfo(params)
-                data = self.safe_value(response, 'result', {})
-                rawMarkets = self.safe_value(data, 'list', [])
+                responseInner = self.publicGetDerivativesV3PublicInstrumentsInfo(params)
+                dataNew = self.safe_value(responseInner, 'result', {})
+                rawMarkets = self.safe_value(dataNew, 'list', [])
                 rawMarketsLength = len(rawMarkets)
                 if rawMarketsLength == 0:
                     break
                 markets = self.array_concat(rawMarkets, markets)
-                paginationCursor = self.safe_string(data, 'nextPageCursor')
+                paginationCursor = self.safe_string(dataNew, 'nextPageCursor')
         #
         # linear response
         #
@@ -7853,7 +7853,7 @@ class bybit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {
         #         ret_code: 10001,
@@ -7889,3 +7889,4 @@ class bybit(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

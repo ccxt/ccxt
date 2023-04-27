@@ -773,7 +773,7 @@ class coincheck(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"success":false,"error":"disabled API Key"}'
         #     {"success":false,"error":"invalid authentication"}
@@ -785,3 +785,4 @@ class coincheck(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

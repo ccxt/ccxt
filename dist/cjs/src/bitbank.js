@@ -876,7 +876,7 @@ class bitbank extends bitbank$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeInteger(response, 'success');
         const data = this.safeValue(response, 'data');
@@ -948,12 +948,13 @@ class bitbank extends bitbank$1 {
             const message = this.safeString(errorMessages, code, 'Error');
             const ErrorClass = this.safeValue(errorClasses, code);
             if (ErrorClass !== undefined) {
-                throw new ErrorClass(message);
+                throw new errorClasses[code](message);
             }
             else {
                 throw new errors.ExchangeError(this.id + ' ' + this.json(response));
             }
         }
+        return undefined;
     }
 }
 

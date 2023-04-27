@@ -888,7 +888,7 @@ class wazirx extends wazirx$1 {
         // {"code":2098,"message":"Request out of receiving window."}
         //
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorCode = this.safeString(response, 'code');
         if (errorCode !== undefined) {
@@ -896,6 +896,7 @@ class wazirx extends wazirx$1 {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

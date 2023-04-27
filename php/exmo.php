@@ -474,10 +474,10 @@ class exmo extends Exchange {
             $providers = $this->safe_value($cryptoList, $currencyId, array());
             for ($j = 0; $j < count($providers); $j++) {
                 $provider = $providers[$j];
-                $type = $this->safe_string($provider, 'type');
+                $typeInner = $this->safe_string($provider, 'type');
                 $commissionDesc = $this->safe_string($provider, 'commission_desc');
                 $fee = $this->parse_fixed_float_value($commissionDesc);
-                $result[$code][$type] = $fee;
+                $result[$code][$typeInner] = $fee;
             }
             $result[$code]['info'] = $providers;
         }
@@ -641,20 +641,20 @@ class exmo extends Exchange {
             } else {
                 for ($j = 0; $j < count($providers); $j++) {
                     $provider = $providers[$j];
-                    $type = $this->safe_string($provider, 'type');
+                    $typeInner = $this->safe_string($provider, 'type');
                     $minValue = $this->safe_number($provider, 'min');
                     $maxValue = $this->safe_number($provider, 'max');
                     if ($maxValue === 0.0) {
                         $maxValue = null;
                     }
                     $activeProvider = $this->safe_value($provider, 'enabled');
-                    if ($type === 'deposit') {
+                    if ($typeInner === 'deposit') {
                         if ($activeProvider && !$depositEnabled) {
                             $depositEnabled = true;
                         } elseif (!$activeProvider) {
                             $depositEnabled = false;
                         }
-                    } elseif ($type === 'withdraw') {
+                    } elseif ($typeInner === 'withdraw') {
                         if ($activeProvider && !$withdrawEnabled) {
                             $withdrawEnabled = true;
                         } elseif (!$activeProvider) {
@@ -663,10 +663,10 @@ class exmo extends Exchange {
                     }
                     if ($activeProvider) {
                         $active = true;
-                        if (($limits[$type]['min'] === null) || ($minValue < $limits[$type]['min'])) {
-                            $limits[$type]['min'] = $minValue;
-                            $limits[$type]['max'] = $maxValue;
-                            if ($type === 'withdraw') {
+                        if (($limits[$typeInner]['min'] === null) || ($minValue < $limits[$typeInner]['min'])) {
+                            $limits[$typeInner]['min'] = $minValue;
+                            $limits[$typeInner]['max'] = $maxValue;
+                            if ($typeInner === 'withdraw') {
                                 $commissionDesc = $this->safe_string($provider, 'commission_desc');
                                 $fee = $this->parse_fixed_float_value($commissionDesc);
                             }
@@ -1198,9 +1198,9 @@ class exmo extends Exchange {
         }
         $response = $this->privatePostUserTrades (array_merge($request, $params));
         $result = array();
-        $marketIds = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
+        $marketIdsInner = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($marketIdsInner); $i++) {
+            $marketId = $marketIdsInner[$i];
             $resultMarket = $this->safe_market($marketId, null, '_');
             $items = $response[$marketId];
             $trades = $this->parse_trades($items, $resultMarket, $since, $limit);
@@ -2052,7 +2052,7 @@ class exmo extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if ((is_array($response) && array_key_exists('result', $response)) || (is_array($response) && array_key_exists('errmsg', $response))) {
             //
@@ -2083,5 +2083,6 @@ class exmo extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

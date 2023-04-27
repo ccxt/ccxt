@@ -1648,10 +1648,10 @@ class bitopro extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to the default $error handler
+            return null; // fallback to the default $error handler
         }
         if ($code >= 200 && $code < 300) {
-            return;
+            return null;
         }
         $feedback = $this->id . ' ' . $body;
         $error = $this->safe_string($response, 'error');

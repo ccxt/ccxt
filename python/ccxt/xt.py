@@ -3754,11 +3754,11 @@ class xt(Exchange):
         for i in range(0, len(items)):
             entry = items[i]
             marketId = self.safe_string(entry, 'symbol')
-            symbol = self.safe_symbol(marketId, market)
+            symbolInner = self.safe_symbol(marketId, market)
             timestamp = self.safe_integer(entry, 'createdTime')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -3969,10 +3969,11 @@ class xt(Exchange):
         for i in range(0, len(positions)):
             entry = positions[i]
             marketId = self.safe_string(entry, 'symbol')
-            market = self.safe_market(marketId, None, None, 'contract')
+            marketInner = self.safe_market(marketId, None, None, 'contract')
             positionSize = self.safe_string(entry, 'positionSize')
             if positionSize != '0':
-                return self.parse_position(entry, market)
+                return self.parse_position(entry, marketInner)
+        return None
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -4022,8 +4023,8 @@ class xt(Exchange):
         for i in range(0, len(positions)):
             entry = positions[i]
             marketId = self.safe_string(entry, 'symbol')
-            market = self.safe_market(marketId, None, None, 'contract')
-            result.append(self.parse_position(entry, market))
+            marketInner = self.safe_market(marketId, None, None, 'contract')
+            result.append(self.parse_position(entry, marketInner))
         return self.filter_by_array(result, 'symbol', None, False)
 
     def parse_position(self, position, market=None):
@@ -4138,6 +4139,7 @@ class xt(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)
+        return None
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'

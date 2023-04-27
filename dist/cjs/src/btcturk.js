@@ -912,6 +912,7 @@ class btcturk extends btcturk$1 {
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
             throw new errors.ExchangeError(this.id + ' ' + output);
         }
+        return undefined;
     }
 }
 
