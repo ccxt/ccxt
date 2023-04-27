@@ -232,9 +232,10 @@ const testExchange = async (exchange) => {
             { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
         ]);
 
-        const specificLangSet = (Object.values (langKeys).filter (x => x)).length > 0;
         const selectedTests  = allTests.filter (t => langKeys[t.key]);
         let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
+        // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
+        const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
         if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
             // some exchanges are failing in php async tests with this error:
             // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
