@@ -113,9 +113,10 @@ const exec = (bin, ...args) =>
         psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         psSpawn.on ('exit', code => {
-            // keep this commented code for a while (just in case), as the below avoids vscode false positive: https://github.com/nodejs/node/issues/34799 during debugging
-            // stderr = stderr.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
-            // output = output.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
+            // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
+            // const removeDebuger = (str) => str.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            // stderr = removeDebuger(stderr);
+            // output = removeDebuger(output);
             // if (stderr === '') { hasWarnings = false; }
 
             output = ansi.strip (output.trim ())

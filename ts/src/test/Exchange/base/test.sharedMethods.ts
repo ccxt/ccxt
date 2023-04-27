@@ -97,6 +97,21 @@ function assertCurrencyCode (exchange, method, entry, actualCode, expectedCode =
     }
 }
 
+function assertValidCurrencyIdAndCode (exchange, method, entry, currencyId, currencyCode) {
+    const logText = logTemplate (exchange, method, entry);
+    const undefinedValues = currencyId === undefined && currencyCode === undefined;
+    const definedValues = currencyId !== undefined && currencyCode !== undefined;
+    assert (undefinedValues || definedValues, 'currencyId and currencyCode should be either both defined or both undefined' + logText);
+    if (definedValues) {
+        // check by code
+        const currencyByCode = exchange.currency (currencyCode);
+        assert (currencyByCode['id'] === currencyId, 'currencyId ' + currencyId + ' does not match currency of code: ' + currencyCode + logText);
+        // check by id
+        const currencyById = exchange.safeCurrency (currencyId);
+        assert (currencyById['code'] === currencyCode, 'currencyCode ' + currencyCode + ' does not match currency of id: ' + currencyId + logText);
+    }
+}
+
 function assertSymbol (exchange, method, entry, key, expectedSymbol = undefined) {
     const logText = logTemplate (exchange, method, entry);
     const actualSymbol = exchange.safeString (entry, key);
@@ -303,21 +318,6 @@ function checkPrecisionAccuracy (exchange, method, entry, key) {
         assertInteger (exchange, method, entry, key); // should be integer
         assertLessOrEqual (exchange, method, entry, key, '18'); // should be under 18 decimals
         assertGreaterOrEqual (exchange, method, entry, key, '-8'); // in real-world cases, there would not be less than that
-    }
-}
-
-function assertValidCurrencyIdAndCode (exchange, method, entry, currencyId, currencyCode) {
-    const logText = logTemplate (exchange, method, entry);
-    const undefinedValues = currencyId === undefined && currencyCode === undefined;
-    const definedValues = currencyId !== undefined && currencyCode !== undefined;
-    assert (undefinedValues || definedValues, 'currencyId and currencyCode should be either both defined or both undefined' + logText);
-    if (definedValues) {
-        // check by code
-        const currencyByCode = exchange.currency (currencyCode);
-        assert (currencyByCode['id'] === currencyId, 'currencyId ' + currencyId + ' does not match currency of code: ' + currencyCode + logText);
-        // check by id
-        const currencyById = exchange.safeCurrency (currencyId);
-        assert (currencyById['code'] === currencyCode, 'currencyCode ' + currencyCode + ' does not match currency of id: ' + currencyId + logText);
     }
 }
 
