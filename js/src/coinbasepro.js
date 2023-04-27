@@ -288,6 +288,7 @@ export default class coinbasepro extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

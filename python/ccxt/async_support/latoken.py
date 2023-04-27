@@ -460,6 +460,7 @@ class latoken(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

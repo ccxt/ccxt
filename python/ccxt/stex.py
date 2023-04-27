@@ -388,6 +388,7 @@ class stex(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

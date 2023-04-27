@@ -32,6 +32,7 @@ export default class bitstamp extends Exchange {
                 max: any;
             };
         };
+        networks: {};
     };
     fetchMarketsFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;

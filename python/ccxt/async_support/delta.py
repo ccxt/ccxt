@@ -368,6 +368,7 @@ class delta(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

@@ -538,6 +538,7 @@ class bitstamp(Exchange):
                     'max': None,
                 },
             },
+            'networks': {},
         }
 
     def fetch_markets_from_cache(self, params={}):

@@ -391,6 +391,7 @@ class hollaex extends hollaex$1 {
                         'max': this.safeValue(withdrawalLimits, 0),
                     },
                 },
+                'networks': {},
             };
         }
         return result;

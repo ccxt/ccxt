@@ -908,6 +908,7 @@ class phemex extends phemex$1 {
                     },
                 },
                 'valueScale': valueScale,
+                'networks': {},
             };
         }
         return result;

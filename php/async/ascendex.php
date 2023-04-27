@@ -457,6 +457,7 @@ class ascendex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;

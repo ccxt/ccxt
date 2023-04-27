@@ -1357,6 +1357,7 @@ class gate extends gate$1 {
                 'fee': undefined,
                 'fees': [],
                 'limits': this.limits,
+                'networks': {},
             };
         }
         return result;

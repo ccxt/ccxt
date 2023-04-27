@@ -341,6 +341,7 @@ export default class bitpanda extends Exchange {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
+                'networks': {},
             };
         }
         return result;

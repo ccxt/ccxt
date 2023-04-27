@@ -370,6 +370,7 @@ class ndax extends ndax$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

@@ -919,6 +919,7 @@ class phemex extends Exchange {
                         ),
                     ),
                     'valueScale' => $valueScale,
+                    'networks' => array(),
                 );
             }
             return $result;

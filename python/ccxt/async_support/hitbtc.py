@@ -498,6 +498,7 @@ class hitbtc(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

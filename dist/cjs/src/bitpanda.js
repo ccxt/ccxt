@@ -338,6 +338,7 @@ class bitpanda extends bitpanda$1 {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
+                'networks': {},
             };
         }
         return result;

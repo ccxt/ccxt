@@ -720,6 +720,7 @@ export default class bitfinex2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
             const networks = {};
             const currencyNetworks = this.safeValue(response, 8, []);

@@ -285,6 +285,7 @@ class coinbasepro extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;

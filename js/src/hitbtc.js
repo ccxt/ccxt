@@ -499,6 +499,7 @@ export default class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

@@ -788,6 +788,7 @@ class kucoin extends Exchange {
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => $fee,
                     'limits' => $this->limits,
+                    'networks' => array(),
                 );
             }
             return $result;

@@ -526,6 +526,7 @@ class bitstamp extends bitstamp$1 {
                     'max': undefined,
                 },
             },
+            'networks': {},
         };
     }
     async fetchMarketsFromCache(params = {}) {

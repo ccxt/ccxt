@@ -351,6 +351,7 @@ class bitpanda(Exchange):
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
+                'networks': {},
             }
         return result
 

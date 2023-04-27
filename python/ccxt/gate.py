@@ -1338,6 +1338,7 @@ class gate(Exchange):
                 'fee': None,
                 'fees': [],
                 'limits': self.limits,
+                'networks': {},
             }
         return result
 

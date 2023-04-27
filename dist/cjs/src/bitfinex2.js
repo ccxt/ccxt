@@ -717,6 +717,7 @@ class bitfinex2 extends bitfinex2$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
             const networks = {};
             const currencyNetworks = this.safeValue(response, 8, []);

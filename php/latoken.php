@@ -454,6 +454,7 @@ class latoken extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;

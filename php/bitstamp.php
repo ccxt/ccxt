@@ -527,6 +527,7 @@ class bitstamp extends Exchange {
                     'max' => null,
                 ),
             ),
+            'networks' => array(),
         );
     }
 

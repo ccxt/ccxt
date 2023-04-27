@@ -455,6 +455,7 @@ class probit extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;

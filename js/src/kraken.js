@@ -583,6 +583,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

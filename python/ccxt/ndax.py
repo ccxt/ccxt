@@ -371,6 +371,7 @@ class ndax(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

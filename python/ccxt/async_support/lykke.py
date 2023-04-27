@@ -254,6 +254,7 @@ class lykke(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

@@ -359,6 +359,7 @@ class delta extends delta$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

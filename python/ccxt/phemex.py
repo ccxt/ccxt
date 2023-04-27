@@ -917,6 +917,7 @@ class phemex(Exchange):
                     },
                 },
                 'valueScale': valueScale,
+                'networks': {},
             }
         return result
 

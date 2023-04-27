@@ -687,6 +687,7 @@ class exmo extends Exchange {
                 'precision' => $this->parse_number('1e-8'),
                 'limits' => $limits,
                 'info' => $providers,
+                'networks' => array(),
             );
         }
         return $result;

@@ -1311,6 +1311,7 @@ class timex extends timex$1 {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
+            'networks': {},
         };
     }
     parseTicker(ticker, market = undefined) {

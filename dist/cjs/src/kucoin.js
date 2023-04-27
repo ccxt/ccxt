@@ -778,6 +778,7 @@ class kucoin extends kucoin$1 {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
+                'networks': {},
             };
         }
         return result;

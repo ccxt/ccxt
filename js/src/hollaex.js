@@ -394,6 +394,7 @@ export default class hollaex extends Exchange {
                         'max': this.safeValue(withdrawalLimits, 0),
                     },
                 },
+                'networks': {},
             };
         }
         return result;

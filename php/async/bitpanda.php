@@ -346,6 +346,7 @@ class bitpanda extends Exchange {
                         'amount' => array( 'min' => null, 'max' => null ),
                         'withdraw' => array( 'min' => null, 'max' => null ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;

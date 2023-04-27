@@ -496,6 +496,7 @@ class hitbtc extends hitbtc$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

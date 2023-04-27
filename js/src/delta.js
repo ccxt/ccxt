@@ -362,6 +362,7 @@ export default class delta extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

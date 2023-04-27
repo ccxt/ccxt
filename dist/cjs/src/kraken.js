@@ -580,6 +580,7 @@ class kraken extends kraken$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

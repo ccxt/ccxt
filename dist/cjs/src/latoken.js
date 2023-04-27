@@ -453,6 +453,7 @@ class latoken extends latoken$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

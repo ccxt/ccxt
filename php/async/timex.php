@@ -1342,6 +1342,7 @@ class timex extends Exchange {
                 'withdraw' => array( 'min' => $fee, 'max' => null ),
                 'amount' => array( 'min' => null, 'max' => null ),
             ),
+            'networks' => array(),
         );
     }
 

@@ -467,6 +467,7 @@ class probit(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

@@ -244,6 +244,7 @@ class lykke extends lykke$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

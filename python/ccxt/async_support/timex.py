@@ -1259,6 +1259,7 @@ class timex(Exchange):
                 'withdraw': {'min': fee, 'max': None},
                 'amount': {'min': None, 'max': None},
             },
+            'networks': {},
         }
 
     def parse_ticker(self, ticker, market=None):

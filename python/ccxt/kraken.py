@@ -590,6 +590,7 @@ class kraken(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

@@ -398,6 +398,7 @@ class hollaex(Exchange):
                         'max': self.safe_value(withdrawalLimits, 0),
                     },
                 },
+                'networks': {},
             }
         return result
 

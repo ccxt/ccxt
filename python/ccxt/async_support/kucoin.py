@@ -789,6 +789,7 @@ class kucoin(Exchange):
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': self.limits,
+                'networks': {},
             }
         return result
 

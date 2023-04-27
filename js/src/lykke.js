@@ -247,6 +247,7 @@ export default class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

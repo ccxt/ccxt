@@ -285,6 +285,7 @@ class coinbasepro extends coinbasepro$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

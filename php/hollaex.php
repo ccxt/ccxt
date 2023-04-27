@@ -390,6 +390,7 @@ class hollaex extends Exchange {
                         'max' => $this->safe_value($withdrawalLimits, 0),
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;

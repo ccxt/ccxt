@@ -299,6 +299,7 @@ class coinbasepro(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 

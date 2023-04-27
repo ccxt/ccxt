@@ -529,6 +529,7 @@ export default class bitstamp extends Exchange {
                     'max': undefined,
                 },
             },
+            'networks': {},
         };
     }
     async fetchMarketsFromCache(params = {}) {

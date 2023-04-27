@@ -1354,6 +1354,7 @@ class gate extends Exchange {
                 'fee' => null,
                 'fees' => array(),
                 'limits' => $this->limits,
+                'networks' => array(),
             );
         }
         return $result;

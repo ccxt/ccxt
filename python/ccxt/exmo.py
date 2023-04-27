@@ -667,6 +667,7 @@ class exmo(Exchange):
                 'precision': self.parse_number('1e-8'),
                 'limits': limits,
                 'info': providers,
+                'networks': {},
             }
         return result
 
