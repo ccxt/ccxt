@@ -1,10 +1,7 @@
 using System.Text;
 using System.Security.Cryptography;
-using Newtonsoft.Json;
-using System.Buffers.Binary;
 
 namespace ccxt;
-
 
 public partial class Exchange
 {

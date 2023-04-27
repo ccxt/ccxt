@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/ccxt/ccxt.svg?branch=master)](https://travis-ci.com/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-113-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Twitter Follow](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://twitter.com/ccxt_official)
 
-A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
+A JavaScript / Python / PHP / C# library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
 ### [Install](#install) · [Usage](#usage) · [Manual](https://docs.ccxt.com/#/README) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social) · [CCXT Pro](https://ccxt.pro)
 
@@ -275,6 +275,13 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 
 The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://docs.ccxt.com/#/README) for more details.
 
+### C# (dotnet core)
+
+[ccxt in C# with **Nugget**](https://packagist.org/packages/ccxt/ccxt) (dotnet 7.0+)
+```c#
+using ccxt;
+Console.WriteLine(ccxt.Exchanges) // check this later
+```
 ### Docker
 
 You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document for the details on that).
@@ -489,6 +496,20 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
 // set a custom user-defined id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+
+### C# (dotnet core)
+
+```C#
+    public async static Task FetchTrades()
+    {
+        var exchange = new Bybit();
+        exchange.apiKey = "API KEY";
+        exchange.secret = "SECRET";
+        var parameters = new Dictionary<string, object>() { "type", "spot" };
+        var balance = await exchange.FetchBalance(parameters);
+        Console.WriteLine(JsonConvert.SerializeObject(balance.Result, Formatting.Indented));
+    }
 ```
 
 ## Contributing

@@ -1859,7 +1859,10 @@ public partial class Exchange
     {
         if (isTrue(isTrue(isEqual(currencyId, null)) && isTrue(isEqual(currency, null))))
         {
-            return null;
+            return new Dictionary<string, object>() {
+                { "id", null },
+                { "code", null },
+            };
         }
         if (isTrue(isTrue((isEqual(currencyId, null))) && isTrue((!isEqual(currency, null)))))
         {
@@ -2254,7 +2257,11 @@ public partial class Exchange
 
     public virtual void throwExactlyMatchedException(object exact, object str, object message)
     {
-        if (isTrue(isTrue(!isEqual(str, null)) && isTrue(inOp(exact, str))))
+        if (isTrue(isEqual(str, null)))
+        {
+            return;
+        }
+        if (isTrue(inOp(exact, str)))
         {
             throwDynamicException(getValue(exact, str), message);
         }
