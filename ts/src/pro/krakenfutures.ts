@@ -100,19 +100,17 @@ export default class krakenfutures extends krakenfuturesRest {
         };
         const marketIds = [ ];
         let messageHash = name;
-        if (symbols.length === 1) {
-            const symbol = symbols[0];
-            const marketId = this.marketId (symbol);
-            marketIds.push (marketId);
-            messageHash = messageHash + ':' + symbol;
-        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             marketIds.push (this.marketId (symbol));
         }
+        if (symbols.length === 1) {
+            const market = this.market (marketIds[0]);
+            messageHash = messageHash + ':' + market['symbol'];
+        }
         subscribe['product_ids'] = marketIds;
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, name);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async subscribePrivate (name: string, params = {}) {
