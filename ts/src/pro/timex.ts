@@ -36,6 +36,19 @@ export default class timex extends timexRest {
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
             },
+            'timeframes': {
+                '1m': 'I1',
+                '5m': 'I5',
+                '15m': 'I15',
+                '30m': 'I30',
+                '1h': 'H1',
+                '2h': 'H2',
+                '4h': 'H4',
+                '6h': 'H6',
+                '12h': 'H12',
+                '1d': 'D1',
+                '1w': 'W1',
+            },
             'streaming': {
                 'keepAlive': 60000,
             },
@@ -71,7 +84,7 @@ export default class timex extends timexRest {
         return future;
     }
 
-    async subscribe (name: string, symbols: string[], params = {}) {
+    async subscribe (name: string, params = {}) {
         /**
          * @ignore
          * @method
@@ -85,24 +98,12 @@ export default class timex extends timexRest {
         const url = this.urls['api']['ws'];
         const subscribe = {
             'type': 'SUBSCRIBE',
-            'requestId': 'uniqueID',
-            'pattern': 'pattern',
+            'requestId': this.numberToString (this.milliseconds ()),
+            'pattern': name,
             'snapshot': true,
         };
-        const marketIds = [ ];
-        let messageHash = name;
-        if (symbols.length === 1) {
-            const symbol = symbols[0];
-            const marketId = this.marketId (symbol);
-            marketIds.push (marketId);
-            messageHash = messageHash + ':' + symbol;
-        }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            marketIds.push (this.marketId (symbol));
-        }
-        subscribe['product_ids'] = marketIds;
-        const request = this.extend (subscribe, params);
+        const messageHash = name;
+        const request = JSON.stringify (this.extend (subscribe, params));
         return await this.watch (url, messageHash, request, name);
     }
 
@@ -111,16 +112,14 @@ export default class timex extends timexRest {
          * @method
          * @name timex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+         * @see https://docs.timex.io/websocket-api-list-patterns.html#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the timex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const options = this.safeValue (this.options, 'watchTicker');
-        const method = this.safeString (options, 'method', 'ticker'); // or ticker_lite
-        const name = this.safeString (params, 'method', method);
-        params = this.omit (params, [ 'method' ]);
-        return await this.subscribePublic (name, [ symbol ], params);
+        const market = this.market (symbol);
+        const name = '/ticker/' + market['id'] + '/I1';
+        return await this.subscribe (name, params);
     }
 
     async watchTickers (symbols: string[] = undefined, params = {}) {
@@ -136,7 +135,7 @@ export default class timex extends timexRest {
         const method = this.safeString (this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
         const name = this.safeString2 (params, 'method', 'watchTickerMethod', method);
         params = this.omit (params, [ 'watchTickerMethod', 'method' ]);
-        return await this.subscribePublic (name, symbols, params);
+        return await this.subscribe (name, params);
     }
 
     async watchTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -153,7 +152,7 @@ export default class timex extends timexRest {
          */
         await this.loadMarkets ();
         const name = 'trade';
-        const trades = await this.subscribePublic (name, [ symbol ], params);
+        const trades = await this.subscribe (name, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -165,13 +164,15 @@ export default class timex extends timexRest {
          * @method
          * @name timex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
+         * @see https://docs.timex.io/websocket-api-list-patterns.html#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit not used by timex watchOrderBook
          * @param {object} params extra parameters specific to the timex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        const orderbook = await this.subscribePublic ('book', [ symbol ], params);
+        const market = this.market (symbol);
+        const name = '/orderbook/' + market['id'];
+        const orderbook = await this.subscribe (name, params);
         return orderbook.limit ();
     }
 
@@ -190,7 +191,7 @@ export default class timex extends timexRest {
          */
         await this.loadMarkets ();
         const name = 'open_orders';
-        const orders = await this.subscribePrivate (name, params);
+        const orders = await this.subscribe (name, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit); // TODO: shouldn't be restricted to 1 symbol
         }
@@ -211,7 +212,7 @@ export default class timex extends timexRest {
          */
         await this.loadMarkets ();
         const name = 'fills';
-        const trades = await this.subscribePrivate (name, params);
+        const trades = await this.subscribe (name, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -237,7 +238,7 @@ export default class timex extends timexRest {
         //     this.options['fetchBalance']['type'] = type;
         // }
         const name = 'balances';
-        return await this.subscribePrivate (name, params);
+        return await this.subscribe (name, params);
     }
 
     handleTrade (client: Client, message) {
