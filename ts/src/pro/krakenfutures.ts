@@ -589,7 +589,9 @@ export default class krakenfutures extends krakenfuturesRest {
             const parsed = this.parseWsOrder (order);
             this.orders.push (parsed);
         }
-        client.resolve (this.orders, 'open_orders');
+        if (this.orders.length > 0) {
+            client.resolve (this.orders, 'open_orders');
+        }
     }
 
     parseWsOrder (order, market = undefined) {
