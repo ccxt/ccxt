@@ -97,13 +97,18 @@ export default class timex extends timexRest {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const subscribe = {
-            'type': 'SUBSCRIBE',
+            'type': 'REST',
             'requestId': this.numberToString (this.milliseconds ()),
-            'pattern': name,
+            'stream': name,
             'snapshot': true,
+            'auth': {
+                'id': this.apiKey,
+                'secret': this.secret,
+            },
+            'payload': params,
         };
         const messageHash = name;
-        const request = JSON.stringify (this.extend (subscribe, params));
+        const request = JSON.stringify (subscribe);
         return await this.watch (url, messageHash, request, name);
     }
 
@@ -128,7 +133,7 @@ export default class timex extends timexRest {
          * @name timex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the timex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
@@ -138,7 +143,7 @@ export default class timex extends timexRest {
         return await this.subscribe (name, params);
     }
 
-    async watchTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name timex#watchTrades
@@ -151,8 +156,15 @@ export default class timex extends timexRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const name = 'trade';
-        const trades = await this.subscribe (name, params);
+        const market = this.market (symbol);
+        const name = '/get/public/trades';
+        const payload = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            payload['from'] = since;
+        }
+        const trades = await this.subscribe (name, this.extend (payload, params));
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -164,15 +176,21 @@ export default class timex extends timexRest {
          * @method
          * @name timex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.timex.io/websocket-api-list-patterns.html#order-book
+         * @see https://docs.timex.io/websocket-api-list-streams.html#orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit not used by timex watchOrderBook
+         * @param {int|undefined} limit the maximum number of orders to retrieve
          * @param {object} params extra parameters specific to the timex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const market = this.market (symbol);
-        const name = '/orderbook/' + market['id'];
-        const orderbook = await this.subscribe (name, params);
+        const name = '/get/public/orderbook';
+        const payload = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            payload['limit'] = limit;
+        }
+        const orderbook = await this.subscribe (name, this.extend (payload, params));
         return orderbook.limit ();
     }
 
