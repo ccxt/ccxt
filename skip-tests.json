@@ -499,7 +499,8 @@
             "fetchCurrencies": "info key is missing",
             "fetchOrderBook": "bid should be greater than next bid",
             "fetchL2OrderBook": "same"
-        }
+        },
+        "skip": "temporary outage"
     },
     "indodax": {
         "skipMethods": {
