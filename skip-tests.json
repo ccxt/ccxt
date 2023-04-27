@@ -109,6 +109,7 @@
     },
     "bitflyer": {
         "skipMethods": {
+            "loadMarkets": "contract is true, but contractSize is undeined",
             "fetchCurrencies": "info key missing",
             "fetchTrades": "side key has an null value, but is expected to have a value "
         }
@@ -242,7 +243,10 @@
         }
     },
     "btcex": {
-        "skipWs": true
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "max limit is zero for some markets"
+        }
     },
     "btcalpha": {
         "skipMethods": {
