@@ -891,7 +891,7 @@ class Exchange {
         return undefined;
     }
     spawn(method, ...args) {
-        const future = Future();
+        const future = Future.createFuture();
         method.apply(this, args).then(future.resolve).catch(future.reject);
         return future;
     }

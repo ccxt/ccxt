@@ -21,8 +21,7 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 const [,, ...args] = process.argv
 
-const keys = {
-
+const langKeys = {
     '--ts': false,      // run TypeScript tests only
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
@@ -30,6 +29,9 @@ const keys = {
     '--python-async': false, // run Python 3 async tests only
     '--csharp': false,  // run C# tests only
     '--php-async': false,    // run php async tests only,
+}
+
+const optionKeys = {
     '--warnings': false,
     '--info': false,
 }
@@ -51,7 +53,15 @@ let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
     if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
-    else if (arg.startsWith ('--'))          { keys[arg] = true }
+    else if (arg.startsWith ('--'))          {
+        if (arg in langKeys) {
+            langKeys[arg] = true
+        } else if (arg in optionKeys) {
+            optionKeys[arg] = true
+        } else {
+            log.bright.red ('\nUnknown option', arg.white, '\n');
+        }
+    }
     else if (arg.includes ('/'))             { symbol = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
@@ -212,27 +222,28 @@ const testExchange = async (exchange) => {
     }
     args = args.concat(exchangeOptions)
     const allTestsWithoutTs = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',                                  ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',                        ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py',                       ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',                               ...args] },
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
             { language: 'C#',             key: '--csharp',        exec: ['dotnet', 'run', '--project', 'c#/tests/tests.csproj',               ...args] },
         ]
 
-        if (!skipSettings[exchange] || !!!skipSettings[exchange].skipPhpAsync) {
-            // some exchanges are failing in php async tests with this error:
-            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
-            allTestsWithoutTs.push(
-                { language: 'PHP Async', key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
-            )
-        }
-
         const allTests = allTestsWithoutTs.concat([
             { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
-        ])
-        , selectedTests  = allTests.filter (t => keys[t.key])
-        , scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
-        , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
+        ]);
+
+        const selectedTests  = allTests.filter (t => langKeys[t.key]);
+        let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
+        // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
+        const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
+        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
+            // some exchanges are failing in php async tests with this error:
+            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
+            scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
+        }
+        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.hasWarnings)
         , hasInfo        = completeTests.find (test => test.hasInfo)
@@ -353,8 +364,9 @@ async function testAllExchanges () {
 
 (async function () {
 
+    const allKeys = Object.assign (optionKeys, langKeys)
     log.bright.magenta.noPretty ('Testing'.white, Object.assign (
-                                                            { exchanges, symbol, keys, exchangeSpecificFlags },
+                                                            { exchanges, symbol, allKeys, exchangeSpecificFlags },
                                                             maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
 
     const tested    = await testAllExchanges ()

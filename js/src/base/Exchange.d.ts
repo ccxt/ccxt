@@ -2,6 +2,7 @@ import * as functions from './functions.js';
 import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
+import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
 export { Market, Trade, Fee, Ticker } from './types';
@@ -465,7 +466,7 @@ export default class Exchange {
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
     remove0xPrefix(hexData: any): any;
     findTimeframe(timeframe: any, timeframes?: any): string;
-    spawn(method: any, ...args: any[]): Promise<unknown>;
+    spawn(method: any, ...args: any[]): Future;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
