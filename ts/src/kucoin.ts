@@ -785,7 +785,6 @@ export default class kucoin extends Exchange {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
-                'networks': {},
             };
         }
         return result;

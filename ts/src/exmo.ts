@@ -700,7 +700,6 @@ export default class exmo extends Exchange {
                 'precision': this.parseNumber ('1e-8'),
                 'limits': limits,
                 'info': providers,
-                'networks': {},
             };
         }
         return result;

@@ -913,7 +913,6 @@ export default class phemex extends Exchange {
                     },
                 },
                 'valueScale': valueScale,
-                'networks': {},
             };
         }
         return result;

@@ -373,7 +373,6 @@ export default class ndax extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
             };
         }
         return result;
