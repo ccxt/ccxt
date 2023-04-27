@@ -339,7 +339,7 @@ export default class lbank2 extends Exchange {
                 'contract': isLeveragedProduct,
                 'linear': linear, // all leveraged ETF products are in USDT
                 'inverse': undefined,
-                'contractSize': (isLeveragedProduct ? contractSize : undefined),
+                'contractSize': isLeveragedProduct ? contractSize : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
