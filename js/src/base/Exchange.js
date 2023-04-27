@@ -14,7 +14,7 @@ ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupport
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
-import Future from './ws/Future.js';
+import { createFuture } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import totp from './functions/totp.js';
 // ----------------------------------------------------------------------------
@@ -884,7 +884,7 @@ export default class Exchange {
         return undefined;
     }
     spawn(method, ...args) {
-        const future = Future();
+        const future = createFuture();
         method.apply(this, args).then(future.resolve).catch(future.reject);
         return future;
     }

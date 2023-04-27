@@ -11,16 +11,6 @@ using list = List<object>;
 public partial class Exchange
 {
 
-    // public object nonce()
-    // {
-    //     return (Int64)(milliseconds() / 100);
-    // }
-
-    // private void teste(string x, List<object> y = null)
-    // {
-
-    // }
-
     private bool isHttpMethod(string method)
     {
         return method == "get" || method == "post" || method == "delete" || method == "put" || method == "patch";

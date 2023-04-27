@@ -900,7 +900,13 @@ export default class coinbasepro extends Exchange {
             else {
                 limit = Math.min(300, limit);
             }
-            request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframe * 1000, since));
+            const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+            if (since % parsedTimeframeMilliseconds === 0) {
+                request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframeMilliseconds, since));
+            }
+            else {
+                request['end'] = this.iso8601(this.sum(limit * parsedTimeframeMilliseconds, since));
+            }
         }
         const response = await this.publicGetProductsIdCandles(this.extend(request, params));
         //

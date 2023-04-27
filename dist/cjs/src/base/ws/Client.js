@@ -44,11 +44,11 @@ class Client {
         };
         Object.assign(this, generic.deepExtend(defaults, config));
         // connection-related Future
-        this.connected = Future();
+        this.connected = Future.createFuture();
     }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
-            this.futures[messageHash] = Future();
+            this.futures[messageHash] = Future.createFuture();
         }
         const future = this.futures[messageHash];
         if (messageHash in this.rejections) {
@@ -222,7 +222,7 @@ class Client {
             this.log(new Date(), 'sending', message);
         }
         message = (typeof message === 'string') ? message : JSON.stringify(message);
-        const future = Future();
+        const future = Future.createFuture();
         if (platform.isNode) {
             function onSendComplete(error) {
                 if (error) {
