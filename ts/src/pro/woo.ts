@@ -517,11 +517,15 @@ export default class woo extends wooRest {
             'cost': cost,
             'currency': this.safeString (order, 'feeAsset'),
         };
-        const price = this.safeFloat (order, 'price');
+        let price = this.safeFloat (order, 'price');
+        const avgPrice = this.safeFloat (order, 'avgPrice');
+        if (price === 0 && avgPrice !== undefined) {
+            price = avgPrice;
+        }
         const amount = this.safeFloat (order, 'quantity');
         const side = this.safeStringLower (order, 'side');
         const type = this.safeStringLower (order, 'type');
-        const filled = this.safeFloat (order, 'executedQuantity');
+        const filled = this.safeFloat (order, 'totalExecutedQuantity');
         const totalExecQuantity = this.safeFloat (order, 'totalExecutedQuantity');
         let remaining = amount;
         if (amount >= totalExecQuantity) {
