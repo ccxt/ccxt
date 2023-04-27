@@ -1,8 +1,8 @@
+image: Visual Studio 2022
 environment:
   matrix:
     - nodejs_version: '18'
 install:
-  - ps: Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -UseBasicParsing -OutFile "$env:temp\dotnet-install.ps1" & $env:temp\dotnet-install.ps1 -Architecture x64 -Version '7.0.100' -InstallDir "$env:ProgramFiles\dotnet"
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
   - set INCLUDE=C:\OpenSSL-Win64\include;%INCLUDE%
