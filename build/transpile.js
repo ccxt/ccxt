@@ -2548,7 +2548,7 @@ function chunkIntoN(arr, n) {
   }
 
 function parallelizeTranspiling (exchanges, processes = undefined) {
-    const processesNum = processes || os.cpus ().length
+    const processesNum = Math.max(processes || os.cpus ().length, 4);
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
     const chunks = chunkIntoN(exchanges, processesNum)
