@@ -18,13 +18,13 @@ const symbol = 'BTC/USDT:USDT';
 async function main() {
     try {
         // test cjs version
-        const exchange = new ccxt.gate({});
+        const exchange = new ccxt.bybit({});
         const ticker = await exchange.fetchTicker(symbol);
         assert(ticker !== undefined);
         assert(ticker['symbol'] === symbol);
         log.bright.green('[CJS Code] OK');
         // test cjs bundle version
-        const exchangeBundle = new ccxtBundle.gate({});
+        const exchangeBundle = new ccxtBundle.bybit({});
         const tickeBundle = await exchangeBundle.fetchTicker(symbol);
         assert(tickeBundle !== undefined);
         assert(tickeBundle['symbol'] === symbol);
