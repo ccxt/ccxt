@@ -118,7 +118,7 @@ export default class timex extends timexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const market = this.market (symbol);
-        const name = '/ticker/' + market['id'] + '/I1';
+        const name = '/ticker/' + market['id'] + '/D1';
         return await this.subscribe (name, params);
     }
 
@@ -152,14 +152,8 @@ export default class timex extends timexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const name = '/get/public/trades';
-        const payload = {
-            'market': market['id'],
-        };
-        if (since !== undefined) {
-            payload['from'] = since;
-        }
-        const trades = await this.subscribe (name, this.extend (payload, params));
+        const name = '/trade.symbols/' + market['baseId'] + '/' + market['quoteId'];
+        const trades = await this.subscribe (name, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -197,7 +191,7 @@ export default class timex extends timexRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const name = 'open_orders';
+        const name = '/order-update/.*';
         const orders = await this.subscribe (name, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit); // TODO: shouldn't be restricted to 1 symbol
