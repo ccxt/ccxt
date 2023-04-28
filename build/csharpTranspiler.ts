@@ -570,7 +570,7 @@ class NewTranspiler {
     createCSharpClass(csharpVersion) {
         const csharpImports = this.getCsharpImports(csharpVersion).join("\n") + "\n\n";
         let content = csharpVersion.content;
-        content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "partial class $1 : $2");
+        content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
