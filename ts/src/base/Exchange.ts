@@ -1976,7 +1976,6 @@ export default class Exchange {
             cost = Precise.stringMul (cost, priceString);
             key = 'quote';
         } else {
-            cost = amount;
             key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
