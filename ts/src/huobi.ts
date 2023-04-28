@@ -5401,7 +5401,7 @@ export default class huobi extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        const sorted = this.sortBy (rates, 'timestamp');
+        const sorted = this.sortBy (rates, 'timestamp', true);
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
