@@ -1543,7 +1543,7 @@ class bitfinex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         throwError = False
         if code >= 400:
             if body[0] == '{':
@@ -1561,3 +1561,4 @@ class bitfinex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

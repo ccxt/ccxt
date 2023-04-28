@@ -1531,9 +1531,9 @@ class bitopro(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to the default error handler
+            return None  # fallback to the default error handler
         if code >= 200 and code < 300:
-            return
+            return None
         feedback = self.id + ' ' + body
         error = self.safe_string(response, 'error')
         self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

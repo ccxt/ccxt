@@ -603,7 +603,7 @@ class phemex(ccxt.async_support.phemex):
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_delta(self, bookside, delta, market=None):
-        bidAsk = self.parse_bid_ask(delta, 0, 1, market)
+        bidAsk = self.customParseBidAsk(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas, market=None):

@@ -1900,7 +1900,7 @@ class currencycom extends currencycom$1 {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"code":-1128,"msg":"Combination of optional parameters invalid."}
@@ -1913,6 +1913,7 @@ class currencycom extends currencycom$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

@@ -867,9 +867,9 @@ class buda(Exchange):
         for i in range(1, len(receiveAddresses)):
             receiveAddress = receiveAddresses[i]
             if receiveAddress['ready']:
-                address = receiveAddress['address']
-                self.check_address(address)
-                addressPool.append(address)
+                addressInner = receiveAddress['address']
+                self.check_address(addressInner)
+                addressPool.append(addressInner)
         addressPoolLength = len(addressPool)
         if addressPoolLength < 1:
             raise AddressPending(self.id + ': there are no addresses ready for receiving ' + code + ', retry again later)')
@@ -1052,7 +1052,7 @@ class buda(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if code >= 400:
             errorCode = self.safe_string(response, 'code')
             message = self.safe_string(response, 'message', body)
@@ -1060,3 +1060,4 @@ class buda(Exchange):
             if errorCode is not None:
                 self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
                 raise ExchangeError(feedback)
+        return None

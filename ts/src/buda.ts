@@ -933,9 +933,9 @@ export default class buda extends Exchange {
         for (let i = 1; i < receiveAddresses.length; i++) {
             const receiveAddress = receiveAddresses[i];
             if (receiveAddress['ready']) {
-                const address = receiveAddress['address'];
-                this.checkAddress (address);
-                addressPool.push (address);
+                const addressInner = receiveAddress['address'];
+                this.checkAddress (addressInner);
+                addressPool.push (addressInner);
             }
         }
         const addressPoolLength = addressPool.length;
@@ -1145,7 +1145,7 @@ export default class buda extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if (code >= 400) {
             const errorCode = this.safeString (response, 'code');
@@ -1156,5 +1156,6 @@ export default class buda extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        return undefined;
     }
 }

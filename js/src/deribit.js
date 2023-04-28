@@ -2642,7 +2642,7 @@ export default class deribit extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -2665,5 +2665,6 @@ export default class deribit extends Exchange {
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

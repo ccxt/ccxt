@@ -803,7 +803,7 @@ class alpaca extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // default error handler
+            return null; // default error handler
         }
         // {
         //     "code" => 40110000,
@@ -820,5 +820,6 @@ class alpaca extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

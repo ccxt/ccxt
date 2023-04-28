@@ -432,11 +432,11 @@ class probit extends Exchange {
                 // sometimes the withdrawal $fee is an empty object
                 // array( array( 'amount' => '0.015', 'priority' => 1, 'currency_id' => 'ETH' ), array() )
                 for ($j = 0; $j < count($withdrawalFees); $j++) {
-                    $withdrawalFee = $withdrawalFees[$j];
-                    $amount = $this->safe_number($withdrawalFee, 'amount');
-                    $priority = $this->safe_integer($withdrawalFee, 'priority');
+                    $withdrawalFeeInner = $withdrawalFees[$j];
+                    $amount = $this->safe_number($withdrawalFeeInner, 'amount');
+                    $priority = $this->safe_integer($withdrawalFeeInner, 'priority');
                     if (($amount !== null) && ($priority !== null)) {
-                        $fees[] = $withdrawalFee;
+                        $fees[] = $withdrawalFeeInner;
                     }
                 }
                 $withdrawalFeesByPriority = $this->sort_by($fees, 'priority');
@@ -466,6 +466,7 @@ class probit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -1670,7 +1671,7 @@ class probit extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if (is_array($response) && array_key_exists('errorCode', $response)) {
             $errorCode = $this->safe_string($response, 'errorCode');
@@ -1682,5 +1683,6 @@ class probit extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }

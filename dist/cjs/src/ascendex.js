@@ -425,13 +425,13 @@ class ascendex extends ascendex$1 {
             const fee = this.safeNumber2(currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString2(currency, 'status', 'statusCode');
             const active = (status === 'Normal');
-            const margin = ('borrowAssetCode' in currency);
+            const marginInside = ('borrowAssetCode' in currency);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': margin,
+                'margin': marginInside,
                 'name': this.safeString(currency, 'assetName'),
                 'active': active,
                 'deposit': undefined,
@@ -448,6 +448,7 @@ class ascendex extends ascendex$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -3005,7 +3006,7 @@ class ascendex extends ascendex$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {'code': 6010, 'message': 'Not enough balance.'}
@@ -3023,6 +3024,7 @@ class ascendex extends ascendex$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

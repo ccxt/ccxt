@@ -2639,7 +2639,7 @@ class deribit extends deribit$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -2662,6 +2662,7 @@ class deribit extends deribit$1 {
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

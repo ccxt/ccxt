@@ -731,7 +731,7 @@ class zaif extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("error" => "unsupported currency_pair")
@@ -747,5 +747,6 @@ class zaif extends Exchange {
         if (!$success) {
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

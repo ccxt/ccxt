@@ -473,10 +473,10 @@ class exmo extends exmo$1 {
             const providers = this.safeValue(cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
-                const type = this.safeString(provider, 'type');
+                const typeInner = this.safeString(provider, 'type');
                 const commissionDesc = this.safeString(provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue(commissionDesc);
-                result[code][type] = fee;
+                result[code][typeInner] = fee;
             }
             result[code]['info'] = providers;
         }
@@ -642,14 +642,14 @@ class exmo extends exmo$1 {
             else {
                 for (let j = 0; j < providers.length; j++) {
                     const provider = providers[j];
-                    const type = this.safeString(provider, 'type');
+                    const typeInner = this.safeString(provider, 'type');
                     const minValue = this.safeNumber(provider, 'min');
                     let maxValue = this.safeNumber(provider, 'max');
                     if (maxValue === 0.0) {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue(provider, 'enabled');
-                    if (type === 'deposit') {
+                    if (typeInner === 'deposit') {
                         if (activeProvider && !depositEnabled) {
                             depositEnabled = true;
                         }
@@ -657,7 +657,7 @@ class exmo extends exmo$1 {
                             depositEnabled = false;
                         }
                     }
-                    else if (type === 'withdraw') {
+                    else if (typeInner === 'withdraw') {
                         if (activeProvider && !withdrawEnabled) {
                             withdrawEnabled = true;
                         }
@@ -667,10 +667,10 @@ class exmo extends exmo$1 {
                     }
                     if (activeProvider) {
                         active = true;
-                        if ((limits[type]['min'] === undefined) || (minValue < limits[type]['min'])) {
-                            limits[type]['min'] = minValue;
-                            limits[type]['max'] = maxValue;
-                            if (type === 'withdraw') {
+                        if ((limits[typeInner]['min'] === undefined) || (minValue < limits[typeInner]['min'])) {
+                            limits[typeInner]['min'] = minValue;
+                            limits[typeInner]['max'] = maxValue;
+                            if (typeInner === 'withdraw') {
                                 const commissionDesc = this.safeString(provider, 'commission_desc');
                                 fee = this.parseFixedFloatValue(commissionDesc);
                             }
@@ -691,6 +691,7 @@ class exmo extends exmo$1 {
                 'precision': this.parseNumber('1e-8'),
                 'limits': limits,
                 'info': providers,
+                'networks': {},
             };
         }
         return result;
@@ -1211,9 +1212,9 @@ class exmo extends exmo$1 {
         }
         const response = await this.privatePostUserTrades(this.extend(request, params));
         let result = [];
-        const marketIds = Object.keys(response);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+        const marketIdsInner = Object.keys(response);
+        for (let i = 0; i < marketIdsInner.length; i++) {
+            const marketId = marketIdsInner[i];
             const resultMarket = this.safeMarket(marketId, undefined, '_');
             const items = response[marketId];
             const trades = this.parseTrades(items, resultMarket, since, limit);
@@ -2077,7 +2078,7 @@ class exmo extends exmo$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if (('result' in response) || ('errmsg' in response)) {
             //
@@ -2109,6 +2110,7 @@ class exmo extends exmo$1 {
                 throw new errors.ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }
 

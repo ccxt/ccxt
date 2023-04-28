@@ -1206,7 +1206,7 @@ export default class btcmarkets extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             if (!response['success']) {
@@ -1225,5 +1225,6 @@ export default class btcmarkets extends Exchange {
             this.throwExactlyMatchedException(this.exceptions, message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
 }

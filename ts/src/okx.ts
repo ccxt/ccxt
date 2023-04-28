@@ -2358,8 +2358,8 @@ export default class okx extends Exchange {
          */
         const stop = this.safeValue (params, 'stop');
         if (stop) {
-            const order = await this.cancelOrders ([ id ], symbol, params);
-            return this.safeValue (order, 0);
+            const orderInner = await this.cancelOrders ([ id ], symbol, params);
+            return this.safeValue (orderInner, 0);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -5009,12 +5009,12 @@ export default class okx extends Exchange {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'ts');
             const instId = this.safeString (entry, 'instId');
-            const market = this.safeMarket (instId);
+            const marketInner = this.safeMarket (instId);
             const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             result.push ({
                 'info': entry,
-                'symbol': market['symbol'],
+                'symbol': marketInner['symbol'],
                 'code': code,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -6035,7 +6035,7 @@ export default class okx extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //    {
@@ -6071,5 +6071,6 @@ export default class okx extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

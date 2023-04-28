@@ -919,15 +919,16 @@ class phemex extends Exchange {
                         ),
                     ),
                     'valueScale' => $valueScale,
+                    'networks' => array(),
                 );
             }
             return $result;
         }) ();
     }
 
-    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
+    public function custom_parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
         if ($market === null) {
-            throw new ArgumentsRequired($this->id . ' parseBidAsk() requires a $market argument');
+            throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a $market argument');
         }
         $amount = $this->safe_string($bidask, $amountKey);
         if ($market['spot']) {
@@ -952,7 +953,7 @@ class phemex extends Exchange {
             $orders = array();
             $bidasks = $this->safe_value($orderbook, $side);
             for ($k = 0; $k < count($bidasks); $k++) {
-                $orders[] = $this->parse_bid_ask($bidasks[$k], $priceKey, $amountKey, $market);
+                $orders[] = $this->custom_parse_bid_ask($bidasks[$k], $priceKey, $amountKey, $market);
             }
             $result[$side] = $orders;
         }
@@ -4258,7 +4259,7 @@ class phemex extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     array("code":30018,"msg":"phemex.data.size.uplimt","data":null)
@@ -4275,5 +4276,6 @@ class phemex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

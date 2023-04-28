@@ -1657,10 +1657,11 @@ class coinsph(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         responseCode = self.safe_string(response, 'code', None)
         if (responseCode is not None) and (responseCode != '200') and (responseCode != '0'):
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             raise ExchangeError(feedback)
+        return None

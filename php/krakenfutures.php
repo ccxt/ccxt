@@ -63,8 +63,8 @@ class krakenfutures extends Exchange {
             ),
             'urls' => array(
                 'test' => array(
-                    'public' => 'https://demo-futures.kraken.com/derivatives',
-                    'private' => 'https://demo-futures.kraken.com/derivatives',
+                    'public' => 'https://demo-futures.kraken.com/derivatives/api/',
+                    'private' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'www' => 'https://demo-futures.kraken.com',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -1931,14 +1931,14 @@ class krakenfutures extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
         $message = $this->safe_string($response, 'error');
         if ($message === null) {
-            return;
+            return null;
         }
         $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

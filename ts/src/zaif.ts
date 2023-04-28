@@ -729,7 +729,7 @@ export default class zaif extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         //     {"error": "unsupported currency_pair"}
@@ -745,5 +745,6 @@ export default class zaif extends Exchange {
         if (!success) {
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

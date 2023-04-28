@@ -2512,7 +2512,7 @@ class deribit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {
         #         jsonrpc: '2.0',
@@ -2533,3 +2533,4 @@ class deribit(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

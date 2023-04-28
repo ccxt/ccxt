@@ -247,7 +247,9 @@
         "skipMethods": {
             "fetchCurrencies": "info key is missing",
             "fetchTickers": "open might be set to 0",
-            "fetchTicker": "same"
+            "fetchTicker": "same",
+            "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
+            "fetchL2OrderBook": "same"
         }
     },
     "btcturk": {
@@ -274,6 +276,8 @@
         }
     },
     "bybit": {
+        "skipPhpAsync": true,
+        "//": "missing php async proxy",
         "skipMethods": {
             "fetchTickers": "returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT",
             "fetchTicker": "same"
@@ -359,7 +363,7 @@
             "loadMarkets": "max is less than min",
             "fetchTickers": "timestamp might be of 1970-01-01T00:00:00.000Z",
             "fetchTicker": "same"
-        }
+    }
     },
     "currencycom": {
         "skipWs": true,
@@ -494,6 +498,7 @@
         }
     },
     "itbit": {
+        "skip": "endpoints return 'no healthy upstream', as of 27 apr 2023",
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value",
             "fetchCurrencies": "info key is missing",

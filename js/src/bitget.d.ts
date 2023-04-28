@@ -138,7 +138,7 @@ export default class bitget extends Exchange {
         maker: number;
         taker: number;
     };
-    parseOHLCV(ohlcv: any, market?: any, timeframe?: string): number[];
+    parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseBalance(balance: any): import("./base/types.js").Balances;
@@ -282,7 +282,7 @@ export default class bitget extends Exchange {
         datetime: string;
         info: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

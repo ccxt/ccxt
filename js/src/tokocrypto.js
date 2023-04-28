@@ -1595,10 +1595,10 @@ export default class tokocrypto extends Exchange {
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
-                const quoteOrderQty = this.safeValue2(params, 'quoteOrderQty', 'cost');
+                const quoteOrderQtyInner = this.safeValue2(params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
-                if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                if (quoteOrderQtyInner !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyInner, TRUNCATE, precision, this.precisionMode);
                     params = this.omit(params, ['quoteOrderQty', 'cost']);
                 }
                 else if (price !== undefined) {
@@ -2369,17 +2369,17 @@ export default class tokocrypto extends Exchange {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeValue(response, 'success', true);
         if (!success) {
-            const message = this.safeString(response, 'msg');
+            const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;
-            if (message !== undefined) {
+            if (messageInner !== undefined) {
                 try {
-                    parsedMessage = JSON.parse(message);
+                    parsedMessage = JSON.parse(messageInner);
                 }
                 catch (e) {
                     // do nothing
@@ -2424,6 +2424,7 @@ export default class tokocrypto extends Exchange {
         if (!success) {
             throw new ExchangeError(this.id + ' ' + body);
         }
+        return undefined;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
         if (('noCoin' in config) && !('coin' in params)) {

@@ -915,5 +915,6 @@ export default class btcturk extends Exchange {
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
             throw new ExchangeError(this.id + ' ' + output);
         }
+        return undefined;
     }
 }

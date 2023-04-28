@@ -170,7 +170,8 @@ class bybit(ccxt.async_support.bybit):
         """
         await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'ticker:' + market['symbol']
+        symbol = market['symbol']
+        messageHash = 'ticker:' + symbol
         url = self.get_url_by_market_type(symbol, False, params)
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTicker', {})

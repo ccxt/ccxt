@@ -997,8 +997,8 @@ class yobit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
+            $marketInner = $this->market($symbol);
+            $request['pair'] = $marketInner['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge($request, $params));
         //
@@ -1216,7 +1216,7 @@ class yobit extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         if (is_array($response) && array_key_exists('success', $response)) {
             //
@@ -1263,5 +1263,6 @@ class yobit extends Exchange {
                 throw new ExchangeError($feedback); // unknown $message
             }
         }
+        return null;
     }
 }

@@ -2599,7 +2599,7 @@ class bitmex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
@@ -2611,6 +2611,7 @@ class bitmex(Exchange):
             if code == 400:
                 raise BadRequest(feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
 
     def nonce(self):
         return self.milliseconds()

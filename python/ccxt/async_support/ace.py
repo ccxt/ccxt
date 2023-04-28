@@ -846,7 +846,7 @@ class ace(Exchange):
         trades = self.safe_value(data, 'trades')
         if trades is None:
             return trades
-        return await self.parse_trades(trades, market, since, limit)
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -995,9 +995,10 @@ class ace(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to the default error handler
+            return None  # fallback to the default error handler
         feedback = self.id + ' ' + body
         status = self.safe_number(response, 'status', 200)
         if status > 200:
             self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], status, feedback)
+        return None

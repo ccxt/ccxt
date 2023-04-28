@@ -853,9 +853,10 @@ class wazirx(Exchange):
         # {"code":2098,"message":"Request out of receiving window."}
         #
         if response is None:
-            return
+            return None
         errorCode = self.safe_string(response, 'code')
         if errorCode is not None:
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)
+        return None

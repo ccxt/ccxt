@@ -1832,7 +1832,8 @@ class bitrue(Exchange):
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        version, access = api
+        version = self.safe_string(api, 0)
+        access = self.safe_string(api, 1)
         url = self.urls['api'][version] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if access == 'private':
@@ -1871,16 +1872,16 @@ class bitrue(Exchange):
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_value(response, 'success', True)
         if not success:
-            message = self.safe_string(response, 'msg')
+            messageInner = self.safe_string(response, 'msg')
             parsedMessage = None
-            if message is not None:
+            if messageInner is not None:
                 try:
-                    parsedMessage = json.loads(message)
+                    parsedMessage = json.loads(messageInner)
                 except Exception as e:
                     # do nothing
                     parsedMessage = None
@@ -1896,7 +1897,7 @@ class bitrue(Exchange):
             # https://github.com/ccxt/ccxt/issues/6501
             # https://github.com/ccxt/ccxt/issues/7742
             if (error == '200') or Precise.string_equals(error, '0'):
-                return
+                return None
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
@@ -1907,6 +1908,7 @@ class bitrue(Exchange):
             raise ExchangeError(feedback)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         if ('noSymbol' in config) and not ('symbol' in params):

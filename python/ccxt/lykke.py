@@ -254,6 +254,7 @@ class lykke(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -1211,7 +1212,7 @@ class lykke(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         error = self.safe_value(response, 'error', {})
         errorCode = self.safe_string(error, 'code')
         if (errorCode is not None) and (errorCode != '0'):
@@ -1220,3 +1221,4 @@ class lykke(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)
+        return None

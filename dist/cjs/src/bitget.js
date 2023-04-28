@@ -2076,7 +2076,7 @@ class bitget extends bitget$1 {
             'taker': this.safeNumber(data, 'takerFeeRate'),
         };
     }
-    parseOHLCV(ohlcv, market = undefined, timeframe = '1m') {
+    parseOHLCV(ohlcv, market = undefined) {
         //
         // spot
         //
@@ -3722,11 +3722,11 @@ class bitget extends bitget$1 {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString(entry, 'symbol');
-            const symbol = this.safeSymbol(marketId, market);
+            const symbolInner = this.safeSymbol(marketId, market);
             const timestamp = this.safeInteger(entry, 'settleTime');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeString(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -4314,7 +4314,7 @@ class bitget extends bitget$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         // spot
@@ -4355,6 +4355,7 @@ class bitget extends bitget$1 {
         if (nonZeroErrorCode || nonEmptyMessage) {
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
@@ -4381,9 +4382,9 @@ class bitget extends bitget$1 {
             }
             else {
                 if (Object.keys(params).length) {
-                    const query = '?' + this.urlencode(this.keysort(params));
-                    url += query;
-                    auth += query;
+                    const queryInner = '?' + this.urlencode(this.keysort(params));
+                    url += queryInner;
+                    auth += queryInner;
                 }
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');

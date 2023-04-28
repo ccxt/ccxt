@@ -1796,11 +1796,11 @@ class bkex extends bkex$1 {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString(entry, 'symbol');
-            const symbol = this.safeSymbol(marketId);
+            const symbolInner = this.safeSymbol(marketId);
             const timestamp = this.safeInteger(entry, 'time');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': this.safeNumber(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -1905,7 +1905,7 @@ class bkex extends bkex$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // success
@@ -1939,7 +1939,7 @@ class bkex extends bkex$1 {
         //
         const message = this.safeValue(response, 'msg');
         if (message === 'success') {
-            return;
+            return undefined;
         }
         const responseCode = this.safeString(response, 'code');
         if (responseCode !== '0') {
@@ -1948,6 +1948,7 @@ class bkex extends bkex$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

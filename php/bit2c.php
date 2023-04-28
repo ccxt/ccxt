@@ -863,7 +863,7 @@ class bit2c extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     array( "error" : "please approve new terms of use on site." )
@@ -880,5 +880,6 @@ class bit2c extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+        return null;
     }
 }

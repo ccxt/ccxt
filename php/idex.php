@@ -1442,6 +1442,7 @@ class idex extends Exchange {
         if ($errorCode !== null) {
             throw new ExchangeError($this->id . ' ' . $message);
         }
+        return null;
     }
 
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {

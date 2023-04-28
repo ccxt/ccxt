@@ -2059,10 +2059,10 @@ class bitmart(Exchange):
             defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
             defaultNetwork = self.safe_string_upper(defaultNetworks, code)
             networks = self.safe_value(self.options, 'networks', {})
-            network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
-            network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-            if network is not None:
-                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+            networkInner = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
+            networkInner = self.safe_string(networks, networkInner, networkInner)  # handle ERC20>ETH alias
+            if networkInner is not None:
+                request['currency'] = request['currency'] + '-' + networkInner  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = self.omit(params, 'network')
         response = self.privateGetAccountV1DepositAddress(self.extend(request, params))
         #
@@ -2129,7 +2129,7 @@ class bitmart(Exchange):
             network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
             if network is not None:
-                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                request['currency'] = request['currency'] + '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
                 params = self.omit(params, 'network')
         response = self.privatePostAccountV1WithdrawApply(self.extend(request, params))
         #
@@ -2863,7 +2863,7 @@ class bitmart(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         # spot
         #
@@ -2885,3 +2885,4 @@ class bitmart(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

@@ -299,6 +299,7 @@ class coinbasepro(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -874,7 +875,11 @@ class coinbasepro(Exchange):
                 limit = 300  # max = 300
             else:
                 limit = min(300, limit)
-            request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframe * 1000, since))
+            parsedTimeframeMilliseconds = parsedTimeframe * 1000
+            if since % parsedTimeframeMilliseconds == 0:
+                request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframeMilliseconds, since))
+            else:
+                request['end'] = self.iso8601(self.sum(limit * parsedTimeframeMilliseconds, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [
@@ -1448,8 +1453,8 @@ class coinbasepro(Exchange):
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
-                code = self.safe_string(account, 'code')
-                response[i]['currency'] = code
+                codeInner = self.safe_string(account, 'code')
+                response[i]['currency'] = codeInner
         else:
             response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
             #
@@ -1665,6 +1670,7 @@ class coinbasepro(Exchange):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = await self.fetch2(path, api, method, params, headers, body, config, context)

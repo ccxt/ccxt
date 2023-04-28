@@ -1908,29 +1908,6 @@ class kucoinfutures(kucoin):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_transaction_fee(self, code: str, params={}):
-        """
-        *DEPRECATED* please use fetchDepositWithdrawFee instead
-        :param str code: unified currency code
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
-        """
-        # raise BadRequest(self.id + ' fetchTransactionFee() is not supported')
-        return None
-
-    def fetch_deposit_withdraw_fee(self, code: str, params={}):
-        """
-        Not supported
-        :param str code: unified currency code
-        :param dict params: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
-        """
-        raise BadRequest(self.id + ' fetchDepositWithdrawFee() is not supported')
-
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        # raise BadRequest(self.id + ' fetchLedger() is not supported yet')
-        return None
-
     def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market

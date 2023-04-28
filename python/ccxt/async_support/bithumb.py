@@ -995,7 +995,7 @@ class bithumb(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'status' in response:
             #
             #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
@@ -1004,11 +1004,12 @@ class bithumb(Exchange):
             message = self.safe_string(response, 'message')
             if status is not None:
                 if status == '0000':
-                    return  # no error
+                    return None  # no error
                 elif message == '거래 진행중인 내역이 존재하지 않습니다':
                     # https://github.com/ccxt/ccxt/issues/9017
-                    return  # no error
+                    return None  # no error
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)
                 self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)
+        return None

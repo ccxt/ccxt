@@ -2759,7 +2759,7 @@ export default class bitmex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
@@ -2775,6 +2775,7 @@ export default class bitmex extends Exchange {
             }
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 
     nonce () {

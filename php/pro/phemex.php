@@ -649,7 +649,7 @@ class phemex extends \ccxt\async\phemex {
     }
 
     public function handle_delta($bookside, $delta, $market = null) {
-        $bidAsk = $this->parse_bid_ask($delta, 0, 1, $market);
+        $bidAsk = $this->customParseBidAsk ($delta, 0, 1, $market);
         $bookside->storeArray ($bidAsk);
     }
 

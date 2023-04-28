@@ -2673,7 +2673,7 @@ class deribit extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //     {
@@ -2696,5 +2696,6 @@ class deribit extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+        return null;
     }
 }

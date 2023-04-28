@@ -725,6 +725,7 @@ class bitfinex2(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
             networks = {}
             currencyNetworks = self.safe_value(response, 8, [])

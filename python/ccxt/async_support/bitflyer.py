@@ -419,9 +419,9 @@ class bitflyer(Exchange):
                 side = None
         order = None
         if side is not None:
-            id = side + '_child_order_acceptance_id'
-            if id in trade:
-                order = trade[id]
+            idInner = side + '_child_order_acceptance_id'
+            if idInner in trade:
+                order = trade[idInner]
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))

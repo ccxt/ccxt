@@ -731,6 +731,7 @@ class bitfinex2 extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
                 $networks = array();
                 $currencyNetworks = $this->safe_value($response, 8, array());
