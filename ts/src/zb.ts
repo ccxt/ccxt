@@ -644,9 +644,6 @@ export default class zb extends Exchange {
                 active = (status === '1');
                 symbol = base + '/' + quote + ':' + settle;
             }
-            const contract = swap;
-            const amountMin = this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimal')));
-            const contractSize = contract ? amountMin : undefined;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -663,10 +660,10 @@ export default class zb extends Exchange {
                 'future': false,
                 'option': false,
                 'active': active,
-                'contract': contract,
+                'contract': swap,
                 'linear': linear,
                 'inverse': swap ? !linear : undefined,
-                'contractSize': contractSize,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
