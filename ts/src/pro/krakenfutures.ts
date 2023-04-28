@@ -30,6 +30,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 'api': {
                     'ws': 'wss://futures.kraken.com/ws/v1',
                 },
+                'test': {
+                    'ws': 'wss://demo-futures.kraken.com/ws/v1',
+                },
             },
             'options': {
                 'tradesLimit': 1000,
