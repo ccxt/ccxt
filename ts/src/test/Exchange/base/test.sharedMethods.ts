@@ -13,9 +13,7 @@ function assertType (exchange, skippedProperties, entry, key, format) {
     const formatKeyVal = exchange.safeValue (format, key);
     const same_string = (typeof entryKeyVal === 'string') && (typeof formatKeyVal === 'string');
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
-    // todo: the below is correct, but is not being transpiled into python correctly: (x == False) instead of (x is False)
-    // const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
-    const same_boolean = ((entryKeyVal || !entryKeyVal) && (formatKeyVal || !formatKeyVal));
+    const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray (entryKeyVal) && Array.isArray (formatKeyVal);
     const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;

@@ -49,7 +49,7 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'filled'));
     if (entry['trades'] !== undefined) {
         for (let i = 0; i < entry['trades'].length; i++) {
-            testTrade (exchange, method, entry['trades'][i], symbol, now);
+            testTrade (exchange, skippedProperties, method, entry['trades'][i], symbol, now);
         }
     }
     testSharedMethods.assertFee (exchange, skippedProperties, method, entry['fee']);

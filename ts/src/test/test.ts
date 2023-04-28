@@ -59,8 +59,8 @@ function ioFileRead (path, decode = true) {
     return decode ? JSON.parse (content) : content;
 }
 
-async function callMethod (testFiles, methodName, exchange, skippedData, args) {
-    return await testFiles[methodName] (exchange, skippedData, ...args);
+async function callMethod (testFiles, methodName, exchange, skippedProperties, args) {
+    return await testFiles[methodName] (exchange, skippedProperties, ...args);
 }
 
 function exceptionMessage (exc) {
@@ -245,7 +245,7 @@ export default class testMainClass extends baseMainTestClass {
         const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
         if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
-        } else if (methodName in this.skippedMethods) {
+        } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
         } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
@@ -262,7 +262,8 @@ export default class testMainClass extends baseMainTestClass {
         }
         let result = null;
         try {
-            result = await callMethod (this.testFiles, methodNameInTest, exchange, this.skippedMethods, args);
+            const skippedProperties = exchange.safeValue (this.skippedMethods, methodNameInTest, []);
+            result = await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }

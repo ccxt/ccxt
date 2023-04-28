@@ -124,8 +124,8 @@ def io_file_read(path, decode=True):
         return content
 
 
-async def call_method(testFiles, methodName, exchange, skippedData, args):
-    return await getattr(testFiles[methodName], methodName)(exchange, skippedData, *args)
+async def call_method(testFiles, methodName, exchange, skippedProperties, args):
+    return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
 
 
 def exception_message(exc):
