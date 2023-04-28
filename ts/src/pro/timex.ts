@@ -97,15 +97,10 @@ export default class timex extends timexRest {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const subscribe = {
-            'type': 'REST',
+            'type': 'SUBSCRIBE',
             'requestId': this.numberToString (this.milliseconds ()),
-            'stream': name,
+            'pattern': name,
             'snapshot': true,
-            'auth': {
-                'id': this.apiKey,
-                'secret': this.secret,
-            },
-            'payload': params,
         };
         const messageHash = name;
         const request = JSON.stringify (subscribe);
@@ -183,14 +178,8 @@ export default class timex extends timexRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const market = this.market (symbol);
-        const name = '/get/public/orderbook';
-        const payload = {
-            'market': market['id'],
-        };
-        if (limit !== undefined) {
-            payload['limit'] = limit;
-        }
-        const orderbook = await this.subscribe (name, this.extend (payload, params));
+        const name = '/orderbook/' + market['id'];
+        const orderbook = await this.subscribe (name, params);
         return orderbook.limit ();
     }
 
