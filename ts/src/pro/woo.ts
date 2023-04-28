@@ -517,11 +517,15 @@ export default class woo extends wooRest {
             'cost': cost,
             'currency': this.safeString (order, 'feeAsset'),
         };
-        const price = this.safeFloat (order, 'price');
+        let price = this.safeNumber (order, 'price');
+        const avgPrice = this.safeNumber (order, 'avgPrice');
+        if ((price === 0) && (avgPrice !== undefined)) {
+            price = avgPrice;
+        }
         const amount = this.safeFloat (order, 'quantity');
         const side = this.safeStringLower (order, 'side');
         const type = this.safeStringLower (order, 'type');
-        const filled = this.safeFloat (order, 'executedQuantity');
+        const filled = this.safeNumber (order, 'totalExecutedQuantity');
         const totalExecQuantity = this.safeFloat (order, 'totalExecutedQuantity');
         let remaining = amount;
         if (amount >= totalExecQuantity) {
@@ -531,7 +535,7 @@ export default class woo extends wooRest {
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return {
+        return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': orderId,
@@ -554,7 +558,7 @@ export default class woo extends wooRest {
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     handleOrderUpdate (client: Client, message) {

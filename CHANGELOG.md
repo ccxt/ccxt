@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.80 (2023-04-27)
+
+
+### Bug Fixes
+
+* **webpack:** webworkers usage ([bc63ad9](https://github.com/ccxt/ccxt/commit/bc63ad905c5db0c1b3ff1ad62e3eabeb48126c3a))
+
 ### 3.0.79 (2023-04-27)
 
 ### 3.0.78 (2023-04-26)
