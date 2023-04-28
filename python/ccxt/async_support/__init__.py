@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.80'
+__version__ = '3.0.81'
 
 # -----------------------------------------------------------------------------
 
@@ -164,7 +164,6 @@ from ccxt.async_support.woo import woo                                          
 from ccxt.async_support.xt import xt                                            # noqa: F401
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
-from ccxt.async_support.zb import zb                                            # noqa: F401
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
@@ -279,7 +278,6 @@ exchanges = [
     'xt',
     'yobit',
     'zaif',
-    'zb',
     'zonda',
 ]
 

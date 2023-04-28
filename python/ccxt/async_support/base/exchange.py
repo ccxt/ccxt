@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.80'
+__version__ = '3.0.81'
 
 # -----------------------------------------------------------------------------
 
@@ -960,30 +960,24 @@ class Exchange(BaseExchange):
             raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
-        key = 'quote'
-        cost = None
-        amountString = self.number_to_string(amount)
-        priceString = self.number_to_string(price)
-        if feeSide == 'quote':
-            # the fee is always in quote currency
-            cost = Precise.string_mul(amountString, priceString)
-        elif feeSide == 'base':
-            # the fee is always in base currency
-            cost = amountString
-        elif feeSide == 'get':
+        useQuote = None
+        if feeSide == 'get':
             # the fee is always in the currency you get
-            cost = amountString
-            if side == 'sell':
-                cost = Precise.string_mul(cost, priceString)
-            else:
-                key = 'base'
+            useQuote = side == 'sell'
         elif feeSide == 'give':
             # the fee is always in the currency you give
-            cost = amountString
-            if side == 'buy':
-                cost = Precise.string_mul(cost, priceString)
-            else:
-                key = 'base'
+            useQuote = side == 'buy'
+        else:
+            # the fee is always in feeSide currency
+            useQuote = feeSide == 'quote'
+        cost = self.number_to_string(amount)
+        key = None
+        if useQuote:
+            priceString = self.number_to_string(price)
+            cost = Precise.string_mul(cost, priceString)
+            key = 'quote'
+        else:
+            key = 'base'
         # for derivatives, the fee is in 'settle' currency
         if not market['spot']:
             key = 'settle'
@@ -991,8 +985,7 @@ class Exchange(BaseExchange):
         if type == 'market':
             takerOrMaker = 'taker'
         rate = self.safe_string(market, takerOrMaker)
-        if cost is not None:
-            cost = Precise.string_mul(cost, rate)
+        cost = Precise.string_mul(cost, rate)
         return {
             'type': takerOrMaker,
             'currency': market[key],
