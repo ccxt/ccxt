@@ -1576,15 +1576,12 @@ class Exchange {
             $result = $array;
         }
         if (isset($limit)) {
+            $result = $this->sort_by($result, 'timestamp');
             if (is_array($result)) {
-                $result = $tail ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
+                $result = array_slice($result, -$limit);
             } else {
                 $length = count($result);
-                if ($tail) {
-                    $start = max($length - $limit, 0);
-                } else {
-                    $start = 0;
-                }
+                $start = max($length - $limit, 0);
                 $end = min($start + $limit, $length);
                 $result_copy = array();
                 for ($i = $start; $i < $end; $i++) {
@@ -1606,7 +1603,8 @@ class Exchange {
             }
         }
         if (isset($limit)) {
-            return $tail ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
+            $result = $this->sort_by($result, 'timestamp');
+            return array_slice($result, -$limit);
         }
         return $result;
     }
