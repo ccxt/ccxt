@@ -1040,7 +1040,8 @@ export default class Exchange {
             array = array.filter ((entry) => entry[key] >= since)
         }
         if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice (-limit) : array.slice (0, limit)
+            array = this.sortBy (array, 'timestamp', true);
+            array = array.slice (0, limit);
         }
         return array
     }
@@ -1055,7 +1056,8 @@ export default class Exchange {
                  (sinceIsDefined ? (entry[key] >= since) : true)))
         }
         if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice (-limit) : array.slice (0, limit)
+            array = this.sortBy (array, 'timestamp', true);
+            array = array.slice (0, limit); 
         }
         return array
     }
