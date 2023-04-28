@@ -24,7 +24,7 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
-    "transpileCSharp": "node --no-warnings --loader ts-node/esm build/csharpTranspiler.ts",
+    "transpileCSharp": "node --no-warnings --loader ts-node/esm build/csharpTranspiler.ts --multi",
     "buildCsharp": "dotnet build c#/ccxt.sln",
     "debug":"cat -n c#/src/base/Exchange.Wrappers.cs",
     "csharp": "npm run transpileCSharp && npm run buildCsharp",

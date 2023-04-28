@@ -7,7 +7,7 @@ import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import {Transpiler as OldTranspiler} from "./transpile.js";
+import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
@@ -16,6 +16,7 @@ import { isMainEntry } from "./transpile.js";
 const promisedWriteFile = promisify (fs.writeFile);
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+const exchangeIds = exchanges.ids
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -895,12 +896,19 @@ class NewTranspiler {
 
 if (isMainEntry(import.meta.url)) {
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
+    const force = process.argv.includes ('--force')
+    const child = process.argv.includes ('--child')
+    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    if (!child && !multiprocess) {
+        log.bright.green ({ force })
+    }
     const transpiler = new NewTranspiler ();
 
     if (test) {
         transpiler.transpileTests ()
+    } else if (multiprocess) {
+        parallelizeTranspiling (exchangeIds)
     } else {
-        await transpiler.transpileEverything ();
+        await transpiler.transpileEverything (force, child)
     }
-
-} else {}
+}
