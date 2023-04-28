@@ -535,7 +535,7 @@ export default class woo extends wooRest {
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return {
+        return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': orderId,
@@ -558,7 +558,7 @@ export default class woo extends wooRest {
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     handleOrderUpdate (client: Client, message) {
