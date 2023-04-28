@@ -12,11 +12,11 @@ function testMarket (exchange, method, market) {
         'maker': exchange.parseNumber ('0.0009'), // maker fee, for example, 0.0009 = 0.09%
         'baseId': 'btc', // exchange-specific base currency id
         'quoteId': 'usd', // exchange-specific quote currency id
-        'active': true, // boolean, market status
+        'active': false, // boolean, market status
         'type': 'spot',
         'linear': false,
         'inverse': false,
-        'spot': true,
+        'spot': false,
         'swap': false,
         'future': false,
         'option': false,
@@ -61,13 +61,13 @@ function testMarket (exchange, method, market) {
     const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
     testSharedMethods.assertInArray (exchange, method, market, 'type', validTypes);
     // check if string is consistent with 'type'
-    if (market['spot'] === true) {
+    if (market['spot']) {
         assert (market['type'] === 'spot', 'market type must be "spot" when spot is true' + logText);
-    } else if (market['swap'] === true) {
+    } else if (market['swap']) {
         assert (market['type'] === 'swap', 'market type must be "swap" when swap is true' + logText);
-    } else if (market['future'] === true) {
+    } else if (market['future']) {
         assert (market['type'] === 'future', 'market type must be "future" when future is true' + logText);
-    } else if (market['option'] === true) {
+    } else if (market['option']) {
         assert (market['type'] === 'option', 'market type must be "option" when option is true' + logText);
     }
     // margin check (todo: add margin as mandatory, instead of undefined)
@@ -104,7 +104,7 @@ function testMarket (exchange, method, market) {
         // settle should be defined
         assert ((market['settle'] !== undefined) && (market['settleId'] !== undefined), '"settle" must be defined when "contract" is true' + logText);
         // spot should be false
-        assert (market['spot'] === false, 'market spot must be false when "contract" is true' + logText);
+        assert (!market['spot'], 'market spot must be false when "contract" is true' + logText);
     } else {
         // linear & inverse needs to be undefined
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
@@ -113,7 +113,7 @@ function testMarket (exchange, method, market) {
         // settle should be undefined
         assert ((market['settle'] === undefined) && (market['settleId'] === undefined), '"settle" must be defined when "contract" is true' + logText);
         // spot should be true
-        assert (market['spot'] === true, 'market spot must be false when "contract" is true' + logText);
+        assert (market['spot'], 'market spot must be false when "contract" is true' + logText);
     }
     // option fields
     if (market['option']) {
