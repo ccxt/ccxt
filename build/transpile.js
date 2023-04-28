@@ -2173,32 +2173,40 @@ class Transpiler {
         ]));
 
         const flatResult = await this.webworkerTranspile (allFiles, fileConfig, parserConfig);
-        const replaceAsert = (str) => str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
+
+        const exchangeCamelCaseProps = (str) => {
+            // replace all snake_case exchange props to camelCase
+            return str.
+                replace (/precision_mode/g, 'precisionMode');
+        };
+
+        const pyFixes = (str) => {
+            str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
+            str = str.replace (/ == True/g, ' is True');
+            str = str.replace (/ == False/g, ' is False');
+            return exchangeCamelCaseProps(str);
+        }
+
+        const phpFixes = (str) => {
+            str = str.
+                replace (/\$exchange\[\$method\]/g, '$exchange->$method').
+                replace (/\$test_shared_methods\->/g, '').
+                replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
+                replace (/Precise\->/g, 'Precise::');
+            return exchangeCamelCaseProps(str);
+        }
 
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
-            const phpVarNameFix = (str) => {
-                return str.
-                    replace (/\$exchange\[\$method\]/g, '$exchange->$method').
-                    replace (/\$test_shared_methods\->/g, '').
-                    replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
-                    replace (/Precise\->/g, 'Precise::');
+            let phpAsync = phpFixes(result[0].content);
+            let phpSync = phpFixes(result[1].content);
+            let pythonSync = pyFixes (result[2].content);
+            let pythonAsync = pyFixes (result[3].content);
+            if (tests.base) {
+                phpAsync = '';
+                pythonAsync = '';
             }
-            let phpAsync = !tests.base ? phpVarNameFix(result[0].content) : '';
-            let phpSync = phpVarNameFix(result[1].content);
-            let pythonSync = replaceAsert (result[2].content);
-            let pythonAsync = !tests.base ? replaceAsert (result[3].content): '';
-
-            const exchangeCamelCaseProps = (str) => {
-                // replace all snake_case exchange props to camelCase
-                return str.
-                    replace (/precision_mode/g, 'precisionMode');
-            };
-            phpAsync = exchangeCamelCaseProps(phpAsync);
-            phpSync = exchangeCamelCaseProps(phpSync);
-            pythonSync = exchangeCamelCaseProps(pythonSync);
-            pythonAsync = exchangeCamelCaseProps(pythonAsync);
 
             const imports = result[0].imports;
 

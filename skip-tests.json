@@ -730,15 +730,6 @@
             "fetchTicker": "same"
         }
     },
-    "zb": {
-        "skipWs": true,
-        "skipMethods": {
-            "fetchTrades": "[KeyError] 'pageNum' ",
-            "fetchCurrencies": "precision is undefined",
-            "fetchTickers": "open might be 0",
-            "fetchTicker": "same"
-        }
-    },
     "yobit": {
         "skipMethods": {
             "fetchTickers": "all tickers request exceedes max url length",
