@@ -116,9 +116,9 @@ async function editFiles (path, methods, extension) {
     const files = exchanges.map (ex => path + ex + extension)
     await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n'))))
     // unlink all delisted
-    const abstract = fs.readdirSync (PHP_PATH)
+    const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
-    await Promise.all (abstract.filter (file => file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map ((path, idx) => promisedUnlinkFile (files[idx])))
+    await Promise.all (abstract.filter (file => file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
 }
 
 //-------------------------------------------------------------------------
