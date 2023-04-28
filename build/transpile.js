@@ -2540,17 +2540,24 @@ class Transpiler {
     }
 }
 
+function chunkIntoN(arr, n) {
+    const size = Math.ceil(arr.length / n);
+    return Array.from({ length: n }, (v, i) =>
+      arr.slice(i * size, i * size + size)
+    );
+  }
+
 function parallelizeTranspiling (exchanges, processes = undefined) {
     const processesNum = processes || os.cpus ().length
     log.bright.green ('starting ' + processesNum + ' new processes...')
     let isFirst = true
-    const increment = Math.ceil (exchanges.length / processesNum)
-    for (let i = 0; i < increment; i ++) {
-        const toProcess = exchanges.filter ((_, index) => index % increment === i)
+    const chunks = chunkIntoN(exchanges, processesNum)
+    for (let i = 0; i < chunks.length; i ++) {
+        const chunk = chunks[i]
         const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
         isFirst = false
-        log.bright.green('spawning new process', process.argv[1], toProcess.concat(args).join(', '))
-        fork (process.argv[1], toProcess.concat (args))
+        log.bright.green('spawning new process', process.argv[1], chunk.concat(args).join(', '))
+        fork (process.argv[1], chunk.concat (args))
     }
 }
 
