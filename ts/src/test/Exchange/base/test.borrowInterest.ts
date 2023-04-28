@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testBorrowInterest (exchange, method, entry, requestedCode, requestedSymbol) {
+function testBorrowInterest (exchange, skippedProperties, method, entry, requestedCode, requestedSymbol) {
     const format = {
         'info': {},
         'account': 'BTC/USDT',
@@ -13,13 +13,13 @@ function testBorrowInterest (exchange, method, entry, requestedCode, requestedSy
         'datetime': '2021-11-30T00:00:00.000Z',
     };
     const emptyNotAllowedFor = [ 'currency', 'interest', 'interestRate', 'amountBorrowed', 'timestamp' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, method, entry);
-    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
-    testSharedMethods.assertSymbol (exchange, method, entry, entry['account'], requestedSymbol);
-    testSharedMethods.assertGreater (exchange, method, entry, 'interest', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'interestRate', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'amountBorrowed', '0');
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
+    testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, entry['account'], requestedSymbol);
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'interest', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'interestRate', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'amountBorrowed', '0');
 }
 
 export default testBorrowInterest;

@@ -1,6 +1,6 @@
 import testSharedMethods from './test.sharedMethods.js';
 
-function testStatus (exchange, method, entry, now : number) {
+function testStatus (exchange, skippedProperties, method, entry, now : number) {
     const format = {
         'info': { },
         'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
@@ -9,12 +9,12 @@ function testStatus (exchange, method, entry, now : number) {
         'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
     };
     const emptyNotAllowedFor = [ 'status' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
     //
-    testSharedMethods.assertInArray (exchange, method, entry, 'status', [ 'ok', 'error', 'shutdown', 'maintenance' ]);
-    testSharedMethods.assertGreater (exchange, method, entry, 'updated', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'eta', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'eta', now.toString ());
+    testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'status', [ 'ok', 'error', 'shutdown', 'maintenance' ]);
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'updated', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'eta', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'eta', now.toString ());
 }
 
 export default testStatus;

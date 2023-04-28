@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testCurrency (exchange, method, entry) {
+function testCurrency (exchange, skippedProperties, method, entry) {
     const format = {
         'info': {},
         'id': 'btc', // string literal for referencing within an exchange
@@ -24,27 +24,27 @@ function testCurrency (exchange, method, entry) {
         },
     };
     const emptyNotAllowedFor = [ 'id', 'code' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['code']);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     //
-    testSharedMethods.checkPrecisionAccuracy (exchange, method, entry, 'precision');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'fee', '0');
+    testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, entry, 'precision');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'fee', '0');
     const limits = exchange.safeValue (entry, 'limits', {});
     const withdrawLimits = exchange.safeValue (limits, 'withdraw', {});
     const depositLimits = exchange.safeValue (limits, 'deposit', {});
-    testSharedMethods.assertGreaterOrEqual (exchange, method, withdrawLimits, 'min', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, withdrawLimits, 'max', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, depositLimits, 'min', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, depositLimits, 'max', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, withdrawLimits, 'min', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, withdrawLimits, 'max', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, depositLimits, 'min', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, depositLimits, 'max', '0');
     // max should be more than min (withdrawal limits)
     const minStringWithdrawal = exchange.safeString (withdrawLimits, 'min');
     if (minStringWithdrawal !== undefined) {
-        testSharedMethods.assertGreater (exchange, method, withdrawLimits, 'max', minStringWithdrawal);
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, withdrawLimits, 'max', minStringWithdrawal);
     }
     // max should be more than min (deposit limits)
     const minStringDeposit = exchange.safeString (depositLimits, 'min');
     if (minStringDeposit !== undefined) {
-        testSharedMethods.assertGreater (exchange, method, depositLimits, 'max', minStringDeposit);
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, depositLimits, 'max', minStringDeposit);
     }
     // check valid ID & CODE
     // todo: till we don't have granular skips, we should avoid this tests, as this fails for too much exchanges

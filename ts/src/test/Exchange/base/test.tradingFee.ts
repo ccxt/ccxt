@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTradingFee (exchange, method, symbol, entry) {
+function testTradingFee (exchange, skippedProperties, method, symbol, entry) {
     const format = {
         'info': { },
         'symbol': 'ETH/BTC',
@@ -11,8 +11,8 @@ function testTradingFee (exchange, method, symbol, entry) {
         'tierBased': false,
     };
     const emptyNotAllowedFor = [ 'maker', 'taker', 'percentage', 'tierBased' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
 }
 
 export default testTradingFee;

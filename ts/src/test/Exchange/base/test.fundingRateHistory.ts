@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testFundingRateHistory (exchange, method, entry, symbol) {
+function testFundingRateHistory (exchange, skippedProperties, method, entry, symbol) {
     const format = {
         'info': {}, // Or []
         'symbol': 'BTC/USDT:USDT',
@@ -10,9 +10,9 @@ function testFundingRateHistory (exchange, method, entry, symbol) {
         'fundingRate': exchange.parseNumber ('0.0006'),
     };
     const emptyNotAllowedFor = [ 'symbol', 'timestamp', 'fundingRate' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
-    testSharedMethods.assertTimestamp (exchange, method, entry);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
+    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
 }
 
 export default testFundingRateHistory;

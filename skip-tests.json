@@ -653,7 +653,9 @@
     "poloniex": {
         "skipWs": true,
         "skipMethods": {
-            "fetchCurrencies": "precision is undefined",
+            "fetchCurrencies": {
+                "precision": "precision is undefined"
+            },
             "fetchTrades": "side is undefined",
             "fetchTickers": "open might be set to 0",
             "fetchTicker": "same"

@@ -1,7 +1,7 @@
 
 import testSharedMethods from './test.sharedMethods.js';
 
-function testDepositWithdrawal (exchange, method, entry, requestedCode, now) {
+function testDepositWithdrawal (exchange, skippedProperties, method, entry, requestedCode, now) {
     const format = {
         'info': {}, // or []
         'id': '1234',
@@ -23,14 +23,14 @@ function testDepositWithdrawal (exchange, method, entry, requestedCode, now) {
         'fee': {},
     };
     const emptyNotAllowedFor = [ 'type', 'amount', 'currency' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, method, entry, now);
-    testSharedMethods.assertCurrencyCode (exchange, method, entry, entry['currency'], requestedCode);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //
-    testSharedMethods.assertInArray (exchange, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
-    testSharedMethods.assertInArray (exchange, method, entry, 'type', [ 'deposit', 'withdrawal' ]);
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'amount', '0');
-    testSharedMethods.assertFee (exchange, method, entry['fee']);
+    testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
+    testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'deposit', 'withdrawal' ]);
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');
+    testSharedMethods.assertFee (exchange, skippedProperties, method, entry['fee']);
 }
 
 export default testDepositWithdrawal;

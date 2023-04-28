@@ -7,7 +7,7 @@ function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
-function assertType (exchange, entry, key, format) {
+function assertType (exchange, skippedProperties, entry, key, format) {
     // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
     const entryKeyVal = exchange.safeValue (entry, key);
     const formatKeyVal = exchange.safeValue (format, key);
@@ -22,7 +22,7 @@ function assertType (exchange, entry, key, format) {
     return result;
 }
 
-function assertStructure (exchange, method, entry, format, emptyNotAllowedFor = []) {
+function assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor = []) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -37,7 +37,7 @@ function assertStructure (exchange, method, entry, format, emptyNotAllowedFor = 
                 assert ((entry[i] !== undefined), i.toString () + ' index is undefined, but is is was expected to be set' + logText);
             }
             // because of other langs, this is needed for arrays
-            assert (assertType (exchange, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
+            assert (assertType (exchange, skippedProperties, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (typeof entry === 'object', 'entry is not an object' + logText);
@@ -50,12 +50,12 @@ function assertStructure (exchange, method, entry, format, emptyNotAllowedFor = 
                 // if it was in needed keys, then it should have value.
                 assert (entry[key] !== undefined, key + ' key has an null value, but is expected to have a value' + logText);
             }
-            assert (assertType (exchange, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+            assert (assertType (exchange, skippedProperties, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
         }
     }
 }
 
-function assertTimestamp (exchange, method, entry, nowToCheck = undefined, keyName : any = 'timestamp') {
+function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck = undefined, keyName : any = 'timestamp') {
     const logText = logTemplate (exchange, method, entry);
     const isDateTimeObject = typeof keyName === 'string';
     if (isDateTimeObject) {
@@ -86,7 +86,7 @@ function assertTimestamp (exchange, method, entry, nowToCheck = undefined, keyNa
     }
 }
 
-function assertCurrencyCode (exchange, method, entry, actualCode, expectedCode = undefined) {
+function assertCurrencyCode (exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof actualCode === 'string', 'currency code should be either undefined or a string' + logText);
@@ -97,7 +97,7 @@ function assertCurrencyCode (exchange, method, entry, actualCode, expectedCode =
     }
 }
 
-function assertValidCurrencyIdAndCode (exchange, method, entry, currencyId, currencyCode) {
+function assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, currencyId, currencyCode) {
     const logText = logTemplate (exchange, method, entry);
     const undefinedValues = currencyId === undefined && currencyCode === undefined;
     const definedValues = currencyId !== undefined && currencyCode !== undefined;
@@ -112,7 +112,7 @@ function assertValidCurrencyIdAndCode (exchange, method, entry, currencyId, curr
     }
 }
 
-function assertSymbol (exchange, method, entry, key, expectedSymbol = undefined) {
+function assertSymbol (exchange, skippedProperties, method, entry, key, expectedSymbol = undefined) {
     const logText = logTemplate (exchange, method, entry);
     const actualSymbol = exchange.safeString (entry, key);
     if (actualSymbol !== undefined) {
@@ -124,7 +124,7 @@ function assertSymbol (exchange, method, entry, key, expectedSymbol = undefined)
     }
 }
 
-function assertGreater (exchange, method, entry, key, compareTo) {
+function assertGreater (exchange, skippedProperties, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -144,7 +144,7 @@ function assertGreater (exchange, method, entry, key, compareTo) {
     }
 }
 
-function assertGreaterOrEqual (exchange, method, entry, key, compareTo) {
+function assertGreaterOrEqual (exchange, skippedProperties, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -164,7 +164,7 @@ function assertGreaterOrEqual (exchange, method, entry, key, compareTo) {
     }
 }
 
-function assertLess (exchange, method, entry, key, compareTo) {
+function assertLess (exchange, skippedProperties, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -184,7 +184,7 @@ function assertLess (exchange, method, entry, key, compareTo) {
     }
 }
 
-function assertLessOrEqual (exchange, method, entry, key, compareTo) {
+function assertLessOrEqual (exchange, skippedProperties, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -204,7 +204,7 @@ function assertLessOrEqual (exchange, method, entry, key, compareTo) {
     }
 }
 
-function assertEqual (exchange, method, entry, key, compareTo) {
+function assertEqual (exchange, skippedProperties, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -224,7 +224,7 @@ function assertEqual (exchange, method, entry, key, compareTo) {
     }
 }
 
-function assertNonEqual (exchange, method, entry, key, compareTo) {
+function assertNonEqual (exchange, skippedProperties, method, entry, key, compareTo) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
     if (value !== undefined) {
@@ -244,7 +244,7 @@ function assertNonEqual (exchange, method, entry, key, compareTo) {
     }
 }
 
-function assertInArray (exchange, method, entry, key, expectedArray) {
+function assertInArray (exchange, skippedProperties, method, entry, key, expectedArray) {
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeValue (entry, key);
     if (value !== undefined) {
@@ -258,22 +258,22 @@ function assertInArray (exchange, method, entry, key, expectedArray) {
     }
 }
 
-function assertFee (exchange, method, entry) {
+function assertFee (exchange, skippedProperties, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
         assert (('cost' in entry), '"fee" should contain a "cost" key' + logText);
-        assertGreaterOrEqual (exchange, method, entry, 'cost', '0');
+        assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'cost', '0');
         assert (('currency' in entry), '"fee" should contain a "currency" key' + logText);
-        assertCurrencyCode (exchange, method, entry, entry['currency']);
+        assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency']);
     }
 }
 
-function assertFees (exchange, method, entry) {
+function assertFees (exchange, skippedProperties, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
         assert (Array.isArray (entry), '"fees" is not an array' + logText);
         for (let i = 0; i < entry.length; i++) {
-            assertFee (exchange, method, entry[i]);
+            assertFee (exchange, skippedProperties, method, entry[i]);
         }
     }
 }
@@ -290,7 +290,7 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
 }
 
 
-function assertInteger (exchange, method, entry, key) {
+function assertInteger (exchange, skippedProperties, method, entry, key) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
         const value = exchange.safeNumber (entry, key);
@@ -302,22 +302,22 @@ function assertInteger (exchange, method, entry, key) {
     }
 }
 
-function checkPrecisionAccuracy (exchange, method, entry, key) {
+function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key) {
     const isTickSizePrecisionMode = exchange.precisionMode === TICK_SIZE;
     if (isTickSizePrecisionMode) {
         // TICK_SIZE should be above zero
-        assertGreater (exchange, method, entry, key, '0');
+        assertGreater (exchange, skippedProperties, method, entry, key, '0');
         // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
         const decimalNumbers = [ '2', '3', '4', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16' ];
         for (let i = 0; i < decimalNumbers.length; i++) {
             const num = decimalNumbers[i];
             const numStr = num;
-            assertNonEqual (exchange, method, entry, key, numStr);
+            assertNonEqual (exchange, skippedProperties, method, entry, key, numStr);
         }
     } else {
-        assertInteger (exchange, method, entry, key); // should be integer
-        assertLessOrEqual (exchange, method, entry, key, '18'); // should be under 18 decimals
-        assertGreaterOrEqual (exchange, method, entry, key, '-8'); // in real-world cases, there would not be less than that
+        assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
+        assertLessOrEqual (exchange, skippedProperties, method, entry, key, '18'); // should be under 18 decimals
+        assertGreaterOrEqual (exchange, skippedProperties, method, entry, key, '-8'); // in real-world cases, there would not be less than that
     }
 }
 

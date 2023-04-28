@@ -2,7 +2,7 @@ import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
 
-function testMarket (exchange, method, market) {
+function testMarket (exchange, skippedProperties, method, market) {
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
@@ -54,8 +54,8 @@ function testMarket (exchange, method, market) {
         'info': {}, // the original unparsed market info from the exchange
     };
     const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'swap', 'future', 'contract' ];
-    testSharedMethods.assertStructure (exchange, method, market, format, emptyNotAllowedFor);
-    testSharedMethods.assertSymbol (exchange, method, market, 'symbol');
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, market, format, emptyNotAllowedFor);
+    testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
     //
     const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
@@ -79,18 +79,18 @@ function testMarket (exchange, method, market) {
         testSharedMethods.assertInArray (exchange, method, market, 'margin', [ false, undefined ]);
     }
     // typical values
-    testSharedMethods.assertGreater (exchange, method, market, 'contractSize', '0');
-    testSharedMethods.assertGreater (exchange, method, market, 'expiry', '0');
-    testSharedMethods.assertGreater (exchange, method, market, 'strike', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'contractSize', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
     testSharedMethods.assertInArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
-    testSharedMethods.assertGreater (exchange, method, market, 'taker', '-100');
-    testSharedMethods.assertGreater (exchange, method, market, 'maker', '-100');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
     // 'contract' boolean check
     if (market['future'] || market['swap'] || market['option']) {
         // if it's some kind of contract market, then `conctract` should be true
         assert (market['contract'], 'market contract must be true when "future", "swap" or "option" is true' + logText);
     } else {
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is false' + logText);
+        assert (!market['contract'], 'market contract must be false when "future", "swap" or "option" is undefined' + logText);
     }
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
@@ -155,9 +155,9 @@ function testMarket (exchange, method, market) {
         const key = limitsKeys[i];
         const limitEntry = market['limits'][key];
         // min >= 0
-        testSharedMethods.assertGreaterOrEqual (exchange, method, limitEntry, 'min', '0');
+        testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, limitEntry, 'min', '0');
         // max >= 0
-        testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', '0');
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, limitEntry, 'max', '0');
         // max >= min
         // todo: several exchanges fail, so till we add granular tests, lets disable this check
         // const minString = exchange.safeString (limitEntry, 'min');

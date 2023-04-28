@@ -2,7 +2,7 @@
 import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 
-function testOHLCV (exchange, method, entry, symbol, now) {
+function testOHLCV (exchange, skippedProperties, method, entry, symbol, now) {
     const format = [
         1638230400000,
         exchange.parseNumber ('0.123'),
@@ -12,8 +12,8 @@ function testOHLCV (exchange, method, entry, symbol, now) {
         exchange.parseNumber ('123.456'),
     ];
     const emptyNotAllowedFor = [ 0, 1, 2, 3, 4, 5 ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, method, entry, now, 0);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now, 0);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     const length = entry.length;

@@ -65,8 +65,8 @@ function io_file_read($path, $decode = true) {
     return $decode ? json_decode($content, true) : $content;
 }
 
-function call_method($testFiles, $methodName, $exchange, $args) {
-    return $testFiles[$methodName]($exchange, ... $args);
+function call_method($testFiles, $methodName, $exchange, $skippedData, $args) {
+    return $testFiles[$methodName]($exchange, $skippedData, ... $args);
 }
 
 function exception_message ($exc) {

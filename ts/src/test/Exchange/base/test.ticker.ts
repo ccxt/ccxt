@@ -3,7 +3,7 @@ import assert from 'assert';
 import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
 
-function testTicker (exchange, method, entry, symbol) {
+function testTicker (exchange, skippedProperties, method, entry, symbol) {
     const format = {
         'info': {},
         'symbol': 'ETH/BTC',
@@ -27,22 +27,22 @@ function testTicker (exchange, method, entry, symbol) {
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
     const emptyNotAllowedFor = [ 'symbol' ];
-    testSharedMethods.assertStructure (exchange, method, entry, format, emptyNotAllowedFor);
-    testSharedMethods.assertTimestamp (exchange, method, entry);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
-    testSharedMethods.assertGreater (exchange, method, entry, 'open', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'high', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'low', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'close', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'ask', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'askVolume', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'bid', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'bidVolume', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'vwap', '0');
-    testSharedMethods.assertGreater (exchange, method, entry, 'average', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'baseVolume', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, method, entry, 'quoteVolume', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'open', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'high', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'low', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'close', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'askVolume', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'bid', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'bidVolume', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'vwap', '0');
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'average', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'baseVolume', '0');
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'quoteVolume', '0');
     const existsFirst = ('first' in entry);
     assert (!existsFirst, '`first` field leftover' + logText);
     const lastString = exchange.safeString (entry, 'last');
@@ -77,7 +77,7 @@ function testTicker (exchange, method, entry, symbol) {
         assert (Precise.stringGe (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
     }
     if (method === 'fetchTicker') {
-        testSharedMethods.assertSymbol (exchange, method, entry, 'symbol', symbol);
+        testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     }
 }
 

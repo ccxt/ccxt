@@ -59,8 +59,8 @@ function ioFileRead (path, decode = true) {
     return decode ? JSON.parse (content) : content;
 }
 
-async function callMethod (testFiles, methodName, exchange, args) {
-    return await testFiles[methodName] (exchange, ...args);
+async function callMethod (testFiles, methodName, exchange, skippedData, args) {
+    return await testFiles[methodName] (exchange, skippedData, ...args);
 }
 
 function exceptionMessage (exc) {
@@ -262,7 +262,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         let result = null;
         try {
-            result = await callMethod (this.testFiles, methodNameInTest, exchange, args);
+            result = await callMethod (this.testFiles, methodNameInTest, exchange, this.skippedMethods, args);
             if (isPublic) {
                 this.checkedPublicTests[methodNameInTest] = true;
             }
