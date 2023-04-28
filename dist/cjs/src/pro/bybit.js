@@ -171,7 +171,8 @@ class bybit extends bybit$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const messageHash = 'ticker:' + market['symbol'];
+        symbol = market['symbol'];
+        const messageHash = 'ticker:' + symbol;
         const url = this.getUrlByMarketType(symbol, false, params);
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTicker', {});

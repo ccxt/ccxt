@@ -397,6 +397,7 @@ class upbit(Exchange):
 
     async def fetch_markets(self, params={}):
         """
+        see https://docs.upbit.com/reference/%EB%A7%88%EC%BC%93-%EC%BD%94%EB%93%9C-%EC%A1%B0%ED%9A%8C
         retrieves data on all markets for upbit
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
@@ -489,6 +490,7 @@ class upbit(Exchange):
 
     async def fetch_balance(self, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EA%B3%84%EC%A2%8C-%EC%A1%B0%ED%9A%8C
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict params: extra parameters specific to the upbit api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
@@ -511,6 +513,7 @@ class upbit(Exchange):
 
     async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int|None limit: not used by upbit fetchOrderBooks()
@@ -578,6 +581,7 @@ class upbit(Exchange):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -645,6 +649,7 @@ class upbit(Exchange):
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
+        see https://docs.upbit.com/reference/ticker%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the upbit api endpoint
@@ -703,6 +708,7 @@ class upbit(Exchange):
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
+        see https://docs.upbit.com/reference/ticker%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the upbit api endpoint
@@ -781,6 +787,7 @@ class upbit(Exchange):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
@@ -823,6 +830,7 @@ class upbit(Exchange):
 
     async def fetch_trading_fee(self, symbol: str, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EA%B0%80%EB%8A%A5-%EC%A0%95%EB%B3%B4
         fetch the trading fees for a market
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the upbit api endpoint
@@ -910,6 +918,7 @@ class upbit(Exchange):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-1
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -972,6 +981,7 @@ class upbit(Exchange):
 
     async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1042,6 +1052,7 @@ class upbit(Exchange):
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C
         cancels an open order
         :param str id: order id
         :param str|None symbol: not used by upbit cancelOrder()
@@ -1076,6 +1087,7 @@ class upbit(Exchange):
 
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetch all deposits made to an account
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch deposits for
@@ -1115,6 +1127,7 @@ class upbit(Exchange):
 
     async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch withdrawals for
@@ -1403,6 +1416,7 @@ class upbit(Exchange):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
@@ -1414,6 +1428,7 @@ class upbit(Exchange):
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetches information on multiple closed orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
@@ -1425,6 +1440,7 @@ class upbit(Exchange):
 
     async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetches information on multiple canceled orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: timestamp in ms of the earliest order, default is None
@@ -1436,6 +1452,7 @@ class upbit(Exchange):
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://docs.upbit.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
         fetches information on an order made by the user
         :param str|None symbol: not used by upbit fetchOrder
         :param dict params: extra parameters specific to the upbit api endpoint
@@ -1493,6 +1510,7 @@ class upbit(Exchange):
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
         fetch deposit addresses for multiple currencies and chain types
         :param [str]|None codes: list of unified currency codes, default is None
         :param dict params: extra parameters specific to the upbit api endpoint
@@ -1544,6 +1562,7 @@ class upbit(Exchange):
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the upbit api endpoint
@@ -1565,6 +1584,7 @@ class upbit(Exchange):
 
     async def create_deposit_address(self, code: str, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the upbit api endpoint
@@ -1599,6 +1619,7 @@ class upbit(Exchange):
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
+        see https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw

@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.0.80'
+__version__ = '3.0.81'
 
 # ----------------------------------------------------------------------------
 
@@ -67,7 +67,6 @@ from ccxt.pro.upbit import upbit                                          # noqa
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
-from ccxt.pro.zb import zb                                                # noqa: F401
 
 exchanges = [
     'alpaca',
@@ -125,5 +124,4 @@ exchanges = [
     'wazirx',
     'whitebit',
     'woo',
-    'zb',
 ]

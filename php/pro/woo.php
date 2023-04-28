@@ -535,11 +535,15 @@ class woo extends \ccxt\async\woo {
             'cost' => $cost,
             'currency' => $this->safe_string($order, 'feeAsset'),
         );
-        $price = $this->safe_float($order, 'price');
+        $price = $this->safe_number($order, 'price');
+        $avgPrice = $this->safe_number($order, 'avgPrice');
+        if (($price === 0) && ($avgPrice !== null)) {
+            $price = $avgPrice;
+        }
         $amount = $this->safe_float($order, 'quantity');
         $side = $this->safe_string_lower($order, 'side');
         $type = $this->safe_string_lower($order, 'type');
-        $filled = $this->safe_float($order, 'executedQuantity');
+        $filled = $this->safe_number($order, 'totalExecutedQuantity');
         $totalExecQuantity = $this->safe_float($order, 'totalExecutedQuantity');
         $remaining = $amount;
         if ($amount >= $totalExecQuantity) {
@@ -549,7 +553,7 @@ class woo extends \ccxt\async\woo {
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
             'id' => $orderId,
@@ -572,7 +576,7 @@ class woo extends \ccxt\async\woo {
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function handle_order_update(Client $client, $message) {
