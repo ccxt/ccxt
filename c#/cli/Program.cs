@@ -73,7 +73,7 @@ public static class Program
         var exchangeName = args[0];
         var methodName = args[1];
 
-        if (!exchangesId.Contains(exchangeName))
+        if (!exchangesId.Contains(exchangeName.ToLower()))
         {
             Helper.Red($"Exchange {exchangeName} not found!");
             return;
