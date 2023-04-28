@@ -3901,10 +3901,14 @@ class huobi(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the huobi api endpoint
-        :param float|None params['stopPrice']: *spot and margin only* The price at which a trigger order is triggered at
+        :param float|None params['stopPrice']: the price a trigger order is triggered at
+        :param str|None params['triggerType']: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
+        :param float|None params['stopLossPrice']: *contract only* the price a stop-loss order is triggered at
+        :param float|None params['takeProfitPrice']: *contract only* the price a take-profit order is triggered at
         :param str|None params['operator']: *spot and margin only* gte or lte, trigger price condition
         :param str|None params['offset']: *contract only* 'open', 'close', or 'both', required in hedge mode
         :param bool|None params['postOnly']: *contract only* True or False
+        :param int|None params['leverRate']: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4018,124 +4022,129 @@ class huobi(Exchange):
         }
 
     def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
-        offset = self.safe_string(params, 'offset')
-        stopPrice = self.safe_string(params, 'stopPrice')
-        if stopPrice is not None:
-            raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
         market = self.market(symbol)
         request = {
-            # 'symbol': 'BTC',  # optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
-            # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
-            'contract_code': market['id'],  # optional BTC180914
-            # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
-            # 'price': self.price_to_precision(symbol, price),  # optional
+            'contract_code': market['id'],
             'volume': self.amount_to_precision(symbol, amount),
-            'direction': side,  # buy, sell
-            # 'offset': offset,  # open, close, both
-            #
-            #     direction buy, offset open = open long
-            #     direction sell, offset close = close long
-            #     direction sell, offset open = open short
-            #     direction buy, offset close = close short
-            #
-            # 'reduce_only': 0,  # 1 or 0, in hedge mode it is invalid, and in one-way mode its value is 0 when not filled
-            'lever_rate': 1,  # required, using leverage greater than 20x requires prior approval of high-leverage agreement
-            # 'order_price_type': 'limit',  # required
-            #
-            #     order_price_type can be:
-            #
-            #     limit
-            #     opponent  # BBO
-            #     post_only
-            #     optimal_5
-            #     optimal_10
-            #     optimal_20
-            #     ioc
-            #     fok
-            #     opponent_ioc  # IOC order using the BBO price
-            #     optimal_5_ioc
-            #     optimal_10_ioc
-            #     optimal_20_ioc
-            #     opponent_fok  # FOK order using the BBO price
-            #     optimal_5_fok
-            #     optimal_10_fok
-            #     optimal_20_fok
-            #
-            # 'tp_trigger_price': self.price_to_precision(symbol, triggerPrice),
-            # 'tp_order_price': self.price_to_precision(symbol, price),
-            # 'tp_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
-            # 'sl_trigger_price': self.price_to_precision(symbol, stopLossPrice),
-            # 'sl_order_price': self.price_to_precision(symbol, price),
-            # 'sl_order_price_type': 'limit',  # limit，optimal_5，optimal_10，optimal_20
+            'direction': side,
         }
-        stopLossOrderPrice = self.safe_string(params, 'sl_order_price')
-        stopLossTriggerPrice = self.safe_string(params, 'sl_trigger_price')
-        takeProfitOrderPrice = self.safe_string(params, 'tp_order_price')
-        takeProfitTriggerPrice = self.safe_string(params, 'tp_trigger_price')
-        isOpenOrder = (offset == 'open')
-        isStopOrder = False
-        if stopLossTriggerPrice is not None:
-            request['sl_trigger_price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
-            isStopOrder = True
-            if price is not None:
-                request['sl_order_price'] = self.price_to_precision(symbol, price)
-        if stopLossOrderPrice is not None:
-            request['sl_order_price'] = self.price_to_precision(symbol, stopLossOrderPrice)
-            isStopOrder = True
-        if takeProfitTriggerPrice is not None:
-            request['tp_trigger_price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-            isStopOrder = True
-            if price is not None:
-                request['tp_order_price'] = self.price_to_precision(symbol, price)
-        if takeProfitOrderPrice is not None:
-            request['tp_order_price'] = self.price_to_precision(symbol, takeProfitOrderPrice)
-            isStopOrder = True
-        if isStopOrder and not isOpenOrder:
-            raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
-        params = self.omit(params, ['sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price'])
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', type == 'post_only', params)
         if postOnly:
             type = 'post_only'
-        if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
-            request['price'] = self.price_to_precision(symbol, price)
-        request['order_price_type'] = type
+        triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
+        stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
+        takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
+        isStop = triggerPrice is not None
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        if isStop:
+            triggerType = self.safe_string_2(params, 'triggerType', 'trigger_type', 'le')
+            request['trigger_type'] = triggerType
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            if price is not None:
+                request['order_price'] = self.price_to_precision(symbol, price)
+        elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+            if isStopLossTriggerOrder:
+                request['sl_order_price_type'] = type
+                request['sl_trigger_price'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                if price is not None:
+                    request['sl_order_price'] = self.price_to_precision(symbol, price)
+            else:
+                request['tp_order_price_type'] = type
+                request['tp_trigger_price'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                if price is not None:
+                    request['tp_order_price'] = self.price_to_precision(symbol, price)
+        else:
+            clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+            if clientOrderId is not None:
+                request['client_order_id'] = clientOrderId
+                params = self.omit(params, ['client_order_id', 'clientOrderId'])
+            if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
+                request['price'] = self.price_to_precision(symbol, price)
+        if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
+            leverRate = self.safe_integer_2(params, 'leverRate', 'lever_rate', 1)
+            reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only', False)
+            openOrClose = 'close' if (reduceOnly) else 'open'
+            offset = self.safe_string(params, 'offset', openOrClose)
+            request['offset'] = offset
+            if reduceOnly:
+                request['reduce_only'] = 1
+            request['lever_rate'] = leverRate
+            request['order_price_type'] = type
+        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate'])
         broker = self.safe_value(self.options, 'broker', {})
         brokerId = self.safe_string(broker, 'id')
         request['channel_code'] = brokerId
-        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
-        if clientOrderId is not None:
-            request['client_order_id'] = clientOrderId
-            params = self.omit(params, ['client_order_id', 'clientOrderId'])
-        method = None
+        response = None
         if market['linear']:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
             marginMode = 'cross' if (marginMode is None) else marginMode
             if marginMode == 'isolated':
-                method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
+                if isStop:
+                    response = self.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(self.extend(request, params))
+                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                    response = self.contractPrivatePostLinearSwapApiV1SwapTpslOrder(self.extend(request, params))
+                else:
+                    response = self.contractPrivatePostLinearSwapApiV1SwapOrder(self.extend(request, params))
             elif marginMode == 'cross':
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder'
+                if isStop:
+                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(self.extend(request, params))
+                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(self.extend(request, params))
+                else:
+                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossOrder(self.extend(request, params))
         elif market['inverse']:
             if market['swap']:
-                method = 'contractPrivatePostSwapApiV1SwapOrder'
+                if isStop:
+                    response = self.contractPrivatePostSwapApiV1SwapTriggerOrder(self.extend(request, params))
+                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                    response = self.contractPrivatePostSwapApiV1SwapTpslOrder(self.extend(request, params))
+                else:
+                    response = self.contractPrivatePostSwapApiV1SwapOrder(self.extend(request, params))
             elif market['future']:
-                method = 'contractPrivatePostApiV1ContractOrder'
-        response = getattr(self, method)(self.extend(request, params))
-        #
-        # linear swap cross margin
+                if isStop:
+                    response = self.contractPrivatePostApiV1ContractTriggerOrder(self.extend(request, params))
+                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                    response = self.contractPrivatePostApiV1ContractTpslOrder(self.extend(request, params))
+                else:
+                    response = self.contractPrivatePostApiV1ContractOrder(self.extend(request, params))
         #
         #     {
-        #         "status":"ok",
-        #         "data":{
-        #             "order_id":924660854912552960,
-        #             "order_id_str":"924660854912552960"
+        #         "status": "ok",
+        #         "data": {
+        #             "order_id": 924660854912552960,
+        #             "order_id_str": "924660854912552960"
         #         },
-        #         "ts":1640497927185
+        #         "ts": 1640497927185
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_order(data, market)
+        # stop-loss and take-profit
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": {
+        #             "tp_order": {
+        #                 "order_id": 1101494204040163328,
+        #                 "order_id_str": "1101494204040163328"
+        #             },
+        #             "sl_order": null
+        #         },
+        #         "ts": :1682658283024
+        #     }
+        #
+        data = None
+        result = None
+        if isStopLossTriggerOrder:
+            data = self.safe_value(response, 'data', {})
+            result = self.safe_value(data, 'sl_order', {})
+        elif isTakeProfitTriggerOrder:
+            data = self.safe_value(response, 'data', {})
+            result = self.safe_value(data, 'tp_order', {})
+        else:
+            result = self.safe_value(response, 'data', {})
+        return self.parse_order(result, market)
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
