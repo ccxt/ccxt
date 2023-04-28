@@ -312,7 +312,7 @@ export default class whitebit extends Exchange {
             let contract = false;
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
             const contractSize = amountPrecision;
-            let linear = false;
+            let linear = undefined;
             let inverse = undefined;
             if (swap) {
                 settleId = quoteId;
