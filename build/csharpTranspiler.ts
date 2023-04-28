@@ -560,7 +560,9 @@ class NewTranspiler {
 
         // transpile using webworker
         const allFilesPath = exchanges.map (file => jsFolder + file );
-        const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
+        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
+        log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
+        const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileCSharpByPath(file));
         exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force))
 
         const classes = {}
