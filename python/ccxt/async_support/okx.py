@@ -1265,25 +1265,19 @@ class okx(Exchange):
             chains = dataByCurrencyId[currencyId]
             networks = {}
             currencyActive = False
-            depositEnabled = None
-            withdrawEnabled = None
+            depositEnabled = False
+            withdrawEnabled = False
             maxPrecision = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 canDeposit = self.safe_value(chain, 'canDep')
+                depositEnabled = canDeposit if (canDeposit) else depositEnabled
                 canWithdraw = self.safe_value(chain, 'canWd')
+                withdrawEnabled = canWithdraw if (canWithdraw) else withdrawEnabled
                 canInternal = self.safe_value(chain, 'canInternal')
                 active = True if (canDeposit and canWithdraw and canInternal) else False
                 currencyActive = active if (active) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
-                if canDeposit and not depositEnabled:
-                    depositEnabled = True
-                elif not canDeposit:
-                    depositEnabled = False
-                if canWithdraw and not withdrawEnabled:
-                    withdrawEnabled = True
-                elif not canWithdraw:
-                    withdrawEnabled = False
                 if (networkId is not None) and (networkId.find('-') >= 0):
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
@@ -2260,8 +2254,8 @@ class okx(Exchange):
         """
         stop = self.safe_value(params, 'stop')
         if stop:
-            order = await self.cancel_orders([id], symbol, params)
-            return self.safe_value(order, 0)
+            orderInner = await self.cancel_orders([id], symbol, params)
+            return self.safe_value(orderInner, 0)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -4730,12 +4724,12 @@ class okx(Exchange):
             entry = data[i]
             timestamp = self.safe_integer(entry, 'ts')
             instId = self.safe_string(entry, 'instId')
-            market = self.safe_market(instId)
+            marketInner = self.safe_market(instId)
             currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
             result.append({
                 'info': entry,
-                'symbol': market['symbol'],
+                'symbol': marketInner['symbol'],
                 'code': code,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -5653,7 +5647,7 @@ class okx(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #    {
         #        "code": "1",
@@ -5686,3 +5680,4 @@ class okx(Exchange):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

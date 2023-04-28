@@ -946,7 +946,7 @@ class coinfalcon(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code < 400:
-            return
+            return None
         ErrorClass = self.safe_value({
             '401': AuthenticationError,
             '429': RateLimitExceeded,

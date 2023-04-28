@@ -442,9 +442,9 @@ class bitflyer extends Exchange {
         }
         $order = null;
         if ($side !== null) {
-            $id = $side . '_child_order_acceptance_id';
-            if (is_array($trade) && array_key_exists($id, $trade)) {
-                $order = $trade[$id];
+            $idInner = $side . '_child_order_acceptance_id';
+            if (is_array($trade) && array_key_exists($idInner, $trade)) {
+                $order = $trade[$idInner];
             }
         }
         if ($order === null) {

@@ -1108,8 +1108,8 @@ class gate extends Exchange {
                 //        }
                 //    )
                 //
-                for ($i = 0; $i < count($response); $i++) {
-                    $market = $response[$i];
+                for ($j = 0; $j < count($response); $j++) {
+                    $market = $response[$j];
                     $id = $this->safe_string($market, 'name');
                     $parts = explode('_', $underlying);
                     $baseId = $this->safe_string($parts, 0);
@@ -1375,6 +1375,7 @@ class gate extends Exchange {
                     'fee' => null,
                     'fees' => array(),
                     'limits' => $this->limits,
+                    'networks' => array(),
                 );
             }
             return $result;
@@ -1829,8 +1830,8 @@ class gate extends Exchange {
                     $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
                 } else {
                     $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
-                    for ($i = 0; $i < count($chainKeys); $i++) {
-                        $chainKey = $chainKeys[$i];
+                    for ($j = 0; $j < count($chainKeys); $j++) {
+                        $chainKey = $chainKeys[$j];
                         $withdrawFees[$chainKey] = $this->parse_number($withdrawFixOnChains[$chainKey]);
                     }
                 }
@@ -2441,7 +2442,7 @@ class gate extends Exchange {
                 $entry = $data[$i];
                 if ($isolated) {
                     $marketId = $this->safe_string($entry, 'currency_pair');
-                    $symbol = $this->safe_symbol($marketId, null, '_', 'margin');
+                    $symbolInner = $this->safe_symbol($marketId, null, '_', 'margin');
                     $base = $this->safe_value($entry, 'base', array());
                     $quote = $this->safe_value($entry, 'quote', array());
                     $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
@@ -2449,7 +2450,7 @@ class gate extends Exchange {
                     $subResult = array();
                     $subResult[$baseCode] = $this->parse_balance_helper($base);
                     $subResult[$quoteCode] = $this->parse_balance_helper($quote);
-                    $result[$symbol] = $this->safe_balance($subResult);
+                    $result[$symbolInner] = $this->safe_balance($subResult);
                 } else {
                     $code = $this->safe_currency_code($this->safe_string($entry, 'currency'));
                     $result[$code] = $this->parse_balance_helper($entry);
@@ -4065,8 +4066,8 @@ class gate extends Exchange {
             if ($openSpotOrders) {
                 $result = array();
                 for ($i = 0; $i < count($response); $i++) {
-                    $orders = $this->safe_value($response[$i], 'orders');
-                    $result = $this->array_concat($result, $orders);
+                    $ordersInner = $this->safe_value($response[$i], 'orders');
+                    $result = $this->array_concat($result, $ordersInner);
                 }
             }
             $orders = $this->parse_orders($result, $market, $since, $limit);
@@ -5218,7 +5219,7 @@ class gate extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //    array("label" => "ORDER_NOT_FOUND", "message" => "Order not found")
@@ -5233,5 +5234,6 @@ class gate extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $label, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

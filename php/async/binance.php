@@ -302,6 +302,7 @@ class binance extends Exchange {
                         'managed-subaccount/fetch-future-asset' => 0.1,
                         'managed-subaccount/marginAsset' => 0.1,
                         'managed-subaccount/info' => 0.4,
+                        'managed-subaccount/deposit/address' => 0.1,
                         // lending endpoints
                         'lending/daily/product/list' => 0.1,
                         'lending/daily/userLeftQuota' => 0.1,
@@ -948,6 +949,7 @@ class binance extends Exchange {
                     'delivery' => 'CMFUTURE', // backwards compatbility
                     'linear' => 'UMFUTURE',
                     'inverse' => 'CMFUTURE',
+                    'option' => 'OPTION',
                 ),
                 'accountsById' => array(
                     'MAIN' => 'spot',
@@ -955,6 +957,7 @@ class binance extends Exchange {
                     'MARGIN' => 'margin',
                     'UMFUTURE' => 'linear',
                     'CMFUTURE' => 'inverse',
+                    'OPTION' => 'option',
                 ),
                 'networks' => array(
                     'ERC20' => 'ETH',
@@ -1814,7 +1817,7 @@ class binance extends Exchange {
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing market data
              */
-            $promises = array();
+            $promisesRaw = array();
             $rawFetchMarkets = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $fetchMarkets = array();
@@ -1828,18 +1831,18 @@ class binance extends Exchange {
             for ($i = 0; $i < count($fetchMarkets); $i++) {
                 $marketType = $fetchMarkets[$i];
                 if ($marketType === 'spot') {
-                    $promises[] = $this->publicGetExchangeInfo ($params);
+                    $promisesRaw[] = $this->publicGetExchangeInfo ($params);
                 } elseif ($marketType === 'linear') {
-                    $promises[] = $this->fapiPublicGetExchangeInfo ($params);
+                    $promisesRaw[] = $this->fapiPublicGetExchangeInfo ($params);
                 } elseif ($marketType === 'inverse') {
-                    $promises[] = $this->dapiPublicGetExchangeInfo ($params);
+                    $promisesRaw[] = $this->dapiPublicGetExchangeInfo ($params);
                 } elseif ($marketType === 'option') {
-                    $promises[] = $this->eapiPublicGetExchangeInfo ($params);
+                    $promisesRaw[] = $this->eapiPublicGetExchangeInfo ($params);
                 } else {
                     throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
                 }
             }
-            $promises = Async\await(Promise\all($promises));
+            $promises = Async\await(Promise\all($promisesRaw));
             $spotMarkets = $this->safe_value($this->safe_value($promises, 0), 'symbols', array());
             $futureMarkets = $this->safe_value($this->safe_value($promises, 1), 'symbols', array());
             $deliveryMarkets = $this->safe_value($this->safe_value($promises, 2), 'symbols', array());
@@ -3593,10 +3596,10 @@ class binance extends Exchange {
             if ($uppercaseType === 'MARKET') {
                 $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
-                    $quoteOrderQty = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+                    $quoteOrderQtyNew = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
-                    if ($quoteOrderQty !== null) {
-                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
+                    if ($quoteOrderQtyNew !== null) {
+                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyNew, TRUNCATE, $precision, $this->precisionMode);
                     } elseif ($price !== null) {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -4070,10 +4073,10 @@ class binance extends Exchange {
                 if ($market['spot']) {
                     $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
                     if ($quoteOrderQty) {
-                        $quoteOrderQty = $this->safe_value_2($query, 'quoteOrderQty', 'cost');
+                        $quoteOrderQtyNew = $this->safe_value_2($query, 'quoteOrderQty', 'cost');
                         $precision = $market['precision']['price'];
-                        if ($quoteOrderQty !== null) {
-                            $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
+                        if ($quoteOrderQtyNew !== null) {
+                            $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyNew, TRUNCATE, $precision, $this->precisionMode);
                         } elseif ($price !== null) {
                             $amountString = $this->number_to_string($amount);
                             $priceString = $this->number_to_string($price);
@@ -5328,7 +5331,8 @@ class binance extends Exchange {
                     $toSpot = $toId === 'MAIN';
                     $funding = $fromId === 'FUNDING' || $toId === 'FUNDING';
                     $mining = $fromId === 'MINING' || $toId === 'MINING';
-                    $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
+                    $option = $fromId === 'OPTION' || $toId === 'OPTION';
+                    $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding || $option;
                     if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                         throw new BadRequest($this->id . ' transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
                     } elseif ($toSpot && $fromIsolated) {
@@ -6000,6 +6004,7 @@ class binance extends Exchange {
                 }
                 return $result;
             }
+            return null;
         }) ();
     }
 
@@ -6322,8 +6327,8 @@ class binance extends Exchange {
         $contractsStringAbs = Precise::string_abs($contractsString);
         if ($contractsString === null) {
             $entryNotional = Precise::string_mul(Precise::string_mul($leverageString, $initialMarginString), $entryPriceString);
-            $contractSize = $this->safe_string($market, 'contractSize');
-            $contractsString = Precise::string_div($entryNotional, $contractSize);
+            $contractSizeNew = $this->safe_string($market, 'contractSize');
+            $contractsString = Precise::string_div($entryNotional, $contractSizeNew);
             $contractsStringAbs = Precise::string_div(Precise::string_add($contractsString, '0.5'), '1', 0);
         }
         $contracts = $this->parse_number($contractsStringAbs);
@@ -7435,17 +7440,17 @@ class binance extends Exchange {
             }
         }
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
-            $message = $this->safe_string($response, 'msg');
+            $messageNew = $this->safe_string($response, 'msg');
             $parsedMessage = null;
-            if ($message !== null) {
+            if ($messageNew !== null) {
                 try {
-                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                    $parsedMessage = json_decode($messageNew, $as_associative_array = true);
                 } catch (Exception $e) {
                     // do nothing
                     $parsedMessage = null;
@@ -7489,6 +7494,7 @@ class binance extends Exchange {
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {

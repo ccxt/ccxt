@@ -855,9 +855,9 @@ class hitbtc3 extends Exchange {
         $trades = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->market($marketId);
+            $marketInner = $this->market($marketId);
             $rawTrades = $response[$marketId];
-            $parsed = $this->parse_trades($rawTrades, $market);
+            $parsed = $this->parse_trades($rawTrades, $marketInner);
             $trades = $this->array_concat($trades, $parsed);
         }
         return $trades;
@@ -1194,8 +1194,8 @@ class hitbtc3 extends Exchange {
         $this->load_markets();
         $request = array();
         if ($symbols !== null) {
-            $marketIds = $this->market_ids($symbols);
-            $request['symbols'] = implode(',', $marketIds);
+            $marketIdsInner = $this->market_ids($symbols);
+            $request['symbols'] = implode(',', $marketIdsInner);
         }
         if ($limit !== null) {
             $request['depth'] = $limit;
@@ -2137,16 +2137,16 @@ class hitbtc3 extends Exchange {
         $rates = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $marketId = $contracts[$i];
-            $market = $this->safe_market($marketId);
+            $marketInner = $this->safe_market($marketId);
             $fundingRateData = $response[$marketId];
-            for ($i = 0; $i < count($fundingRateData); $i++) {
-                $entry = $fundingRateData[$i];
-                $symbol = $this->safe_symbol($market['symbol']);
+            for ($j = 0; $j < count($fundingRateData); $j++) {
+                $entry = $fundingRateData[$j];
+                $symbolInner = $this->safe_symbol($marketInner['symbol']);
                 $fundingRate = $this->safe_number($entry, 'funding_rate');
                 $datetime = $this->safe_string($entry, 'timestamp');
                 $rates[] = array(
                     'info' => $entry,
-                    'symbol' => $symbol,
+                    'symbol' => $symbolInner,
                     'fundingRate' => $fundingRate,
                     'timestamp' => $this->parse8601($datetime),
                     'datetime' => $datetime,
@@ -2764,6 +2764,7 @@ class hitbtc3 extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

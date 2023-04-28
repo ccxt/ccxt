@@ -1006,8 +1006,8 @@ class yobit extends yobit$1 {
         const request = {};
         const market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
-            request['pair'] = market['id'];
+            const marketInner = this.market(symbol);
+            request['pair'] = marketInner['id'];
         }
         const response = await this.privatePostActiveOrders(this.extend(request, params));
         //
@@ -1230,7 +1230,7 @@ class yobit extends yobit$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1278,6 +1278,7 @@ class yobit extends yobit$1 {
                 throw new errors.ExchangeError(feedback); // unknown message
             }
         }
+        return undefined;
     }
 }
 

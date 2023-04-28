@@ -681,7 +681,7 @@ class zaif(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         #     {"error": "unsupported currency_pair"}
         #
@@ -694,3 +694,4 @@ class zaif(Exchange):
         success = self.safe_value(response, 'success', True)
         if not success:
             raise ExchangeError(feedback)
+        return None

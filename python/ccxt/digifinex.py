@@ -535,7 +535,9 @@ class digifinex(Exchange):
         """
         options = self.safe_value(self.options, 'fetchMarkets', {})
         method = self.safe_string(options, 'method', 'fetch_markets_v2')
-        return getattr(self, method)(params)
+        if method == 'fetch_markets_v2':
+            return self.fetch_markets_v2(params)
+        return self.fetch_markets_v1(params)
 
     def fetch_markets_v2(self, params={}):
         defaultType = self.safe_string(self.options, 'defaultType')
@@ -2886,11 +2888,11 @@ class digifinex(Exchange):
         for i in range(0, len(result)):
             entry = result[i]
             marketId = self.safe_string(data, 'instrument_id')
-            symbol = self.safe_symbol(marketId)
+            symbolInner = self.safe_symbol(marketId)
             timestamp = self.safe_integer(entry, 'time')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_string(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -3642,10 +3644,10 @@ class digifinex(Exchange):
 
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
         if not response:
-            return  # fall back to default error handler
+            return None  # fall back to default error handler
         code = self.safe_string(response, 'code')
         if (code == '0') or (code == '200'):
-            return  # no error
+            return None  # no error
         feedback = self.id + ' ' + responseBody
         if code is None:
             raise BadResponse(feedback)

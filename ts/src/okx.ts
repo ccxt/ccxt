@@ -1276,27 +1276,19 @@ export default class okx extends Exchange {
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
             let currencyActive = false;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let depositEnabled = false;
+            let withdrawEnabled = false;
             let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const canDeposit = this.safeValue (chain, 'canDep');
+                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
                 const canWithdraw = this.safeValue (chain, 'canWd');
+                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString (chain, 'chain');
-                if (canDeposit && !depositEnabled) {
-                    depositEnabled = true;
-                } else if (!canDeposit) {
-                    depositEnabled = false;
-                }
-                if (canWithdraw && !withdrawEnabled) {
-                    withdrawEnabled = true;
-                } else if (!canWithdraw) {
-                    withdrawEnabled = false;
-                }
                 if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
                     const parts = networkId.split ('-');
                     const chainPart = this.safeString (parts, 1, networkId);
@@ -2366,8 +2358,8 @@ export default class okx extends Exchange {
          */
         const stop = this.safeValue (params, 'stop');
         if (stop) {
-            const order = await this.cancelOrders ([ id ], symbol, params);
-            return this.safeValue (order, 0);
+            const orderInner = await this.cancelOrders ([ id ], symbol, params);
+            return this.safeValue (orderInner, 0);
         }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -5017,12 +5009,12 @@ export default class okx extends Exchange {
             const entry = data[i];
             const timestamp = this.safeInteger (entry, 'ts');
             const instId = this.safeString (entry, 'instId');
-            const market = this.safeMarket (instId);
+            const marketInner = this.safeMarket (instId);
             const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             result.push ({
                 'info': entry,
-                'symbol': market['symbol'],
+                'symbol': marketInner['symbol'],
                 'code': code,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -6043,7 +6035,7 @@ export default class okx extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //    {
@@ -6079,5 +6071,6 @@ export default class okx extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

@@ -1036,7 +1036,7 @@ class ace extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to the default error handler
+            return null; // fallback to the default error handler
         }
         $feedback = $this->id . ' ' . $body;
         $status = $this->safe_number($response, 'status', 200);
@@ -1044,5 +1044,6 @@ class ace extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $status, $feedback);
         }
+        return null;
     }
 }

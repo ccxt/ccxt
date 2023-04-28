@@ -603,7 +603,7 @@ class phemex(ccxt.async_support.phemex):
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_delta(self, bookside, delta, market=None):
-        bidAsk = self.parse_bid_ask(delta, 0, 1, market)
+        bidAsk = self.customParseBidAsk(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas, market=None):
@@ -855,8 +855,9 @@ class phemex(ccxt.async_support.phemex):
             if market['settle'] == 'USDT':
                 params['settle'] = 'USDT'
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        isUSDTSettled = self.safe_string(params, 'settle') == 'USDT'
         if symbol is None:
-            messageHash = (messageHash + 'perpetual') if (params['settle'] == 'USDT') else (messageHash + type)
+            messageHash = (messageHash + 'perpetual') if (isUSDTSettled) else (messageHash + type)
         orders = await self.subscribe_private(type, messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -1423,4 +1424,4 @@ class phemex(ccxt.async_support.phemex):
                 client.subscriptions[subscriptionHash] = self.handle_authenticate
             future = self.watch(url, messageHash, message)
             client.subscriptions[messageHash] = future
-        return future
+        return await future

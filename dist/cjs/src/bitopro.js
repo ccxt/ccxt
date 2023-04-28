@@ -1620,10 +1620,10 @@ class bitopro extends bitopro$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to the default error handler
+            return undefined; // fallback to the default error handler
         }
         if (code >= 200 && code < 300) {
-            return;
+            return undefined;
         }
         const feedback = this.id + ' ' + body;
         const error = this.safeString(response, 'error');

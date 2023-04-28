@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.0.75'
+__version__ = '3.0.82'
 
 # ----------------------------------------------------------------------------
 
@@ -184,7 +184,6 @@ from ccxt.woo import woo                                              # noqa: F4
 from ccxt.xt import xt                                                # noqa: F401
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
-from ccxt.zb import zb                                                # noqa: F401
 from ccxt.zonda import zonda                                          # noqa: F401
 
 exchanges = [
@@ -299,7 +298,6 @@ exchanges = [
     'xt',
     'yobit',
     'zaif',
-    'zb',
     'zonda',
 ]
 

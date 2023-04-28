@@ -87,6 +87,7 @@ class phemex(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -916,12 +917,13 @@ class phemex(Exchange):
                     },
                 },
                 'valueScale': valueScale,
+                'networks': {},
             }
         return result
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
+    def custom_parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
         if market is None:
-            raise ArgumentsRequired(self.id + ' parseBidAsk() requires a market argument')
+            raise ArgumentsRequired(self.id + ' customParseBidAsk() requires a market argument')
         amount = self.safe_string(bidask, amountKey)
         if market['spot']:
             amount = self.from_ev(amount, market)
@@ -943,7 +945,7 @@ class phemex(Exchange):
             orders = []
             bidasks = self.safe_value(orderbook, side)
             for k in range(0, len(bidasks)):
-                orders.append(self.parse_bid_ask(bidasks[k], priceKey, amountKey, market))
+                orders.append(self.custom_parse_bid_ask(bidasks[k], priceKey, amountKey, market))
             result[side] = orders
         result[bidsKey] = self.sort_by(result[bidsKey], 0, True)
         result[asksKey] = self.sort_by(result[asksKey], 0)
@@ -1282,6 +1284,38 @@ class phemex(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
+
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     # spot
+        see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             # linear
+        see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       # inverse
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbols is not None:
+            first = self.safe_value(symbols, 0)
+            market = self.market(first)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
+        query = self.omit(params, 'type')
+        defaultMethod = None
+        if type == 'spot':
+            defaultMethod = 'v1GetMdSpotTicker24hrAll'
+        elif subType == 'inverse':
+            defaultMethod = 'v1GetMdTicker24hrAll'
+        else:
+            defaultMethod = 'v2GetMdV2Ticker24hrAll'
+        method = self.safe_string(self.options, 'fetchTickersMethod', defaultMethod)
+        response = await getattr(self, method)(query)
+        result = self.safe_value(response, 'result', [])
+        return self.parse_tickers(result, symbols)
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3943,7 +3977,7 @@ class phemex(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
         #     {"code":412,"msg":"Missing parameter - resolution","data":null}
@@ -3958,3 +3992,4 @@ class phemex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

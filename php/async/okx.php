@@ -1285,27 +1285,19 @@ class okx extends Exchange {
                 $chains = $dataByCurrencyId[$currencyId];
                 $networks = array();
                 $currencyActive = false;
-                $depositEnabled = null;
-                $withdrawEnabled = null;
+                $depositEnabled = false;
+                $withdrawEnabled = false;
                 $maxPrecision = null;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $canDeposit = $this->safe_value($chain, 'canDep');
+                    $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
                     $canWithdraw = $this->safe_value($chain, 'canWd');
+                    $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
                     $canInternal = $this->safe_value($chain, 'canInternal');
                     $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
                     $currencyActive = ($active) ? $active : $currencyActive;
                     $networkId = $this->safe_string($chain, 'chain');
-                    if ($canDeposit && !$depositEnabled) {
-                        $depositEnabled = true;
-                    } elseif (!$canDeposit) {
-                        $depositEnabled = false;
-                    }
-                    if ($canWithdraw && !$withdrawEnabled) {
-                        $withdrawEnabled = true;
-                    } elseif (!$canWithdraw) {
-                        $withdrawEnabled = false;
-                    }
                     if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                         $parts = explode('-', $networkId);
                         $chainPart = $this->safe_string($parts, 1, $networkId);
@@ -2377,8 +2369,8 @@ class okx extends Exchange {
              */
             $stop = $this->safe_value($params, 'stop');
             if ($stop) {
-                $order = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
-                return $this->safe_value($order, 0);
+                $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+                return $this->safe_value($orderInner, 0);
             }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -5028,12 +5020,12 @@ class okx extends Exchange {
                 $entry = $data[$i];
                 $timestamp = $this->safe_integer($entry, 'ts');
                 $instId = $this->safe_string($entry, 'instId');
-                $market = $this->safe_market($instId);
+                $marketInner = $this->safe_market($instId);
                 $currencyId = $this->safe_string($entry, 'ccy');
                 $code = $this->safe_currency_code($currencyId);
                 $result[] = array(
                     'info' => $entry,
-                    'symbol' => $market['symbol'],
+                    'symbol' => $marketInner['symbol'],
                     'code' => $code,
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
@@ -6056,7 +6048,7 @@ class okx extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         //
         //    {
@@ -6092,5 +6084,6 @@ class okx extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

@@ -1022,8 +1022,8 @@ export default class yobit extends Exchange {
         const request = {};
         const market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['pair'] = market['id'];
+            const marketInner = this.market (symbol);
+            request['pair'] = marketInner['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
         //
@@ -1249,7 +1249,7 @@ export default class yobit extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         if ('success' in response) {
             //
@@ -1296,5 +1296,6 @@ export default class yobit extends Exchange {
                 throw new ExchangeError (feedback); // unknown message
             }
         }
+        return undefined;
     }
 }

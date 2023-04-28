@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.0.82 (2023-04-28)
+
+
+### Bug Fixes
+
+* **phemex:** watchOrders auth flow ([5a53e1e](https://github.com/ccxt/ccxt/commit/5a53e1e91f4c33bf4c792ed8cbee90ab36f5cd1f))
+
+### 3.0.81 (2023-04-28)
+
+### 3.0.80 (2023-04-27)
+
+
+### Bug Fixes
+
+* **webpack:** webworkers usage ([bc63ad9](https://github.com/ccxt/ccxt/commit/bc63ad905c5db0c1b3ff1ad62e3eabeb48126c3a))
+
+### 3.0.79 (2023-04-27)
+
+### 3.0.78 (2023-04-26)
+
+### 3.0.77 (2023-04-25)
+
+### 3.0.76 (2023-04-24)
+
+
+### Features
+
+* **Deribit:** add spot markets ([d561ecf](https://github.com/ccxt/ccxt/commit/d561ecffb0e7f4ca894a6285f0aa1c3d2c097dcc))
+
 ### 3.0.75 (2023-04-23)
 
 ### 3.0.74 (2023-04-21)

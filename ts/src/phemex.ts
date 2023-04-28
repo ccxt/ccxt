@@ -68,6 +68,7 @@ export default class phemex extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -912,14 +913,15 @@ export default class phemex extends Exchange {
                     },
                 },
                 'valueScale': valueScale,
+                'networks': {},
             };
         }
         return result;
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
+    customParseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
         if (market === undefined) {
-            throw new ArgumentsRequired (this.id + ' parseBidAsk() requires a market argument');
+            throw new ArgumentsRequired (this.id + ' customParseBidAsk() requires a market argument');
         }
         let amount = this.safeString (bidask, amountKey);
         if (market['spot']) {
@@ -944,7 +946,7 @@ export default class phemex extends Exchange {
             const orders = [];
             const bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
-                orders.push (this.parseBidAsk (bidasks[k], priceKey, amountKey, market));
+                orders.push (this.customParseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
             result[side] = orders;
         }
@@ -1318,6 +1320,43 @@ export default class phemex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
+    }
+
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     // spot
+         * @see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             // linear
+         * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeValue (symbols, 0);
+            market = this.market (first);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
+        const query = this.omit (params, 'type');
+        let defaultMethod = undefined;
+        if (type === 'spot') {
+            defaultMethod = 'v1GetMdSpotTicker24hrAll';
+        } else if (subType === 'inverse') {
+            defaultMethod = 'v1GetMdTicker24hrAll';
+        } else {
+            defaultMethod = 'v2GetMdV2Ticker24hrAll';
+        }
+        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
+        const response = await this[method] (query);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTickers (result, symbols);
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4211,7 +4250,7 @@ export default class phemex extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
@@ -4228,5 +4267,6 @@ export default class phemex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

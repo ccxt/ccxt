@@ -840,7 +840,7 @@ class bitbank(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         success = self.safe_integer(response, 'success')
         data = self.safe_value(response, 'data')
         if not success or not data:
@@ -911,6 +911,7 @@ class bitbank(Exchange):
             message = self.safe_string(errorMessages, code, 'Error')
             ErrorClass = self.safe_value(errorClasses, code)
             if ErrorClass is not None:
-                raise ErrorClass(message)
+                raise errorClasses[code](message)
             else:
                 raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

@@ -123,7 +123,6 @@ var woo = require('./src/woo.js');
 var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
-var zb = require('./src/zb.js');
 var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
@@ -180,11 +179,10 @@ var upbit$1 = require('./src/pro/upbit.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
-var zb$1 = require('./src/pro/zb.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.75';
+const version = '3.0.82';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -298,7 +296,6 @@ const exchanges = {
     'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
-    'zb': zb,
     'zonda': zonda,
 };
 const pro = {
@@ -357,7 +354,6 @@ const pro = {
     'wazirx': wazirx$1,
     'whitebit': whitebit$1,
     'woo': woo$1,
-    'zb': zb$1,
 };
 pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
@@ -510,7 +506,6 @@ exports.woo = woo;
 exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
-exports.zb = zb;
 exports.zonda = zonda;
 exports["default"] = ccxt;
 exports.exchanges = exchanges;

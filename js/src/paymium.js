@@ -571,11 +571,12 @@ export default class paymium extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errors = this.safeValue(response, 'errors');
         if (errors !== undefined) {
             throw new ExchangeError(this.id + ' ' + this.json(response));
         }
+        return undefined;
     }
 }

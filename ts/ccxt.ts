@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.0.75';
+const version = '3.0.82';
 
 (Exchange as any).ccxtVersion = version
 
@@ -157,7 +157,6 @@ import woo from  './src/woo.js'
 import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
-import zb from  './src/zb.js'
 import zonda from  './src/zonda.js'
 
 
@@ -217,7 +216,6 @@ import upbitPro from  './src/pro/upbit.js'
 import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
-import zbPro from  './src/pro/zb.js'
 
 const exchanges = {
     'ace':                    ace,
@@ -331,7 +329,6 @@ const exchanges = {
     'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
-    'zb':                     zb,
     'zonda':                  zonda,
 }
 
@@ -391,7 +388,6 @@ const pro = {
     'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
-    'zb':                     zbPro,
 }
 
 for (const exchange in pro) {
@@ -576,7 +572,6 @@ export {
     xt,
     yobit,
     zaif,
-    zb,
     zonda,    
 }
 

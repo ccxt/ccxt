@@ -491,11 +491,14 @@ class woo(ccxt.async_support.woo):
             'cost': cost,
             'currency': self.safe_string(order, 'feeAsset'),
         }
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
+        avgPrice = self.safe_number(order, 'avgPrice')
+        if (price == 0) and (avgPrice is not None):
+            price = avgPrice
         amount = self.safe_float(order, 'quantity')
         side = self.safe_string_lower(order, 'side')
         type = self.safe_string_lower(order, 'type')
-        filled = self.safe_float(order, 'executedQuantity')
+        filled = self.safe_number(order, 'totalExecutedQuantity')
         totalExecQuantity = self.safe_float(order, 'totalExecutedQuantity')
         remaining = amount
         if amount >= totalExecQuantity:
@@ -504,7 +507,7 @@ class woo(ccxt.async_support.woo):
         status = self.parse_order_status(rawStatus)
         trades = None
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        return {
+        return self.safe_order({
             'info': order,
             'symbol': symbol,
             'id': orderId,
@@ -527,7 +530,7 @@ class woo(ccxt.async_support.woo):
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     def handle_order_update(self, client: Client, message):
         #

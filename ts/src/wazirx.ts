@@ -909,7 +909,7 @@ export default class wazirx extends Exchange {
         // {"code":2098,"message":"Request out of receiving window."}
         //
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
@@ -917,5 +917,6 @@ export default class wazirx extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback);
         }
+        return undefined;
     }
 }

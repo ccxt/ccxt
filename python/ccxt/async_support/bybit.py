@@ -252,6 +252,8 @@ class bybit(Exchange):
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
                         'v5/announcements/index': 1,
+                        'v5/spot-cross-margin-trade/pledge-token': 1,
+                        'v5/spot-cross-margin-trade/borrow-token': 1,
                     },
                 },
                 'private': {
@@ -406,6 +408,10 @@ class bybit(Exchange):
                         # user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
                     },
                     'post': {
                         # inverse swap
@@ -592,6 +598,9 @@ class bybit(Exchange):
                         'v5/user/update-sub-api': 10,
                         'v5/user/delete-api': 10,
                         'v5/user/delete-sub-api': 10,
+                        'v5/spot-cross-margin-trade/loan': 2.5,  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay': 2.5,  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                     },
                     'delete': {
                         # spot
@@ -1456,14 +1465,14 @@ class bybit(Exchange):
         if paginationCursor is not None:
             while(paginationCursor is not None):
                 params['cursor'] = paginationCursor
-                response = await self.publicGetDerivativesV3PublicInstrumentsInfo(params)
-                data = self.safe_value(response, 'result', {})
-                rawMarkets = self.safe_value(data, 'list', [])
+                responseInner = await self.publicGetDerivativesV3PublicInstrumentsInfo(params)
+                dataNew = self.safe_value(responseInner, 'result', {})
+                rawMarkets = self.safe_value(dataNew, 'list', [])
                 rawMarketsLength = len(rawMarkets)
                 if rawMarketsLength == 0:
                     break
                 markets = self.array_concat(rawMarkets, markets)
-                paginationCursor = self.safe_string(data, 'nextPageCursor')
+                paginationCursor = self.safe_string(dataNew, 'nextPageCursor')
         #
         # linear response
         #
@@ -6694,20 +6703,22 @@ class bybit(Exchange):
         symbols = self.market_symbols(symbols)
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         settle = self.safe_string(params, 'settleCoin')
+        paramsOmitted = None
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, paramsOmitted = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
         isUsdcSettled = settle == 'USDC'
-        subType, query = self.handle_sub_type_and_params('fetchPositions', None, params)
+        subType = None
+        subType, paramsOmitted = self.handle_sub_type_and_params('fetchPositions', None, paramsOmitted)
         isInverse = subType == 'inverse'
         isLinearSettle = isUsdcSettled or (settle == 'USDT')
         if isInverse and isLinearSettle:
             raise ArgumentsRequired(self.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC')
         if (enableUnifiedMargin or enableUnifiedAccount) and not isInverse:
-            return await self.fetch_unified_positions(symbols, query)
+            return await self.fetch_unified_positions(symbols, params)
         elif isUsdcSettled:
-            return await self.fetch_usdc_positions(symbols, query)
+            return await self.fetch_usdc_positions(symbols, paramsOmitted)
         else:
-            return await self.fetch_derivatives_positions(symbols, query)
+            return await self.fetch_derivatives_positions(symbols, params)
 
     def parse_position(self, position, market=None):
         #
@@ -7843,7 +7854,7 @@ class bybit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {
         #         ret_code: 10001,
@@ -7879,3 +7890,4 @@ class bybit(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

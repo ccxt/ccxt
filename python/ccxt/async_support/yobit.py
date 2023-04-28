@@ -972,8 +972,8 @@ class yobit(Exchange):
         request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-            request['pair'] = market['id']
+            marketInner = self.market(symbol)
+            request['pair'] = marketInner['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
         #
         #      {
@@ -1172,7 +1172,7 @@ class yobit(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'success' in response:
             #
             # 1 - Liqui only returns the integer 'success' key from their private API
@@ -1214,3 +1214,4 @@ class yobit(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(feedback)  # unknown message
+        return None

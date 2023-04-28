@@ -2568,7 +2568,8 @@ export default class cryptocom extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [ type, access ] = api;
+        const type = this.safeString (api, 0);
+        const access = this.safeString (api, 1);
         let url = this.urls['api'][type] + '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
@@ -2620,5 +2621,6 @@ export default class cryptocom extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 }

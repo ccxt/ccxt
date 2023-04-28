@@ -372,7 +372,8 @@ class bitstamp1(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         status = self.safe_string(response, 'status')
         if status == 'error':
             raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

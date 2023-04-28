@@ -14,7 +14,7 @@ ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupport
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
-import Future from './ws/Future.js';
+import { createFuture } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import totp from './functions/totp.js';
 // ----------------------------------------------------------------------------
@@ -884,7 +884,7 @@ export default class Exchange {
         return undefined;
     }
     spawn(method, ...args) {
-        const future = Future();
+        const future = createFuture();
         method.apply(this, args).then(future.resolve).catch(future.reject);
         return future;
     }
@@ -1683,37 +1683,28 @@ export default class Exchange {
         }
         const market = this.markets[symbol];
         const feeSide = this.safeString(market, 'feeSide', 'quote');
-        let key = 'quote';
-        let cost = undefined;
-        const amountString = this.numberToString(amount);
-        const priceString = this.numberToString(price);
-        if (feeSide === 'quote') {
-            // the fee is always in quote currency
-            cost = Precise.stringMul(amountString, priceString);
-        }
-        else if (feeSide === 'base') {
-            // the fee is always in base currency
-            cost = amountString;
-        }
-        else if (feeSide === 'get') {
+        let useQuote = undefined;
+        if (feeSide === 'get') {
             // the fee is always in the currency you get
-            cost = amountString;
-            if (side === 'sell') {
-                cost = Precise.stringMul(cost, priceString);
-            }
-            else {
-                key = 'base';
-            }
+            useQuote = side === 'sell';
         }
         else if (feeSide === 'give') {
             // the fee is always in the currency you give
-            cost = amountString;
-            if (side === 'buy') {
-                cost = Precise.stringMul(cost, priceString);
-            }
-            else {
-                key = 'base';
-            }
+            useQuote = side === 'buy';
+        }
+        else {
+            // the fee is always in feeSide currency
+            useQuote = feeSide === 'quote';
+        }
+        let cost = this.numberToString(amount);
+        let key = undefined;
+        if (useQuote) {
+            const priceString = this.numberToString(price);
+            cost = Precise.stringMul(cost, priceString);
+            key = 'quote';
+        }
+        else {
+            key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
         if (!market['spot']) {
@@ -1724,9 +1715,7 @@ export default class Exchange {
             takerOrMaker = 'taker';
         }
         const rate = this.safeString(market, takerOrMaker);
-        if (cost !== undefined) {
-            cost = Precise.stringMul(cost, rate);
-        }
+        cost = Precise.stringMul(cost, rate);
         return {
             'type': takerOrMaker,
             'currency': market[key],

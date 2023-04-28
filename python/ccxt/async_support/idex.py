@@ -1385,6 +1385,7 @@ class idex(Exchange):
             raise Exception(self.id + ' ' + message)
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
+        return None
 
     async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """

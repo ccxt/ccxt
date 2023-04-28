@@ -885,7 +885,7 @@ class wazirx extends Exchange {
         // array("code":2098,"message":"Request out of receiving window.")
         //
         if ($response === null) {
-            return;
+            return null;
         }
         $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== null) {
@@ -893,5 +893,6 @@ class wazirx extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

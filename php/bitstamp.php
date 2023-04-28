@@ -527,6 +527,7 @@ class bitstamp extends Exchange {
                     'max' => null,
                 ),
             ),
+            'networks' => array(),
         );
     }
 
@@ -2015,7 +2016,7 @@ class bitstamp extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         //
         //     array("error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
@@ -2040,11 +2041,11 @@ class bitstamp extends Exchange {
                     }
                 }
             }
-            $reason = $this->safe_value($response, 'reason', array());
-            if (gettype($reason) === 'string') {
-                $errors[] = $reason;
+            $reasonInner = $this->safe_value($response, 'reason', array());
+            if (gettype($reasonInner) === 'string') {
+                $errors[] = $reasonInner;
             } else {
-                $all = $this->safe_value($reason, '__all__', array());
+                $all = $this->safe_value($reasonInner, '__all__', array());
                 for ($i = 0; $i < count($all); $i++) {
                     $errors[] = $all[$i];
                 }
@@ -2061,5 +2062,6 @@ class bitstamp extends Exchange {
             }
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 }

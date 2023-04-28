@@ -1979,32 +1979,6 @@ class kucoinfutures extends kucoin {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_transaction_fee(string $code, $params = array ()) {
-        /**
-         * *DEPRECATED* please use fetchDepositWithdrawFee instead
-         * @param {string} $code unified currency $code
-         * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
-         */
-        // throw new BadRequest($this->id . ' fetchTransactionFee() is not supported');
-        return null;
-    }
-
-    public function fetch_deposit_withdraw_fee(string $code, $params = array ()) {
-        /**
-         * Not supported
-         * @param {string} $code unified currency $code
-         * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
-         */
-        throw new BadRequest($this->id . ' fetchDepositWithdrawFee() is not supported');
-    }
-
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        // throw new BadRequest($this->id . ' fetchLedger() is not supported yet');
-        return null;
-    }
-
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market

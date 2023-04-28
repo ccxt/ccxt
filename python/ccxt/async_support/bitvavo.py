@@ -1659,7 +1659,7 @@ class bitvavo(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #     {"errorCode":308,"error":"The signature length is invalid(HMAC-SHA256 should return a 64 length hexadecimal string)."}
         #     {"errorCode":203,"error":"symbol parameter is required."}
@@ -1672,6 +1672,7 @@ class bitvavo(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         if ('noMarket' in config) and not ('market' in params):

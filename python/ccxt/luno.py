@@ -792,8 +792,12 @@ class luno(Exchange):
         }
         return self.privatePostStoporder(self.extend(request, params))
 
-    def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=-1, limit=1, params={}):
+    def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=None, limit=None, params={}):
         # by default without entry number or limit number, return most recent entry
+        if entry is None:
+            entry = -1
+        if limit is None:
+            limit = 1
         since = None
         request = {
             'min_row': entry,
@@ -940,7 +944,8 @@ class luno(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         error = self.safe_value(response, 'error')
         if error is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

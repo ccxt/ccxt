@@ -145,5 +145,5 @@ export default class okcoin extends Exchange {
         headers: any;
     };
     getPathAuthenticationType(path: any): string;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): void;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

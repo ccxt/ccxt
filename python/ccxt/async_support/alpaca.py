@@ -781,7 +781,7 @@ class alpaca(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # default error handler
+            return None  # default error handler
         # {
         #     "code": 40110000,
         #     "message": "request is not authorized"
@@ -795,3 +795,4 @@ class alpaca(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)
+        return None

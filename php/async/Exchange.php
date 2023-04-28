@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.75';
+$version = '3.0.82';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.75';
+    const VERSION = '3.0.82';
 
     public $browser;
     public $marketsLoading = null;
@@ -856,32 +856,25 @@ class Exchange extends \ccxt\Exchange {
         }
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
-        $key = 'quote';
-        $cost = null;
-        $amountString = $this->number_to_string($amount);
-        $priceString = $this->number_to_string($price);
-        if ($feeSide === 'quote') {
-            // the fee is always in quote currency
-            $cost = Precise::string_mul($amountString, $priceString);
-        } elseif ($feeSide === 'base') {
-            // the fee is always in base currency
-            $cost = $amountString;
-        } elseif ($feeSide === 'get') {
+        $useQuote = null;
+        if ($feeSide === 'get') {
             // the fee is always in the currency you get
-            $cost = $amountString;
-            if ($side === 'sell') {
-                $cost = Precise::string_mul($cost, $priceString);
-            } else {
-                $key = 'base';
-            }
+            $useQuote = $side === 'sell';
         } elseif ($feeSide === 'give') {
             // the fee is always in the currency you give
-            $cost = $amountString;
-            if ($side === 'buy') {
-                $cost = Precise::string_mul($cost, $priceString);
-            } else {
-                $key = 'base';
-            }
+            $useQuote = $side === 'buy';
+        } else {
+            // the fee is always in $feeSide currency
+            $useQuote = $feeSide === 'quote';
+        }
+        $cost = $this->number_to_string($amount);
+        $key = null;
+        if ($useQuote) {
+            $priceString = $this->number_to_string($price);
+            $cost = Precise::string_mul($cost, $priceString);
+            $key = 'quote';
+        } else {
+            $key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
         if (!$market['spot']) {
@@ -892,9 +885,7 @@ class Exchange extends \ccxt\Exchange {
             $takerOrMaker = 'taker';
         }
         $rate = $this->safe_string($market, $takerOrMaker);
-        if ($cost !== null) {
-            $cost = Precise::string_mul($cost, $rate);
-        }
+        $cost = Precise::string_mul($cost, $rate);
         return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],

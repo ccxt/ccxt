@@ -504,13 +504,13 @@ class btcbox(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # resort to defaultErrorHandler
+            return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}
         if httpCode >= 400:
-            return  # resort to defaultErrorHandler
+            return None  # resort to defaultErrorHandler
         result = self.safe_value(response, 'result')
         if result is None or result is True:
-            return  # either public API(no error codes expected) or success
+            return None  # either public API(no error codes expected) or success
         code = self.safe_value(response, 'code')
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions, code, feedback)

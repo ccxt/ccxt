@@ -1131,7 +1131,7 @@ class btcmarkets(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'success' in response:
             if not response['success']:
                 error = self.safe_string(response, 'errorCode')
@@ -1146,3 +1146,4 @@ class btcmarkets(Exchange):
             self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions, message, feedback)
             raise ExchangeError(feedback)
+        return None

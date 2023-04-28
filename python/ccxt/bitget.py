@@ -2028,7 +2028,7 @@ class bitget(Exchange):
             'taker': self.safe_number(data, 'takerFeeRate'),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m'):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         # spot
         #
@@ -3537,11 +3537,11 @@ class bitget(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
-            symbol = self.safe_symbol(marketId, market)
+            symbolInner = self.safe_symbol(marketId, market)
             timestamp = self.safe_integer(entry, 'settleTime')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_string(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -4086,7 +4086,7 @@ class bitget(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         # spot
         #
@@ -4123,6 +4123,7 @@ class bitget(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message
+        return None
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
@@ -4146,9 +4147,9 @@ class bitget(Exchange):
                 auth += body
             else:
                 if params:
-                    query = '?' + self.urlencode(self.keysort(params))
-                    url += query
-                    auth += query
+                    queryInner = '?' + self.urlencode(self.keysort(params))
+                    url += queryInner
+                    auth += queryInner
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             broker = self.safe_string(self.options, 'broker')
             headers = {

@@ -2400,7 +2400,8 @@ class cryptocom(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        type, access = api
+        type = self.safe_string(api, 0)
+        access = self.safe_string(api, 1)
         url = self.urls['api'][type] + '/' + path
         query = self.omit(params, self.extract_params(path))
         if access == 'public':
@@ -2446,3 +2447,4 @@ class cryptocom(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(self.id + ' ' + body)
+        return None

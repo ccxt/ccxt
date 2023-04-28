@@ -3993,11 +3993,11 @@ class xt extends Exchange {
             for ($i = 0; $i < count($items); $i++) {
                 $entry = $items[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
-                $symbol = $this->safe_symbol($marketId, $market);
+                $symbolInner = $this->safe_symbol($marketId, $market);
                 $timestamp = $this->safe_integer($entry, 'createdTime');
                 $rates[] = array(
                     'info' => $entry,
-                    'symbol' => $symbol,
+                    'symbol' => $symbolInner,
                     'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
@@ -4228,12 +4228,13 @@ class xt extends Exchange {
             for ($i = 0; $i < count($positions); $i++) {
                 $entry = $positions[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
-                $market = $this->safe_market($marketId, null, null, 'contract');
+                $marketInner = $this->safe_market($marketId, null, null, 'contract');
                 $positionSize = $this->safe_string($entry, 'positionSize');
                 if ($positionSize !== '0') {
-                    return $this->parse_position($entry, $market);
+                    return $this->parse_position($entry, $marketInner);
                 }
             }
+            return null;
         }) ();
     }
 
@@ -4242,7 +4243,7 @@ class xt extends Exchange {
             /**
              * fetch all open $positions
              * @see https://doc.xt.com/#futures_usergetPosition
-             * @param {[string]|null} $symbols list of unified $market $symbols, not supported with xt
+             * @param {[string]|null} $symbols list of unified market $symbols, not supported with xt
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
@@ -4288,8 +4289,8 @@ class xt extends Exchange {
             for ($i = 0; $i < count($positions); $i++) {
                 $entry = $positions[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
-                $market = $this->safe_market($marketId, null, null, 'contract');
-                $result[] = $this->parse_position($entry, $market);
+                $marketInner = $this->safe_market($marketId, null, null, 'contract');
+                $result[] = $this->parse_position($entry, $marketInner);
             }
             return $this->filter_by_array($result, 'symbol', null, false);
         }) ();
@@ -4409,6 +4410,7 @@ class xt extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         }
+        return null;
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

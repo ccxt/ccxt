@@ -999,7 +999,7 @@ export default class coinfalcon extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code < 400) {
-            return;
+            return undefined;
         }
         const ErrorClass = this.safeValue({
             '401': AuthenticationError,

@@ -1713,11 +1713,11 @@ class bkex(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
-            symbol = self.safe_symbol(marketId)
+            symbolInner = self.safe_symbol(marketId)
             timestamp = self.safe_integer(entry, 'time')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'fundingRate': self.safe_number(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -1813,7 +1813,7 @@ class bkex(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         # success
         #
@@ -1846,10 +1846,11 @@ class bkex(Exchange):
         #
         message = self.safe_value(response, 'msg')
         if message == 'success':
-            return
+            return None
         responseCode = self.safe_string(response, 'code')
         if responseCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)
+        return None

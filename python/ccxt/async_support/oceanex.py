@@ -881,7 +881,7 @@ class oceanex(Exchange):
         #     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         #
         if response is None:
-            return
+            return None
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
         if (errorCode is not None) and (errorCode != '0'):
@@ -889,3 +889,4 @@ class oceanex(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['codes'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             raise ExchangeError(feedback)
+        return None

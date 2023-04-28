@@ -1462,6 +1462,7 @@ class idex extends idex$1 {
         if (errorCode !== undefined) {
             throw new errors.ExchangeError(this.id + ' ' + message);
         }
+        return undefined;
     }
     async fetchDeposit(id, code = undefined, params = {}) {
         /**

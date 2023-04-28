@@ -690,7 +690,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m') {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         //     array(
         //         "bucket_start_time":1648219140000,
@@ -1730,7 +1730,7 @@ class bitso extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default $error handler
+            return null; // fallback to default $error handler
         }
         if (is_array($response) && array_key_exists('success', $response)) {
             //
@@ -1755,5 +1755,6 @@ class bitso extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
+        return null;
     }
 }
