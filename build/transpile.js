@@ -2549,6 +2549,7 @@ function parallelizeTranspiling (exchanges, processes = undefined) {
         const toProcess = exchanges.filter ((_, index) => index % increment === i)
         const args = isFirst ? [ '--force' ] : [ '--child', '--force' ]
         isFirst = false
+        log.bright.green('spawning new process', process.argv[1], toProcess.concat(args).join(', '))
         fork (process.argv[1], toProcess.concat (args))
     }
 }
