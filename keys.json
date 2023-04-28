@@ -1,5 +1,6 @@
 {
     "binance":       { "httpProxy": "http://51.83.140.52:11230" },
+    "bybit":         { "httpProxy": "http://51.83.140.52:11230" },
     "binanceus":     { "httpProxy": "http://51.83.140.52:11230" },
     "binancecoinm":  { "httpProxy": "http://51.83.140.52:11230" },
     "binanceusdm":   { "httpProxy": "http://51.83.140.52:11230" },
