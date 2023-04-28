@@ -4365,8 +4365,32 @@ export default class huobi extends Exchange {
         //         "ts": 1640497927185
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        // stop-loss and take-profit
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "tp_order": {
+        //                 "order_id": 1101494204040163328,
+        //                 "order_id_str": "1101494204040163328"
+        //             },
+        //             "sl_order": null
+        //         },
+        //         "ts": :1682658283024
+        //     }
+        //
+        let data = undefined;
+        let result = undefined;
+        if (isStopLossTriggerOrder) {
+            data = this.safeValue (response, 'data', {});
+            result = this.safeValue (data, 'sl_order', {});
+        } else if (isTakeProfitTriggerOrder) {
+            data = this.safeValue (response, 'data', {});
+            result = this.safeValue (data, 'tp_order', {});
+        } else {
+            result = this.safeValue (response, 'data', {});
+        }
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
