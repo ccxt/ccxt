@@ -785,6 +785,7 @@ export default class kucoin extends Exchange {
                 'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
+                'networks': {},
             };
         }
         return result;
@@ -1929,7 +1930,7 @@ export default class kucoin extends Exchange {
         const stopTriggered = this.safeValue (order, 'stopTriggered', false);
         const isActive = this.safeValue (order, 'isActive');
         let status = undefined;
-        if ((isActive === true) || ('orderId' in order)) {
+        if (isActive === true) {
             status = 'open';
         }
         if (stop) {
@@ -1937,7 +1938,7 @@ export default class kucoin extends Exchange {
             if (responseStatus === 'NEW') {
                 status = 'open';
             } else if (!isActive && !stopTriggered) {
-                status = 'canceled';
+                status = 'cancelled';
             }
         }
         if (cancelExist) {
@@ -2762,8 +2763,8 @@ export default class kucoin extends Exchange {
             for (let i = 0; i < accounts.length; i++) {
                 const balance = accounts[i];
                 const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                result[code] = this.parseBalanceHelper (balance);
+                const codeInner = this.safeCurrencyCode (currencyId);
+                result[codeInner] = this.parseBalanceHelper (balance);
             }
         } else {
             for (let i = 0; i < data.length; i++) {
@@ -2771,12 +2772,12 @@ export default class kucoin extends Exchange {
                 const balanceType = this.safeString (balance, 'type');
                 if (balanceType === type) {
                     const currencyId = this.safeString (balance, 'currency');
-                    const code = this.safeCurrencyCode (currencyId);
+                    const codeInner2 = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['total'] = this.safeString (balance, 'balance');
                     account['free'] = this.safeString (balance, 'available');
                     account['used'] = this.safeString (balance, 'holds');
-                    result[code] = account;
+                    result[codeInner2] = account;
                 }
             }
         }
@@ -3629,7 +3630,7 @@ export default class kucoin extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
-            return;
+            return undefined;
         }
         //
         // bad
@@ -3643,5 +3644,6 @@ export default class kucoin extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+        return undefined;
     }
 }
