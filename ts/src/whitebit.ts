@@ -312,12 +312,16 @@ export default class whitebit extends Exchange {
             let contract = false;
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
             const contractSize = amountPrecision;
+            let linear = false;
+            let inverse = undefined;
             if (swap) {
                 settleId = quoteId;
                 settle = this.safeCurrencyCode (settleId);
                 symbol = symbol + ':' + settle;
                 type = 'swap';
                 contract = true;
+                linear = true;
+                inverse = false;
             } else {
                 type = 'spot';
             }
@@ -338,8 +342,8 @@ export default class whitebit extends Exchange {
                 'option': false,
                 'active': active,
                 'contract': contract,
-                'linear': undefined,
-                'inverse': undefined,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': this.safeNumber (market, 'makerFee'),
                 'maker': this.safeNumber (market, 'takerFee'),
                 'contractSize': contractSize,
