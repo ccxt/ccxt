@@ -1960,7 +1960,7 @@ export default class Exchange {
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let useQuote = undefined;
         if (feeSide === 'get') {
-            // the fee is always in quote currency
+            // the fee is always in the currency you get
             useQuote = side === 'sell';
         } else if (feeSide === 'give') {
             // the fee is always in the currency you give
