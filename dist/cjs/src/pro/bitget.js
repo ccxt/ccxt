@@ -576,7 +576,7 @@ class bitget extends bitget$1 {
         let market = undefined;
         let marketId = undefined;
         let messageHash = 'order';
-        const subscriptionHash = 'order:trades';
+        let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];
@@ -592,6 +592,7 @@ class bitget extends bitget$1 {
         let instType = undefined;
         if (type === 'spot') {
             instType = 'spbl';
+            subscriptionHash = subscriptionHash + ':' + symbol;
         }
         else {
             if (!sandboxMode) {
