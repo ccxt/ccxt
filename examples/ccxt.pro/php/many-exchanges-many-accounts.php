@@ -49,13 +49,13 @@ function create_exchange($exchange_id, $config) {
 $exchanges = array(
     array('binance', array(
         'id' => 'binance1',
-        'apiKey' => YOUR_API_KEY_HERE,
-        'secret' => YOUR_SECRET_HERE,
+        'apiKey' => 'YOUR_API_KEY_HERE',
+        'secret' => 'YOUR_SECRET_HERE',
     )),
     array('binance', array(
         'id' => 'binance2',
-        'apiKey' => YOUR_API_KEY_HERE,
-        'secret' => YOUR_SECRET_HERE,
+        'apiKey' => 'YOUR_API_KEY_HERE',
+        'secret' => 'YOUR_SECRET_HERE',
     )),
 );
 
@@ -72,5 +72,5 @@ $loop = function($exchange_id, $config) {
 
 
 foreach ($exchanges as $exchange) {
-    \React\Async\coroutine($loop, $exchange[0], $exchange[1]));
+    \React\Async\coroutine($loop, $exchange[0], $exchange[1]);
 }

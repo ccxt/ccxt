@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt import NetworkError
-from ccxt.test import test_trade
+from ccxt.test.base import test_trade
 
 
 async def test_watch_trades(exchange, symbol):
@@ -14,8 +14,11 @@ async def test_watch_trades(exchange, symbol):
         'dsx',
         'currencycom',
         'idex2',  # rinkeby testnet, trades too rare
+        'luno',  # requires authentication for watch_trades
         'ripio',
         'coinflex',  # too illiquid
+        'woo',
+        'independentreserve',  # too illiquid
     ]
 
     if exchange.id in skipped_exchanges:
@@ -33,7 +36,7 @@ async def test_watch_trades(exchange, symbol):
                 now = exchange.milliseconds()
                 print(exchange.iso8601(now), symbol, len(trades), 'trades')
                 for trade in trades:
-                    test_trade(exchange, trade, symbol, now)
+                    test_trade(exchange, method, trade, symbol, now)
                 # print(table([exchange.omit(t, ['info', 'timestamp']) for t in trades]))
             except NetworkError:
                 now = exchange.milliseconds()

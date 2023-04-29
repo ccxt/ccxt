@@ -1,0 +1,750 @@
+{
+    "ace": {
+        "skipMethods": {
+            "fetchOrderBook": "needs reversion of amount/price",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "alpaca": {
+        "skipWs": true
+    },
+    "ascendex": {
+        "skipMethods": {
+            "fetchTickers": "bid might be 0",
+            "fetchTicker": "same"
+        }
+    },
+    "bequant": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "close might have null value",
+            "fetchTicker": "same"
+        }
+    },
+    "bigone": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "open value can be 0",
+            "fetchTicker": "same"
+        }
+    },
+    "binance": {
+        "skipWs": true,
+		"skipPhpAsync":true,
+        "skipMethods": {
+            "loadMarkets": "expiry not set for future markets",
+            "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0",
+            "fetchTicker": "same"
+        }
+    },
+    "bit2c": {
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value",
+            "fetchCurrencies": "info key is missing"
+        }
+    },
+    "binanceus": {
+		"skipPhpAsync":true,
+        "skipMethods": {
+            "loadMarkets": "expiry not set for future markets",
+            "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0",
+            "fetchTicker": "same"
+        }
+    },
+    "binancecoinm": {
+		"skipPhpAsync":true,
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "expiry not set for future markets",
+            "fetchTickers": "some symbols i.e. BTC/USD4 might have bid-ask value 0. aslo quoteVolume >= baseVolume * low is incorrect",
+            "fetchTicker": "same"
+        }
+    },
+    "binanceusdm": {
+		"skipPhpAsync":true,
+        "skipWs": true
+    },
+    "tokocrypto": {
+		"skipPhpAsync":true,
+        "skipWs": true
+    },
+    "bitbank": {
+        "skipMethods": {
+            "fetchCurrencies": "info key missing"
+        }
+    },
+    "bitbay": {
+        "skipMethods": {
+            "loadMarkets": "expiry not set for future markets"
+        }
+    },
+    "bitbns": {
+        "skipMethods": {
+            "fetchCurrencies": "info key missing",
+            "fetchTickers": "unknown symbol might be returned",
+            "fetchTicker": "same"
+        }
+    },
+    "bitcoincom": {
+        "skipWs": true
+    },
+    "bitfinex": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "linear and inverse values are same",
+            "fetchCurrencies": "info key missing",
+            "fetchTickers": "high might be 0",
+            "fetchTicker": "same"
+        }
+    },
+    "bitfinex2": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "open might be 0",
+            "fetchTicker": "same",
+            "fetchOrderBook": "multiple bids might have same value",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "bitflyer": {
+        "skipMethods": {
+            "fetchCurrencies": "info key missing",
+            "fetchTrades": "side key has an null value, but is expected to have a value "
+        }
+    },
+    "bitforex": {
+        "skipMethods": {
+            "fetchCurrencies": "info key missing"
+        }
+    },
+    "bitget": {
+        "skipMethods": {
+            "loadMarkets": "limit max value is zero, lwer than min",
+            "fetchCurrencies": "precision is undefined",
+            "fetchTickers": "high might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "bithumb": {
+        "skipMethods": {
+            "fetchCurrencies": "info key missing",
+            "fetchTickers": "quoteVolume >= baseVolume * low is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "bitmart": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "expiry is expected to be > 0 ",
+            "fetchCurrencies": "precision is undefined",
+            "fetchTickers": "quoteVolume <= baseVolume * high is failing"
+        }
+    },
+    "bitmex": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "some market types are out of expected market-types",
+            "fetchCurrencies": "info key missing",
+            "fetchTickers": "close might be 0",
+            "fetchTicker": "same",
+            "fetchOHLCV": "open might be greater than high"
+        },
+        "skip": "update:spot markets doesnt work atm, need fix spot:true"
+    },
+    "bitopro": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "precision is undefined"
+        }
+    },
+    "bitpanda": {
+        "skipMethods": {
+            "fetchOrderBook": "some bid might be lower than next bid",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "bitrue": {
+        "skipMethods": {
+            "loadMarkets": "max is below min",
+            "fetchCurrencies": "precision is undefined",
+            "fetchTickers": "quoteVolume >= baseVolume * low is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "bitso": {
+        "skipMethods": {
+            "fetchOHLCV": "temporary unavailable error",
+            "fetchCurrencies": "info key missing"
+        }
+    },
+    "bitstamp": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchOrderBook": "bid/ask might be 0",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "bitstamp1": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value",
+            "fetchCurrencies": "info key missing",
+            "fetchOrderBook": "bid/ask might be 0",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "bl3p": {
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value",
+            "fetchCurrencies": "info key missing",
+            "fetchTrades": "side is undefined"
+        }
+    },
+    "bitvavo": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "precision is undefined"
+        }
+    },
+    "blockchaincom": {
+        "skip": "503 Service Unavailable",
+        "skipMethods": {
+            "loadMarkets": "taker key is missing from structure",
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "open might be 0",
+            "fetchTicker": "same",
+            "fetchOrderBook": "bid should be greater than next bid",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "bkex": {
+        "skipMethods": {
+            "fetchCurrencies": "precision is undefined",
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same",
+            "fetchOHLCV": "open might be greater than high"
+        },
+		"skip": "request timeout"
+    },
+    "bittrex": {
+		"skip": "request timeout",
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "bid might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "btcbox": {
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value",
+            "fetchCurrencies": "info key is missing"
+        }
+    },
+    "btcex": {
+        "skipWs": true
+    },
+    "btcalpha": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same",
+            "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "btcturk": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing"
+        }
+    },
+    "btcmarkets": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "high might be set to 0",
+            "fetchOrderBook": "bid should be greater than next bid",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "btctradeua": {
+        "skip": true,
+        "//": "25/04 exchange not available",
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value",
+            "fetchCurrencies": "info key is missing",
+            "fetchOrderBook": "bid should be greater than next bid",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "bybit": {
+        "skipPhpAsync": true,
+        "//": "missing php async proxy",
+        "skipMethods": {
+            "fetchTickers": "returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT",
+            "fetchTicker": "same"
+        }
+    },
+    "coincheck": {
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value",
+            "fetchCurrencies": "info key is missing"
+        }
+    },
+    "coinbase": {
+        "skipMethods": {
+            "fetchCurrencies": "precision is undefined",
+            "fetchTickers": "close might be 0",
+            "fetchTicker": "same",
+            "fetchTrades": "datetime is not same as timestamp"
+        },
+        "skip": "private endpoints"
+    },
+    "coinbasepro": {
+		"skipPhpAsync":true,
+        "skipMethods": {
+            "fetchStatus": "request timeout"
+        }
+    },
+    "coinbaseprime": {
+		"skipPhpAsync":true,
+        "skipMethods": {
+            "fetchStatus": "request timeout"
+        }
+    },
+    "coinspot": {
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from options, so needs to fill with default values in base)",
+            "fetchCurrencies": "info is undefined"
+        }
+    },
+    "coinone": {
+        "skipMethods": {
+            "fetchCurrencies": "info is undefined",
+            "fetchTickers": "close might be 0"
+        }
+    },
+    "buda": { 
+        "skip": "forbidden location"
+    },
+    "cdax": {
+        "skipWs": true
+    },
+    "cex": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchOHLCV": "unexpected issue",
+            "fetchCurrencies": "min is negative",
+            "fetchTickers": "high might be set to 0"
+        }
+    },
+    "coinfalcon": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "coinex": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "coinmate": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchOrderBook": "ask should be less than next ask",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "cryptocom": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "max is less than min",
+            "fetchTickers": "timestamp might be of 1970-01-01T00:00:00.000Z",
+            "fetchTicker": "same"
+    }
+    },
+    "currencycom": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "unexpected market type",
+            "fetchTickers": "quoteVolume >= baseVolume * low  is incorrect",
+            "fetchTicker": "same"
+        }
+    },
+    "delta": {
+        "skipMethods": {
+            "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
+            "fetchTickers": "quoteVolume >= baseVolume * low is incorrect, also quoteVolume <= baseVolume * high",
+            "fetchTicker": "same"
+        }
+    },
+    "deribit": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": "strike is set when option is not true",
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "close key is undefined",
+            "fetchTicker": "same"
+        }
+    },
+    "flowbtc": {
+        "skipMethods": {
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same",
+            "fetchTrades": "timestamp is more than current utc timestamp",
+            "fetchOHLCV": "same"
+        }
+    },
+    "fmfwio": {
+        "skipMethods": {
+            "fetchTickers": " close key has an null value, but is expected to have a value",
+            "fetchTicker": "same"
+        }
+    },
+    "gemini": {
+        "skip": "temporary outage till 2023-04-22",
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "close might be 0",
+            "fetchTicker": "same"
+        }
+    },
+    "digifinex": {
+        "skipMethods": {
+            "fetchCurrencies": "precision should be above 0",
+            "fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
+            "fetchTicker": "same"
+        }
+    },
+    "gate": {
+        "skipMethods": {
+            "loadMarkets": "max should be above min",
+            "fetchTrades": "timestamp is in decimal seconds like 1234567890.123",
+            "fetchTickers": "high might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "hitbtc": {
+        "skipMethods": {
+            "fetchTickers": "close is undefined",
+            "fetchTicker": "same"
+        }
+    },
+    "hitbtc3": {
+        "skipMethods": {
+            "fetchTickers": "close is undefined",
+            "fetchTicker": "same"
+        }
+    },
+    "hollaex": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": " open is expected to be > 0",
+            "fetchTicker": "same"
+        }
+    },
+    "huobi": {
+		"skipPhpAsync": true,
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "precision is undefined",
+            "fetchTickers": "open might be set to 0 (i.e. f1f2x8z9 symbol), also quoteVolume >= baseVolume * low is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "huobijp": {
+        "skip": "trade object does not include fee/s, causing many methods test to fail",
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "quoteVolume <= baseVolume * high is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "kraken": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "stex": {
+        "skipMethods": {
+            "fetchTickers": "quoteVolume >= baseVolume * low is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "probit": {
+		"skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "quoteVolume >= baseVolume * low is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "huobipro": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "precision is undefined"
+        }
+    },
+    "idex": {
+		"skip": "rate limit exceeded",
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "close key is undefined",
+            "fetchTicker": "same"
+        }
+    },
+    "itbit": {
+        "skip": "endpoints return 'no healthy upstream', as of 27 apr 2023",
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value",
+            "fetchCurrencies": "info key is missing",
+            "fetchOrderBook": "bid should be greater than next bid",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "indodax": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing"
+        }
+    },
+    "independentreserve": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTrades": "side is undefined",
+            "fetchOrderBook": "bid should be greater than next bid",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "kuna": {
+        "skip": "403 forbidden"
+    },
+    "kucoin": {
+        "skipMethods": {
+            "fetchTickers": "ask might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "kucoinfutures": {
+        "skipWs": true
+    },
+    "luno": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchOrderBook": "bid should be greater than next bid",
+            "fetchL2OrderBook": "same",
+            "fetchTickers": "ask might be 0",
+            "fetchTicker": "same"
+        }
+    },
+    "lbank": {
+        "skip": "nothing returned, probably temporary issue",
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "quoteVolume >= baseVolume * low is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "lbank2": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "quoteVolume >= baseVolume * low is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "lykke": {
+        "skipMethods": {
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same",
+            "fetchOrderBook": "bid should be greater than next bid",
+            "fetchL2OrderBook": "same"
+        }
+    },
+    "latoken": {
+        "skipMethods": {
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "mercado": {
+        "skipMethods": {
+            "fetchOrderBook": "bid > ask",
+            "fetchL2OrderBook": "bid > ask",
+            "fetchTickers": "bid > ask",
+            "fetchTicker": "bid > ask",
+            "fetchCurrencies": "info key is missing"
+        }
+    },
+    "novadax": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "quoteVolume >= baseVolume * low is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "ndax": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "mexc": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTrades": "side key is expected to be one from: [buy,sell]",
+            "fetchTickers": "ask might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "mexc3": {
+        "skipMethods": {
+            "fetchTrades": "side is not buy/sell",
+            "fetchTickers": "quoteVolume >= baseVolume * low  is incorrect"
+        }
+    },
+    "oceanex": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchOrderBooks": "fetchOrderBooks returned 0 length",
+            "fetchTickers": "high might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "paymium": {
+        "skipMethods": {
+            "loadMarkets": "precision key has an null value, but is expected to have a value",
+            "fetchTickers": "quoteVolume >= baseVolume * low does not get true",
+            "fetchTicker": "same",
+            "fetchCurrencies": "info key is missing from structure <<< paymium fetchCurrencie"
+        }
+    },
+    "phemex": {
+        "skipMethods": {
+            "loadMarkets": "contractSize might be set to 0",
+            "fetchTickers": "quoteVolume <= baseVolume * high"
+        }
+    },
+    "okcoin": {
+        "skip": "502 Bad Gateway, probably location restricted, or might be temporary",
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "quoteVolume <= baseVolume * high is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "exmo": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTickers": "quoteVolume <= baseVolume * high is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "poloniex": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "precision is undefined",
+            "fetchTrades": "side is undefined",
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same"
+        }
+    },
+    "okx": {
+        "skipMethods": {
+            "loadMarkets": "linear & inverse must not be same"
+        }
+    },
+    "tidex": {
+        "skip": "exchange does not seem to respond"
+    },
+    "krakenfutures": {
+        "skipMethods": {
+            "loadMarkets": "type is unexpected",
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "close is undefined",
+            "fetchTicker": "same"
+        }
+    },
+    "upbit": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "quoteVolume <= baseVolume * high is failing",
+            "fetchTicker": "same"
+        }
+    },
+    "ripio": {
+        "skip": "503 Service Unavailable, might be location issue",
+        "skipWs": true
+    },
+    "timex": {
+        "skipMethods": {
+            "fetchTrades": "fees key is missing from structure",
+            "fetchTickers": "close might be undefined",
+            "fetchTicker": "same"
+        }
+    },
+    "whitebit": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchCurrencies": "precision is undefined",
+            "fetchTickers": "close might be undefined",
+            "fetchTicker": "same"
+        }
+    },
+    "wavesexchange": {
+        "skipMethods": {
+            "loadMarkets": "missing key",
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "open might be set to 0",
+            "fetchTicker": "same",
+            "fetchOHLCV": "index 1 (open price) is undefined"
+        }
+    },
+	"woo": {
+		"skipPhpAsync": true
+	},
+    "wazirx": {
+        "skip":"ratelimit exceeded",
+        "skipWs": true
+    },
+    "zaif": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing"
+        }
+    },
+    "zonda": {
+        "skipMethods": {
+            "fetchCurrencies": "info key is missing",
+            "fetchTickers": "close might be undefined",
+            "fetchTicker": "same"
+        }
+    },
+    "zb": {
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTrades": "[KeyError] 'pageNum' ",
+            "fetchCurrencies": "precision is undefined",
+            "fetchTickers": "open might be 0",
+            "fetchTicker": "same"
+        }
+    },
+    "yobit": {
+        "skipMethods": {
+            "fetchTickers": "all tickers request exceedes max url length",
+            "fetchCurrencies": "info key is missing"
+        }
+    },
+    "zipmex": {
+        "skipWs": true
+    },
+    "xt": {
+        "skipMethods": {
+            "fetchTickers": "some outaded contracts, eg RICHARLISONGBALL2022/USDT:USDT-221219 return bid > ask"
+        }
+    }
+}

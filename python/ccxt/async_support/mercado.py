@@ -5,6 +5,8 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.types import OrderSide
+from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
@@ -63,7 +65,7 @@ class mercado(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -93,7 +95,6 @@ class mercado(Exchange):
                 'doc': [
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
-                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ],
             },
             'api': {
@@ -190,7 +191,6 @@ class mercado(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             id = quote + base
-            priceLimit = '1e-5'
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -216,8 +216,8 @@ class mercado(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number('0.00001'),
+                    'amount': self.parse_number('1e-8'),
+                    'price': self.parse_number('1e-5'),
                 },
                 'limits': {
                     'leverage': {
@@ -229,7 +229,7 @@ class mercado(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': self.parse_number('1e-5'),
                         'max': None,
                     },
                     'cost': {
@@ -241,13 +241,13 @@ class mercado(Exchange):
             })
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -296,12 +296,12 @@ class mercado(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -357,7 +357,7 @@ class mercado(Exchange):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -374,7 +374,7 @@ class mercado(Exchange):
         }
         if since is not None:
             method += 'From'
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
         to = self.safe_integer(params, 'to')
         if to is not None:
             method += 'To'
@@ -407,7 +407,7 @@ class mercado(Exchange):
         response = await self.privatePostGetAccountInfo(params)
         return self.parse_balance(response)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -416,7 +416,7 @@ class mercado(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -438,18 +438,18 @@ class mercado(Exchange):
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
         response = await getattr(self, method)(self.extend(request, params))
         # TODO: replace self with a call to parseOrder for unification
-        return {
+        return self.safe_order({
             'info': response,
             'id': str(response['response_data']['order']['order_id']),
-        }
+        }, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -555,6 +555,7 @@ class mercado(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': average,
             'amount': amount,
@@ -565,12 +566,12 @@ class mercado(Exchange):
             'trades': rawTrades,
         }, market)
 
-    async def fetch_order(self, id, symbol=None, params={}):
+    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -585,7 +586,7 @@ class mercado(Exchange):
         order = self.safe_value(responseData, 'order')
         return self.parse_order(order, market)
 
-    async def withdraw(self, code, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -593,7 +594,7 @@ class mercado(Exchange):
         :param str address: the address to withdraw to
         :param str|None tag:
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -681,7 +682,7 @@ class mercado(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None):
         return [
-            self.safe_timestamp(ohlcv, 0),
+            self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
@@ -689,7 +690,7 @@ class mercado(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='15m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -697,18 +698,18 @@ class mercado(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
         if limit is None:
-            limit = 100  # set some default limit, as it's required if user doesn't provide it
+            limit = 100  # set some default limit,'s required if user doesn't provide it
         if since is not None:
-            request['from'] = int(since / 1000)
+            request['from'] = self.parse_to_int(since / 1000)
             request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
         else:
             request['to'] = self.seconds()
@@ -717,14 +718,14 @@ class mercado(Exchange):
         candles = self.convert_trading_view_to_ohlcv(response, 't', 'o', 'h', 'l', 'c', 'v')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -738,14 +739,14 @@ class mercado(Exchange):
         orders = self.safe_value(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -760,14 +761,14 @@ class mercado(Exchange):
         orders = self.safe_value(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -817,7 +818,7 @@ class mercado(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         #
         # todo add a unified standard handleErrors with self.exceptions in describe()
         #
@@ -826,3 +827,4 @@ class mercado(Exchange):
         errorMessage = self.safe_value(response, 'error_message')
         if errorMessage is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
+        return None
