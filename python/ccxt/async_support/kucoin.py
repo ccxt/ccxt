@@ -1829,8 +1829,11 @@ class kucoin(Exchange):
         stopTriggered = self.safe_value(order, 'stopTriggered', False)
         isActive = self.safe_value(order, 'isActive')
         status = None
-        if isActive is True:
-            status = 'open'
+        if isActive is not None:
+            if isActive is True:
+                status = 'open'
+            else:
+                status = 'closed'
         if stop:
             responseStatus = self.safe_string(order, 'status')
             if responseStatus == 'NEW':

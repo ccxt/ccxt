@@ -1887,8 +1887,12 @@ class kucoin extends Exchange {
         $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
         $isActive = $this->safe_value($order, 'isActive');
         $status = null;
-        if ($isActive === true) {
-            $status = 'open';
+        if ($isActive !== null) {
+            if ($isActive === true) {
+                $status = 'open';
+            } else {
+                $status = 'closed';
+            }
         }
         if ($stop) {
             $responseStatus = $this->safe_string($order, 'status');

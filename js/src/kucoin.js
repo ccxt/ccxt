@@ -1914,8 +1914,13 @@ export default class kucoin extends Exchange {
         const stopTriggered = this.safeValue(order, 'stopTriggered', false);
         const isActive = this.safeValue(order, 'isActive');
         let status = undefined;
-        if (isActive === true) {
-            status = 'open';
+        if (isActive !== undefined) {
+            if (isActive === true) {
+                status = 'open';
+            }
+            else {
+                status = 'closed';
+            }
         }
         if (stop) {
             const responseStatus = this.safeString(order, 'status');
