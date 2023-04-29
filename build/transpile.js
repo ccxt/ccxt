@@ -960,7 +960,12 @@ class Transpiler {
 
         let bodyAsString = body.join ("\n")
 
+        const isAlias = bodyAsString.match ("'alias': true")
+        
         let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async' : 'ccxt')
+        if (isAlias && async) {
+            header = this.createPHPClassHeader (className, baseClass, bodyAsString, 'ccxt\\pro')
+        }    
 
         const errorImports = []
 
