@@ -70,7 +70,7 @@ export default class huobijp extends Exchange {
         status: any;
         symbol: string;
         type: any;
-        side: OrderSide;
+        side: string;
         price: any;
         amount: any;
         filled: any;
