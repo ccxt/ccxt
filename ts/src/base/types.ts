@@ -198,6 +198,6 @@ export type IndexType = number | string;
 
 export type Int = number;
 
-export type OrderSide = 'buy' | 'sell';
+export type OrderSide = 'buy' | 'sell' | string;
 
-export type OrderType = 'limit' | 'market';
+export type OrderType = 'limit' | 'market' | string;
