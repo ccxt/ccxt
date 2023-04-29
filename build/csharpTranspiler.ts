@@ -359,7 +359,7 @@ class NewTranspiler {
     createExchangesWrappers(): string[] {
         // in csharp classes should be Capitalized, so I'm creating a wrapper class for each exchange
         const res: string[] = ['// class wrappers'];
-        exchanges.forEach(exchange => {
+        exchangeIds.forEach(exchange => {
             const capitalizedExchange = exchange.charAt(0).toUpperCase() + exchange.slice(1);
             res.push(`public class ${capitalizedExchange.replace('.ts','')} : ${exchange.replace('.ts','')} { }`)
         });
