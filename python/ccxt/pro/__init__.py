@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '3.0.82'
+__version__ = '3.0.83'
 
 # ----------------------------------------------------------------------------
 
@@ -62,7 +62,6 @@ from ccxt.pro.okex import okex                                            # noqa
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
-from ccxt.pro.ripio import ripio                                          # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
@@ -119,7 +118,6 @@ exchanges = [
     'okx',
     'phemex',
     'probit',
-    'ripio',
     'upbit',
     'wazirx',
     'whitebit',

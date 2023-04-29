@@ -83,7 +83,7 @@ class binance extends binance$1 {
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPosition': undefined,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -6836,6 +6836,166 @@ class binance extends binance$1 {
         }
         return tiers;
     }
+    async fetchPosition(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchPosition
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+         * @description fetch data on an open position
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['option']) {
+            throw new errors.NotSupported(this.id + ' fetchPosition() supports option markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.eapiPrivateGetPosition(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "entryPrice": "27.70000000",
+        //             "symbol": "ETH-230426-1850-C",
+        //             "side": "LONG",
+        //             "quantity": "0.50000000",
+        //             "reducibleQty": "0.50000000",
+        //             "markValue": "10.250000000",
+        //             "ror": "-0.2599",
+        //             "unrealizedPNL": "-3.600000000",
+        //             "markPrice": "20.5",
+        //             "strikePrice": "1850.00000000",
+        //             "positionCost": "13.85000000",
+        //             "expiryDate": 1682496000000,
+        //             "priceScale": 1,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "quoteAsset": "USDT",
+        //             "time": 1682492427106
+        //         }
+        //     ]
+        //
+        return this.parsePosition(response[0], market);
+    }
+    async fetchOptionPositions(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchOptionPositions
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+         * @description fetch data on open options positions
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const request = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            let symbol = undefined;
+            if (Array.isArray(symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new errors.BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            }
+            else {
+                symbol = symbols;
+            }
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.eapiPrivateGetPosition(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "entryPrice": "27.70000000",
+        //             "symbol": "ETH-230426-1850-C",
+        //             "side": "LONG",
+        //             "quantity": "0.50000000",
+        //             "reducibleQty": "0.50000000",
+        //             "markValue": "10.250000000",
+        //             "ror": "-0.2599",
+        //             "unrealizedPNL": "-3.600000000",
+        //             "markPrice": "20.5",
+        //             "strikePrice": "1850.00000000",
+        //             "positionCost": "13.85000000",
+        //             "expiryDate": 1682496000000,
+        //             "priceScale": 1,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "quoteAsset": "USDT",
+        //             "time": 1682492427106
+        //         }
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            result.push(this.parsePosition(response[i], market));
+        }
+        return this.filterByArray(result, 'symbol', symbols, false);
+    }
+    parsePosition(position, market = undefined) {
+        //
+        //     {
+        //         "entryPrice": "27.70000000",
+        //         "symbol": "ETH-230426-1850-C",
+        //         "side": "LONG",
+        //         "quantity": "0.50000000",
+        //         "reducibleQty": "0.50000000",
+        //         "markValue": "10.250000000",
+        //         "ror": "-0.2599",
+        //         "unrealizedPNL": "-3.600000000",
+        //         "markPrice": "20.5",
+        //         "strikePrice": "1850.00000000",
+        //         "positionCost": "13.85000000",
+        //         "expiryDate": 1682496000000,
+        //         "priceScale": 1,
+        //         "quantityScale": 2,
+        //         "optionSide": "CALL",
+        //         "quoteAsset": "USDT",
+        //         "time": 1682492427106
+        //     }
+        //
+        const marketId = this.safeString(position, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
+        const side = this.safeStringLower(position, 'side');
+        let quantity = this.safeString(position, 'quantity');
+        if (side !== 'long') {
+            quantity = Precise["default"].stringMul('-1', quantity);
+        }
+        const timestamp = this.safeInteger(position, 'time');
+        return this.safePosition({
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'entryPrice': this.safeNumber(position, 'entryPrice'),
+            'markPrice': this.safeNumber(position, 'markPrice'),
+            'notional': this.safeNumber(position, 'markValue'),
+            'collateral': this.safeNumber(position, 'positionCost'),
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedPNL'),
+            'side': side,
+            'contracts': this.parseNumber(quantity),
+            'contractSize': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'hedged': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'liquidationPrice': undefined,
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        });
+    }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
          * @method
@@ -6852,8 +7012,11 @@ class binance extends binance$1 {
         else if (defaultMethod === 'account') {
             return await this.fetchAccountPositions(symbols, params);
         }
+        else if (defaultMethod === 'option') {
+            return await this.fetchOptionPositions(symbols, params);
+        }
         else {
-            throw new errors.NotSupported(this.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"');
+            throw new errors.NotSupported(this.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
         }
     }
     async fetchAccountPositions(symbols = undefined, params = {}) {

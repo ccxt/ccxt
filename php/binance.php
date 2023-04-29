@@ -83,7 +83,7 @@ class binance extends Exchange {
                 'fetchOrderBooks' => false,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => null,
+                'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,
@@ -912,7 +912,7 @@ class binance extends Exchange {
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
                 'throwMarginModeAlreadySet' => false,
-                'fetchPositions' => 'positionRisk', // or 'account'
+                'fetchPositions' => 'positionRisk', // or 'account' or 'option'
                 'recvWindow' => 10 * 1000, // 10 sec
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
@@ -6682,6 +6682,164 @@ class binance extends Exchange {
         return $tiers;
     }
 
+    public function fetch_position(string $symbol, $params = array ()) {
+        /**
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+         * fetch data on an open position
+         * @param {string} $symbol unified $market $symbol of the $market the position is held in
+         * @param {array} $params extra parameters specific to the binance api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['option']) {
+            throw new NotSupported($this->id . ' fetchPosition() supports option markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->eapiPrivateGetPosition (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "entryPrice" => "27.70000000",
+        //             "symbol" => "ETH-230426-1850-C",
+        //             "side" => "LONG",
+        //             "quantity" => "0.50000000",
+        //             "reducibleQty" => "0.50000000",
+        //             "markValue" => "10.250000000",
+        //             "ror" => "-0.2599",
+        //             "unrealizedPNL" => "-3.600000000",
+        //             "markPrice" => "20.5",
+        //             "strikePrice" => "1850.00000000",
+        //             "positionCost" => "13.85000000",
+        //             "expiryDate" => 1682496000000,
+        //             "priceScale" => 1,
+        //             "quantityScale" => 2,
+        //             "optionSide" => "CALL",
+        //             "quoteAsset" => "USDT",
+        //             "time" => 1682492427106
+        //         }
+        //     )
+        //
+        return $this->parse_position($response[0], $market);
+    }
+
+    public function fetch_option_positions(?array $symbols = null, $params = array ()) {
+        /**
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+         * fetch data on open options positions
+         * @param {[string]|null} $symbols list of unified $market $symbols
+         * @param {array} $params extra parameters specific to the binance api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = null;
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 1) {
+                    throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
+                }
+                $symbol = $symbols[0];
+            } else {
+                $symbol = $symbols;
+            }
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->eapiPrivateGetPosition (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "entryPrice" => "27.70000000",
+        //             "symbol" => "ETH-230426-1850-C",
+        //             "side" => "LONG",
+        //             "quantity" => "0.50000000",
+        //             "reducibleQty" => "0.50000000",
+        //             "markValue" => "10.250000000",
+        //             "ror" => "-0.2599",
+        //             "unrealizedPNL" => "-3.600000000",
+        //             "markPrice" => "20.5",
+        //             "strikePrice" => "1850.00000000",
+        //             "positionCost" => "13.85000000",
+        //             "expiryDate" => 1682496000000,
+        //             "priceScale" => 1,
+        //             "quantityScale" => 2,
+        //             "optionSide" => "CALL",
+        //             "quoteAsset" => "USDT",
+        //             "time" => 1682492427106
+        //         }
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $result[] = $this->parse_position($response[$i], $market);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "entryPrice" => "27.70000000",
+        //         "symbol" => "ETH-230426-1850-C",
+        //         "side" => "LONG",
+        //         "quantity" => "0.50000000",
+        //         "reducibleQty" => "0.50000000",
+        //         "markValue" => "10.250000000",
+        //         "ror" => "-0.2599",
+        //         "unrealizedPNL" => "-3.600000000",
+        //         "markPrice" => "20.5",
+        //         "strikePrice" => "1850.00000000",
+        //         "positionCost" => "13.85000000",
+        //         "expiryDate" => 1682496000000,
+        //         "priceScale" => 1,
+        //         "quantityScale" => 2,
+        //         "optionSide" => "CALL",
+        //         "quoteAsset" => "USDT",
+        //         "time" => 1682492427106
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $side = $this->safe_string_lower($position, 'side');
+        $quantity = $this->safe_string($position, 'quantity');
+        if ($side !== 'long') {
+            $quantity = Precise::string_mul('-1', $quantity);
+        }
+        $timestamp = $this->safe_integer($position, 'time');
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $symbol,
+            'entryPrice' => $this->safe_number($position, 'entryPrice'),
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'notional' => $this->safe_number($position, 'markValue'),
+            'collateral' => $this->safe_number($position, 'positionCost'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedPNL'),
+            'side' => $side,
+            'contracts' => $this->parse_number($quantity),
+            'contractSize' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'hedged' => null,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'liquidationPrice' => null,
+            'marginRatio' => null,
+            'marginMode' => null,
+            'percentage' => null,
+        ));
+    }
+
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
@@ -6694,8 +6852,10 @@ class binance extends Exchange {
             return $this->fetch_positions_risk($symbols, $params);
         } elseif ($defaultMethod === 'account') {
             return $this->fetch_account_positions($symbols, $params);
+        } elseif ($defaultMethod === 'option') {
+            return $this->fetch_option_positions($symbols, $params);
         } else {
-            throw new NotSupported($this->id . '.options["fetchPositions"] = "' . $defaultMethod . '" is invalid, please choose between "account" and "positionRisk"');
+            throw new NotSupported($this->id . '.options["fetchPositions"] = "' . $defaultMethod . '" is invalid, please choose between "account", "positionRisk" and "option"');
         }
     }
 

@@ -110,7 +110,7 @@ class binance(Exchange):
                 'fetchOrderBooks': False,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
-                'fetchPosition': None,
+                'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': False,
@@ -939,7 +939,7 @@ class binance(Exchange):
                 # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 # binanceusdm
                 'throwMarginModeAlreadySet': False,
-                'fetchPositions': 'positionRisk',  # or 'account'
+                'fetchPositions': 'positionRisk',  # or 'account' or 'option'
                 'recvWindow': 10 * 1000,  # 10 sec
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -6344,6 +6344,155 @@ class binance(Exchange):
             })
         return tiers
 
+    def fetch_position(self, symbol: str, params={}):
+        """
+        see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+        fetch data on an open position
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['option']:
+            raise NotSupported(self.id + ' fetchPosition() supports option markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.eapiPrivateGetPosition(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "entryPrice": "27.70000000",
+        #             "symbol": "ETH-230426-1850-C",
+        #             "side": "LONG",
+        #             "quantity": "0.50000000",
+        #             "reducibleQty": "0.50000000",
+        #             "markValue": "10.250000000",
+        #             "ror": "-0.2599",
+        #             "unrealizedPNL": "-3.600000000",
+        #             "markPrice": "20.5",
+        #             "strikePrice": "1850.00000000",
+        #             "positionCost": "13.85000000",
+        #             "expiryDate": 1682496000000,
+        #             "priceScale": 1,
+        #             "quantityScale": 2,
+        #             "optionSide": "CALL",
+        #             "quoteAsset": "USDT",
+        #             "time": 1682492427106
+        #         }
+        #     ]
+        #
+        return self.parse_position(response[0], market)
+
+    def fetch_option_positions(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+        fetch data on open options positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {}
+        market = None
+        if symbols is not None:
+            symbol = None
+            if isinstance(symbols, list):
+                symbolsLength = len(symbols)
+                if symbolsLength > 1:
+                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
+                symbol = symbols[0]
+            else:
+                symbol = symbols
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.eapiPrivateGetPosition(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "entryPrice": "27.70000000",
+        #             "symbol": "ETH-230426-1850-C",
+        #             "side": "LONG",
+        #             "quantity": "0.50000000",
+        #             "reducibleQty": "0.50000000",
+        #             "markValue": "10.250000000",
+        #             "ror": "-0.2599",
+        #             "unrealizedPNL": "-3.600000000",
+        #             "markPrice": "20.5",
+        #             "strikePrice": "1850.00000000",
+        #             "positionCost": "13.85000000",
+        #             "expiryDate": 1682496000000,
+        #             "priceScale": 1,
+        #             "quantityScale": 2,
+        #             "optionSide": "CALL",
+        #             "quoteAsset": "USDT",
+        #             "time": 1682492427106
+        #         }
+        #     ]
+        #
+        result = []
+        for i in range(0, len(response)):
+            result.append(self.parse_position(response[i], market))
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "entryPrice": "27.70000000",
+        #         "symbol": "ETH-230426-1850-C",
+        #         "side": "LONG",
+        #         "quantity": "0.50000000",
+        #         "reducibleQty": "0.50000000",
+        #         "markValue": "10.250000000",
+        #         "ror": "-0.2599",
+        #         "unrealizedPNL": "-3.600000000",
+        #         "markPrice": "20.5",
+        #         "strikePrice": "1850.00000000",
+        #         "positionCost": "13.85000000",
+        #         "expiryDate": 1682496000000,
+        #         "priceScale": 1,
+        #         "quantityScale": 2,
+        #         "optionSide": "CALL",
+        #         "quoteAsset": "USDT",
+        #         "time": 1682492427106
+        #     }
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        side = self.safe_string_lower(position, 'side')
+        quantity = self.safe_string(position, 'quantity')
+        if side != 'long':
+            quantity = Precise.string_mul('-1', quantity)
+        timestamp = self.safe_integer(position, 'time')
+        return self.safe_position({
+            'info': position,
+            'id': None,
+            'symbol': symbol,
+            'entryPrice': self.safe_number(position, 'entryPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'notional': self.safe_number(position, 'markValue'),
+            'collateral': self.safe_number(position, 'positionCost'),
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPNL'),
+            'side': side,
+            'contracts': self.parse_number(quantity),
+            'contractSize': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'hedged': None,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': None,
+            'liquidationPrice': None,
+            'marginRatio': None,
+            'marginMode': None,
+            'percentage': None,
+        })
+
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
@@ -6356,8 +6505,10 @@ class binance(Exchange):
             return self.fetch_positions_risk(symbols, params)
         elif defaultMethod == 'account':
             return self.fetch_account_positions(symbols, params)
+        elif defaultMethod == 'option':
+            return self.fetch_option_positions(symbols, params)
         else:
-            raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
+            raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"')
 
     def fetch_account_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
