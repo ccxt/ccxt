@@ -152,6 +152,7 @@ class zaif extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
              * retrieves data on all $markets for zaif
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing $market data
@@ -273,6 +274,7 @@ class zaif extends Exchange {
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} $params extra parameters specific to the zaif api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
@@ -286,6 +288,7 @@ class zaif extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -347,6 +350,7 @@ class zaif extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the zaif api endpoint
@@ -414,6 +418,7 @@ class zaif extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
@@ -453,6 +458,7 @@ class zaif extends Exchange {
     public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type must be 'limit'
@@ -484,6 +490,7 @@ class zaif extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
              * cancels an open order
              * @param {string} $id order $id
              * @param {string|null} $symbol not used by zaif cancelOrder ()
@@ -545,6 +552,7 @@ class zaif extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
              * fetch all unfilled currently open orders
              * @param {string|null} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch open orders for
@@ -570,6 +578,7 @@ class zaif extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
              * fetches information on multiple closed orders made by the user
              * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
              * @param {int|null} $since the earliest time in ms to fetch orders for
@@ -601,6 +610,7 @@ class zaif extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
+             * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
              * make a withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
