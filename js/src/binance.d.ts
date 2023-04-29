@@ -361,6 +361,9 @@ export default class binance extends Exchange {
     loadLeverageBrackets(reload?: boolean, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
+    fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchOptionPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): any;
     fetchPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchAccountPositions(symbols?: string[], params?: {}): Promise<any>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<any>;

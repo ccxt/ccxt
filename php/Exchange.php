@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.82';
+$version = '3.0.83';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.82';
+    const VERSION = '3.0.83';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -371,7 +371,6 @@ class Exchange {
         'btcmarkets',
         'btctradeua',
         'btcturk',
-        'buda',
         'bybit',
         'cex',
         'coinbase',
@@ -390,7 +389,6 @@ class Exchange {
         'deribit',
         'digifinex',
         'exmo',
-        'flowbtc',
         'fmfwio',
         'gate',
         'gateio',
@@ -404,7 +402,6 @@ class Exchange {
         'idex',
         'independentreserve',
         'indodax',
-        'itbit',
         'kraken',
         'krakenfutures',
         'kucoin',
@@ -430,7 +427,6 @@ class Exchange {
         'poloniex',
         'poloniexfutures',
         'probit',
-        'ripio',
         'stex',
         'tidex',
         'timex',

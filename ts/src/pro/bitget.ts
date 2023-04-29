@@ -588,7 +588,7 @@ export default class bitget extends bitgetRest {
         let market = undefined;
         let marketId = undefined;
         let messageHash = 'order';
-        const subscriptionHash = 'order:trades';
+        let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -604,6 +604,7 @@ export default class bitget extends bitgetRest {
         let instType = undefined;
         if (type === 'spot') {
             instType = 'spbl';
+            subscriptionHash = subscriptionHash + ':' + symbol;
         } else {
             if (!sandboxMode) {
                 instType = 'UMCBL';

@@ -607,6 +607,7 @@ class bitget extends \ccxt\async\bitget {
             $instType = null;
             if ($type === 'spot') {
                 $instType = 'spbl';
+                $subscriptionHash = $subscriptionHash . ':' . $symbol;
             } else {
                 if (!$sandboxMode) {
                     $instType = 'UMCBL';

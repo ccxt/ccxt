@@ -563,6 +563,7 @@ class bitget(ccxt.async_support.bitget):
         instType = None
         if type == 'spot':
             instType = 'spbl'
+            subscriptionHash = subscriptionHash + ':' + symbol
         else:
             if not sandboxMode:
                 instType = 'UMCBL'
