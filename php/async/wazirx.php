@@ -158,6 +158,7 @@ class wazirx extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://docs.wazirx.com/#exchange-info
              * retrieves data on all $markets for wazirx
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing $market data
@@ -272,6 +273,7 @@ class wazirx extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://docs.wazirx.com/#kline-candlestick-data
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
@@ -326,6 +328,7 @@ class wazirx extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://docs.wazirx.com/#order-book
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -362,6 +365,7 @@ class wazirx extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://docs.wazirx.com/#24hr-$ticker-price-change-statistics
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the wazirx api endpoint
@@ -395,6 +399,7 @@ class wazirx extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://docs.wazirx.com/#24hr-$tickers-price-change-statistics
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the wazirx api endpoint
@@ -433,6 +438,7 @@ class wazirx extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.wazirx.com/#recent-trades-list
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
@@ -504,6 +510,7 @@ class wazirx extends Exchange {
     public function fetch_status($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://docs.wazirx.com/#system-$status
              * the latest known information on the availability of the exchange API
              * @param {array} $params extra parameters specific to the wazirx api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
@@ -529,6 +536,7 @@ class wazirx extends Exchange {
     public function fetch_time($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://docs.wazirx.com/#check-server-time
              * fetches the current integer timestamp in milliseconds from the exchange server
              * @param {array} $params extra parameters specific to the wazirx api endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -611,6 +619,7 @@ class wazirx extends Exchange {
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://docs.wazirx.com/#fund-details-user_data
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} $params extra parameters specific to the wazirx api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
@@ -633,6 +642,7 @@ class wazirx extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.wazirx.com/#all-$orders-user_data
              * fetches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
@@ -693,6 +703,7 @@ class wazirx extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.wazirx.com/#current-open-$orders-user_data
              * fetch all unfilled currently open $orders
              * @param {string|null} $symbol unified $market $symbol
              * @param {int|null} $since the earliest time in ms to fetch open $orders for
@@ -743,6 +754,7 @@ class wazirx extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://docs.wazirx.com/#cancel-all-open-orders-on-a-$symbol-trade
              * cancel all open orders in a $market
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} $params extra parameters specific to the wazirx api endpoint
@@ -763,6 +775,7 @@ class wazirx extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://docs.wazirx.com/#cancel-order-trade
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -786,6 +799,7 @@ class wazirx extends Exchange {
     public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
+             * @see https://docs.wazirx.com/#new-order-trade
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
