@@ -924,8 +924,9 @@ export default class phemex extends phemexRest {
             }
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const isUSDTSettled = this.safeString (params, 'settle') === 'USDT';
         if (symbol === undefined) {
-            messageHash = (params['settle'] === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
+            messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);
         }
         const orders = await this.subscribePrivate (type, messageHash, params);
         if (this.newUpdates) {
@@ -1522,6 +1523,6 @@ export default class phemex extends phemexRest {
             future = this.watch (url, messageHash, message);
             client.subscriptions[messageHash] = future;
         }
-        return future;
+        return await future;
     }
 }
