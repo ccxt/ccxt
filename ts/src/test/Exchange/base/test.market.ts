@@ -66,7 +66,7 @@ function testMarket (exchange, method, market) {
     if (market['contract']) {
         assert (market['linear'] !== market['inverse'], 'market linear and inverse must not be the same' + logText);
     } else {
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is true' + logText);
+        assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is false' + logText);
     }
     if (market['option']) {
         assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);

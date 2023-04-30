@@ -309,6 +309,8 @@ export default class lbank2 extends Exchange {
                 '3s': true,
                 '5s': true,
             };
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityAccuracy')));
+            const contractSize = amountPrecision;
             const ending = baseId.slice (-2);
             const isLeveragedProduct = this.safeValue (productTypes, ending, false);
             if (isLeveragedProduct) {
@@ -337,13 +339,13 @@ export default class lbank2 extends Exchange {
                 'contract': isLeveragedProduct,
                 'linear': linear, // all leveraged ETF products are in USDT
                 'inverse': undefined,
-                'contractSize': undefined,
+                'contractSize': isLeveragedProduct ? contractSize : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityAccuracy'))),
+                    'amount': amountPrecision,
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceAccuracy'))),
                 },
                 'limits': {
