@@ -5215,7 +5215,7 @@ class huobi extends Exchange {
             for ($j = 0; $j < count($currencies); $j++) {
                 $currency = $currencies[$j];
                 $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId, 'currency');
+                $code = $this->safe_currency_code($currencyId);
                 $symbolRates[$code] = array(
                     'currency' => $code,
                     'rate' => $this->safe_number($currency, 'actual-rate'),
@@ -5275,7 +5275,7 @@ class huobi extends Exchange {
             for ($j = 0; $j < count($currencies); $j++) {
                 $currency = $currencies[$j];
                 $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId, 'currency');
+                $code = $this->safe_currency_code($currencyId);
                 $rates[$code] = array(
                     'currency' => $code,
                     'rate' => $this->safe_number($currency, 'actual-rate'),

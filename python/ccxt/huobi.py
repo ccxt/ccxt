@@ -4944,7 +4944,7 @@ class huobi(Exchange):
             for j in range(0, len(currencies)):
                 currency = currencies[j]
                 currencyId = self.safe_string(currency, 'currency')
-                code = self.safe_currency_code(currencyId, 'currency')
+                code = self.safe_currency_code(currencyId)
                 symbolRates[code] = {
                     'currency': code,
                     'rate': self.safe_number(currency, 'actual-rate'),
@@ -5001,7 +5001,7 @@ class huobi(Exchange):
             for j in range(0, len(currencies)):
                 currency = currencies[j]
                 currencyId = self.safe_string(currency, 'currency')
-                code = self.safe_currency_code(currencyId, 'currency')
+                code = self.safe_currency_code(currencyId)
                 rates[code] = {
                     'currency': code,
                     'rate': self.safe_number(currency, 'actual-rate'),
