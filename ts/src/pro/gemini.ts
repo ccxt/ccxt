@@ -67,7 +67,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     parseWsTrade (trade, market = undefined) {
@@ -222,7 +222,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     handleOHLCV (client: Client, message) {
@@ -407,7 +407,7 @@ export default class gemini extends geminiRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleHeartbeat (client: Client, message) {

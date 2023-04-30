@@ -1556,7 +1556,7 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
-    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
+    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp'):
         array = self.to_array(array)
         if value is not None:
             array = [entry for entry in array if entry[field] == value]
@@ -1567,7 +1567,7 @@ class Exchange(object):
             array = array[-limit:] if ascending else array[:limit]
         return array
 
-    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
+    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp'):
         array = self.to_array(array)
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]

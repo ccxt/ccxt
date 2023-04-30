@@ -951,8 +951,7 @@ export default class whitebit extends Exchange {
                 results = this.arrayConcat (results, parsed);
             }
             results = this.sortBy2 (results, 'timestamp', 'id');
-            const tail = (since === undefined);
-            return this.filterBySinceLimit (results, since, limit, 'timestamp', tail) as any;
+            return this.filterBySinceLimit (results, since, limit, 'timestamp') as any;
         }
     }
 
