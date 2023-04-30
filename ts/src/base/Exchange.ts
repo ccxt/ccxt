@@ -1040,8 +1040,9 @@ export default class Exchange {
             array = array.filter ((entry) => entry[key] >= since)
         }
         if (limit !== undefined && limit !== null) {
-            array = this.sortBy (array, 'timestamp');
-            array = array.slice (-limit);
+            const arrayLength = array.length;
+            const ascending = 'timestamp' in array[0] && (array[0]['timestamp'] < array[arrayLength - 1]['timestamp']);  // true if array is sorted in ascending order based on 'timestamp'
+            array = ascending ? array.slice (-limit) : array.slice (0, limit);
         }
         return array
     }
@@ -1056,8 +1057,9 @@ export default class Exchange {
                  (sinceIsDefined ? (entry[key] >= since) : true)))
         }
         if (limit !== undefined && limit !== null) {
-            array = this.sortBy (array, 'timestamp');
-            array = array.slice (-limit); 
+            const arrayLength = array.length;
+            const ascending = 'timestamp' in array[0] && (array[0]['timestamp'] < array[arrayLength - 1]['timestamp']);  // true if array is sorted in ascending order based on 'timestamp'
+            array = ascending ? array.slice (-limit) : array.slice (0, limit);
         }
         return array
     }

@@ -1563,8 +1563,8 @@ class Exchange(object):
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
         if limit is not None:
-            array = self.sort_by(array, 'timestamp')
-            array = array[-limit:]
+            ascending = (len(array) > 0) and ('timestamp' in array[0]) and (array[0]['timestamp'] < array[len(array) - 1]['timestamp'])  # true if array is sorted in ascending order based on 'timestamp'
+            array = array[-limit:] if ascending else array[:limit]
         return array
 
     def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
@@ -1572,8 +1572,8 @@ class Exchange(object):
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
         if limit is not None:
-            array = self.sort_by(array, 'timestamp')
-            array = array[-limit:]
+            ascending = (len(array) > 0) and ('timestamp' in array[0]) and (array[0]['timestamp'] < array[len(array) - 1]['timestamp'])  # true if array is sorted in ascending order based on 'timestamp'
+            array = array[-limit:] if ascending else array[:limit]
         return array
 
     def vwap(self, baseVolume, quoteVolume):

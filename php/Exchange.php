@@ -1576,12 +1576,12 @@ class Exchange {
             $result = $array;
         }
         if (isset($limit)) {
-            $result = $this->sort_by($result, 'timestamp');
+            $ascending = $result[0]['timestamp'] < $result[count($array) - 1]['timestamp'];  // true if array is sorted in ascending order based on 'timestamp'
             if (is_array($result)) {
-                $result = array_slice($result, -$limit);
+                $result = $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
             } else {
                 $length = count($result);
-                $start = max($length - $limit, 0);
+                $start = $ascending ? max($length - $limit, 0) : 0;
                 $end = min($start + $limit, $length);
                 $result_copy = array();
                 for ($i = $start; $i < $end; $i++) {
@@ -1603,8 +1603,8 @@ class Exchange {
             }
         }
         if (isset($limit)) {
-            $result = $this->sort_by($result, 'timestamp');
-            return array_slice($result, -$limit);
+            $ascending = $result[0]['timestamp'] < $result[count($array) - 1]['timestamp'];  // true if array is sorted in ascending order based on 'timestamp'
+            return $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
         }
         return $result;
     }
