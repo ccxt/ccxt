@@ -5272,7 +5272,7 @@ export default class huobi extends Exchange {
             for (let j = 0; j < currencies.length; j++) {
                 const currency = currencies[j];
                 const currencyId = this.safeString (currency, 'currency');
-                const code = this.safeCurrencyCode (currencyId, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
                 symbolRates[code] = {
                     'currency': code,
                     'rate': this.safeNumber (currency, 'actual-rate'),
@@ -5334,7 +5334,7 @@ export default class huobi extends Exchange {
             for (let j = 0; j < currencies.length; j++) {
                 const currency = currencies[j];
                 const currencyId = this.safeString (currency, 'currency');
-                const code = this.safeCurrencyCode (currencyId, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
                 rates[code] = {
                     'currency': code,
                     'rate': this.safeNumber (currency, 'actual-rate'),
