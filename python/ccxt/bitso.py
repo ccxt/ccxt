@@ -221,7 +221,8 @@ class bitso(Exchange):
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
-        return self.parse_ledger(payload, code, since, limit)
+        currency = self.safe_currency(code)
+        return self.parse_ledger(payload, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
         types = {

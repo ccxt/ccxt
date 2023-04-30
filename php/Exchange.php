@@ -2298,7 +2298,7 @@ class Exchange {
         );
     }
 
-    public function safe_ledger_entry(array $entry, ?string $currency = null) {
+    public function safe_ledger_entry(array $entry, ?array $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         $direction = $this->safe_string($entry, 'direction');
         $before = $this->safe_string($entry, 'before');
@@ -3431,7 +3431,7 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
-    public function parse_transactions($transactions, ?string $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_transactions($transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $transactions = $this->to_array($transactions);
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
@@ -3444,7 +3444,7 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
-    public function parse_transfers($transfers, ?string $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_transfers($transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $transfers = $this->to_array($transfers);
         $result = array();
         for ($i = 0; $i < count($transfers); $i++) {
@@ -3457,7 +3457,7 @@ class Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
-    public function parse_ledger($data, ?string $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_ledger($data, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $result = array();
         $arrayData = $this->to_array($data);
         for ($i = 0; $i < count($arrayData); $i++) {

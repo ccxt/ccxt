@@ -1850,7 +1850,7 @@ class Exchange(object):
             },
         }
 
-    def safe_ledger_entry(self, entry: object, currency: Optional[str] = None):
+    def safe_ledger_entry(self, entry: object, currency: Optional[object] = None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
         before = self.safe_string(entry, 'before')
@@ -2800,7 +2800,7 @@ class Exchange(object):
         tail = (since is None)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
 
-    def parse_transactions(self, transactions, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_transactions(self, transactions, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transactions = self.to_array(transactions)
         result = []
         for i in range(0, len(transactions)):
@@ -2811,7 +2811,7 @@ class Exchange(object):
         tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
-    def parse_transfers(self, transfers, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_transfers(self, transfers, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transfers = self.to_array(transfers)
         result = []
         for i in range(0, len(transfers)):
@@ -2822,7 +2822,7 @@ class Exchange(object):
         tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
-    def parse_ledger(self, data, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_ledger(self, data, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         result = []
         arrayData = self.to_array(data)
         for i in range(0, len(arrayData)):
