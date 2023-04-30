@@ -507,14 +507,16 @@ export default class bitfinex2 extends Exchange {
             baseId = this.getCurrencyId(baseId);
             quoteId = this.getCurrencyId(quoteId);
             let settle = undefined;
+            let settleId = undefined;
             if (swap) {
                 settle = quote;
+                settleId = quote;
                 symbol = symbol + ':' + settle;
             }
             const minOrderSizeString = this.safeString(market, 3);
             const maxOrderSizeString = this.safeString(market, 4);
             let margin = false;
-            if (this.inArray(id, marginIds)) {
+            if (spot && this.inArray(id, marginIds)) {
                 margin = true;
             }
             result.push({
@@ -525,7 +527,7 @@ export default class bitfinex2 extends Exchange {
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': settleId,
                 'type': spot ? 'spot' : 'swap',
                 'spot': spot,
                 'margin': margin,

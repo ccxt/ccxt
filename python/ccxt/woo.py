@@ -338,7 +338,10 @@ class woo(Exchange):
             symbol = base + '/' + quote
             contractSize = None
             linear = None
-            if isSwap:
+            margin = True
+            contract = isSwap
+            if contract:
+                margin = False
                 settleId = self.safe_string(parts, 2)
                 settle = self.safe_currency_code(settleId)
                 symbol = base + '/' + quote + ':' + settle
@@ -356,12 +359,12 @@ class woo(Exchange):
                 'settleId': settleId,
                 'type': marketType,
                 'spot': isSpot,
-                'margin': True,
+                'margin': margin,
                 'swap': isSwap,
                 'future': False,
                 'option': False,
                 'active': None,
-                'contract': isSwap,
+                'contract': contract,
                 'linear': linear,
                 'inverse': None,
                 'contractSize': contractSize,
