@@ -1041,8 +1041,10 @@ export default class Exchange {
         }
         if (limit !== undefined && limit !== null) {
             const arrayLength = array.length;
-            const ascending = 'timestamp' in array[0] && (array[0]['timestamp'] < array[arrayLength - 1]['timestamp']);  // true if array is sorted in ascending order based on 'timestamp'
-            array = ascending ? array.slice (-limit) : array.slice (0, limit);
+            if (arrayLength > 0) {
+                const ascending = ('timestamp' in array[0]) && (array[0]['timestamp'] < array[arrayLength - 1]['timestamp']);  // true if array is sorted in ascending order based on 'timestamp'
+                array = ascending ? array.slice (-limit) : array.slice (0, limit);
+            }
         }
         return array
     }
@@ -1058,8 +1060,10 @@ export default class Exchange {
         }
         if (limit !== undefined && limit !== null) {
             const arrayLength = array.length;
-            const ascending = 'timestamp' in array[0] && (array[0]['timestamp'] < array[arrayLength - 1]['timestamp']);  // true if array is sorted in ascending order based on 'timestamp'
-            array = ascending ? array.slice (-limit) : array.slice (0, limit);
+            if (arrayLength > 0) {
+                const ascending = ('timestamp' in array[0]) && (array[0]['timestamp'] < array[arrayLength - 1]['timestamp']);  // true if array is sorted in ascending order based on 'timestamp'
+                array = ascending ? array.slice (-limit) : array.slice (0, limit);
+            }
         }
         return array
     }
