@@ -707,9 +707,7 @@ class Exchange {
         if (!is_numeric($since)) {
             $since = PHP_INT_MIN;
         }
-        if (!is_numeric($limits)) {
-            $limits = PHP_INT_MAX;
-        }
+        $limits = is_numeric($limits) ? ($limits + 1) : PHP_INT_MAX;
         $ms = static::parse_timeframe($timeframe) * 1000;
         $ohlcvs = array();
         list(/* $timestamp */, /* $open */, $high, $low, $close, $volume) = array(0, 1, 2, 3, 4, 5);
