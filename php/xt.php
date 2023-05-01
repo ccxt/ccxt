@@ -482,6 +482,7 @@ class xt extends Exchange {
             ),
             'commonCurrencies' => array(),
             'options' => array(
+                'adjustForTimeDifference' => false,
                 'timeDifference' => 0,
                 'networks' => array(
                     'ERC20' => 'Ethereum',

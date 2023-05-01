@@ -495,6 +495,7 @@ class xt(Exchange):
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': False,
                 'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',

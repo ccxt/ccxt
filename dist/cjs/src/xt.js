@@ -481,6 +481,7 @@ class xt extends xt$1 {
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': false,
                 'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',
