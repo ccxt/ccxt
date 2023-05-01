@@ -1,4 +1,5 @@
 import sys
+import types
 from typing import Union
 
 if sys.version_info.minor > 7:
@@ -10,6 +11,28 @@ else:
 
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
+
+
+class Entry:
+    def __init__(self, path, api, method, config):
+        self.name = None
+        self.path = path
+        self.api = api
+        self.method = method
+        self.config = config
+
+        def unbound_method(_self, params={}):
+            return _self.request(self.path, self.api, self.method, params, config=self.config)
+
+        self.unbound_method = unbound_method
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            raise AttributeError(owner.__name__ + ' has no attribute ' + self.name)
+        return types.MethodType(self.unbound_method, instance)
+
+    def __set_name__(self, owner, name):
+        self.name = name
 
 
 class Balance(TypedDict):
