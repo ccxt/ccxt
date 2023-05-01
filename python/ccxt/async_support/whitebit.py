@@ -321,11 +321,19 @@ class whitebit(Exchange):
             symbol = base + '/' + quote
             swap = typeId == 'futures'
             margin = isCollateral and not swap
+            contract = False
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
+            contractSize = amountPrecision
+            linear = None
+            inverse = None
             if swap:
                 settleId = quoteId
                 settle = self.safe_currency_code(settleId)
                 symbol = symbol + ':' + settle
                 type = 'swap'
+                contract = True
+                linear = True
+                inverse = False
             else:
                 type = 'spot'
             entry = {
@@ -344,18 +352,18 @@ class whitebit(Exchange):
                 'future': False,
                 'option': False,
                 'active': active,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': self.safe_number(market, 'makerFee'),
                 'maker': self.safe_number(market, 'takerFee'),
-                'contractSize': None,
+                'contractSize': contractSize,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec'))),
+                    'amount': amountPrecision,
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'moneyPrec'))),
                 },
                 'limits': {

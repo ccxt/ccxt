@@ -525,7 +525,7 @@ export default class Exchange {
             };
         };
     };
-    safeLedgerEntry(entry: object, currency?: string): {
+    safeLedgerEntry(entry: object, currency?: object): {
         id: string;
         timestamp: number;
         datetime: string;
@@ -584,9 +584,9 @@ export default class Exchange {
     parsePositions(positions: any, symbols?: string[], params?: {}): any;
     parseAccounts(accounts: any, params?: {}): any[];
     parseTrades(trades: any, market?: object, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseTransactions(transactions: any, currency?: string, since?: Int, limit?: Int, params?: {}): any;
-    parseTransfers(transfers: any, currency?: string, since?: Int, limit?: Int, params?: {}): any;
-    parseLedger(data: any, currency?: string, since?: Int, limit?: Int, params?: {}): any;
+    parseTransactions(transactions: any, currency?: object, since?: Int, limit?: Int, params?: {}): any;
+    parseTransfers(transfers: any, currency?: object, since?: Int, limit?: Int, params?: {}): any;
+    parseLedger(data: any, currency?: object, since?: Int, limit?: Int, params?: {}): any;
     nonce(): number;
     setHeaders(headers: any): any;
     marketId(symbol: string): string;

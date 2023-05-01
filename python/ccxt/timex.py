@@ -375,7 +375,8 @@ class timex(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit)
+        currency = self.safe_currency(code)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -406,7 +407,8 @@ class timex(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit)
+        currency = self.safe_currency(code)
+        return self.parse_transactions(response, currency, since, limit)
 
     def get_currency_by_address(self, address):
         currencies = self.currencies
