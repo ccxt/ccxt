@@ -42,13 +42,16 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const keyStr = key.toString ();
+            const keyStr = key.toString (); // needed in other langs, where `object` might have non-string keys (todo)
             assert ((key in entry), keyStr + ' key is missing from structure' + logText);
             if (exchange.inArray (key, emptyNotAllowedFor)) {
                 // if it was in needed keys, then it should have value.
                 assert (entry[key] !== undefined, key + ' key has an null value, but is expected to have a value' + logText);
             }
-            assert (assertType (exchange, skippedProperties, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+            // add exclusion for info key, as it can be any type
+            if (keyStr !== 'info') {
+                assert (assertType (exchange, skippedProperties, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+            }
         }
     }
 }
