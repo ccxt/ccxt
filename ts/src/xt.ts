@@ -483,6 +483,7 @@ export default class xt extends Exchange {
             },
             'commonCurrencies': {},
             'options': {
+                'adjustForTimeDifference': false,
                 'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',
