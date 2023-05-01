@@ -28,8 +28,9 @@ class Entry:
 
     def __get__(self, instance, owner):
         if instance is None:
-            raise AttributeError(owner.__name__ + ' has no attribute ' + self.name)
-        return types.MethodType(self.unbound_method, instance)
+            return self.unbound_method
+        else:
+            return types.MethodType(self.unbound_method, instance)
 
     def __set_name__(self, owner, name):
         self.name = name
