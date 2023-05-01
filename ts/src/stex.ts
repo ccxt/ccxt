@@ -377,6 +377,7 @@ export default class stex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
