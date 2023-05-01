@@ -495,6 +495,7 @@ class xt(Exchange):
             },
             'commonCurrencies': {},
             'options': {
+                'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -620,7 +621,7 @@ class xt(Exchange):
         })
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def fetch_time(self, params={}):
         """
@@ -747,6 +748,8 @@ class xt(Exchange):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         promisesUnresolved = [
             self.fetch_spot_markets(params),
             self.fetch_swap_and_future_markets(params),
