@@ -6,6 +6,7 @@ import log from 'ololog'
 const TS_PATH = './ts/src/abstract/';
 const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
+const PY_PATH = './python/ccxt/abstract/'
 const IDEN = '    ';
 
 const promisedWriteFile = promisify (fs.writeFile);
@@ -101,11 +102,18 @@ function createImplicitMethods(){
 ${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.path}, '${context.method}', $params);
 ${IDEN}}`
         })
+        const pythonMethods = underscoreMethods.map ((method, idx) => {
+            const i = idx % underscoreMethods.length
+            const camelCaseMethod = camelCaseMethods[i]
+            const context = storedPhpContext[exchange][i]
+            return `${IDEN}${method} = ${camelCaseMethod} = Entry('${context.endpoint}', ${context.path}, '${context.method}')`
+        })
         typeScriptMethods.push ('}')
         phpMethods.push ('}')
         const footer = storedTypeScriptMethods[exchange].pop ()
         storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
         storedPhpMethods[exchange] = storedPhpMethods[exchange].concat (phpMethods)
+        storedPyMethods[exchange] = storedPyMethods[exchange].concat (pythonMethods)
     }
 }
 
@@ -156,6 +164,9 @@ namespace ccxt\\abstract;
 `
         storedPhpResult[exchange] = []
         storedPhpMethods[exchange] = [ phpPreamble, '', phpHeader ]
+        const pyImports = 'from ccxt.base.types import Entry'
+        const pyHeader = 'class ImplicitAPI:'
+        storedPyMethods[exchange] = [ pyImports, '', '', pyHeader ]
         generateImplicitMethodNames (exchange, api)
     }
     createImplicitMethods ()
@@ -170,6 +181,8 @@ namespace ccxt\\abstract;
     })
     await editFiles (ASYNC_PHP_PATH, storedPhpMethods, '.php');
     log.bright.cyan ('PHP async implicit api methods completed!')
+    await editFiles (PY_PATH, storedPyMethods, '.py');
+    log.bright.cyan ('Python implicit api methods completed!')
 }
 
 let storedTypeScriptResult = {};
@@ -177,4 +190,5 @@ let storedTypeScriptMethods = {};
 let storedPhpResult = {};
 let storedPhpContext = {};
 let storedPhpMethods = {};
+let storedPyMethods = {};
 main()
