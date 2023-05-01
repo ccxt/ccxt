@@ -1287,7 +1287,7 @@ class hitbtc(Exchange):
         self.check_address(address)
         tag = self.safe_string(response, 'paymentId')
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,

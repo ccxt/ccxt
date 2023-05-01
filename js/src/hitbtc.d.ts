@@ -93,7 +93,7 @@ export default class hitbtc extends Exchange {
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
+        currency: string;
         address: string;
         tag: string;
         info: any;
