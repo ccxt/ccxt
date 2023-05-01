@@ -4,9 +4,9 @@ function testStatus (exchange, skippedProperties, method, entry, now : number) {
     const format = {
         'info': { },
         'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
-        'updated': undefined, // integer, last updated timestamp in milliseconds if updated via the API
-        'eta': undefined, // when the maintenance or outage is expected to end
-        'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
+        'updated': 1650000000000, // integer, last updated timestamp in milliseconds if updated via the API
+        'eta': 1660000000000, // when the maintenance or outage is expected to end
+        'url': 'https://example.com', // a link to a Git
     };
     const emptyNotAllowedFor = [ 'status' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);

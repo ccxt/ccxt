@@ -1,6 +1,7 @@
 {
     "ace": {
         "skipMethods": {
+            "loadMarkets": "needs granular skip for baseId/quoteId/settleId, because they are numerics",
             "fetchOrderBook": "needs reversion of amount/price",
             "fetchL2OrderBook": "same"
         }
@@ -520,6 +521,7 @@
     "independentreserve": {
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": "granular can be used for skipping 'info'",
             "fetchCurrencies": "info key is missing",
             "fetchTrades": "side is undefined",
             "fetchOrderBook": "bid should be greater than next bid",
@@ -578,6 +580,7 @@
     },
     "mercado": {
         "skipMethods": {
+            "loadMarkets": "needs migration to v4, as raw info is not being used. granular can be used for skipping 'info'",
             "fetchOrderBook": "bid > ask",
             "fetchL2OrderBook": "bid > ask",
             "fetchTickers": "bid > ask",
