@@ -1034,19 +1034,23 @@ export default class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
+    filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp'): any {
+        if (limit !== undefined && limit !== null) {
+            const arrayLength = array.length;
+            if (arrayLength > 0) {
+                const ascending = (key in array[0]) && (array[0][key] < array[arrayLength - 1][key]);  // true if array is sorted in ascending order based on 'timestamp'
+                array = ascending ? array.slice (-limit) : array.slice (0, limit);
+            }
+        }
+        return array;
+    }
+
     filterBySinceLimit (array: object[], since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp'): any {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
             array = array.filter ((entry) => entry[key] >= since)
         }
-        if (limit !== undefined && limit !== null) {
-            const arrayLength = array.length;
-            if (arrayLength > 0) {
-                const ascending = ('timestamp' in array[0]) && (array[0]['timestamp'] < array[arrayLength - 1]['timestamp']);  // true if array is sorted in ascending order based on 'timestamp'
-                array = ascending ? array.slice (-limit) : array.slice (0, limit);
-            }
-        }
-        return array
+        return this.filterByLimit (array, limit, key);
     }
 
     filterByValueSinceLimit (array: object[], field: IndexType, value = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp'): any {
@@ -1058,14 +1062,7 @@ export default class Exchange {
                 ((valueIsDefined ? (entry[field] === value) : true) &&
                  (sinceIsDefined ? (entry[key] >= since) : true)))
         }
-        if (limit !== undefined && limit !== null) {
-            const arrayLength = array.length;
-            if (arrayLength > 0) {
-                const ascending = ('timestamp' in array[0]) && (array[0]['timestamp'] < array[arrayLength - 1]['timestamp']);  // true if array is sorted in ascending order based on 'timestamp'
-                array = ascending ? array.slice (-limit) : array.slice (0, limit);
-            }
-        }
-        return array
+        return this.filterByLimit (array, limit, key);
     }
 
     checkRequiredDependencies () {

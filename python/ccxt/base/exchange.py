@@ -1556,25 +1556,25 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
+    def filter_by_limit(self, array, limit=None, key='timestamp'):
+        if (limit is not None) and (len(array) > 0) and (key in array[0]):
+            ascending = (array[0][key] < array[len(array) - 1][key])  # true if array is sorted in ascending order based on 'timestamp'
+            array = array[-limit:] if ascending else array[:limit]
+        return array
+
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp'):
         array = self.to_array(array)
         if value is not None:
             array = [entry for entry in array if entry[field] == value]
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
-        if limit is not None:
-            ascending = (len(array) > 0) and ('timestamp' in array[0]) and (array[0]['timestamp'] < array[len(array) - 1]['timestamp'])  # true if array is sorted in ascending order based on 'timestamp'
-            array = array[-limit:] if ascending else array[:limit]
-        return array
+        return self.filter_by_limit(array, limit, key)
 
     def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp'):
         array = self.to_array(array)
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
-        if limit is not None:
-            ascending = (len(array) > 0) and ('timestamp' in array[0]) and (array[0]['timestamp'] < array[len(array) - 1]['timestamp'])  # true if array is sorted in ascending order based on 'timestamp'
-            array = array[-limit:] if ascending else array[:limit]
-        return array
+        return self.filter_by_limit(array, limit, key)
 
     def vwap(self, baseVolume, quoteVolume):
         return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None

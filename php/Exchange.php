@@ -1576,7 +1576,7 @@ class Exchange {
             $result = $array;
         }
         if (isset($limit)) {
-            $ascending = $result[0]['timestamp'] < $result[count($array) - 1]['timestamp'];  // true if array is sorted in ascending order based on 'timestamp'
+            $ascending = $result[0][$key] < $result[count($array) - 1][$key];  // true if array is sorted in ascending order based on 'timestamp'
             if (is_array($result)) {
                 $result = $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
             } else {
