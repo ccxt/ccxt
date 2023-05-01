@@ -408,9 +408,6 @@ class Exchange(object):
             else:
                 setattr(self, key, settings[key])
 
-        if self.api:
-            self.define_rest_api(self.api, 'request')
-
         if self.markets:
             self.set_markets(self.markets)
 
