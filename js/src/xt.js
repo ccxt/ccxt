@@ -484,6 +484,7 @@ export default class xt extends Exchange {
             },
             'commonCurrencies': {},
             'options': {
+                'timeDifference': 0,
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
@@ -609,7 +610,7 @@ export default class xt extends Exchange {
         });
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     async fetchTime(params = {}) {
         /**
@@ -744,6 +745,9 @@ export default class xt extends Exchange {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const promisesUnresolved = [
             this.fetchSpotMarkets(params),
             this.fetchSwapAndFutureMarkets(params),

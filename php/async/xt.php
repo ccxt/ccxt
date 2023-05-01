@@ -490,6 +490,7 @@ class xt extends Exchange {
             ),
             'commonCurrencies' => array(),
             'options' => array(
+                'timeDifference' => 0,
                 'networks' => array(
                     'ERC20' => 'Ethereum',
                     'TRC20' => 'Tron',
@@ -616,7 +617,7 @@ class xt extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function fetch_time($params = array ()) {
@@ -753,6 +754,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {[array]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $promisesUnresolved = array(
                 $this->fetch_spot_markets($params),
                 $this->fetch_swap_and_future_markets($params),
