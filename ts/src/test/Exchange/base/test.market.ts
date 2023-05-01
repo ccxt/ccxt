@@ -59,7 +59,7 @@ function testMarket (exchange, skippedProperties, method, market) {
     const logText = testSharedMethods.logTemplate (exchange, method, market);
     //
     const validTypes = [ 'spot', 'margin', 'swap', 'future', 'option' ];
-    testSharedMethods.assertInArray (exchange, method, market, 'type', validTypes);
+    testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'type', validTypes);
     // check if string is consistent with 'type'
     if (market['spot']) {
         assert (market['type'] === 'spot', 'market type must be "spot" when spot is true' + logText);
@@ -73,16 +73,16 @@ function testMarket (exchange, skippedProperties, method, market) {
     // margin check (todo: add margin as mandatory, instead of undefined)
     if (market['spot']) {
         // for spot market, 'margin' can be either true/false or undefined
-        testSharedMethods.assertInArray (exchange, method, market, 'margin', [ true, false, undefined ]);
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'margin', [ true, false, undefined ]);
     } else {
         // otherwise, it must be false or undefined
-        testSharedMethods.assertInArray (exchange, method, market, 'margin', [ false, undefined ]);
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'margin', [ false, undefined ]);
     }
     // typical values
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'contractSize', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
-    testSharedMethods.assertInArray (exchange, method, market, 'optionType', [ 'put', 'call' ]);
+    testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'optionType', [ 'put', 'call' ]);
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
     // 'contract' boolean check
@@ -147,7 +147,7 @@ function testMarket (exchange, skippedProperties, method, market) {
     // check precisions
     const precisionKeys = Object.keys (market['precision']);
     for (let i = 0; i < precisionKeys.length; i++) {
-        testSharedMethods.checkPrecisionAccuracy (exchange, method, market['precision'], precisionKeys[i]);
+        testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
     }
     // check limits
     const limitsKeys = Object.keys (market['limits']);
