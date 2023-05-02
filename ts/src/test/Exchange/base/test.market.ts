@@ -51,10 +51,10 @@ function testMarket (exchange, skippedProperties, method, market) {
                 'max': exchange.parseNumber ('1000'), // order cost should be < max
             },
         },
-        'info': {}, // the original unparsed market info from the exchange
+        'info': {},
     };
-    const emptyNotAllowedFor = [ 'id', 'symbol', 'base', 'quote', 'baseId', 'quoteId', 'precision', 'limits', 'type', 'spot', 'swap', 'future', 'contract' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, market, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, market, format, emptyAllowedFor);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
     //
