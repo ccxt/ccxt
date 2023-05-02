@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -23,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitmex(Exchange):
+class bitmex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitmex, self).describe(), {
@@ -2587,7 +2588,7 @@ class bitmex(Exchange):
             'info': response,
         }
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         isAuthenticated = self.check_required_credentials(False)
         cost = self.safe_value(config, 'cost', 1)
         if cost != 1:  # trading endpoints

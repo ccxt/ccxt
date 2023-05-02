@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -29,7 +30,7 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 from ccxt.base.precise import Precise
 
 
-class bitvavo(Exchange):
+class bitvavo(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitvavo, self).describe(), {
@@ -1674,7 +1675,7 @@ class bitvavo(Exchange):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_value(config, 'cost', 1)

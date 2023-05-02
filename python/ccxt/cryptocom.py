@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -25,7 +26,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class cryptocom(Exchange):
+class cryptocom(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(cryptocom, self).describe(), {

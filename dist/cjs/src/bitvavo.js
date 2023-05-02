@@ -1755,7 +1755,7 @@ class bitvavo extends bitvavo$1 {
         }
         return undefined;
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

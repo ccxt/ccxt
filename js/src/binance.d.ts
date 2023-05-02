@@ -406,7 +406,7 @@ export default class binance extends Exchange {
         headers: any;
     };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: any): {

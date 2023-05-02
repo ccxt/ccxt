@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.hitbtc import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -21,7 +22,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class hitbtc(Exchange):
+class hitbtc(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(hitbtc, self).describe(), {

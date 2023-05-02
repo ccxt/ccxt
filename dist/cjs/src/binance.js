@@ -7739,7 +7739,7 @@ class binance extends binance$1 {
         }
         return undefined;
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         }
@@ -7762,7 +7762,7 @@ class binance extends binance$1 {
         return this.safeValue(config, 'cost', 1);
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2(path, api, method, params, headers, body, config, context);
+        const response = await this.fetch2(path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ((api === 'private') || (api === 'wapi')) {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;

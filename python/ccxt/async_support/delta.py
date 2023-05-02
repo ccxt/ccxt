@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.delta import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -21,7 +22,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class delta(Exchange):
+class delta(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(delta, self).describe(), {

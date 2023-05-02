@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -17,7 +18,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bitbank(Exchange):
+class bitbank(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitbank, self).describe(), {

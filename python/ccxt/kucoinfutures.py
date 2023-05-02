@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.kucoin import kucoin
+from ccxt.abstract.kucoinfutures import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -23,7 +24,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class kucoinfutures(kucoin):
+class kucoinfutures(kucoin, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(kucoinfutures, self).describe(), {

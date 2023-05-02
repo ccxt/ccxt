@@ -4,9 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.coinbasepro import coinbasepro
+from ccxt.abstract.coinbaseprime import ImplicitAPI
 
 
-class coinbaseprime(coinbasepro):
+class coinbaseprime(coinbasepro, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(coinbaseprime, self).describe(), {

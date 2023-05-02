@@ -1702,7 +1702,7 @@ class idex extends Exchange {
         );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $hasApiKey = ($this->apiKey !== null);
         $hasSecret = ($this->secret !== null);
         $hasWalletAddress = ($this->walletAddress !== null);

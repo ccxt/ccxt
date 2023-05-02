@@ -2420,17 +2420,17 @@ export default class Exchange {
         }
         return indexed ? this.indexBy(results, key) : results;
     }
-    async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
-            const cost = this.calculateRateLimiterCost(api, method, path, params, config, context);
+            const cost = this.calculateRateLimiterCost(api, method, path, params, config);
             await this.throttle(cost);
         }
         this.lastRestRequestTimestamp = this.milliseconds();
         const request = this.sign(path, api, method, params, headers, body);
         return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        return await this.fetch2(path, api, method, params, headers, body, config, context);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+        return await this.fetch2(path, api, method, params, headers, body, config);
     }
     async loadAccounts(reload = false, params = {}) {
         if (reload) {
@@ -2812,7 +2812,7 @@ export default class Exchange {
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         return this.safeValue(config, 'cost', 1);
     }
     async fetchTicker(symbol, params = {}) {

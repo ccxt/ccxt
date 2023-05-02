@@ -564,9 +564,9 @@ class btcbox extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
-            $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context));
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array ()) {
+        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
+            $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             if (gettype($response) === 'string') {
                 // sometimes the exchange returns whitespace prepended to json
                 $response = $this->strip($response);
