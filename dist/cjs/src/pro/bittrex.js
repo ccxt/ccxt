@@ -215,7 +215,7 @@ class bittrex extends bittrex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     async subscribeToOrders(authentication, params = {}) {
         const messageHash = 'order';
@@ -390,7 +390,7 @@ class bittrex extends bittrex$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     async subscribeToOHLCV(negotiation, symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets();
@@ -459,7 +459,7 @@ class bittrex extends bittrex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     async subscribeToTrades(negotiation, symbol, params = {}) {
         await this.loadMarkets();
@@ -525,7 +525,7 @@ class bittrex extends bittrex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     async subscribeToMyTrades(authentication, params = {}) {
         const messageHash = 'execution';

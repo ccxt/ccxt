@@ -97,7 +97,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         trades = await self.subscribe(name, symbol, name, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -118,7 +118,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         trades = await self.subscribe(name, symbol, messageHash, self.extend(params, authentication))
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -139,7 +139,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         orders = await self.subscribe(name, symbol, messageHash, self.extend(params, authentication))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """

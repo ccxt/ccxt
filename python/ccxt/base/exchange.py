@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.86'
+__version__ = '3.0.89'
 
 # -----------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ import calendar
 import collections
 import datetime
 from email.utils import parsedate
-import functools
+# import functools
 import gzip
 import hashlib
 import hmac
@@ -1488,23 +1488,25 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
-    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
+    def filter_by_limit(self, array, limit=None, key='timestamp'):
+        if (limit is not None) and (len(array) > 0) and (key in array[0]):
+            ascending = (array[0][key] < array[len(array) - 1][key])  # true if array is sorted in ascending order based on 'timestamp'
+            array = array[-limit:] if ascending else array[:limit]
+        return array
+
+    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp'):
         array = self.to_array(array)
         if value is not None:
             array = [entry for entry in array if entry[field] == value]
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
-        if limit is not None:
-            array = array[-limit:] if tail else array[:limit]
-        return array
+        return self.filter_by_limit(array, limit, key)
 
-    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
+    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp'):
         array = self.to_array(array)
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
-        if limit is not None:
-            array = array[-limit:] if tail else array[:limit]
-        return array
+        return self.filter_by_limit(array, limit, key)
 
     def vwap(self, baseVolume, quoteVolume):
         return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
@@ -2160,8 +2162,7 @@ class Exchange(object):
                 results.append(order)
         results = self.sort_by(results, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
-        tail = since is None
-        return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
+        return self.filter_by_symbol_since_limit(results, symbol, since, limit)
 
     def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
         if type == 'market' and takerOrMaker == 'maker':
@@ -2663,8 +2664,7 @@ class Exchange(object):
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ohlcv(ohlcvs[i], market))
         sorted = self.sort_by(results, 0)
-        tail = (since is None)
-        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
+        return self.filter_by_since_limit(sorted, since, limit, 0)
 
     def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
         # marketIdKey should only be None when response is a dictionary
@@ -2729,8 +2729,7 @@ class Exchange(object):
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
-        tail = (since is None)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def parse_transactions(self, transactions, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transactions = self.to_array(transactions)
@@ -2740,8 +2739,7 @@ class Exchange(object):
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_transfers(self, transfers, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transfers = self.to_array(transfers)
@@ -2751,8 +2749,7 @@ class Exchange(object):
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_ledger(self, data, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         result = []
@@ -2766,8 +2763,7 @@ class Exchange(object):
                 result.append(self.extend(itemOrItems, params))
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def nonce(self):
         return self.seconds()
@@ -3412,11 +3408,11 @@ class Exchange(object):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
-    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
+    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp')
 
-    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
+    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp')
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #

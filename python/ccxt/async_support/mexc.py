@@ -2688,6 +2688,8 @@ class mexc(Exchange, ImplicitAPI):
         statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
+            '1': 'buy',
+            '2': 'sell',
             # contracts v1 : TODO
         }
         return self.safe_string(statuses, status, status)

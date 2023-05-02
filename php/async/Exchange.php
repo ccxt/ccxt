@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.86';
+$version = '3.0.89';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.86';
+    const VERSION = '3.0.89';
 
     public $browser;
     public $marketsLoading = null;
@@ -846,8 +846,7 @@ class Exchange extends \ccxt\Exchange {
         }
         $results = $this->sort_by($results, 'timestamp');
         $symbol = ($market !== null) ? $market['symbol'] : null;
-        $tail = $since === null;
-        return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit, $tail);
+        return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
     }
 
     public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
@@ -1446,8 +1445,7 @@ class Exchange extends \ccxt\Exchange {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
         }
         $sorted = $this->sort_by($results, 0);
-        $tail = ($since === null);
-        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0);
     }
 
     public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
@@ -1529,8 +1527,7 @@ class Exchange extends \ccxt\Exchange {
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = ($market !== null) ? $market['symbol'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function parse_transactions($transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1542,8 +1539,7 @@ class Exchange extends \ccxt\Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function parse_transfers($transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1555,8 +1551,7 @@ class Exchange extends \ccxt\Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function parse_ledger($data, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1574,8 +1569,7 @@ class Exchange extends \ccxt\Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function nonce() {
@@ -2469,12 +2463,12 @@ class Exchange extends \ccxt\Exchange {
         return $currency['code'];
     }
 
-    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null, $tail = false) {
-        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
+    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null) {
+        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp');
     }
 
-    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null, $tail = false) {
-        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
+    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null) {
+        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp');
     }
 
     public function parse_last_prices($pricesData, ?array $symbols = null, $params = array ()) {

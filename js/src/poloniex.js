@@ -682,6 +682,7 @@ export default class poloniex extends Exchange {
                 'withdraw': undefined,
                 'fee': fee,
                 'precision': undefined,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': undefined,

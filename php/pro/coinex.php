@@ -452,7 +452,7 @@ class coinex extends \ccxt\async\coinex {
             $this->options['watchTradesSubscriptions'] = $subscribedSymbols;
             $request = $this->deep_extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -551,7 +551,7 @@ class coinex extends \ccxt\async\coinex {
             if ($this->newUpdates) {
                 $limit = $ohlcvs->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcvs, $since, $limit, 0, true);
+            return $this->filter_by_since_limit($ohlcvs, $since, $limit, 0);
         }) ();
     }
 
@@ -649,7 +649,7 @@ class coinex extends \ccxt\async\coinex {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }) ();
     }
 

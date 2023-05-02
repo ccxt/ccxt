@@ -102,7 +102,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         ohlcv = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message, subscription):
         #
@@ -195,7 +195,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         trades = await self.subscribe('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -214,7 +214,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         trades = await self.subscribe_private(messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     async def watch_ticker(self, symbol: str, params={}):
         """
@@ -829,7 +829,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         orders = await self.subscribe_private(messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message, subscription):
         #

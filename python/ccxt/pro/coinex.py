@@ -432,7 +432,7 @@ class coinex(ccxt.async_support.coinex):
         self.options['watchTradesSubscriptions'] = subscribedSymbols
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, subscriptionHash)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -519,7 +519,7 @@ class coinex(ccxt.async_support.coinex):
         ohlcvs = await self.watch(url, messageHash, request, messageHash, subscription)
         if self.newUpdates:
             limit = ohlcvs.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcvs, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcvs, since, limit, 0)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -606,7 +606,7 @@ class coinex(ccxt.async_support.coinex):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message):
         #

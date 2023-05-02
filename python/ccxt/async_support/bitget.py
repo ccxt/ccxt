@@ -137,6 +137,7 @@ class bitget(Exchange, ImplicitAPI):
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -280,6 +281,14 @@ class bitget(Exchange, ImplicitAPI):
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'p2p': {
+                        'get': {
+                            'merchant/merchantList': 1,
+                            'merchant/merchantInfo': 1,
+                            'merchant/advList': 1,
+                            'merchant/orderList': 1,
                         },
                     },
                 },
@@ -3544,7 +3553,7 @@ class bitget(Exchange, ImplicitAPI):
             rates.append({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': self.safe_string(entry, 'fundingRate'),
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
@@ -4130,7 +4139,13 @@ class bitget(Exchange, ImplicitAPI):
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
         endpoint = api[1]
-        pathPart = '/api/spot/v1' if (endpoint == 'spot') else '/api/mix/v1'
+        pathPart = ''
+        if endpoint == 'spot':
+            pathPart = '/api/spot/v1'
+        elif endpoint == 'mix':
+            pathPart = '/api/mix/v1'
+        else:
+            pathPart = '/api/p2p/v1'
         request = '/' + self.implode_params(path, params)
         payload = pathPart + request
         url = self.implode_hostname(self.urls['api'][endpoint]) + payload

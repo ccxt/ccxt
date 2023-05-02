@@ -437,7 +437,7 @@ class stex extends stex$1 {
             const minPrice = Precise["default"].stringMax(minBuyPrice, minSellPrice);
             const buyFee = Precise["default"].stringDiv(this.safeString(market, 'buy_fee_percent'), '100');
             const sellFee = Precise["default"].stringDiv(this.safeString(market, 'sell_fee_percent'), '100');
-            const fee = Precise["default"].stringMax(buyFee, sellFee);
+            const fee = this.parseNumber(Precise["default"].stringMax(buyFee, sellFee));
             result.push({
                 'id': id,
                 'numericId': numericId,

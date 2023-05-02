@@ -2836,7 +2836,7 @@ class digifinex(Exchange, ImplicitAPI):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_string(contract, 'funding_rate'),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': self.iso8601(timestamp),
             'nextFundingRate': self.safe_string(contract, 'next_funding_rate'),
@@ -2895,7 +2895,7 @@ class digifinex(Exchange, ImplicitAPI):
             rates.append({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': self.safe_string(entry, 'rate'),
+                'fundingRate': self.safe_number(entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })

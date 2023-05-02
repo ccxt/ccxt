@@ -283,6 +283,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_account_subaccount_balances($params = array()) {
         return $this->request('account/subaccount/balances', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_account_subaccount_interest_limits($params = array()) {
+        return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function private_get_asset_subaccount_bills($params = array()) {
         return $this->request('asset/subaccount/bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -439,6 +442,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_account_set_auto_loan($params = array()) {
         return $this->request('account/set-auto-loan', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function private_post_account_subaccount_set_loan_allocation($params = array()) {
+        return $this->request('account/subaccount/set-loan-allocation', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function private_post_asset_transfer($params = array()) {
         return $this->request('asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -471,6 +477,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_trade_amend_batch_orders($params = array()) {
         return $this->request('trade/amend-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 0.3333333333333333));
+    }
+    public function private_post_trade_amend_algos($params = array()) {
+        return $this->request('trade/amend-algos', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_trade_close_position($params = array()) {
         return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -877,6 +886,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetAccountSubaccountBalances($params = array()) {
         return $this->request('account/subaccount/balances', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function privateGetAccountSubaccountInterestLimits($params = array()) {
+        return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function privateGetAssetSubaccountBills($params = array()) {
         return $this->request('asset/subaccount/bills', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -1033,6 +1045,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privatePostAccountSetAutoLoan($params = array()) {
         return $this->request('account/set-auto-loan', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function privatePostAccountSubaccountSetLoanAllocation($params = array()) {
+        return $this->request('account/subaccount/set-loan-allocation', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function privatePostAssetTransfer($params = array()) {
         return $this->request('asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -1065,6 +1080,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostTradeAmendBatchOrders($params = array()) {
         return $this->request('trade/amend-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 0.3333333333333333));
+    }
+    public function privatePostTradeAmendAlgos($params = array()) {
+        return $this->request('trade/amend-algos', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradeClosePosition($params = array()) {
         return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));

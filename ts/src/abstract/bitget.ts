@@ -120,6 +120,10 @@ interface Exchange {
     privateMixPostTraceFollowerCloseByTrackingNo (params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceFollowerCloseByAll (params?: {}): Promise<implicitReturnType>;
     privateMixPostTraceFollowerSetTpsl (params?: {}): Promise<implicitReturnType>;
+    privateP2pGetMerchantMerchantList (params?: {}): Promise<implicitReturnType>;
+    privateP2pGetMerchantMerchantInfo (params?: {}): Promise<implicitReturnType>;
+    privateP2pGetMerchantAdvList (params?: {}): Promise<implicitReturnType>;
+    privateP2pGetMerchantOrderList (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

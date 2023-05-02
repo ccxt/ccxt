@@ -437,7 +437,7 @@ class stex extends Exchange {
             $minPrice = Precise::string_max($minBuyPrice, $minSellPrice);
             $buyFee = Precise::string_div($this->safe_string($market, 'buy_fee_percent'), '100');
             $sellFee = Precise::string_div($this->safe_string($market, 'sell_fee_percent'), '100');
-            $fee = Precise::string_max($buyFee, $sellFee);
+            $fee = $this->parse_number(Precise::string_max($buyFee, $sellFee));
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
