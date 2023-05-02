@@ -2850,6 +2850,8 @@ export default class mexc extends Exchange {
         const statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
+            '1': 'buy',
+            '2': 'sell',
             // contracts v1 : TODO
         };
         return this.safeString (statuses, status, status);
