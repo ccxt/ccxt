@@ -1,6 +1,9 @@
 <?php
 
-echo "Checking PRO PHP Syntax...\n\n";
+echo "Checking PHP Syntax...\n\n";
+echo "If it fails, follow the below rules:\n\n";
+echo "- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md\n";
+echo "\n";
 
 function on_error ($errno, $message, $file, $line) {
     $message = "$message in $file on line $line";

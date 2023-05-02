@@ -58,7 +58,6 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
                 continue;
             }
             assert (assertType (exchange, skippedProperties, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
-
         }
     }
 }

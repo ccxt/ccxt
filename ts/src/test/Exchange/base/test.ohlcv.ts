@@ -18,14 +18,12 @@ function testOHLCV (exchange, skippedProperties, method, entry, symbol, now) {
     //
     const length = entry.length;
     assert (length >= 6, 'ohlcv array length should be >= 6;' + logText);
-    const o = exchange.safeString (entry, 1);
-    const h = exchange.safeString (entry, 2);
-    const l = exchange.safeString (entry, 3);
-    const c = exchange.safeString (entry, 4);
-    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '1', h);
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, '1', l);
-    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '4', h);
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, '4', l);
+    const high = exchange.safeString (entry, 2);
+    const low = exchange.safeString (entry, 3);
+    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '1', high);
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, '1', low);
+    testSharedMethods.assertLessOrEqual (exchange, skippedProperties, method, entry, '4', high);
+    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, '4', low);
     assert ((symbol === undefined) || (typeof symbol === 'string'), 'symbol ' + symbol + ' is incorrect' + logText); // todo: check with standard symbol check
 }
 
