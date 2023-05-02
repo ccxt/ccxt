@@ -73,12 +73,15 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
     }
     const ts = entry[keyName];
     if (ts !== undefined) {
-        // todo: add transpilable is_integer
         assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
-        assert (ts > 1230940800000, 'timestamp is impossible to be before 1230940800000 / 03.01.2009' + logText); // 03 Jan 2009 - first block
-        assert (ts < 2147483648000, 'timestamp more than 2147483648000 / 19.01.2038' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
+        assert (isInteger (ts), 'timestamp should be an integer' + logText);
+        const minTs = 1230940800000; // 03 Jan 2009 - first block
+        const maxTs = 2147483648000; // 03 Jan 2009 - first block
+        assert (ts > minTs, 'timestamp is impossible to be before ' + minTs.toString () + ' (03.01.2009)' + logText); // 03 Jan 2009 - first block
+        assert (ts < maxTs, 'timestamp more than ' + maxTs.toString () + ' (19.01.2038)' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {
-            assert (ts < nowToCheck + 60000, 'trade timestamp is not below current time. Returned datetime: ' + exchange.iso8601 (ts) + ', now: ' + exchange.iso8601 (nowToCheck) + logText);
+            const maxMsOffset = 60000; // 1 min
+            assert (ts < nowToCheck + maxMsOffset, 'returned trade timestamp (' + exchange.iso8601 (ts) + ') is ahead of the current time (' + exchange.iso8601 (nowToCheck) + ')' + logText);
         }
     }
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
@@ -286,15 +289,17 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
     }
 }
 
+function isInteger (value) {
+    return (value % 1) === 0;
+}
 
 function assertInteger (exchange, skippedProperties, method, entry, key) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
         const value = exchange.safeNumber (entry, key);
         if (value !== undefined) {
-            const isInteger = (value % 1) === 0;
             const valString = value.toString ();
-            assert (isInteger, key + ' key (with value ' + valString + ') is not an integer' + logText);
+            assert (isInteger (value), key + ' key (with value ' + valString + ') is not an integer' + logText);
         }
     }
 }
