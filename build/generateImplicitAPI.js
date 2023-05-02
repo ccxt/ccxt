@@ -80,13 +80,15 @@ function generateImplicitMethodNames(id, api, paths = []){
                         config = { 'cost': config }
                     }
                 }
-                const configString = JSON.stringify (config).replace (/:/g, ': ').replace (/"/g, "'")
+                const pyConfig = JSON.stringify (config).replace (/:/g, ': ').replace (/"/g, "'").replace (/,/g, ', ')
+                const phpConfig = JSON.stringify (config).replace (/{/g, 'array(').replace (/:/g, ' => ').replace (/}/g, ')').replace (/,/g, ', ')
                 storedContext[id].push ({
                     endpoint,
                     phpPath: paths.length === 1 ? `'${paths[0]}'` : 'array(' + paths.map (x => `'${x}'`).join (', ') + ')',
                     pyPath: paths.length === 1 ? `'${paths[0]}'` : '[' + paths.map (x => `'${x}'`).join (', ') + ']',
+                    phpConfig: phpConfig,
+                    pyConfig: pyConfig,
                     method: key.toUpperCase (),
-                    config: configString,
                 })
             }
         } else {
@@ -111,14 +113,14 @@ function createImplicitMethods(){
             const i = idx % underscoreMethods.length
             const context = storedContext[exchange][i]
             return `${IDEN}public function ${method}($params = array()) {
-${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params);
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
 ${IDEN}}`
         })
         const pythonMethods = underscoreMethods.map ((method, idx) => {
             const i = idx % underscoreMethods.length
             const camelCaseMethod = camelCaseMethods[i]
             const context = storedContext[exchange][i]
-            return `${IDEN}${method} = ${camelCaseMethod} = Entry('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.config})`
+            return `${IDEN}${method} = ${camelCaseMethod} = Entry('${context.endpoint}', ${context.pyPath}, '${context.method}', ${context.pyConfig})`
         })
         typeScriptMethods.push ('}')
         phpMethods.push ('}')
@@ -134,7 +136,7 @@ ${IDEN}}`
 async function editFiles (path, methods, extension) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
-    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n'))))
+    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     // unlink all delisted
     const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
