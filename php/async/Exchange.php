@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '3.0.85';
+$version = '3.0.86';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '3.0.85';
+    const VERSION = '3.0.86';
 
     public $browser;
     public $marketsLoading = null;
@@ -1621,10 +1621,10 @@ class Exchange extends \ccxt\Exchange {
         return $indexed ? $this->index_by($results, $key) : $results;
     }
 
-    public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array (), $context = array ()) {
-        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
+    public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
+        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             if ($this->enableRateLimit) {
-                $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
+                $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
                 Async\await($this->throttle ($cost));
             }
             $this->lastRestRequestTimestamp = $this->milliseconds ();
@@ -1633,9 +1633,9 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array (), $context = array ()) {
-        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
-            return Async\await($this->fetch2 ($path, $api, $method, $params, $headers, $body, $config, $context));
+    public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
+        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
+            return Async\await($this->fetch2 ($path, $api, $method, $params, $headers, $body, $config));
         }) ();
     }
 
@@ -2079,7 +2079,7 @@ class Exchange extends \ccxt\Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         return $this->safe_value($config, 'cost', 1);
     }
 

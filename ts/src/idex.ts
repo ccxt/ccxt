@@ -1698,7 +1698,7 @@ export default class idex extends Exchange {
         };
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         const hasApiKey = (this.apiKey !== undefined);
         const hasSecret = (this.secret !== undefined);
         const hasWalletAddress = (this.walletAddress !== undefined);

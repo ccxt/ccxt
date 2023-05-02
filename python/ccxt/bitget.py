@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
@@ -32,7 +33,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitget(Exchange):
+class bitget(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitget, self).describe(), {

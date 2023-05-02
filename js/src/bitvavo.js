@@ -1758,7 +1758,7 @@ export default class bitvavo extends Exchange {
         }
         return undefined;
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }
