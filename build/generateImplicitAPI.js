@@ -135,10 +135,10 @@ ${IDEN}}`
 // -------------------------------------------------------------------------
 
 function createImplicitMethodsCSharp(){
-    const exchanges = Object.keys(storedTypeScriptResult);
+    const exchanges = Object.keys(storedCamelCaseMethods);
     for (const index in exchanges) {
         const exchange = exchanges[index];
-        const methodNames = storedTypeScriptResult[exchange];
+        const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
             return [
@@ -157,7 +157,7 @@ function createImplicitMethodsCSharp(){
 //-------------------------------------------------------------------------
 
 async function editFiles (path, methods, extension) {
-    const exchanges = Object.keys (storedTypeScriptResult);
+    const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
     await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     // unlink all delisted
@@ -169,7 +169,7 @@ async function editFiles (path, methods, extension) {
 // -------------------------------------------------------------------------
 
 async function editAPIFilesCSharp(){
-    const exchanges = Object.keys(storedTypeScriptResult);
+    const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
 }
@@ -239,7 +239,7 @@ async function main() {
         createCSharpHeader(instance, parent);
         createPyHeader(instance, parent);
 
-        storedTypeScriptResult[exchange] = []
+        storedCamelCaseMethods[exchange] = []
         storedCamelCaseMethods[exchange] = []
         storedUnderscoreMethods[exchange] = []
         storedContext[exchange] = []
@@ -265,7 +265,6 @@ async function main() {
     await editFiles (PY_PATH, storedPyMethods, '.py');
     log.bright.cyan ('Python implicit api methods completed!')
 }
-let storedTypeScriptResult = {};
 let storedCamelCaseMethods = {};
 let storedUnderscoreMethods = {};
 // let storedPhpResult = {};
