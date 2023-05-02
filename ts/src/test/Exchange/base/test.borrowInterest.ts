@@ -12,7 +12,7 @@ function testBorrowInterest (exchange, skippedProperties, method, entry, request
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
     };
-    const emptyNotAllowedFor = [ 'currency', 'interest', 'interestRate', 'amountBorrowed', 'timestamp' ];
+    const emptyNotAllowedFor = [ 'currency', 'interest', 'interestRate', 'amountBorrowed', 'timestamp', 'info' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);

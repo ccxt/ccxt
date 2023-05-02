@@ -23,7 +23,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
             },
         },
     };
-    const emptyNotAllowedFor = [ 'id', 'code' ];
+    const emptyNotAllowedFor = [ 'id', 'code', 'networks', 'limits' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     //
@@ -48,8 +48,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
             testSharedMethods.assertGreater (exchange, skippedProperties, method, depositLimits, 'max', minStringDeposit);
         }
         // check valid ID & CODE
-        // todo: till we don't have granular skips, we should avoid this tests, as this fails for too much exchanges
-        // testSharedMethods.assertValidCurrencyIdAndCode (exchange, method, entry, entry['id'], entry['code']);
+        testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, entry, entry['id'], entry['code']);
         // todo: networks check
     }
 }
