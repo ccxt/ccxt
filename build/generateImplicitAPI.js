@@ -101,7 +101,7 @@ function generateImplicitMethodNames(id, api, paths = []){
 //-------------------------------------------------------------------------
 
 function createImplicitMethodsPyPhp(){
-    const exchanges = Object.keys(storedTypeScriptResult);
+    const exchanges = Object.keys(storedCamelCaseMethods);
     for (const index in exchanges) {
         const exchange = exchanges[index];
         const camelCaseMethods = storedCamelCaseMethods[exchange];
@@ -128,7 +128,6 @@ ${IDEN}}`
         const footer = storedTypeScriptMethods[exchange].pop ()
         storedTypeScriptMethods[exchange] = storedTypeScriptMethods[exchange].concat (typeScriptMethods).concat ([ footer ])
         storedPhpMethods[exchange] = storedPhpMethods[exchange].concat (phpMethods)
-        storedPyResult[exchange] = storedPyResult[exchange].concat (pythonMethods)
         storedPyMethods[exchange] = storedPyMethods[exchange].concat (pythonMethods)
     }
 }
@@ -158,7 +157,7 @@ function createImplicitMethodsCSharp(){
 //-------------------------------------------------------------------------
 
 async function editFiles (path, methods, extension) {
-    const exchanges = Object.keys (storedCamelCaseMethods);
+    const exchanges = Object.keys (storedTypeScriptResult);
     const files = exchanges.map (ex => path + ex + extension)
     await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     // unlink all delisted
@@ -194,7 +193,6 @@ function createPhpHeader(instance, parent){
     const exchange = instance.id;
     const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent;
     const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
-    storedPhpContext[exchange] = []
     const phpPreamble = `<?php
 
 namespace ccxt\\abstract;
@@ -208,9 +206,10 @@ namespace ccxt\\abstract;
 //-------------------------------------------------------------------------
 
 function createPyHeader(instance, parent){
+    const exchange = instance.id;
     const pyImports = 'from ccxt.base.types import Entry'
     const pyHeader = 'class ImplicitAPI:'
-    storedPyResult[exchange] = [ pyImports, '', '', pyHeader ]
+    storedPyMethods[exchange] = [ pyImports, '', '', pyHeader ]
 }
 // -------------------------------------------------------------------------
 
@@ -241,9 +240,9 @@ async function main() {
         createPyHeader(instance, parent);
 
         storedTypeScriptResult[exchange] = []
-        storedPhpResult[exchange] = []
-        storedCSharpResult[exchange] = []
-        storedPyResult[exchange] = []
+        storedCamelCaseMethods[exchange] = []
+        storedUnderscoreMethods[exchange] = []
+        storedContext[exchange] = []
 
         generateImplicitMethodNames (exchange, api)
     }
@@ -263,16 +262,18 @@ async function main() {
     await editAPIFilesCSharp();
     log.bright.cyan ('Csharp implicit api methods completed!')
 
-    await editFiles (PY_PATH, storedPyResult, '.py');
+    await editFiles (PY_PATH, storedPyMethods, '.py');
     log.bright.cyan ('Python implicit api methods completed!')
 }
-
+let storedTypeScriptResult = {};
 let storedCamelCaseMethods = {};
 let storedUnderscoreMethods = {};
-let storedContext = {};
+// let storedPhpResult = {};
 let storedTypeScriptMethods = {};
-let storedPhpMethods = {};
 let storedCSharpResult = {};
-let storedPyResult = {};
+// let storedPyResult = {};
 let storedCSharpMethods = {};
+let storedContext = {};
+let storedPhpMethods = {};
+let storedPyMethods = {};
 main()
