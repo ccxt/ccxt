@@ -25,8 +25,8 @@ function testPosition (exchange, skippedProperties, method, entry, symbol, now) 
         'side': 'long',
         'percentage': exchange.parseNumber ('1.234'),
     };
-    const emptyNotAllowedFor = [ 'symbol', 'entryPrice', 'side', 'markPrice', 'contracts', 'contractSize', 'marginMode' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyotAllowedFor = [ 'liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'long', 'short' ]);

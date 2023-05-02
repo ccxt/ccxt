@@ -10,8 +10,8 @@ function testOpenInterest (exchange, skippedProperties, method, entry) {
         'datetime': '2022-04-07T23:20:00.000Z',
         'info': {},
     };
-    const emptyNotAllowedFor = [ 'baseVolume' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'quoteVolume', 'symbol', 'timestamp' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol');
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
     //

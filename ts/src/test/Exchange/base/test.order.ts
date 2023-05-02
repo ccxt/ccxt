@@ -26,10 +26,8 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
         'fee': {},
         'trades': [],
     };
-    const emptyNotAllowedFor = [ 'id' ];
-    // todo: skip some exchanges
-    // const emptyNotAllowedFor = [ 'id', 'timestamp', 'symbol', 'type', 'side', 'price' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'clientOrderId', 'stopPrice', 'trades' ]; // todo: we need more detailed property to skip the exchanges, that return only order id when executing order (in createOrder)
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'timeInForce', [ 'GTC', 'GTK', 'IOC', 'FOK' ]);
@@ -47,12 +45,14 @@ function testOrder (exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'remaining'));
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', exchange.safeString (entry, 'filled'));
-    if (entry['trades'] !== undefined) {
-        for (let i = 0; i < entry['trades'].length; i++) {
-            testTrade (exchange, skippedProperties, method, entry['trades'][i], symbol, now);
+    if (!('trades' in skippedProperties)) {
+        if (entry['trades'] !== undefined) {
+            for (let i = 0; i < entry['trades'].length; i++) {
+                testTrade (exchange, skippedProperties, method, entry['trades'][i], symbol, now);
+            }
         }
     }
-    testSharedMethods.assertFee (exchange, skippedProperties, method, entry['fee']);
+    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fee']);
 }
 
 export default testOrder;

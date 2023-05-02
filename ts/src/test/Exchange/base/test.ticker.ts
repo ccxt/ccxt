@@ -26,8 +26,8 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
         'baseVolume': exchange.parseNumber ('1.234'), // volume of base currency
         'quoteVolume': exchange.parseNumber ('1.234'), // volume of quote currency
     };
-    const emptyNotAllowedFor = [ 'symbol' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'bidVolume', 'askVolume', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
@@ -43,8 +43,6 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'average', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'baseVolume', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'quoteVolume', '0');
-    const existsFirst = ('first' in entry);
-    assert (!existsFirst, '`first` field leftover' + logText);
     const lastString = exchange.safeString (entry, 'last');
     const closeString = exchange.safeString (entry, 'close');
     assert (((closeString === undefined) && (lastString === undefined)) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
@@ -53,17 +51,16 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
     const high = exchange.safeString (entry, 'high');
     const low = exchange.safeString (entry, 'low');
     if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
-        const mulBaseVolLow = Precise.stringMul (baseVolume, low);
-        assert (Precise.stringGe (quoteVolume, mulBaseVolLow), 'quoteVolume >= baseVolume * low' + logText);
-        const mulBaseVolHigh = Precise.stringMul (baseVolume, high);
-        assert (Precise.stringLe (quoteVolume, mulBaseVolHigh), 'quoteVolume <= baseVolume * high' + logText);
+        assert (Precise.stringGe (quoteVolume, Precise.stringMul (baseVolume, low)), 'quoteVolume >= baseVolume * low' + logText);
+        assert (Precise.stringLe (quoteVolume, Precise.stringMul (baseVolume, high)), 'quoteVolume <= baseVolume * high' + logText);
     }
     const vwap = exchange.safeString (entry, 'vwap');
     if (vwap !== undefined) {
+        // todo
         // assert (high !== undefined, 'vwap is defined, but high is not' + logText);
         // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
+        // assert (vwap >= low && vwap <= high)
         assert (Precise.stringGe (vwap, '0'), 'vwap is not greater than zero' + logText);
-        //     assert (vwap >= low && vwap <= high)
         if (baseVolume !== undefined) {
             assert (quoteVolume !== undefined, 'baseVolume & vwap is defined, but quoteVolume is not' + logText);
         }
@@ -71,11 +68,8 @@ function testTicker (exchange, skippedProperties, method, entry, symbol) {
             assert (baseVolume !== undefined, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
         }
     }
-    const bid = exchange.safeString (entry, 'bid');
-    const ask = exchange.safeString (entry, 'ask');
-    if ((bid !== undefined) && (ask !== undefined)) {
-        assert (Precise.stringGe (ask, bid), entry['symbol'] + ' bid is greater than ask!' + logText);
-    }
+    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
+    // if singular fetchTicker was called, then symbol needs to be asserted
     if (method === 'fetchTicker') {
         testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     }

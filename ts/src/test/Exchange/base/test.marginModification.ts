@@ -11,8 +11,8 @@ function testMarginModification (exchange, skippedProperties, method, entry) {
         'symbol': 'ADA/USDT:USDT',
         'status': 'ok',
     };
-    const emptyNotAllowedFor = [ 'type', 'status' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'status', 'symbol', 'code', 'total', 'amount' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     //
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');

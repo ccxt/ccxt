@@ -5,22 +5,22 @@ import testSharedMethods from './test.sharedMethods.js';
 
 function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
     const format = {
-        // 'symbol': 'ETH/BTC', // reserved
-        'bids': [
-            [ exchange.parseNumber ('1.23'), exchange.parseNumber ('0.123') ],
-            [ exchange.parseNumber ('1.22'), exchange.parseNumber ('0.543') ],
-        ],
+        'symbol': 'ETH/BTC',
         'asks': [
             [ exchange.parseNumber ('1.24'), exchange.parseNumber ('0.453') ],
             [ exchange.parseNumber ('1.25'), exchange.parseNumber ('0.157') ],
+        ],
+        'bids': [
+            [ exchange.parseNumber ('1.23'), exchange.parseNumber ('0.123') ],
+            [ exchange.parseNumber ('1.22'), exchange.parseNumber ('0.543') ],
         ],
         'timestamp': 1504224000000,
         'datetime': '2017-09-01T00:00:00',
         'nonce': 134234234,
         // 'info': {},
     };
-    const emptyNotAllowedFor = [ 'bids', 'asks' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'symbol' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);

@@ -146,30 +146,32 @@ function testMarket (exchange, skippedProperties, method, market) {
     }
     // check precisions
     const precisionKeys = Object.keys (market['precision']);
+    assert (precisionKeys.length >= 2, 'precision should have "amount" and "price" keys at least' + logText);
     for (let i = 0; i < precisionKeys.length; i++) {
         testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
     }
     // check limits
-    const limitsKeys = Object.keys (market['limits']);
-    for (let i = 0; i < limitsKeys.length; i++) {
-        const key = limitsKeys[i];
-        const limitEntry = market['limits'][key];
-        // min >= 0
-        testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, limitEntry, 'min', '0');
-        // max >= 0
-        testSharedMethods.assertGreater (exchange, skippedProperties, method, limitEntry, 'max', '0');
-        // max >= min
-        // todo: several exchanges fail, so till we add granular tests, lets disable this check
-        // const minString = exchange.safeString (limitEntry, 'min');
-        // if (minString !== undefined) {
-        //     testSharedMethods.assertGreater (exchange, method, limitEntry, 'max', minString);
-        // }
+    if (!('limits' in skippedProperties)) {
+        const limitsKeys = Object.keys (market['limits']);
+        assert (limitsKeys.length >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
+        for (let i = 0; i < limitsKeys.length; i++) {
+            const key = limitsKeys[i];
+            const limitEntry = market['limits'][key];
+            // min >= 0
+            testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, limitEntry, 'min', '0');
+            // max >= 0
+            testSharedMethods.assertGreater (exchange, skippedProperties, method, limitEntry, 'max', '0');
+            // max >= min
+            const minString = exchange.safeString (limitEntry, 'min');
+            if (minString !== undefined) {
+                testSharedMethods.assertGreater (exchange, skippedProperties, method, limitEntry, 'max', minString);
+            }
+        }
     }
     // check whether valid currency ID and CODE is used
-    // todo: till we don't have granular skips, we should avoid this tests, as this fails for too much exchanges
-    // testSharedMethods.assertValidCurrencyIdAndCode (exchange, method, market, market['baseId'], market['base']);
-    // testSharedMethods.assertValidCurrencyIdAndCode (exchange, method, market, market['quoteId'], market['quote']);
-    // testSharedMethods.assertValidCurrencyIdAndCode (exchange, method, market, market['settleId'], market['settle']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
+    testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
 }
 
 export default testMarket;

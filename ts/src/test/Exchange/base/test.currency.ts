@@ -23,8 +23,8 @@ function testCurrency (exchange, skippedProperties, method, entry) {
             },
         },
     };
-    const emptyNotAllowedFor = [ 'id', 'code', 'networks', 'limits' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'name' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     //
     testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, entry, 'precision');

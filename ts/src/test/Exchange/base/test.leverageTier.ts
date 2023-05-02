@@ -10,8 +10,8 @@ function testLeverageTier (exchange, skippedProperties, method, entry) {
         'maxLeverage': exchange.parseNumber ('25'),
         'info': {},
     };
-    const emptyNotAllowedFor = [ 'maxLeverage', ' info' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'maintenanceMarginRate' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     //
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'tier', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'minNotional', '0');

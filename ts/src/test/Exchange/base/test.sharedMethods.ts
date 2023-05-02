@@ -20,7 +20,7 @@ function assertType (exchange, skippedProperties, entry, key, format) {
     return result;
 }
 
-function assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor = []) {
+function assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor = []) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -30,10 +30,12 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
         const expectedLength = format.length;
         assert (realLength === expectedLength, 'entry length is not equal to expected length of ' + expectedLength.toString () + logText);
         for (let i = 0; i < format.length; i++) {
-            const is_in_array = exchange.inArray (i, emptyNotAllowedFor);
-            if (is_in_array) {
-                assert ((entry[i] !== undefined), i.toString () + ' index is undefined, but is is was expected to be set' + logText);
+            const emptyAllowedForThisKey = exchange.inArray (i, emptyAllowedFor);
+            const value = entry[i];
+            if (emptyAllowedForThisKey && (value === undefined)) {
+                continue;
             }
+            assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
             assert (assertType (exchange, skippedProperties, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
         }
@@ -42,16 +44,21 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const keyStr = key.toString (); // needed in other langs, where `object` might have non-string keys (todo)
+            const keyStr = key.toString (); // needed in other langs, where `object` might have non-string keys
             assert ((key in entry), keyStr + ' key is missing from structure' + logText);
-            if (exchange.inArray (key, emptyNotAllowedFor)) {
-                // if it was in needed keys, then it should have value.
-                assert (entry[key] !== undefined, key + ' key has an null value, but is expected to have a value' + logText);
+            const emptyAllowedForThisKey = exchange.inArray (key, emptyAllowedFor);
+            const value = entry[key];
+            if (emptyAllowedForThisKey && (value === undefined)) {
+                continue;
             }
+            // if it was in needed keys, then it should have value.
+            assert (value !== undefined, key + ' key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (keyStr !== 'info') {
-                assert (assertType (exchange, skippedProperties, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+                continue;
             }
+            assert (assertType (exchange, skippedProperties, entry, key, format), key + ' key is neither undefined, neither of expected type' + logText);
+
         }
     }
 }
@@ -259,23 +266,13 @@ function assertInArray (exchange, skippedProperties, method, entry, key, expecte
     }
 }
 
-function assertFee (exchange, skippedProperties, method, entry) {
+function assertFeeStructure (exchange, skippedProperties, method, entry) {
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
         assert (('cost' in entry), '"fee" should contain a "cost" key' + logText);
         assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'cost', '0');
         assert (('currency' in entry), '"fee" should contain a "currency" key' + logText);
         assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency']);
-    }
-}
-
-function assertFees (exchange, skippedProperties, method, entry) {
-    const logText = logTemplate (exchange, method, entry);
-    if (entry !== undefined) {
-        assert (Array.isArray (entry), '"fees" is not an array' + logText);
-        for (let i = 0; i < entry.length; i++) {
-            assertFee (exchange, skippedProperties, method, entry[i]);
-        }
     }
 }
 
@@ -329,8 +326,7 @@ export default {
     assertSymbol,
     assertCurrencyCode,
     assertInArray,
-    assertFee,
-    assertFees,
+    assertFeeStructure,
     assertTimestampOrder,
     assertGreater,
     assertGreaterOrEqual,
@@ -341,4 +337,5 @@ export default {
     assertInteger,
     checkPrecisionAccuracy,
     assertValidCurrencyIdAndCode,
+    assertType,
 };

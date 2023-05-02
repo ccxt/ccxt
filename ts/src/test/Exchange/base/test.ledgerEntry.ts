@@ -19,18 +19,18 @@ function testLedgerEntry (exchange, skippedProperties, method, entry, requestedC
         'datetime': '2021-11-30T00:00:00.000Z',
         'type': 'deposit',
     };
-    const emptyNotAllowedFor = [ 'id', 'currency', 'account', 'status', 'direction' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'referenceId', 'referenceAccount', 'id' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'direction', [ 'in', 'out' ]);
-    // testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee',  ]);
-    // testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]);
+    testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee' ]);
+    // testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); // todo
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'before', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'after', '0');
-    testSharedMethods.assertFee (exchange, skippedProperties, method, entry['fee']);
+    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fee']);
 }
 
 export default testLedgerEntry;

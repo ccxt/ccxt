@@ -10,8 +10,7 @@ function testBorrowRate (exchange, skippedProperties, method, entry, requestedCo
         'rate': exchange.parseNumber ('0.0006'), // Interest rate
         'period': 86400000, // Amount of time the interest rate is based on in milliseconds
     };
-    const emptyNotAllowedFor = [ 'currency', 'timestamp', 'rate', 'period', 'info' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //

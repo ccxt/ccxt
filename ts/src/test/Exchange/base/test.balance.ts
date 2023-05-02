@@ -10,8 +10,7 @@ function testBalance (exchange, skippedProperties, method, entry) {
         'total': {},
         'info': {},
     };
-    const emptyNotAllowedFor = [ 'free', 'used', 'total', 'info' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
     const codesTotal = Object.keys (entry['total']);

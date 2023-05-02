@@ -19,15 +19,19 @@ function testTrade (exchange, skippedProperties, method, entry, symbol, now) {
     };
     // todo: add takeOrMaker as mandatory set
     // removed side because some public endpoints return trades without side
-    const emptyNotAllowedFor = [ 'price', 'amount', 'cost' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'fees', 'fee', 'symbol', 'order', 'id' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'buy', 'sell' ]);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
-    testSharedMethods.assertFee (exchange, skippedProperties, method, entry['fee']);
-    testSharedMethods.assertFees (exchange, skippedProperties, method, entry['fees']);
+    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fee']);
+    if (entry['fees'] !== undefined) {
+        for (let i = 0; i < entry.length; i++) {
+            testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry[i]);
+        }
+    }
 }
 
 export default testTrade;

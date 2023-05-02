@@ -10,8 +10,8 @@ function testTradingFee (exchange, skippedProperties, method, symbol, entry) {
         'percentage': false,
         'tierBased': false,
     };
-    const emptyNotAllowedFor = [ 'maker', 'taker', 'percentage', 'tierBased' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'tierBased', 'percentage', 'symbol' ];
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
 }
 

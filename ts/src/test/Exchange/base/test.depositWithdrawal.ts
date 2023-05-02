@@ -22,15 +22,20 @@ function testDepositWithdrawal (exchange, skippedProperties, method, entry, requ
         'updated': 1502962946233,
         'fee': {},
     };
-    const emptyNotAllowedFor = [ 'type', 'amount', 'currency' ];
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
+    const emptyAllowedFor = [ 'address', 'addressTo', 'addressFrom', 'tag', 'tagTo', 'tagFrom' ]; // below we still do assertion for to/from
+    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'status', [ 'ok', 'pending', 'failed', 'rejected', 'canceled' ]);
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'deposit', 'withdrawal' ]);
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');
-    testSharedMethods.assertFee (exchange, skippedProperties, method, entry['fee']);
+    testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry['fee']);
+    if (entry['type'] === 'deposit') {
+        testSharedMethods.assertType (exchange, skippedProperties, entry, 'addressFrom', format);
+    } else {
+        testSharedMethods.assertType (exchange, skippedProperties, entry, 'addressTo', format);
+    }
 }
 
 export default testDepositWithdrawal;
