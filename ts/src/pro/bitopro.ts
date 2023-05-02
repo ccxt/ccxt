@@ -346,8 +346,11 @@ export default class bitopro extends bitoproRest {
         const event = this.safeString (message, 'event');
         const data = this.safeValue (message, 'data');
         const symbols = Object.keys (data);
-        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        const orders = new ArrayCacheBySymbolById (limit);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const rawOrders = data[symbol];
