@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
@@ -30,7 +31,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitrue(Exchange):
+class bitrue(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitrue, self).describe(), {
@@ -1910,7 +1911,7 @@ class bitrue(Exchange):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):

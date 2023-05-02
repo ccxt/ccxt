@@ -165,7 +165,7 @@ export default class digifinex extends Exchange {
         estimatedSettlePrice: any;
         timestamp: any;
         datetime: any;
-        fundingRate: string;
+        fundingRate: number;
         fundingTimestamp: number;
         fundingDatetime: string;
         nextFundingRate: string;
@@ -184,7 +184,7 @@ export default class digifinex extends Exchange {
         estimatedSettlePrice: any;
         timestamp: any;
         datetime: any;
-        fundingRate: string;
+        fundingRate: number;
         fundingTimestamp: number;
         fundingDatetime: string;
         nextFundingRate: string;

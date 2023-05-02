@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
@@ -24,7 +25,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class cex(Exchange):
+class cex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(cex, self).describe(), {

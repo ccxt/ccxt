@@ -4,10 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.binance import binance
+from ccxt.abstract.binanceusdm import ImplicitAPI
 from ccxt.base.errors import InvalidOrder
 
 
-class binanceusdm(binance):
+class binanceusdm(binance, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(binanceusdm, self).describe(), {

@@ -22,8 +22,8 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     |       loadMarkets            .           watchBalance       |
     |       watchTicker            .           watchOrders        |
     |       watchTickers           .           watchMyTrades      |
-    |       watchOrderBook         .           watchOrders        |
-    |       watchOHLCV             .           watchPositions     |
+    |       watchOrderBook         .           watchPositions     |
+    |       watchOHLCV             .                              |
     |       watchStatus            .                              |
     |       watchTrades            .                              |
     │                              .                              |

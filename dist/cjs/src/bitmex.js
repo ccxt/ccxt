@@ -2715,7 +2715,7 @@ class bitmex extends bitmex$1 {
             'info': response,
         };
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const isAuthenticated = this.checkRequiredCredentials(false);
         const cost = this.safeValue(config, 'cost', 1);
         if (cost !== 1) { // trading endpoints

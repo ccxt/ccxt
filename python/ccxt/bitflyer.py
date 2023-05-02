@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -14,7 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bitflyer(Exchange):
+class bitflyer(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitflyer, self).describe(), {

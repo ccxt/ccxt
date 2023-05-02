@@ -3774,6 +3774,7 @@ export default class phemex extends Exchange {
          * @returns {object} response from the exchange
          */
         this.checkRequiredArgument('setPositionMode', symbol, 'symbol');
+        await this.loadMarkets();
         const market = this.market(symbol);
         if (market['settle'] !== 'USDT') {
             throw new BadSymbol(this.id + ' setPositionMode() supports USDT settled markets only');

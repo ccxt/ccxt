@@ -679,6 +679,7 @@ class poloniex extends Exchange {
                 'withdraw' => null,
                 'fee' => $fee,
                 'precision' => null,
+                'networks' => array(),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,

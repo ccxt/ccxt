@@ -3015,7 +3015,7 @@ export default class digifinex extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeString (contract, 'funding_rate'),
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': this.iso8601 (timestamp),
             'nextFundingRate': this.safeString (contract, 'next_funding_rate'),
@@ -3080,7 +3080,7 @@ export default class digifinex extends Exchange {
             rates.push ({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': this.safeString (entry, 'rate'),
+                'fundingRate': this.safeNumber (entry, 'rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             });

@@ -3803,7 +3803,7 @@ export default class coinex extends Exchange {
             rates.push ({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': this.safeString (entry, 'funding_rate'),
+                'fundingRate': this.safeNumber (entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             });
