@@ -192,7 +192,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         trades = await self.subscribe(url, messageHash, topic, None, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trade(self, client: Client, message):
         #
@@ -397,7 +397,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         orders = await self.subscribe(url, messageHash, topic, None, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def parse_ws_order_status(self, status):
         statuses = {

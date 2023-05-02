@@ -139,7 +139,7 @@ class huobijp(ccxt.async_support.huobijp):
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trades(self, client: Client, message):
         #
@@ -213,7 +213,7 @@ class huobijp(ccxt.async_support.huobijp):
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #

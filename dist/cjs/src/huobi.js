@@ -1421,7 +1421,7 @@ class huobi extends huobi$1 {
             if (value === true) {
                 promises.push(this.fetchMarketsByTypeAndSubType(type, undefined, params));
             }
-            else if (value !== undefined) {
+            else if (value) {
                 const subKeys = Object.keys(value);
                 for (let j = 0; j < subKeys.length; j++) {
                     const subType = subKeys[j];

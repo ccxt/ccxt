@@ -1425,7 +1425,7 @@ class huobi(Exchange, ImplicitAPI):
             value = self.safe_value(types, type)
             if value is True:
                 promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
-            elif value is not None:
+            elif value:
                 subKeys = list(value.keys())
                 for j in range(0, len(subKeys)):
                     subType = subKeys[j]

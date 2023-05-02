@@ -948,8 +948,7 @@ class whitebit extends whitebit$1 {
                 results = this.arrayConcat(results, parsed);
             }
             results = this.sortBy2(results, 'timestamp', 'id');
-            const tail = (since === undefined);
-            return this.filterBySinceLimit(results, since, limit, 'timestamp', tail);
+            return this.filterBySinceLimit(results, since, limit, 'timestamp');
         }
     }
     parseTrade(trade, market = undefined) {

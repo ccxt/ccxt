@@ -163,7 +163,7 @@ async function editFiles (path, methods, extension) {
     // unlink all delisted
     const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
-    await Promise.all (abstract.filter (file => file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
+    await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
 }
 
 // -------------------------------------------------------------------------

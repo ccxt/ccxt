@@ -964,8 +964,7 @@ class whitebit extends Exchange {
                     $results = $this->array_concat($results, $parsed);
                 }
                 $results = $this->sort_by_2($results, 'timestamp', 'id');
-                $tail = ($since === null);
-                return $this->filter_by_since_limit($results, $since, $limit, 'timestamp', $tail);
+                return $this->filter_by_since_limit($results, $since, $limit, 'timestamp');
             }
         }) ();
     }

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.87';
+$version = '3.0.89';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.87';
+    const VERSION = '3.0.89';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3435,8 +3435,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function parse_transfers($transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3448,8 +3447,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function parse_ledger($data, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3467,8 +3465,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function nonce() {
