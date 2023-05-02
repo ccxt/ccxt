@@ -3519,9 +3519,9 @@ class Exchange {
         return $indexed ? $this->index_by($results, $key) : $results;
     }
 
-    public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array (), $context = array ()) {
+    public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         if ($this->enableRateLimit) {
-            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle ($cost);
         }
         $this->lastRestRequestTimestamp = $this->milliseconds ();
@@ -3529,8 +3529,8 @@ class Exchange {
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-    public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array (), $context = array ()) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body, $config, $context);
+    public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body, $config);
     }
 
     public function load_accounts($reload = false, $params = array ()) {
@@ -3941,7 +3941,7 @@ class Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         return $this->safe_value($config, 'cost', 1);
     }
 

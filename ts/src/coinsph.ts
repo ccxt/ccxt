@@ -364,7 +364,7 @@ export default class coinsph extends Exchange {
         });
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {

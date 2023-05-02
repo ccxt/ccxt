@@ -2802,16 +2802,16 @@ class Exchange(object):
                 results.append(objects[i])
         return self.index_by(results, key) if indexed else results
 
-    def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}, context={}):
+    def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
         if self.enableRateLimit:
-            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
+            cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}, context={}):
-        return self.fetch2(path, api, method, params, headers, body, config, context)
+    def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
+        return self.fetch2(path, api, method, params, headers, body, config)
 
     def load_accounts(self, reload=False, params={}):
         if reload:
@@ -3139,7 +3139,7 @@ class Exchange(object):
         # raise NotSupported(self.id + ' handleErrors() not implemented yet')
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         return self.safe_value(config, 'cost', 1)
 
     def fetch_ticker(self, symbol: str, params={}):
