@@ -687,6 +687,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'withdraw': None,
                 'fee': fee,
                 'precision': None,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': None,

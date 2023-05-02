@@ -3727,7 +3727,7 @@ class bitget extends bitget$1 {
             rates.push({
                 'info': entry,
                 'symbol': symbolInner,
-                'fundingRate': this.safeString(entry, 'fundingRate'),
+                'fundingRate': this.safeNumber(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
             });
