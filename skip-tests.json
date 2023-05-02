@@ -657,7 +657,12 @@
     "poloniex": {
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "some currencies does not exist in currencies"
+            },
             "fetchCurrencies": {
+                "withdraw": "undefined",
+                "deposit": "undefined",
                 "networks": "networks key is missing",
                 "precision": "precision is undefined"
             },
