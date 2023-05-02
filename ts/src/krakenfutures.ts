@@ -816,7 +816,7 @@ export default class krakenfutures extends Exchange {
         if (stopPrice !== undefined && type !== 'take_profit') {
             type = 'stp';
         } else if (postOnly) {
-            type = 'postOnly';
+            type = 'post';
         } else if (timeInForce === 'ioc') {
             type = 'ioc';
         } else if (type === 'limit') {
