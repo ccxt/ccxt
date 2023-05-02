@@ -111,6 +111,7 @@ class bitget extends Exchange {
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
+                    'p2p' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://www.bitget.com',
                 'doc' => array(
@@ -254,6 +255,14 @@ class bitget extends Exchange {
                             'trace/followerCloseByTrackingNo' => 2,
                             'trace/followerCloseByAll' => 2,
                             'trace/followerSetTpsl' => 2,
+                        ),
+                    ),
+                    'p2p' => array(
+                        'get' => array(
+                            'merchant/merchantList' => 1,
+                            'merchant/merchantInfo' => 1,
+                            'merchant/advList' => 1,
+                            'merchant/orderList' => 1,
                         ),
                     ),
                 ),
@@ -4314,7 +4323,14 @@ class bitget extends Exchange {
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
-        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        $pathPart = '';
+        if ($endpoint === 'spot') {
+            $pathPart = '/api/spot/v1';
+        } elseif ($endpoint === 'mix') {
+            $pathPart = '/api/mix/v1';
+        } else {
+            $pathPart = '/api/p2p/v1';
+        }
         $request = '/' . $this->implode_params($path, $params);
         $payload = $pathPart . $request;
         $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;

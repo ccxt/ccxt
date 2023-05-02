@@ -113,3 +113,7 @@ class ImplicitAPI:
     private_mix_post_trace_followerclosebytrackingno = privateMixPostTraceFollowerCloseByTrackingNo = Entry('trace/followerCloseByTrackingNo', ['private', 'mix'], 'POST', {'cost': 2})
     private_mix_post_trace_followerclosebyall = privateMixPostTraceFollowerCloseByAll = Entry('trace/followerCloseByAll', ['private', 'mix'], 'POST', {'cost': 2})
     private_mix_post_trace_followersettpsl = privateMixPostTraceFollowerSetTpsl = Entry('trace/followerSetTpsl', ['private', 'mix'], 'POST', {'cost': 2})
+    private_p2p_get_merchant_merchantlist = privateP2pGetMerchantMerchantList = Entry('merchant/merchantList', ['private', 'p2p'], 'GET', {'cost': 1})
+    private_p2p_get_merchant_merchantinfo = privateP2pGetMerchantMerchantInfo = Entry('merchant/merchantInfo', ['private', 'p2p'], 'GET', {'cost': 1})
+    private_p2p_get_merchant_advlist = privateP2pGetMerchantAdvList = Entry('merchant/advList', ['private', 'p2p'], 'GET', {'cost': 1})
+    private_p2p_get_merchant_orderlist = privateP2pGetMerchantOrderList = Entry('merchant/orderList', ['private', 'p2p'], 'GET', {'cost': 1})

@@ -113,6 +113,7 @@ export default class bitget extends Exchange {
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -256,6 +257,14 @@ export default class bitget extends Exchange {
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'p2p': {
+                        'get': {
+                            'merchant/merchantList': 1,
+                            'merchant/merchantInfo': 1,
+                            'merchant/advList': 1,
+                            'merchant/orderList': 1,
                         },
                     },
                 },
@@ -4363,7 +4372,16 @@ export default class bitget extends Exchange {
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
-        const pathPart = (endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        let pathPart = '';
+        if (endpoint === 'spot') {
+            pathPart = '/api/spot/v1';
+        }
+        else if (endpoint === 'mix') {
+            pathPart = '/api/mix/v1';
+        }
+        else {
+            pathPart = '/api/p2p/v1';
+        }
         const request = '/' + this.implodeParams(path, params);
         const payload = pathPart + request;
         let url = this.implodeHostname(this.urls['api'][endpoint]) + payload;

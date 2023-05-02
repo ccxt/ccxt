@@ -340,6 +340,18 @@ abstract class bitget extends \ccxt\async\Exchange {
     public function private_mix_post_trace_followersettpsl($params = array()) {
         return $this->request('trace/followerSetTpsl', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_p2p_get_merchant_merchantlist($params = array()) {
+        return $this->request('merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_p2p_get_merchant_merchantinfo($params = array()) {
+        return $this->request('merchant/merchantInfo', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_p2p_get_merchant_advlist($params = array()) {
+        return $this->request('merchant/advList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_p2p_get_merchant_orderlist($params = array()) {
+        return $this->request('merchant/orderList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicSpotGetPublicTime($params = array()) {
         return $this->request('public/time', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -672,5 +684,17 @@ abstract class bitget extends \ccxt\async\Exchange {
     }
     public function privateMixPostTraceFollowerSetTpsl($params = array()) {
         return $this->request('trace/followerSetTpsl', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateP2pGetMerchantMerchantList($params = array()) {
+        return $this->request('merchant/merchantList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateP2pGetMerchantMerchantInfo($params = array()) {
+        return $this->request('merchant/merchantInfo', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateP2pGetMerchantAdvList($params = array()) {
+        return $this->request('merchant/advList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateP2pGetMerchantOrderList($params = array()) {
+        return $this->request('merchant/orderList', array('private', 'p2p'), 'GET', $params, null, null, array("cost" => 1));
     }
 }
