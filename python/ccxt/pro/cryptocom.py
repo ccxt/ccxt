@@ -127,7 +127,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         trades = await self.watch_public(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trades(self, client: Client, message):
         #
@@ -189,7 +189,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         trades = await self.watch_private(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     async def watch_ticker(self, symbol: str, params={}):
         """
@@ -259,7 +259,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         ohlcv = await self.watch_public(messageHash, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -311,7 +311,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         orders = await self.watch_private(messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message, subscription=None):
         #
