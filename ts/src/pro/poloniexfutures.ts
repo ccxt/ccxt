@@ -45,8 +45,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
                     'snapshotDelay': 5,
                     'maxRetries': 3,
                 },
-                'publicToken': undefined,
-                'privateToken': undefined,
                 'streamLimit': 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
