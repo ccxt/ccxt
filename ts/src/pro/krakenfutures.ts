@@ -487,6 +487,12 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "is_cancel": false,
         //        "reason": "new_placed_order_by_user"
         //    }
+        //    {
+        //        feed: 'open_orders',
+        //        order_id: 'ea8a7144-37db-449b-bb4a-b53c814a0f43',
+        //        is_cancel: true,
+        //        reason: 'cancelled_by_user'
+        //    }
         //
         let orders = this.orders;
         if (orders === undefined) {
@@ -495,8 +501,8 @@ export default class krakenfutures extends krakenfuturesRest {
             this.orders = orders;
         }
         const order = this.safeValue (message, 'order');
-        const marketId = this.safeStringLower (order, 'instrument');
-        if (marketId !== undefined) {
+        if (order !== undefined) {
+            const marketId = this.safeStringLower (order, 'instrument');
             const messageHash = 'orders';
             const symbol = this.safeSymbol (marketId);
             const orderId = this.safeString (order, 'order_id');
@@ -548,6 +554,22 @@ export default class krakenfutures extends krakenfuturesRest {
                 orders.append (this.safeOrder (previousOrder));
                 client.resolve (orders, messageHash + ':' + symbol);
                 client.resolve (orders, messageHash);
+            }
+        } else {
+            const isCancel = this.safeValue (message, 'is_cancel');
+            if (isCancel) {
+                // get order without symbol
+                for (let i = 0; i < orders.length; i++) {
+                    const order = orders[i];
+                    if (order['id'] === message['order_id']) {
+                        orders[i] = this.extend (order, {
+                            'status': 'canceled',
+                        });
+                        client.resolve (orders, 'orders');
+                        client.resolve (orders, 'orders:' + order['symbol']);
+                        break;
+                    }
+                }
             }
         }
         return message;
@@ -677,7 +699,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.safeOrder ({
             'info': order,
             'symbol': this.safeSymbol (marketId, market),
-            'id': this.safeString (unparsedOrder, 'id'),
+            'id': this.safeString (unparsedOrder, 'order_id'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1103,6 +1125,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 holdingResult[code] = newAccount;
             }
             this.balance['cash'] = holdingResult;
+            client.resolve (holdingResult, messageHash);
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys (futures);                  // marginAccount
@@ -1125,6 +1148,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 futuresResult[symbol][code] = newAccount;
             }
             this.balance['margin'] = futuresResult;
+            client.resolve (this.balance['margin'], messageHash + 'futures');
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeValue (flexFutures, 'currencies', {});
@@ -1145,6 +1169,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 flexFuturesResult[code] = newAccount;
             }
             this.balance['flex'] = flexFuturesResult;
+            client.resolve (this.balance['flex'], messageHash + 'flex_futures');
         }
         client.resolve (this.balance, messageHash);
     }
