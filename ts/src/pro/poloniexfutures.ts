@@ -3,9 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Precise } from '../base/Precise.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -25,6 +24,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'watchStatus': false,
                 'watchOrders': true,
                 'watchMyTrades': false,
+                'watchPosition': undefined,
+                'watchPositions': false,
             },
             'urls': {
                 'api': {
@@ -34,11 +35,22 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'options': {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
+                'watchTicker': {
+                    'method': '/contractMarket/ticker', // can also be /contractMarket/snapshot
+                },
+                'watchOrders': {
+                    'method': '/contractMarket/tradeOrders', // can also be /contractMarket/advancedOrders
+                },
                 'watchOrderBook': {
-                    'method': '/contractMarket/level3v2', // can also be '/contractMarket/level2'
+                    'method': '/contractMarket/level2', // can also be '/contractMarket/level3v2'
+                    'snapshotDelay': 5,
+                    'maxRetries': 3,
                 },
                 'publicToken': undefined,
                 'privateToken': undefined,
+                'streamLimit': 5, // called tunnels by poloniexfutures docs
+                'streamBySubscriptionsHash': {},
+                'streamIndex': -1,
             },
             'streaming': {
                 'keepAlive': 30000,
@@ -47,86 +59,217 @@ export default class poloniexfutures extends poloniexfuturesRest {
         });
     }
 
-    async getPublicToken (params = {}) {
-        if (this.options['publicToken'] === undefined) {
-            const response = await this.publicPostBulletPublic ();
-            //
-            //    {
-            //        code: '200000',
-            //        data: {
-            //            instanceServers: [ [Object] ],
-            //            token: 'DcXijCbKcWFew_i0BS8y6UNmBtlHW3UAvR4Nx4VADIn15tt-jDqMbYWNZ2II5fSnrClCBBv6dTDc8PMFHz-H6tSnN_vkspYYmOImrn5NXLlsFbcpggjU6mMGfZAja_q_-wgHjBcT7RhvJVwiLf8PgR2VF0_UPbEwl-RWj6JCmic=.9NqWNqQVILOkGiD1RL1AoQ=='
-            //        }
-            //    }
-            //
-            const data = this.safeValue (response, 'data');
-            this.options['publicToken'] = this.safeString (data, 'token');
+    negotiate (privateChannel, params = {}) {
+        const connectId = privateChannel ? 'private' : 'public';
+        const urls = this.safeValue (this.options, 'urls', {});
+        if (connectId in urls) {
+            return urls[connectId];
         }
-        return this.options['publicToken'];
+        // we store an awaitable to the url
+        // so that multiple calls don't asynchronously
+        // fetch different urls and overwrite each other
+        urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
+        this.options['urls'] = urls;
+        return urls[connectId];
     }
 
-    async getPrivateToken (params = {}) {
-        if (this.options['privateToken'] === undefined) {
-            const response = await this.privatePostBulletPrivate ();
+    async negotiateHelper (privateChannel, params = {}) {
+        let response = undefined;
+        const connectId = privateChannel ? 'private' : 'public';
+        if (privateChannel) {
+            response = await this.privatePostBulletPrivate (params);
             //
-            //   {
-            //       code: '200000',
-            //       data: {
-            //           instanceServers: [
-            //                {
-            //                    "pingInterval": 50000,
-            //                    "endpoint": "wss://futures-apiws.poloniex.com/endpoint",
-            //                    "protocol": "websocket",
-            //                    "encrypt": true,
-            //                    "pingTimeout": 10000
-            //                }
-            //            ],
-            //            "token": "vYNlCtbz4XNJ1QncwWilJnBtmmfe4geLQDUA62kKJsDChc6I4bRDQc73JfIrlFaVYIAE0Gv2--MROnLAgjVsWkcDq_MuG7qV7EktfCEIphiqnlfpQn4Ybg==.IoORVxR2LmKV7_maOR9xOg=="
-            //       }
-            //   }
+            //     {
+            //         code: "200000",
+            //         data: {
+            //             instanceServers: [
+            //                 {
+            //                     pingInterval:  50000,
+            //                     endpoint: "wss://push-private.kucoin.com/endpoint",
+            //                     protocol: "websocket",
+            //                     encrypt: true,
+            //                     pingTimeout: 10000
+            //                 }
+            //             ],
+            //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+            //         }
+            //     }
             //
-            const data = this.safeValue (response, 'data');
-            this.options['privateToken'] = this.safeString (data, 'token');
+        } else {
+            response = await this.publicPostBulletPublic (params);
         }
-        return this.options['privateToken'];
+        const data = this.safeValue (response, 'data', {});
+        const instanceServers = this.safeValue (data, 'instanceServers', []);
+        const firstInstanceServer = this.safeValue (instanceServers, 0);
+        const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
+        const endpoint = this.safeString (firstInstanceServer, 'endpoint');
+        const token = this.safeString (data, 'token');
+        const result = endpoint + '?' + this.urlencode ({
+            'token': token,
+            'privateChannel': privateChannel,
+            'connectId': connectId,
+        });
+        const client = this.client (result);
+        client.keepAlive = pingInterval;
+        return result;
     }
 
-    async subscribe (name: string, isPrivate: boolean, symbol: string = undefined, params = {}) {
+    // async getPublicToken (params = {}) {
+    //     if (this.options['publicToken'] === undefined) {
+    //         const response = await this.publicPostBulletPublic ();
+    //         //
+    //         //    {
+    //         //        code: '200000',
+    //         //        data: {
+    //         //            instanceServers: [ [Object] ],
+    //         //            token: 'DcXijCbKcWFew_i0BS8y6UNmBtlHW3UAvR4Nx4VADIn15tt-jDqMbYWNZ2II5fSnrClCBBv6dTDc8PMFHz-H6tSnN_vkspYYmOImrn5NXLlsFbcpggjU6mMGfZAja_q_-wgHjBcT7RhvJVwiLf8PgR2VF0_UPbEwl-RWj6JCmic=.9NqWNqQVILOkGiD1RL1AoQ=='
+    //         //        }
+    //         //    }
+    //         //
+    //         const data = this.safeValue (response, 'data');
+    //         this.options['publicToken'] = this.safeString (data, 'token');
+    //     }
+    //     return this.options['publicToken'];
+    // }
+
+    // async getPrivateToken (params = {}) {
+    //     if (this.options['privateToken'] === undefined) {
+    //         const response = await this.privatePostBulletPrivate ();
+    //         //
+    //         //   {
+    //         //       code: '200000',
+    //         //       data: {
+    //         //           instanceServers: [
+    //         //                {
+    //         //                    "pingInterval": 50000,
+    //         //                    "endpoint": "wss://futures-apiws.poloniex.com/endpoint",
+    //         //                    "protocol": "websocket",
+    //         //                    "encrypt": true,
+    //         //                    "pingTimeout": 10000
+    //         //                }
+    //         //            ],
+    //         //            "token": "vYNlCtbz4XNJ1QncwWilJnBtmmfe4geLQDUA62kKJsDChc6I4bRDQc73JfIrlFaVYIAE0Gv2--MROnLAgjVsWkcDq_MuG7qV7EktfCEIphiqnlfpQn4Ybg==.IoORVxR2LmKV7_maOR9xOg=="
+    //         //       }
+    //         //   }
+    //         //
+    //         const data = this.safeValue (response, 'data');
+    //         this.options['privateToken'] = this.safeString (data, 'token');
+    //     }
+    //     return this.options['privateToken'];
+    // }
+
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
+    }
+
+    async subscribe (name: string, isPrivate: boolean, symbol: string = undefined, subscription = undefined, params = {}) {
         /**
          * @ignore
          * @method
          * @description Connects to a websocket channel
-         * @param {String} name name of the channel
-         * @param {Bool} isPrivate true for the authenticated url, false for the public url
-         * @param {String|undefined} symbol is required for all public channels, not required for private channels (except position)
+         * @param {string} name name of the channel and suscriptionHash
+         * @param {bool} isPrivate true for the authenticated url, false for the public url
+         * @param {string|undefined} symbol is required for all public channels, not required for private channels (except position)
+         * @param {Object} subscription subscription parameters
          * @param {Object} params extra parameters specific to the poloniex api
          * @returns {Object} data from the websocket stream
          */
-        await this.loadMarkets ();
-        let token = undefined;
-        if (isPrivate) {
-            token = await this.getPrivateToken ();
-        } else {
-            token = await this.getPublicToken ();
-        }
-        const url = this.urls['api']['ws'] + '?token=' + token;
-        const milliseconds = this.numberToString (this.milliseconds ());
-        const subscribe = {
-            'id': milliseconds + name + symbol,   // ID is a unique string to mark the request which is same as the id property of ack.
-            'type': 'subscribe',
-            'topic': name,                                // Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
-            'privateChannel': isPrivate,                  // Adopt the private channel or not. Set as false by default.
-            'response': true,                             // Whether the server needs to return the receipt information of this subscription or not. Set as false by default.
-        };
-        let messageHash = name;
+        const url = await this.negotiate (isPrivate);
         if (symbol !== undefined) {
             const market = this.market (symbol);
             const marketId = market['id'];
-            messageHash = name + ':' + marketId;
-            subscribe['topic'] = messageHash;
+            name += ':' + marketId;
+        }
+        const messageHash = name;
+        const tunnelId = await this.stream (url, messageHash);
+        const requestId = this.requestId ();
+        const subscribe = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': name,                 // Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
+            'privateChannel': isPrivate,   // Adopt the private channel or not. Set as false by default.
+            'response': true,              // Whether the server needs to return the receipt information of this subscription or not. Set as false by default.
+            'tunnelId': tunnelId,
+        };
+        const subscriptionRequest = {
+            'id': requestId,
+        };
+        if (subscription === undefined) {
+            subscription = subscriptionRequest;
+        } else {
+            subscription = this.extend (subscriptionRequest, subscription);
         }
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, name);
+        return await this.watch (url, messageHash, request, name, subscriptionRequest);
+    }
+
+    onClose (client, error) {
+        this.options['streamBySubscriptionsHash'] = {};
+        super.onClose (client, error);
+    }
+
+    async stream (url, subscriptionHash) {
+        const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
+        let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
+        if (stream === undefined) {
+            let streamIndex = this.safeInteger (this.options, 'streamIndex', -1);
+            const streamLimit = this.safeValue (this.options, 'streamLimit');
+            streamIndex = streamIndex + 1;
+            const normalizedIndex = streamIndex % streamLimit;
+            this.options['streamIndex'] = streamIndex;
+            const streamIndexString = this.numberToString (normalizedIndex);
+            stream = 'stream-' + streamIndexString;
+            this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+            const messageHash = 'tunnel:' + stream;
+            const request = {
+                'id': messageHash,
+                'type': 'openTunnel',
+                'newTunnelId': stream,
+                'response': true,
+            };
+            const subscription = {
+                'id': messageHash,
+                'method': this.handleNewStream,
+            };
+            await this.watch (url, messageHash, request, messageHash, subscription);
+        }
+        return stream;
+    }
+
+    handleOrderBookSubscription (client: Client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+    }
+
+    handleSubscriptionStatus (client: Client, message) {
+        //
+        //     {
+        //         id: '1578090438322',
+        //         type: 'ack'
+        //     }
+        //
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id, {});
+        const method = this.safeValue (subscription, 'method');
+        if (method !== undefined) {
+            method.call (this, client, message, subscription);
+        }
+        return message;
+    }
+
+    handleNewStream (client: Client, message) {
+        //
+        //    {
+        //        "id": "1545910840805",
+        //        "type": "ack"
+        //    }
+        //
+        const messageHash = this.safeString (message, 'id');
+        client.resolve (message, messageHash);
     }
 
     async watchTicker (symbol: string, params = {}) {
@@ -140,8 +283,9 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = '/contractMarket/ticker';
-        return await this.subscribe (name, false, symbol, params);
+        return await this.subscribe (name, false, symbol, undefined, params);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -157,9 +301,11 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const name = '/contractMarket/execution';
+        const options = this.safeValue (this.options, 'watchTicker');
+        let name = this.safeString (options, 'method', '/contractMarket/execution'); // can also be /contractMarket/snapshot
+        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         symbol = this.symbol (symbol);
-        const trades = await this.subscribe (name, false, symbol, params);
+        const trades = await this.subscribe (name, false, symbol, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -175,12 +321,25 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit not used by poloniexfutures watchOrderBook
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {string} params.method the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
+        await this.loadMarkets ();
         const options = this.safeValue (this.options, 'watchOrderBook');
-        let name = this.safeString (options, 'method', '/contractMarket/level3v2'); // can also be /contractMarket/level2
+        let name = this.safeString (options, 'method', '/contractMarket/level2'); // can also be /contractMarket/level2, /contractMarket/level2Depth5:{symbol}, /contractMarket/level2Depth50:{symbol}
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
-        const orderbook = await this.subscribe (name, false, symbol, params);
+        if (name === '/contractMarket/level2' && limit !== undefined) {
+            if (limit !== 5 && limit !== 50) {
+                throw new BadRequest (this.id + ' watchOrderBook limit argument must be none, 5 or 50 if using method /contractMarket/level2');
+            }
+            name += 'Depth' + this.numberToString (limit);
+        }
+        const subscription = {
+            'symbol': symbol,
+            'limit': limit,
+            'method': this.handleOrderBookSubscription,
+        };
+        const orderbook = await this.subscribe (name, false, symbol, subscription, params);
         return orderbook.limit ();
     }
 
@@ -190,20 +349,25 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @name poloniexfutures#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://futures-docs.poloniex.com/#private-messages
-         * @param {string|undefined} symbol not used by poloniexfutures watchOrders
-         * @param {int|undefined} since not used by poloniexfutures watchOrders
-         * @param {int|undefined} limit not used by poloniexfutures watchOrders
+         * @param {string|undefined} symbol filter by unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {string} params.method the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const stop = this.safeValue (params, 'stop');
-        const name = stop ? '/contractMarket/advancedOrders' : '/contractMarket/tradeOrders';
-        const orders = await this.subscribe (name, true, undefined, params);
+        const options = this.safeValue (this.options, 'watchOrders');
+        const name = this.safeString (options, 'method', '/contractMarket/tradeOrders');
+        let orders = await this.subscribe (name, true, undefined, undefined, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        orders = this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        if (orders.length === 0) {
+            return await this.watchOrders (symbol, since, limit, params);
+        }
+        return orders;
     }
 
     async watchBalance (params = {}) {
@@ -220,8 +384,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          */
         await this.loadMarkets ();
         const name = '/contractAccount/wallet';
-        // await this.authenticate ();
-        return await this.subscribe (name, true, undefined, params);
+        return await this.subscribe (name, true, undefined, undefined, params);
     }
 
     handleTrade (client: Client, message) {
@@ -245,7 +408,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        type: "message",
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade (data);
@@ -268,37 +431,36 @@ export default class poloniexfutures extends poloniexfuturesRest {
         // handleTrade
         //
         //    {
-        //        symbol: 'BTC_USDT',
-        //        amount: '13.41634893',
-        //        quantity: '0.000537',
-        //        takerSide: 'buy',
-        //        createTime: 1676950548834,
-        //        price: '24983.89',
-        //        id: '62486976',
-        //        ts: 1676950548839
+        //        makerUserId: '1410880',
+        //        symbol: 'BTCUSDTPERP',
+        //        sequence: 731390,
+        //        side: 'sell',
+        //        size: 2,
+        //        price: 29372.4,
+        //        takerOrderId: '644ef0fdd64748000759218a',
+        //        makerOrderId: '644ef0fd25f4a50007f12fc5',
+        //        takerUserId: '1410880',
+        //        tradeId: '644ef0fdde029f0001eec346',
+        //        ts: 1682895101923194000
         //    }
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const timestamp = this.safeIntegerProduct (trade, 'ts', 0.000001);
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString (trade, 'tradeId'),
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'order': undefined,
-            'type': this.safeStringLower (trade, 'type'),
-            'side': this.safeString (trade, 'takerSide'),
-            'takerOrMaker': 'taker',
+            'order': this.safeString2 (trade, 'takerOrderId', 'makerOrderId'),
+            'type': undefined,
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': undefined,
             'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'quantity'),
-            'cost': this.safeString (trade, 'amount'),
-            'fee': {
-                'rate': undefined,
-                'cost': undefined,
-                'currency': undefined,
-            },
+            'amount': this.safeString2 (trade, 'matchSize', 'size'),
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
@@ -380,6 +542,30 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        type: 'message',
         //        userId: '1139790'
         //    }
+        // stop order
+        //    {
+        //        data: {
+        //            orderType: 'stop',
+        //            symbol: 'BTCUSDTPERP',
+        //            side: 'buy',
+        //            stopPriceType: 'TP',
+        //            orderId: '64514fe1850d2100074378f6',
+        //            type: 'open',
+        //            createdAt: 1683050465847,
+        //            stopPrice: '29000',
+        //            size: 2,
+        //            stop: 'up',
+        //            marginType: 0,
+        //            orderPrice: '28552.9',
+        //            ts: 1683050465847597300
+        //        },
+        //        subject: 'stopOrder',
+        //        topic: '/contractMarket/advancedOrders',
+        //        channelType: 'private',
+        //        id: '64514fe1850d2100074378fa',
+        //        type: 'message',
+        //        userId: '1160396'
+        //    }
         //
         const data = this.safeValue (message, 'data', {});
         let orders = this.orders;
@@ -388,69 +574,14 @@ export default class poloniexfutures extends poloniexfuturesRest {
             orders = new ArrayCacheBySymbolById (limit);
             this.orders = orders;
         }
-        const marketId = this.safeString (data, 'symbol');
-        if (marketId !== undefined) {
-            const messageHash = '/contractMarket/tradeOrders:' + marketId;
-            const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (data, 'orderId');
-            const clientOrderId = this.safeString (data, 'clientOid');
-            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
-            if (previousOrder === undefined) {
-                const parsed = this.parseWsOrder (data);
-                orders.append (parsed);
-                client.resolve (orders, messageHash);
-            } else {
-                const trade = this.parseWsTrade (data);
-                if (previousOrder['trades'] === undefined) {
-                    previousOrder['trades'] = [];
-                }
-                previousOrder['trades'].push (trade);
-                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = '0';
-                let totalAmount = '0';
-                const trades = previousOrder['trades'];
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    totalCost = Precise.stringAdd (totalCost, trade['cost']);
-                    totalAmount = Precise.stringAdd (totalAmount, trade['amount']);
-                }
-                if (Precise.stringGt (totalAmount, '0')) {
-                    previousOrder['average'] = this.parseNumber (Precise.stringDiv (totalCost, totalAmount));
-                }
-                previousOrder['cost'] = this.parseNumber (totalCost);
-                if (previousOrder['filled'] !== undefined) {
-                    const tradeAmount = this.numberToString (trade['amount']);
-                    let previousFilled = this.numberToString (previousOrder['filled']);
-                    const previousAmount = this.numberToString (previousOrder['amount']);
-                    previousFilled = Precise.stringAdd (tradeAmount, previousFilled);
-                    previousOrder['filled'] = this.parseNumber (previousFilled);
-                    if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = this.parseNumber (Precise.stringSub (previousAmount, previousFilled));
-                    }
-                }
-                if (previousOrder['fee'] === undefined) {
-                    previousOrder['fee'] = {
-                        'rate': undefined,
-                        'cost': 0,
-                        'currency': trade['fee']['currency'],
-                    };
-                }
-                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
-                }
-                // update the newUpdates count
-                orders.append (previousOrder);
-                client.resolve (orders, messageHash);
-            }
-            client.resolve (orders, '/contractMarket/tradeOrders');
-        }
+        const messageHash = '/contractMarket/tradeOrders';
+        const parsed = this.parseWsOrder (data);
+        orders.append (parsed);
+        client.resolve (orders, messageHash);
         return message;
     }
 
-    parseStatus (status: string, type: string) {
+    parseOrderStatus (status: string, type: string) {
         /**
          * @ignore
          * @method
@@ -458,15 +589,21 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} type "open", "match", "filled", "canceled", "update"
          * @returns {string}
          */
-        if (type === 'canceled') {
-            return 'cancelled';
-        }
-        const statuses = {
-            'open': 'open',
-            'match': 'closed',
-            'done': 'closed',
+        const types = {
+            'canceled': 'canceled',
+            'cancel': 'canceled',
+            'filled': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        let parsedStatus = this.safeString (types, type);
+        if (parsedStatus === undefined) {
+            const statuses = {
+                'open': 'open',
+                'match': 'open',
+                'done': 'closed',
+            };
+            parsedStatus = this.safeString (statuses, status, status);
+        }
+        return parsedStatus;
     }
 
     parseWsOrder (order, market = undefined) {
@@ -488,20 +625,29 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        status: 'done',
         //        ts: 1680559677560686600
         //    }
+        // stop
+        //    {
+        //        orderType: 'stop',
+        //        symbol: 'BTCUSDTPERP',
+        //        side: 'buy',
+        //        stopPriceType: 'TP',
+        //        orderId: '64514fe1850d2100074378f6',
+        //        type: 'open',
+        //        createdAt: 1683050465847,
+        //        stopPrice: '29000',
+        //        size: 2,
+        //        stop: 'up',
+        //        marginType: 0,
+        //        orderPrice: '28552.9',
+        //        ts: 1683050465847597300
+        //    }
         //
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOid');
         const marketId = this.safeString (order, 'symbol');
-        const timestamp = this.safeIntegerProduct (order, 'ts', 0.000001);
-        const filledAmount = this.safeString (order, 'filledSize');
-        let trades = undefined;
-        if (!Precise.stringEq (filledAmount, '0')) {
-            trades = [];
-            const trade = this.parseWsOrderTrade (order);
-            trades.push (trade);
-        }
+        const timestamp = this.safeIntegerProduct2 (order, 'orderTime', 'ts', 0.000001);
         const status = this.safeString (order, 'status');
-        const type = this.safeString (order, 'type');
+        const messageType = this.safeString (order, 'type');
         return this.safeOrder ({
             'info': order,
             'symbol': this.safeSymbol (marketId, market),
@@ -514,21 +660,17 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.safeString (order, 'side'),
-            'price': this.safeString (order, 'price'),
-            'stopPrice': undefined,
+            'price': this.safeString2 (order, 'price', 'orderPrice'),
+            'stopPrice': this.safeString (order, 'stopPrice'),
             'triggerPrice': undefined,
             'amount': this.safeString (order, 'size'),
             'cost': undefined,
             'average': undefined,
-            'filled': filledAmount,
+            'filled': this.safeString (order, 'filledSize'),
             'remaining': this.safeString (order, 'remainSize'),
-            'status': this.parseStatus (status, type),
-            'fee': {
-                'rate': undefined,
-                'cost': this.safeString (order, 'tradeFee'),
-                'currency': this.safeString (order, 'feeCurrency'),
-            },
-            'trades': trades,
+            'status': this.parseOrderStatus (status, messageType),
+            'fee': undefined,
+            'trades': undefined,
         });
     }
 
@@ -553,19 +695,30 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "type": "message",
         //    }
         //
+        //    {
+        //        "topic": "/contractMarket/snapshot:BTCUSDTPERP",
+        //        "subject": "snapshot.24h",
+        //        "data": {
+        //            "volume": 30449670,            //24h Volume
+        //            "turnover": 845169919063,      //24h Turnover
+        //            "lastPrice": 3551,           //Last price
+        //            "priceChgPct": 0.0043,         //24h Change
+        //            "ts": 1547697294838004923      //Snapshot time (nanosecond)
+        //        }
+        //    }
+        //
         const data = this.safeValue (message, 'data', {});
-        const marketId = this.safeString (data, 'symbol');
-        if (marketId !== undefined) {
+        const messageHash = this.safeString (message, 'topic');
+        const symbol = this.getSymbolFromTopic (messageHash);
+        if (symbol !== undefined) {
             const ticker = this.parseTicker (data);
-            const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const messageHash = '/contractMarket/ticker:' + marketId;
             client.resolve (ticker, messageHash);
         }
         return message;
     }
 
-    handleOrderBook (client: Client, message) {
+    handleL3OrderBook (client: Client, message) {
         //
         //    {
         //        data: {
@@ -609,38 +762,35 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        type: 'message'
         //    }
         //
-        const data = this.safeValue (message, 'data', []);
-        // const type = this.safeString (message, 'subject');
-        const marketId = this.safeString (data, 'symbol');
-        const market = this.safeMarket (marketId);
-        // const orderId = this.safeString (data, 'orderId');
-        const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
         const messageHash = this.safeString (message, 'topic');
-        const side = this.safeString (data, 'side');
-        const size = this.safeNumber (data, 'size');
-        const price = this.safeNumber (data, 'price');
-        const orderId = this.safeString (data, 'orderId');
-        const symbol = this.safeString (market, 'symbol');
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const limit = this.safeInteger (subscription, 'limit');
-        // const update = type === 'done';
-        let orderBook = this.safeValue (this.orderbooks, symbol);
-        if (orderBook === undefined) {
-            this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
-            orderBook = this.orderbooks[symbol];
+        const subject = this.safeString (message, 'subject');
+        if (subject === 'received') {
+            return message;
         }
-        if (side === 'buy') {  // Only happens if subject is open
-            orderBook['bids'].store (price, size, orderId);
-        } else if (side === 'sell') {
-            orderBook['asks'].store (price, size, orderId);
-        }
-        orderBook['timestamp'] = timestamp;
-        orderBook['datetime'] = this.iso8601 (timestamp);
-        orderBook['symbol'] = symbol;
-        client.resolve (orderBook, messageHash);
+        // At the time of writting this, there is no implementation to easily convert each order into the orderbook so raw messages are returned
+        client.resolve (message, messageHash);
     }
 
-    handleLevel2OrderBook (client: Client, message) {
+    handleLevel2 (client: Client, message) {
+        //    {
+        //        "subject": "level2",
+        //        "topic": "/contractMarket/level2:BTCUSDTPERP",
+        //        "type": "message",
+        //        "data": {
+        //            "sequence": 18,                   // Sequence number which is used to judge the continuity of pushed messages
+        //            "change": "5000.0,sell,83"        // Price, side, quantity
+        //            "timestamp": 1551770400000
+        //        }
+        //    }
+        const topic = this.safeString (message, 'topic');
+        const isSnapshot = topic.indexOf ('Depth') >= 0;
+        if (isSnapshot) {
+            return this.handeL2Snapshot (client, message);
+        }
+        return this.handleL2OrderBook (client, message);
+    }
+
+    handleL2OrderBook (client: Client, message) {
         //
         //    {
         //        "id": 1545910660740,
@@ -662,33 +812,115 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //
         const data = this.safeValue (message, 'data', {});
         const messageHash = this.safeString (message, 'topic', '');
-        const splitTopic = messageHash.split (':');
-        const marketId = this.safeString (splitTopic, 1);
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = this.getSymbolFromTopic (messageHash);
+        let orderBook = this.safeValue (this.orderbooks, symbol);
+        if (orderBook === undefined) {
+            this.orderbooks[symbol] = this.orderBook ({});
+            orderBook = this.orderbooks[symbol];
+            orderBook['symbol'] = symbol;
+        }
+        const nonce = this.safeInteger (orderBook, 'nonce');
+        if (nonce === undefined) {
+            const cacheLength = orderBook.cache.length;
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+            if (cacheLength === snapshotDelay) {
+                const limit = 0;
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
+            }
+            orderBook.cache.push (data);
+            return;
+        }
+        try {
+            this.handleDelta (orderBook, data);
+            client.resolve (orderBook, messageHash);
+        } catch (e) {
+            delete this.orderbooks[symbol];
+            client.reject (e, messageHash);
+        }
+    }
+
+    handeL2Snapshot (client: Client, message) {
+        //
+        //    {
+        //        "type": "message",
+        //        "topic": "/contractMarket/level2Depth5:BTCUSDTPERP",
+        //        "subject": "level2",
+        //        "data": {
+        //            "asks": [
+        //                ["9993", "3"],
+        //                ["9992", "3"],
+        //                ["9991", "47"],
+        //                ["9990", "32"],
+        //                ["9989", "8"]
+        //            ],
+        //            "bids": [
+        //                ["9988", "56"],
+        //                ["9987", "15"],
+        //                ["9986", "100"],
+        //                ["9985", "10"],
+        //                ["9984", "10"]
+        //            ],
+        //            "timestamp": 1682993050531,
+        //        }
+        //    }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const messageHash = this.safeString (message, 'topic', '');
+        const symbol = this.getSymbolFromTopic (messageHash);
         const timestamp = this.safeInteger (data, 'timestamp');
-        const change = this.safeString (data, 'change');
+        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
+        const orderbook = this.orderBook (snapshot);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
+    getSymbolFromTopic (topic: string) {
+        const splitTopic = topic.split (':');
+        const marketId = this.safeString (splitTopic, 1);
+        return this.safeSymbol (marketId);
+    }
+
+    getCacheIndex (orderbook, cache) {
+        const firstDelta = this.safeValue (cache, 0);
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        const firstDeltaSequence = this.safeInteger (firstDelta, 'sequence');
+        if (firstDeltaSequence > nonce + 1) {
+            return -1;
+        }
+        for (let i = 0; i < cache.length; i++) {
+            const delta = cache[i];
+            const sequence = this.safeInteger (delta, 'sequence');
+            if (nonce === sequence - 1) {
+                return i;
+            }
+        }
+        return cache.length;
+    }
+
+    handleDelta (orderbook, delta) {
+        //
+        //    {
+        //        "sequence": 18,                   // Sequence number which is used to judge the continuity of pushed messages
+        //        "change": "5000.0,sell,83"        // Price, side, quantity
+        //        "timestamp": 1551770400000
+        //    }
+        //
+        const sequence = this.safeInteger (delta, 'sequence');
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if (nonce !== sequence - 1) {
+            throw new ExchangeError (this.id + ' watchOrderBook received an out-of-order nonce');
+        }
+        const change = this.safeString (delta, 'change');
         const splitChange = change.split (',');
         const price = this.safeNumber (splitChange, 0);
         const side = this.safeString (splitChange, 1);
         const size = this.safeNumber (splitChange, 2);
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const limit = this.safeInteger (subscription, 'limit');
-        // const update = type === 'done';
-        let orderBook = this.safeValue (this.orderbooks, symbol);
-        if (orderBook === undefined) {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-            orderBook = this.orderbooks[symbol];
-        }
-        if (side === 'buy') {  // Only happens if subject is open
-            orderBook['bids'].store (price, size);
-        } else if (side === 'sell') {
-            orderBook['asks'].store (price, size);
-        }
-        orderBook['timestamp'] = timestamp;
-        orderBook['datetime'] = this.iso8601 (timestamp);
-        orderBook['symbol'] = symbol;
-        client.resolve (orderBook, messageHash);
+        const timestamp = this.safeInteger (delta, 'timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = sequence;
+        const orderBookSide = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
+        orderBookSide.store (price, size);
     }
 
     handleBalance (client: Client, message) {
@@ -746,6 +978,12 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        timestamp: '1680557568670'
         //    }
         //
+        //    {
+        //        currency: 'USDT',
+        //        orderMargin: '0.0000000000',
+        //        timestamp: '1680558743307'
+        //    }
+        //
         const timestamp = this.safeInteger (response, 'timestamp');
         const result = {
             'info': response,
@@ -761,32 +999,71 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.safeBalance (result);
     }
 
-    handleMessage (client, message) {
+    handleSystemStatus (client: Client, message) {
+        //
+        //     {
+        //         id: '1578090234088', // connectId
+        //         type: 'welcome',
+        //     }
+        //
+        return message;
+    }
+
+    handleSubject (client: Client, message) {
         const subject = this.safeString (message, 'subject');
-        // const type = this.safeString (message, 'type');
-        const event = this.safeString (message, 'event');
-        if (event === 'pong') {
-            return client.onPong (message);
-        }
         const methods = {
-            'received': this.handleOrderBook,
-            'open': this.handleOrderBook,
-            'done': this.handleOrderBook,
-            'level2': this.handleLevel2OrderBook,
+            'auth': this.handleAuthenticate,
+            'received': this.handleL3OrderBook,
+            'open': this.handleL3OrderBook,
+            'update': this.handleL3OrderBook,
+            'done': this.handleL3OrderBook,
+            'level2': this.handleLevel2,
             'ticker': this.handleTicker,
-            // 'trades': this.handleTrade,
+            'snapshot.24h': this.handleTicker,
             'match': this.handleTrade,
             'orderChange': this.handleOrder,
+            'stopOrder': this.handleOrder,
             'availableBalance.change': this.handleBalance,
             'orderMargin.change': this.handleBalance,
         };
         const method = this.safeValue (methods, subject);
-        if (subject === 'auth') {
-            this.handleAuthenticate (client, message);
-        } else {
-            if (method !== undefined) {
-                return method.call (this, client, message);
-            }
+        if (method !== undefined) {
+            return method.call (this, client, message);
+        }
+    }
+
+    ping () {
+        const id = this.requestId ().toString ();
+        return {
+            'id': id,
+            'type': 'ping',
+        };
+    }
+
+    handleErrorMessage (client: Client, message) {
+        //
+        //    {
+        //        code: 404,
+        //        data: 'tunnel stream-0 is not exist',
+        //        id: '3',
+        //        type: 'error'
+        //    }
+        //
+        client.reject (message);
+    }
+
+    handleMessage (client: Client, message) {
+        const type = this.safeString (message, 'type');
+        const methods = {
+            'welcome': this.handleSystemStatus,
+            'ack': this.handleSubscriptionStatus,
+            'message': this.handleSubject,
+            'pong': client.onPong (),
+            'error': this.handleErrorMessage,
+        };
+        const method = this.safeValue (methods, type);
+        if (method !== undefined) {
+            return method.call (this, client, message);
         }
     }
 
