@@ -52,11 +52,12 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
-            if (!emptyAllowedForThisKey || (value !== undefined)) {
-                assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
-                // because of other langs, this is needed for arrays
-                assert (assertType (exchange, skippedProperties, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
+            if (emptyAllowedForThisKey && (value === undefined)) {
+                continue;
             }
+            assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
+            // because of other langs, this is needed for arrays
+            assert (assertType (exchange, skippedProperties, entry, i, format), i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (typeof entry === 'object', 'entry is not an object' + logText);
@@ -73,13 +74,14 @@ function assertStructure (exchange, skippedProperties, method, entry, format, em
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
-            if (!emptyAllowedForThisKey || (value !== undefined)) {
-                // if it was in needed keys, then it should have value.
-                assert (value !== undefined, 'key "' + stringValue (key) + '" is expected to have a value' + logText);
-                // add exclusion for info key, as it can be any type
-                if (keyStr !== 'info') {
-                    assert (assertType (exchange, skippedProperties, entry, key, format), 'key "' + stringValue (key) + '" is neither undefined, neither of expected type' + logText);
-                }
+            if (emptyAllowedForThisKey && (value === undefined)) {
+                continue;
+            }
+            // if it was in needed keys, then it should have value.
+            assert (value !== undefined, 'key "' + stringValue (key) + '" is expected to have a value' + logText);
+            // add exclusion for info key, as it can be any type
+            if (key !== 'info') {
+                assert (assertType (exchange, skippedProperties, entry, key, format), 'key "' + stringValue (key) + '" is neither undefined, neither of expected type' + logText);
             }
         }
     }
