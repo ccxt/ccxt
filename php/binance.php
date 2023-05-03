@@ -4377,7 +4377,7 @@ class binance extends Exchange {
         $this->check_required_symbol('fetchCanceledOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['contract'] || $market['future']) {
+        if ($market['swap'] || $market['future']) {
             throw new NotSupported($this->id . ' fetchCanceledOrders() supports spot, margin and option markets only');
         }
         $params = $this->omit($params, 'type');

@@ -4482,7 +4482,7 @@ class binance extends binance$1 {
         this.checkRequiredSymbol('fetchCanceledOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['contract'] || market['future']) {
+        if (market['swap'] || market['future']) {
             throw new errors.NotSupported(this.id + ' fetchCanceledOrders() supports spot, margin and option markets only');
         }
         params = this.omit(params, 'type');
