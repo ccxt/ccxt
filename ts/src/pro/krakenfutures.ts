@@ -51,7 +51,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 },
             },
             'streaming': {
-                'keepAlive': 60000,
+                'keepAlive': 30000,
             },
         });
     }
