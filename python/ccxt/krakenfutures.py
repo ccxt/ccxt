@@ -37,6 +37,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'version': 'v3',
             'userAgent': None,
             'rateLimit': 600,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -787,7 +788,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
         stopPrice = self.safe_string(params, 'stopPrice')
-        postOnly = self.safe_string(params, 'postOnly')
+        postOnly = False
+        postOnly, params = self.handle_post_only(type == 'market', type == 'post', params)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'cliOrdId')
         params = self.omit(params, ['clientOrderId', 'cliOrdId'])
         if (type == 'stp' or type == 'take_profit') and stopPrice is None:
@@ -795,7 +797,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if stopPrice is not None and type != 'take_profit':
             type = 'stp'
         elif postOnly:
-            type = 'postOnly'
+            type = 'post'
         elif timeInForce == 'ioc':
             type = 'ioc'
         elif type == 'limit':

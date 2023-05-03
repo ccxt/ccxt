@@ -3001,6 +3001,7 @@ export default class Exchange {
             const time = await this.fetchTime (params);
             this.status = this.extend (this.status, {
                 'updated': time,
+                'info': time,
             });
         }
         if (!('info' in this.status)) {

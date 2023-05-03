@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.89'
+__version__ = '3.0.90'
 
 # -----------------------------------------------------------------------------
 
@@ -1783,6 +1783,7 @@ class Exchange(BaseExchange):
             time = await self.fetchTime(params)
             self.status = self.extend(self.status, {
                 'updated': time,
+                'info': time,
             })
         if not ('info' in self.status):
             self.status['info'] = None

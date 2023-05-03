@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '3.0.89';
+const version = '3.0.90';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
@@ -189,6 +189,7 @@ import huobiproPro from './src/pro/huobipro.js';
 import idexPro from './src/pro/idex.js';
 import independentreservePro from './src/pro/independentreserve.js';
 import krakenPro from './src/pro/kraken.js';
+import krakenfuturesPro from './src/pro/krakenfutures.js';
 import kucoinPro from './src/pro/kucoin.js';
 import kucoinfuturesPro from './src/pro/kucoinfutures.js';
 import lunoPro from './src/pro/luno.js';
@@ -354,6 +355,7 @@ const pro = {
     'idex': idexPro,
     'independentreserve': independentreservePro,
     'kraken': krakenPro,
+    'krakenfutures': krakenfuturesPro,
     'kucoin': kucoinPro,
     'kucoinfutures': kucoinfuturesPro,
     'luno': lunoPro,
