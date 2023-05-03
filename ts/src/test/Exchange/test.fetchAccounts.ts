@@ -1,20 +1,15 @@
 
-// ----------------------------------------------------------------------------
-
-import testAccount from './test.account.js';
-
-// ----------------------------------------------------------------------------
+import assert from 'assert';
+import testAccount from './base/test.account.js';
 
 async function testFetchAccounts (exchange) {
     const method = 'fetchAccounts';
-    if (!(exchange.has[method])) {
-        console.log (exchange.id, method + '() is not supported');
-        return;
+    const accounts = await exchange.fetchAccounts ();
+    assert (typeof accounts === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json (accounts));
+    const accountValues = Object.values (accounts);
+    for (let i = 0; i < accountValues.length; i++) {
+        testAccount (exchange, method, accounts[i]);
     }
-    console.log ('fetching accounts...');
-    const accounts = await exchange[method] ();
-    Object.values (accounts).forEach ((account) => testAccount (exchange, account, undefined));
-    return accounts;
 }
 
 export default testFetchAccounts;

@@ -375,6 +375,7 @@ class stex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
@@ -436,7 +437,7 @@ class stex extends Exchange {
             $minPrice = Precise::string_max($minBuyPrice, $minSellPrice);
             $buyFee = Precise::string_div($this->safe_string($market, 'buy_fee_percent'), '100');
             $sellFee = Precise::string_div($this->safe_string($market, 'sell_fee_percent'), '100');
-            $fee = Precise::string_max($buyFee, $sellFee);
+            $fee = $this->parse_number(Precise::string_max($buyFee, $sellFee));
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -2547,7 +2548,7 @@ class stex extends Exchange {
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         //     array("success":false,"message":"Wrong parameters","errors":array("candleType":["Invalid Candle Type!"]))
@@ -2562,5 +2563,6 @@ class stex extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 }

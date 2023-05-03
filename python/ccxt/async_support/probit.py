@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.probit import ImplicitAPI
 import math
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -25,7 +26,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class probit(Exchange):
+class probit(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(probit, self).describe(), {
@@ -435,11 +436,11 @@ class probit(Exchange):
             # sometimes the withdrawal fee is an empty object
             # [{'amount': '0.015', 'priority': 1, 'currency_id': 'ETH'}, {}]
             for j in range(0, len(withdrawalFees)):
-                withdrawalFee = withdrawalFees[j]
-                amount = self.safe_number(withdrawalFee, 'amount')
-                priority = self.safe_integer(withdrawalFee, 'priority')
+                withdrawalFeeInner = withdrawalFees[j]
+                amount = self.safe_number(withdrawalFeeInner, 'amount')
+                priority = self.safe_integer(withdrawalFeeInner, 'priority')
                 if (amount is not None) and (priority is not None):
-                    fees.append(withdrawalFee)
+                    fees.append(withdrawalFeeInner)
             withdrawalFeesByPriority = self.sort_by(fees, 'priority')
             withdrawalFee = self.safe_value(withdrawalFeesByPriority, 0, {})
             fee = self.safe_number(withdrawalFee, 'amount')
@@ -467,6 +468,7 @@ class probit(Exchange):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -1549,7 +1551,7 @@ class probit(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         if 'errorCode' in response:
             errorCode = self.safe_string(response, 'errorCode')
             message = self.safe_string(response, 'message')
@@ -1558,3 +1560,4 @@ class probit(Exchange):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 raise ExchangeError(feedback)
+        return None

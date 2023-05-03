@@ -238,6 +238,8 @@ export default class bybit extends Exchange {
                         'v5/spot-lever-token/info': 1,
                         'v5/spot-lever-token/reference': 1,
                         'v5/announcements/index': 1,
+                        'v5/spot-cross-margin-trade/pledge-token': 1,
+                        'v5/spot-cross-margin-trade/borrow-token': 1,
                     },
                 },
                 'private': {
@@ -392,6 +394,10 @@ export default class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members': 10,
                         'v5/user/query-api': 10,
+                        'v5/spot-cross-margin-trade/loan-info': 1,
+                        'v5/spot-cross-margin-trade/account': 1,
+                        'v5/spot-cross-margin-trade/orders': 1,
+                        'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
                     },
                     'post': {
                         // inverse swap
@@ -578,6 +584,9 @@ export default class bybit extends Exchange {
                         'v5/user/update-sub-api': 10,
                         'v5/user/delete-api': 10,
                         'v5/user/delete-sub-api': 10,
+                        'v5/spot-cross-margin-trade/loan': 2.5,
+                        'v5/spot-cross-margin-trade/repay': 2.5,
+                        'v5/spot-cross-margin-trade/switch': 2.5, // 20/s => cost = 50 / 20 = 2.5
                     },
                     'delete': {
                         // spot
@@ -1455,15 +1464,15 @@ export default class bybit extends Exchange {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                const response = await this.publicGetDerivativesV3PublicInstrumentsInfo(params);
-                const data = this.safeValue(response, 'result', {});
-                const rawMarkets = this.safeValue(data, 'list', []);
+                const responseInner = await this.publicGetDerivativesV3PublicInstrumentsInfo(params);
+                const dataNew = this.safeValue(responseInner, 'result', {});
+                const rawMarkets = this.safeValue(dataNew, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
                 if (rawMarketsLength === 0) {
                     break;
                 }
                 markets = this.arrayConcat(rawMarkets, markets);
-                paginationCursor = this.safeString(data, 'nextPageCursor');
+                paginationCursor = this.safeString(dataNew, 'nextPageCursor');
             }
         }
         //
@@ -3853,7 +3862,7 @@ export default class bybit extends Exchange {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
         let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
+        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
         const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
         const stopLoss = this.safeNumber(params, 'stopLoss');
         const takeProfit = this.safeNumber(params, 'takeProfit');
@@ -7201,24 +7210,26 @@ export default class bybit extends Exchange {
         symbols = this.marketSymbols(symbols);
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         let settle = this.safeString(params, 'settleCoin');
+        let paramsOmitted = undefined;
         if (settle === undefined) {
-            [settle, params] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', settle);
+            [settle, paramsOmitted] = this.handleOptionAndParams(params, 'fetchPositions', 'settle', settle);
         }
         const isUsdcSettled = settle === 'USDC';
-        const [subType, query] = this.handleSubTypeAndParams('fetchPositions', undefined, params);
+        let subType = undefined;
+        [subType, paramsOmitted] = this.handleSubTypeAndParams('fetchPositions', undefined, paramsOmitted);
         const isInverse = subType === 'inverse';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
             throw new ArgumentsRequired(this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
         }
         if ((enableUnifiedMargin || enableUnifiedAccount) && !isInverse) {
-            return await this.fetchUnifiedPositions(symbols, query);
+            return await this.fetchUnifiedPositions(symbols, params);
         }
         else if (isUsdcSettled) {
-            return await this.fetchUSDCPositions(symbols, query);
+            return await this.fetchUSDCPositions(symbols, paramsOmitted);
         }
         else {
-            return await this.fetchDerivativesPositions(symbols, query);
+            return await this.fetchDerivativesPositions(symbols, params);
         }
     }
     parsePosition(position, market = undefined) {
@@ -8457,7 +8468,7 @@ export default class bybit extends Exchange {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -8498,5 +8509,6 @@ export default class bybit extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }

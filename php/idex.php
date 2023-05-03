@@ -15,9 +15,7 @@ class idex extends Exchange {
             'id' => 'idex',
             'name' => 'IDEX',
             'countries' => array( 'US' ),
-            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
-            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
-            'rateLimit' => 200,
+            'rateLimit' => 1000,
             'version' => 'v3',
             'pro' => true,
             'certified' => false,
@@ -127,20 +125,20 @@ class idex extends Exchange {
                         'user' => 1,
                         'wallets' => 1,
                         'balances' => 1,
-                        'orders' => 1,
-                        'fills' => 1,
+                        'orders' => 0.1,
+                        'fills' => 0.1,
                         'deposits' => 1,
                         'withdrawals' => 1,
                         'wsToken' => 1,
                     ),
                     'post' => array(
                         'wallets' => 1,
-                        'orders' => 1,
-                        'orders/test' => 1,
+                        'orders' => 0.1,
+                        'orders/test' => 0.1,
                         'withdrawals' => 1,
                     ),
                     'delete' => array(
-                        'orders' => 1,
+                        'orders' => 0.1,
                     ),
                 ),
             ),
@@ -1444,6 +1442,7 @@ class idex extends Exchange {
         if ($errorCode !== null) {
             throw new ExchangeError($this->id . ' ' . $message);
         }
+        return null;
     }
 
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
@@ -1651,7 +1650,7 @@ class idex extends Exchange {
         );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         $hasApiKey = ($this->apiKey !== null);
         $hasSecret = ($this->secret !== null);
         $hasWalletAddress = ($this->walletAddress !== null);

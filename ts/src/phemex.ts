@@ -50,7 +50,7 @@ export default class phemex extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistories': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
@@ -68,6 +68,7 @@ export default class phemex extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -151,6 +152,7 @@ export default class phemex extends Exchange {
                         'md/v2/trade': 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr/all': 5, // ?id=<id>
+                        'api-data/public/data/funding-rate-history': 5,
                     },
                 },
                 'private': {
@@ -911,14 +913,15 @@ export default class phemex extends Exchange {
                     },
                 },
                 'valueScale': valueScale,
+                'networks': {},
             };
         }
         return result;
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
+    customParseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
         if (market === undefined) {
-            throw new ArgumentsRequired (this.id + ' parseBidAsk() requires a market argument');
+            throw new ArgumentsRequired (this.id + ' customParseBidAsk() requires a market argument');
         }
         let amount = this.safeString (bidask, amountKey);
         if (market['spot']) {
@@ -943,7 +946,7 @@ export default class phemex extends Exchange {
             const orders = [];
             const bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
-                orders.push (this.parseBidAsk (bidasks[k], priceKey, amountKey, market));
+                orders.push (this.customParseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
             result[side] = orders;
         }
@@ -1133,7 +1136,7 @@ export default class phemex extends Exchange {
             }
             request['limit'] = limit;
         }
-        let method = 'publicGetMdKline';
+        let method = 'publicGetMdV2Kline';
         if (market['linear'] || market['settle'] === 'USDT') {
             method = 'publicGetMdV2KlineLast';
         }
@@ -1319,6 +1322,43 @@ export default class phemex extends Exchange {
         return this.parseTicker (result, market);
     }
 
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     // spot
+         * @see https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             // linear
+         * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeValue (symbols, 0);
+            market = this.market (first);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
+        const query = this.omit (params, 'type');
+        let defaultMethod = undefined;
+        if (type === 'spot') {
+            defaultMethod = 'v1GetMdSpotTicker24hrAll';
+        } else if (subType === 'inverse') {
+            defaultMethod = 'v1GetMdTicker24hrAll';
+        } else {
+            defaultMethod = 'v2GetMdV2Ticker24hrAll';
+        }
+        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
+        const response = await this[method] (query);
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTickers (result, symbols);
+    }
+
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -1438,6 +1478,67 @@ export default class phemex extends Exchange {
         //         "orderID": "b63bc982-be3a-45e0-8974-43d6375fb626",
         //         "clOrdID": "uuid-1577463487504",
         //         "execStatus": "MakerFill"
+        //     }
+        // perpetual
+        //     {
+        //         "accountID": 9328670003,
+        //         "action": "New",
+        //         "actionBy": "ByUser",
+        //         "actionTimeNs": 1666858780876924611,
+        //         "addedSeq": 77751555,
+        //         "apRp": "0",
+        //         "bonusChangedAmountRv": "0",
+        //         "bpRp": "0",
+        //         "clOrdID": "c0327a7d-9064-62a9-28f6-2db9aaaa04e0",
+        //         "closedPnlRv": "0",
+        //         "closedSize": "0",
+        //         "code": 0,
+        //         "cumFeeRv": "0",
+        //         "cumQty": "0",
+        //         "cumValueRv": "0",
+        //         "curAccBalanceRv": "1508.489893982237",
+        //         "curAssignedPosBalanceRv": "24.62786650928",
+        //         "curBonusBalanceRv": "0",
+        //         "curLeverageRr": "-10",
+        //         "curPosSide": "Buy",
+        //         "curPosSize": "0.043",
+        //         "curPosTerm": 1,
+        //         "curPosValueRv": "894.0689",
+        //         "curRiskLimitRv": "1000000",
+        //         "currency": "USDT",
+        //         "cxlRejReason": 0,
+        //         "displayQty": "0.003",
+        //         "execFeeRv": "0",
+        //         "execID": "00000000-0000-0000-0000-000000000000",
+        //         "execPriceRp": "20723.7",
+        //         "execQty": "0",
+        //         "execSeq": 77751555,
+        //         "execStatus": "New",
+        //         "execValueRv": "0",
+        //         "feeRateRr": "0",
+        //         "leavesQty": "0.003",
+        //         "leavesValueRv": "63.4503",
+        //         "message": "No error",
+        //         "ordStatus": "New",
+        //         "ordType": "Market",
+        //         "orderID": "fa64c6f2-47a4-4929-aab4-b7fa9bbc4323",
+        //         "orderQty": "0.003",
+        //         "pegOffsetValueRp": "0",
+        //         "posSide": "Long",
+        //         "priceRp": "21150.1",
+        //         "relatedPosTerm": 1,
+        //         "relatedReqNum": 11,
+        //         "side": "Buy",
+        //         "slTrigger": "ByMarkPrice",
+        //         "stopLossRp": "0",
+        //         "stopPxRp": "0",
+        //         "symbol": "BTCUSDT",
+        //         "takeProfitRp": "0",
+        //         "timeInForce": "ImmediateOrCancel",
+        //         "tpTrigger": "ByLastPrice",
+        //         "tradeType": "Amend",
+        //         "transactTimeNs": 1666858780881545305,
+        //         "userID": 932867
         //     }
         //
         // swap - USDT
@@ -3678,6 +3779,7 @@ export default class phemex extends Exchange {
          * @returns {object} response from the exchange
          */
         this.checkRequiredArgument ('setPositionMode', symbol, 'symbol');
+        await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['settle'] !== 'USDT') {
             throw new BadSymbol (this.id + ' setPositionMode() supports USDT settled markets only');
@@ -4095,9 +4197,61 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap'] || market['settle'] !== 'USDT') {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() supports USDT swap contracts only');
+        }
+        const customSymbol = '.' + market['id'] + 'FR8H'; // phemex requires a custom symbol for funding rate history
+        const request = {
+            'symbol': customSymbol,
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v2GetApiDataPublicDataFundingRateHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code":"0",
+        //        "msg":"OK",
+        //        "data":{
+        //           "rows":[
+        //              {
+        //                 "symbol":".BTCUSDTFR8H",
+        //                 "fundingRate":"0.0001",
+        //                 "fundingTime":"1682064000000",
+        //                 "intervalSeconds":"28800"
+        //              }
+        //           ]
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const rates = this.safeValue (data, 'rows');
+        const result = [];
+        for (let i = 0; i < rates.length; i++) {
+            const item = rates[i];
+            const timestamp = this.safeInteger (item, 'fundingTime');
+            result.push ({
+                'info': item,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (item, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
@@ -4114,5 +4268,6 @@ export default class phemex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.idex import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -25,16 +26,14 @@ from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 from ccxt.base.precise import Precise
 
 
-class idex(Exchange):
+class idex(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(idex, self).describe(), {
             'id': 'idex',
             'name': 'IDEX',
             'countries': ['US'],
-            # public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly(without Authentication)
-            # all endpoints 10 requests a second =>(1000ms / rateLimit) / 10 => 1 / 2(with Authentication)
-            'rateLimit': 200,
+            'rateLimit': 1000,
             'version': 'v3',
             'pro': True,
             'certified': False,
@@ -144,20 +143,20 @@ class idex(Exchange):
                         'user': 1,
                         'wallets': 1,
                         'balances': 1,
-                        'orders': 1,
-                        'fills': 1,
+                        'orders': 0.1,
+                        'fills': 0.1,
                         'deposits': 1,
                         'withdrawals': 1,
                         'wsToken': 1,
                     },
                     'post': {
                         'wallets': 1,
-                        'orders': 1,
-                        'orders/test': 1,
+                        'orders': 0.1,
+                        'orders/test': 0.1,
                         'withdrawals': 1,
                     },
                     'delete': {
-                        'orders': 1,
+                        'orders': 0.1,
                     },
                 },
             },
@@ -1387,6 +1386,7 @@ class idex(Exchange):
             raise Exception(self.id + ' ' + message)
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
+        return None
 
     async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
         """
@@ -1580,7 +1580,7 @@ class idex(Exchange):
             'fee': fee,
         }
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         hasApiKey = (self.apiKey is not None)
         hasSecret = (self.secret is not None)
         hasWalletAddress = (self.walletAddress is not None)

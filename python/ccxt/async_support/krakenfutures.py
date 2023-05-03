@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
 from typing import Optional
@@ -26,7 +27,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class krakenfutures(Exchange):
+class krakenfutures(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(krakenfutures, self).describe(), {
@@ -81,8 +82,8 @@ class krakenfutures(Exchange):
             },
             'urls': {
                 'test': {
-                    'public': 'https://demo-futures.kraken.com/derivatives',
-                    'private': 'https://demo-futures.kraken.com/derivatives',
+                    'public': 'https://demo-futures.kraken.com/derivatives/api/',
+                    'private': 'https://demo-futures.kraken.com/derivatives/api/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -1847,12 +1848,12 @@ class krakenfutures(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return
+            return None
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         message = self.safe_string(response, 'error')
         if message is None:
-            return
+            return None
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

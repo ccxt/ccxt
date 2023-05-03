@@ -28,6 +28,7 @@ interface Exchange {
     v2GetMdV2Trade (params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Ticker24hr (params?: {}): Promise<implicitReturnType>;
     v2GetMdV2Ticker24hrAll (params?: {}): Promise<implicitReturnType>;
+    v2GetApiDataPublicDataFundingRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetSpotOrdersActive (params?: {}): Promise<implicitReturnType>;
     privateGetSpotOrders (params?: {}): Promise<implicitReturnType>;
     privateGetSpotWallets (params?: {}): Promise<implicitReturnType>;

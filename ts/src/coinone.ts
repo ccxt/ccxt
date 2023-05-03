@@ -895,7 +895,7 @@ export default class coinone extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if ('result' in response) {
             const result = response['result'];
@@ -911,5 +911,6 @@ export default class coinone extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 }

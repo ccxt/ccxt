@@ -114,7 +114,7 @@ class okx(ccxt.async_support.okx):
         trades = await self.subscribe('public', 'trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trades(self, client: Client, message):
         #
@@ -213,7 +213,7 @@ class okx(ccxt.async_support.okx):
         ohlcv = await self.subscribe('public', name, symbol, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -624,7 +624,7 @@ class okx(ccxt.async_support.okx):
         orders = await self.subscribe('private', channel, symbol, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message, subscription=None):
         #

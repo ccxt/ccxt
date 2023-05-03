@@ -2,6 +2,7 @@ import * as functions from './functions.js';
 import { // eslint-disable-line object-curly-newline
 ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotAvailable, RateLimitExceeded } from "./errors.js";
 import WsClient from './ws/WsClient.js';
+import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
 export { Market, Trade, Fee, Ticker } from './types';
@@ -457,15 +458,16 @@ export default class Exchange {
     loadMarkets(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<unknown>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
-    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
+    filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
+    filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType): any;
+    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string): any;
     checkRequiredDependencies(): void;
     parseNumber(value: any, d?: number): number;
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
     remove0xPrefix(hexData: any): any;
     findTimeframe(timeframe: any, timeframes?: any): string;
-    spawn(method: any, ...args: any[]): Promise<unknown>;
+    spawn(method: any, ...args: any[]): Future;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
@@ -481,6 +483,7 @@ export default class Exchange {
     loadOrderBook(client: any, messageHash: any, symbol: any, limit?: any, params?: {}): Promise<void>;
     handleDeltas(orderbook: any, deltas: any, nonce?: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
+    convertToBigInt(value: string): bigint;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {};
     fetchAccounts(params?: {}): Promise<any>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -523,7 +526,7 @@ export default class Exchange {
             };
         };
     };
-    safeLedgerEntry(entry: object, currency?: string): {
+    safeLedgerEntry(entry: object, currency?: object): {
         id: string;
         timestamp: number;
         datetime: string;
@@ -582,17 +585,17 @@ export default class Exchange {
     parsePositions(positions: any, symbols?: string[], params?: {}): any;
     parseAccounts(accounts: any, params?: {}): any[];
     parseTrades(trades: any, market?: object, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseTransactions(transactions: any, currency?: string, since?: Int, limit?: Int, params?: {}): any;
-    parseTransfers(transfers: any, currency?: string, since?: Int, limit?: Int, params?: {}): any;
-    parseLedger(data: any, currency?: string, since?: Int, limit?: Int, params?: {}): any;
+    parseTransactions(transactions: any, currency?: object, since?: Int, limit?: Int, params?: {}): any;
+    parseTransfers(transfers: any, currency?: object, since?: Int, limit?: Int, params?: {}): any;
+    parseLedger(data: any, currency?: object, since?: Int, limit?: Int, params?: {}): any;
     nonce(): number;
     setHeaders(headers: any): any;
     marketId(symbol: string): string;
     symbol(symbol: string): string;
     resolvePath(path: any, params: any): any[];
     filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
-    fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
-    request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
+    fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
+    request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<any>;
     fetchOHLCVC(symbol: any, timeframe?: string, since?: any, limit?: Int, params?: {}): Promise<OHLCVC[]>;
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
@@ -634,7 +637,7 @@ export default class Exchange {
     throwBroadlyMatchedException(broad: any, string: any, message: any): void;
     findBroadlyMatchedKey(broad: any, string: any): string;
     handleErrors(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, response: any, requestHeaders: any, requestBody: any): any;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}, context?: {}): any;
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
@@ -686,8 +689,8 @@ export default class Exchange {
     createStopLimitOrder(symbol: string, side: OrderSide, amount: any, price: any, stopPrice: any, params?: {}): Promise<Order>;
     createStopMarketOrder(symbol: string, side: OrderSide, amount: any, stopPrice: any, params?: {}): Promise<Order>;
     safeCurrencyCode(currencyId?: string, currency?: any): any;
-    filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int, tail?: boolean): any;
-    filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;
+    filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int): any;
+    filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;
     parseTickers(tickers: any, symbols?: string[], params?: {}): any;
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};

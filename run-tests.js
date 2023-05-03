@@ -1,11 +1,11 @@
 /*  ---------------------------------------------------------------------------
 
-    A tests launcher. Runs tests for all languages and all exchanges, in
-    parallel, with a humanized error reporting.
+A tests launcher. Runs tests for all languages and all exchanges, in
+parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
+Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
 
-    --------------------------------------------------------------------------- */
+--------------------------------------------------------------------------- */
 
 import fs from 'fs'
 import ansi from 'ansicolor'
@@ -21,13 +21,18 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 const [,, ...args] = process.argv
 
-const keys = {
-
+const langKeys = {
+    '--ts': false,      // run TypeScript tests only
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
     '--python-async': false, // run Python 3 async tests only
-    '--php-async': false,    // run php async tests only
+    '--php-async': false,    // run php async tests only,
+}
+
+const optionKeys = {
+    '--warnings': false,
+    '--info': false,
 }
 
 const exchangeSpecificFlags = {
@@ -35,15 +40,27 @@ const exchangeSpecificFlags = {
     '--verbose': false,
     '--private': false,
     '--privateOnly': false,
+    '--info': false,
 }
+
+const content = fs.readFileSync ('skip-tests.json', 'utf8');
+const skipSettings = JSON.parse (content);
 
 let exchanges = []
 let symbol = 'all'
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
-    if (arg in exchangeSpecificFlags) { exchangeSpecificFlags[arg] = true }
-    else if (arg.startsWith ('--'))               { keys[arg] = true }
+    if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
+    else if (arg.startsWith ('--'))          {
+        if (arg in langKeys) {
+            langKeys[arg] = true
+        } else if (arg in optionKeys) {
+            optionKeys[arg] = true
+        } else {
+            log.bright.red ('\nUnknown option', arg.white, '\n');
+        }
+    }
     else if (arg.includes ('/'))             { symbol = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
@@ -84,7 +101,7 @@ const exec = (bin, ...args) =>
     stderr,  not separating them into distinct buffers — so that we can show
     the same output as if it were running in a terminal.                        */
 
-    timeout (120, new Promise (return_ => {
+    timeout (250, new Promise (return_ => {
 
         const psSpawn = ps.spawn (bin, args)
 
@@ -96,16 +113,31 @@ const exec = (bin, ...args) =>
         psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         psSpawn.on ('exit', code => {
+            // keep this commented code for a while (just in case), as the below avoids vscode false positive: https://github.com/nodejs/node/issues/34799 during debugging
+            // stderr = stderr.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
+            // output = output.replace ('Debugger attached.\r\n','').replace('Waiting for the debugger to disconnect...\r\n', '');
+            // if (stderr === '') { hasWarnings = false; }
 
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
 
+            const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
             const regex = /\[[a-z]+?\]/gmi
 
             let match = undefined
             const warnings = []
+            const info = []
+
+            let outputInfo = '';
 
             match = regex.exec (output)
+            let matchInfo = infoRegex.exec (output)
+
+            // detect error
+            let hasFailed = false;
+            if (output.indexOf('ERROR:') > -1) {
+                hasFailed = true;
+            }
 
             if (match) {
                 warnings.push (match[0])
@@ -115,12 +147,26 @@ const exec = (bin, ...args) =>
                     }
                 } while (match);
             }
+            if (matchInfo) {
+                info.push ('[' + matchInfo[1] + ']')
+                outputInfo += matchInfo[0]
+                do {
+                    if (matchInfo = infoRegex.exec (output)) {
+                        info.push ('[' + matchInfo[1] + ']')
+                        outputInfo += matchInfo[0]
+                    }
+                } while (matchInfo);
+                output = output.replace (infoRegex, '')
+            }
             return_ ({
-                failed: code !== 0,
+                failed: hasFailed || code !== 0,
                 output,
+                outputInfo,
                 hasOutput: output.length > 0,
                 hasWarnings: hasWarnings || warnings.length > 0,
                 warnings: warnings,
+                infos: info,
+                hasInfo: info.length > 0,
             })
         })
 
@@ -160,36 +206,77 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchange) => {
 
+    numExchangesTested++
+    const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
+
+    if (skipSettings[exchange] && skipSettings[exchange].skip) {
+        log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+        return [];
+    }
+
 /*  Run tests for all/selected languages (in parallel)     */
     let args = [exchange];
     if (symbol !== undefined && symbol !== 'all') {
         args.push(symbol);
     }
     args = args.concat(exchangeOptions)
-    const allTests = [
-
+    const allTestsWithoutTs = [
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
             { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
             { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
             { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
-            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
+            { language: 'PHP Async', key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] }
         ]
-        , selectedTests  = allTests.filter (t => keys[t.key])
-        , scheduledTests = selectedTests.length ? selectedTests : allTests
-        , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
+
+        const allTests = allTestsWithoutTs.concat([
+            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/test/test.ts',           ...args] },
+        ]);
+
+        const selectedTests  = allTests.filter (t => langKeys[t.key]);
+        let scheduledTests = selectedTests.length ? selectedTests : allTestsWithoutTs
+        // when bulk tests are run, we skip php-async, however, if your specifically run php-async (as a single language from run-tests), lets allow it
+        const specificLangSet = (Object.values (langKeys).filter (x => x)).length === 1;
+        if (skipSettings[exchange] && skipSettings[exchange].skipPhpAsync && !specificLangSet) {
+            // some exchanges are failing in php async tests with this error:
+            // An error occured on the underlying stream while buffering: Unexpected end of response body after 212743/262800 bytes
+            scheduledTests = scheduledTests.filter (x => x.key !== '--php-async');
+        }
+        const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
         , hasWarnings    = completeTests.find (test => test.hasWarnings)
-        , warnings       = completeTests.reduce ((total, { warnings }) => total.concat (warnings), [])
+        , hasInfo        = completeTests.find (test => test.hasInfo)
+        , warnings       = completeTests.reduce (
+            (total, { warnings }) => {
+                return total.concat (warnings)
+            }, []
+        )
+        , infos       = completeTests.reduce (
+            (total, { infos }) => {
+                return total.concat (infos)
+            }, []
+        )
 
 /*  Print interactive log output    */
 
-    numExchangesTested++
+    let logMessage = '';
 
-    const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
+    if (failed) {
+        logMessage+= 'FAIL'.red;
+    } else if (hasWarnings) {
+        logMessage = (warnings.length ? warnings.join (' ') : 'WARN').yellow;
+    } else {
+        logMessage = 'OK'.green;
+    }
 
-    log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, (failed      ? 'FAIL'.red :
-                                                                          (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
-                                                                                       : 'OK'.green)))
+    // info messages
+    if (hasInfo) {
+        if (exchangeSpecificFlags['--info']) {
+            logMessage += ' ' + 'INFO'.blue + ' ';
+            const infoMessages = infos.join(' ');
+            logMessage += infoMessages.blue;
+        }
+    }
+    log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, logMessage)
 
 /*  Return collected data to main loop     */
 
@@ -198,17 +285,22 @@ const testExchange = async (exchange) => {
         exchange,
         failed,
         hasWarnings,
+        hasInfo: hasInfo && exchangeSpecificFlags['--info'],
         explain () {
-            for (const { language, failed, output, hasWarnings } of completeTests) {
+            for (let { language, failed, output, hasWarnings, hasInfo, outputInfo } of completeTests) {
                 if (failed || hasWarnings) {
-
-                    if (!failed && output.indexOf('[Skipped]') >= 0)
+                    const fullSkip = output.indexOf('[SKIPPED]') >= 0;
+                    if (!failed && fullSkip)
                         continue;
 
                     if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
                     else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + '):\n') }
 
                     log.indent (1) (output)
+                }
+                if (hasInfo) {
+                    log.bright ('\nINFO'.blue.inverse,':\n')
+                    log.indent (1) (outputInfo)
                 }
             }
         }
@@ -270,8 +362,9 @@ async function testAllExchanges () {
 
 (async function () {
 
+    const allKeys = Object.assign (optionKeys, langKeys)
     log.bright.magenta.noPretty ('Testing'.white, Object.assign (
-                                                            { exchanges, symbol, keys, exchangeSpecificFlags },
+                                                            { exchanges, symbol, allKeys, exchangeSpecificFlags },
                                                             maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
 
     const tested    = await testAllExchanges ()
@@ -292,8 +385,8 @@ async function testAllExchanges () {
     log.newline ()
 
     log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
-                              succeeded.length && (succeeded.length + ' succeeded').green,
-                              warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
+                                succeeded.length && (succeeded.length + ' succeeded').green,
+                                warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
 
     if (failed.length) {
 
@@ -307,3 +400,4 @@ async function testAllExchanges () {
 }) ();
 
 /*  ------------------------------------------------------------------------ */
+    

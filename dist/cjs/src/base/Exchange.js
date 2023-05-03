@@ -814,17 +814,24 @@ class Exchange {
         // and may be changed for consistency later
         return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
     }
-    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterByLimit(array, limit = undefined, key = 'timestamp') {
+        if (limit !== undefined && limit !== null) {
+            const arrayLength = array.length;
+            if (arrayLength > 0) {
+                const ascending = (key in array[0]) && (array[0][key] < array[arrayLength - 1][key]); // true if array is sorted in ascending order based on 'timestamp'
+                array = ascending ? array.slice(-limit) : array.slice(0, limit);
+            }
+        }
+        return array;
+    }
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
         const sinceIsDefined = (since !== undefined && since !== null);
         if (sinceIsDefined) {
             array = array.filter((entry) => entry[key] >= since);
         }
-        if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice(-limit) : array.slice(0, limit);
-        }
-        return array;
+        return this.filterByLimit(array, limit, key);
     }
-    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
         const valueIsDefined = value !== undefined && value !== null;
         const sinceIsDefined = since !== undefined && since !== null;
         // single-pass filter for both symbol and since
@@ -832,10 +839,7 @@ class Exchange {
             array = array.filter((entry) => ((valueIsDefined ? (entry[field] === value) : true) &&
                 (sinceIsDefined ? (entry[key] >= since) : true)));
         }
-        if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice(-limit) : array.slice(0, limit);
-        }
-        return array;
+        return this.filterByLimit(array, limit, key);
     }
     checkRequiredDependencies() {
         return;
@@ -891,7 +895,7 @@ class Exchange {
         return undefined;
     }
     spawn(method, ...args) {
-        const future = Future();
+        const future = Future.createFuture();
         method.apply(this, args).then(future.resolve).catch(future.reject);
         return future;
     }
@@ -998,7 +1002,8 @@ class Exchange {
                         }).catch((e) => { throw e; });
                     }
                     else {
-                        client.send(message);
+                        client.send(message)
+                            .catch((e) => { throw e; });
                     }
                 }
             }
@@ -1073,6 +1078,9 @@ class Exchange {
     getCacheIndex(orderbook, deltas) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;
+    }
+    convertToBigInt(value) {
+        return BigInt(value); // used on XT
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1674,8 +1682,7 @@ class Exchange {
         }
         results = this.sortBy(results, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        const tail = since === undefined;
-        return this.filterBySymbolSinceLimit(results, symbol, since, limit, tail);
+        return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         if (type === 'market' && takerOrMaker === 'maker') {
@@ -1683,37 +1690,28 @@ class Exchange {
         }
         const market = this.markets[symbol];
         const feeSide = this.safeString(market, 'feeSide', 'quote');
-        let key = 'quote';
-        let cost = undefined;
-        const amountString = this.numberToString(amount);
-        const priceString = this.numberToString(price);
-        if (feeSide === 'quote') {
-            // the fee is always in quote currency
-            cost = Precise["default"].stringMul(amountString, priceString);
-        }
-        else if (feeSide === 'base') {
-            // the fee is always in base currency
-            cost = amountString;
-        }
-        else if (feeSide === 'get') {
+        let useQuote = undefined;
+        if (feeSide === 'get') {
             // the fee is always in the currency you get
-            cost = amountString;
-            if (side === 'sell') {
-                cost = Precise["default"].stringMul(cost, priceString);
-            }
-            else {
-                key = 'base';
-            }
+            useQuote = side === 'sell';
         }
         else if (feeSide === 'give') {
             // the fee is always in the currency you give
-            cost = amountString;
-            if (side === 'buy') {
-                cost = Precise["default"].stringMul(cost, priceString);
-            }
-            else {
-                key = 'base';
-            }
+            useQuote = side === 'buy';
+        }
+        else {
+            // the fee is always in feeSide currency
+            useQuote = feeSide === 'quote';
+        }
+        let cost = this.numberToString(amount);
+        let key = undefined;
+        if (useQuote) {
+            const priceString = this.numberToString(price);
+            cost = Precise["default"].stringMul(cost, priceString);
+            key = 'quote';
+        }
+        else {
+            key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
         if (!market['spot']) {
@@ -1724,9 +1722,7 @@ class Exchange {
             takerOrMaker = 'taker';
         }
         const rate = this.safeString(market, takerOrMaker);
-        if (cost !== undefined) {
-            cost = Precise["default"].stringMul(cost, rate);
-        }
+        cost = Precise["default"].stringMul(cost, rate);
         return {
             'type': takerOrMaker,
             'currency': market[key],
@@ -1914,19 +1910,19 @@ class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend(ticker, {
-            'bid': this.safeNumber(ticker, 'bid'),
+            'bid': this.omitZero(this.safeNumber(ticker, 'bid')),
             'bidVolume': this.safeNumber(ticker, 'bidVolume'),
-            'ask': this.safeNumber(ticker, 'ask'),
+            'ask': this.omitZero(this.safeNumber(ticker, 'ask')),
             'askVolume': this.safeNumber(ticker, 'askVolume'),
-            'high': this.safeNumber(ticker, 'high'),
-            'low': this.safeNumber(ticker, 'low'),
-            'open': this.parseNumber(open),
-            'close': this.parseNumber(close),
-            'last': this.parseNumber(last),
+            'high': this.omitZero(this.safeNumber(ticker, 'high')),
+            'low': this.omitZero(this.safeNumber(ticker, 'low')),
+            'open': this.omitZero(this.parseNumber(open)),
+            'close': this.omitZero(this.parseNumber(close)),
+            'last': this.omitZero(this.parseNumber(last)),
             'change': this.parseNumber(change),
             'percentage': this.parseNumber(percentage),
-            'average': this.parseNumber(average),
-            'vwap': this.parseNumber(vwap),
+            'average': this.omitZero(this.parseNumber(average)),
+            'vwap': this.omitZero(this.parseNumber(vwap)),
             'baseVolume': this.parseNumber(baseVolume),
             'quoteVolume': this.parseNumber(quoteVolume),
             'previousClose': this.safeNumber(ticker, 'previousClose'),
@@ -2273,8 +2269,7 @@ class Exchange {
             results.push(this.parseOHLCV(ohlcvs[i], market));
         }
         const sorted = this.sortBy(results, 0);
-        const tail = (since === undefined);
-        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit(sorted, since, limit, 0);
     }
     parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
@@ -2348,8 +2343,7 @@ class Exchange {
         }
         result = this.sortBy2(result, 'timestamp', 'id');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        const tail = (since === undefined);
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit, tail);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
     parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
         transactions = this.toArray(transactions);
@@ -2360,8 +2354,7 @@ class Exchange {
         }
         result = this.sortBy(result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = (since === undefined);
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     parseTransfers(transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
         transfers = this.toArray(transfers);
@@ -2372,8 +2365,7 @@ class Exchange {
         }
         result = this.sortBy(result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = (since === undefined);
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     parseLedger(data, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
@@ -2391,8 +2383,7 @@ class Exchange {
         }
         result = this.sortBy(result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = (since === undefined);
-        return this.filterByCurrencySinceLimit(result, code, since, limit, tail);
+        return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     nonce() {
         return this.seconds();
@@ -2431,17 +2422,17 @@ class Exchange {
         }
         return indexed ? this.indexBy(results, key) : results;
     }
-    async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
-            const cost = this.calculateRateLimiterCost(api, method, path, params, config, context);
+            const cost = this.calculateRateLimiterCost(api, method, path, params, config);
             await this.throttle(cost);
         }
         this.lastRestRequestTimestamp = this.milliseconds();
         const request = this.sign(path, api, method, params, headers, body);
         return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        return await this.fetch2(path, api, method, params, headers, body, config, context);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
+        return await this.fetch2(path, api, method, params, headers, body, config);
     }
     async loadAccounts(reload = false, params = {}) {
         if (reload) {
@@ -2823,7 +2814,7 @@ class Exchange {
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         return this.safeValue(config, 'cost', 1);
     }
     async fetchTicker(symbol, params = {}) {
@@ -3136,11 +3127,11 @@ class Exchange {
         currency = this.safeCurrency(currencyId, currency);
         return currency['code'];
     }
-    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
-        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp', tail);
+    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined) {
+        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp');
     }
-    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined, tail = false) {
-        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp', tail);
+    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined) {
+        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp');
     }
     parseLastPrices(pricesData, symbols = undefined, params = {}) {
         //

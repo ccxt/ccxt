@@ -142,7 +142,7 @@ export default class ndax extends ndaxRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     handleTrades (client: Client, message) {
@@ -227,7 +227,7 @@ export default class ndax extends ndaxRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
     handleOHLCV (client: Client, message) {
@@ -271,7 +271,7 @@ export default class ndax extends ndaxRest {
                 const duration = parseInt (interval) * 1000;
                 const timestamp = this.safeInteger (ohlcv, 0);
                 const parsed = [
-                    parseInt (((timestamp / duration) * duration).toString ()),
+                    this.parseToInt ((timestamp / duration) * duration),
                     this.safeFloat (ohlcv, 3),
                     this.safeFloat (ohlcv, 1),
                     this.safeFloat (ohlcv, 2),

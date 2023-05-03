@@ -803,10 +803,10 @@ class lbank extends lbank$1 {
         }
         else {
             this.checkRequiredCredentials();
-            const query = this.keysort(this.extend({
+            const queryInner = this.keysort(this.extend({
                 'api_key': this.apiKey,
             }, params));
-            const queryString = this.rawencode(query);
+            const queryString = this.rawencode(queryInner);
             const message = this.hash(this.encode(queryString), md5.md5).toUpperCase();
             const cacheSecretAsPem = this.safeValue(this.options, 'cacheSecretAsPem', true);
             let pem = undefined;
@@ -828,7 +828,7 @@ class lbank extends lbank$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const success = this.safeString(response, 'result');
         if (success === 'false') {
@@ -875,6 +875,7 @@ class lbank extends lbank$1 {
             }, errorCode, errors.ExchangeError);
             throw new ErrorClass(message);
         }
+        return undefined;
     }
 }
 

@@ -65,7 +65,7 @@ class gemini extends gemini$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -216,7 +216,7 @@ class gemini extends gemini$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //
@@ -396,7 +396,7 @@ class gemini extends gemini$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleHeartbeat(client, message) {
         //
@@ -625,7 +625,7 @@ class gemini extends gemini$1 {
             'nonce': this.nonce(),
         };
         const b64 = this.stringToBase64(this.json(payload));
-        const signature = this.hmac(b64, this.encode(this.secret), sha512.sha384, 'hex');
+        const signature = this.hmac(this.encode(b64), this.encode(this.secret), sha512.sha384, 'hex');
         const defaultOptions = {
             'ws': {
                 'options': {

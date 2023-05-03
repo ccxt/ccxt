@@ -110,6 +110,7 @@ class bitget extends bitget$1 {
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -253,6 +254,14 @@ class bitget extends bitget$1 {
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'p2p': {
+                        'get': {
+                            'merchant/merchantList': 1,
+                            'merchant/merchantInfo': 1,
+                            'merchant/advList': 1,
+                            'merchant/orderList': 1,
                         },
                     },
                 },
@@ -635,7 +644,7 @@ class bitget extends bitget$1 {
                     '40016': errors.PermissionDenied,
                     '40017': errors.ExchangeError,
                     '40018': errors.PermissionDenied,
-                    '40019': errors.InvalidOrder,
+                    '40019': errors.BadRequest,
                     '40102': errors.BadRequest,
                     '40103': errors.BadRequest,
                     '40104': errors.ExchangeError,
@@ -2076,7 +2085,7 @@ class bitget extends bitget$1 {
             'taker': this.safeNumber(data, 'takerFeeRate'),
         };
     }
-    parseOHLCV(ohlcv, market = undefined, timeframe = '1m') {
+    parseOHLCV(ohlcv, market = undefined) {
         //
         // spot
         //
@@ -3722,12 +3731,12 @@ class bitget extends bitget$1 {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString(entry, 'symbol');
-            const symbol = this.safeSymbol(marketId, market);
+            const symbolInner = this.safeSymbol(marketId, market);
             const timestamp = this.safeInteger(entry, 'settleTime');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
-                'fundingRate': this.safeString(entry, 'fundingRate'),
+                'symbol': symbolInner,
+                'fundingRate': this.safeNumber(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
             });
@@ -4314,7 +4323,7 @@ class bitget extends bitget$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         // spot
@@ -4355,11 +4364,21 @@ class bitget extends bitget$1 {
         if (nonZeroErrorCode || nonEmptyMessage) {
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
-        const pathPart = (endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        let pathPart = '';
+        if (endpoint === 'spot') {
+            pathPart = '/api/spot/v1';
+        }
+        else if (endpoint === 'mix') {
+            pathPart = '/api/mix/v1';
+        }
+        else {
+            pathPart = '/api/p2p/v1';
+        }
         const request = '/' + this.implodeParams(path, params);
         const payload = pathPart + request;
         let url = this.implodeHostname(this.urls['api'][endpoint]) + payload;
@@ -4381,9 +4400,9 @@ class bitget extends bitget$1 {
             }
             else {
                 if (Object.keys(params).length) {
-                    const query = '?' + this.urlencode(this.keysort(params));
-                    url += query;
-                    auth += query;
+                    const queryInner = '?' + this.urlencode(this.keysort(params));
+                    url += queryInner;
+                    auth += queryInner;
                 }
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256, 'base64');

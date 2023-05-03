@@ -377,6 +377,7 @@ export default class stex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -440,7 +441,7 @@ export default class stex extends Exchange {
             const minPrice = Precise.stringMax (minBuyPrice, minSellPrice);
             const buyFee = Precise.stringDiv (this.safeString (market, 'buy_fee_percent'), '100');
             const sellFee = Precise.stringDiv (this.safeString (market, 'sell_fee_percent'), '100');
-            const fee = Precise.stringMax (buyFee, sellFee);
+            const fee = this.parseNumber (Precise.stringMax (buyFee, sellFee));
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -2603,7 +2604,7 @@ export default class stex extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
@@ -2618,5 +2619,6 @@ export default class stex extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+        return undefined;
     }
 }

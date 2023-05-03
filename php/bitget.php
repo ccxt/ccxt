@@ -111,6 +111,7 @@ class bitget extends Exchange {
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
+                    'p2p' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://www.bitget.com',
                 'doc' => array(
@@ -254,6 +255,14 @@ class bitget extends Exchange {
                             'trace/followerCloseByTrackingNo' => 2,
                             'trace/followerCloseByAll' => 2,
                             'trace/followerSetTpsl' => 2,
+                        ),
+                    ),
+                    'p2p' => array(
+                        'get' => array(
+                            'merchant/merchantList' => 1,
+                            'merchant/merchantInfo' => 1,
+                            'merchant/advList' => 1,
+                            'merchant/orderList' => 1,
                         ),
                     ),
                 ),
@@ -636,7 +645,7 @@ class bitget extends Exchange {
                     '40016' => '\\ccxt\\PermissionDenied', // The user must bind the phone or Google
                     '40017' => '\\ccxt\\ExchangeError', // Parameter verification failed
                     '40018' => '\\ccxt\\PermissionDenied', // Invalid IP
-                    '40019' => '\\ccxt\\InvalidOrder', // array("code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null)
+                    '40019' => '\\ccxt\\BadRequest', // array("code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null)
                     '40102' => '\\ccxt\\BadRequest', // Contract configuration does not exist, please check the parameters
                     '40103' => '\\ccxt\\BadRequest', // Request method cannot be empty
                     '40104' => '\\ccxt\\ExchangeError', // Lever adjustment failure
@@ -2067,7 +2076,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m') {
+    public function parse_ohlcv($ohlcv, $market = null) {
         //
         // spot
         //
@@ -3678,12 +3687,12 @@ class bitget extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
-            $symbol = $this->safe_symbol($marketId, $market);
+            $symbolInner = $this->safe_symbol($marketId, $market);
             $timestamp = $this->safe_integer($entry, 'settleTime');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $symbol,
-                'fundingRate' => $this->safe_string($entry, 'fundingRate'),
+                'symbol' => $symbolInner,
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
             );
@@ -4267,7 +4276,7 @@ class bitget extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
-            return; // fallback to default error handler
+            return null; // fallback to default error handler
         }
         //
         // spot
@@ -4308,12 +4317,20 @@ class bitget extends Exchange {
         if ($nonZeroErrorCode || $nonEmptyMessage) {
             throw new ExchangeError($feedback); // unknown $message
         }
+        return null;
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
-        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        $pathPart = '';
+        if ($endpoint === 'spot') {
+            $pathPart = '/api/spot/v1';
+        } elseif ($endpoint === 'mix') {
+            $pathPart = '/api/mix/v1';
+        } else {
+            $pathPart = '/api/p2p/v1';
+        }
         $request = '/' . $this->implode_params($path, $params);
         $payload = $pathPart . $request;
         $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;
@@ -4334,9 +4351,9 @@ class bitget extends Exchange {
                 $auth .= $body;
             } else {
                 if ($params) {
-                    $query = '?' . $this->urlencode($this->keysort($params));
-                    $url .= $query;
-                    $auth .= $query;
+                    $queryInner = '?' . $this->urlencode($this->keysort($params));
+                    $url .= $queryInner;
+                    $auth .= $queryInner;
                 }
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');

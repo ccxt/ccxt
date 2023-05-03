@@ -481,9 +481,9 @@ export default class gemini extends Exchange {
         }
         promises = await Promise.all(promises);
         for (let i = 0; i < promises.length; i++) {
-            const response = promises[i];
-            const marketId = this.safeStringLower(response, 'symbol');
-            result[marketId] = this.parseMarket(response);
+            const responseInner = promises[i];
+            const marketId = this.safeStringLower(responseInner, 'symbol');
+            result[marketId] = this.parseMarket(responseInner);
         }
         return this.toArray(result);
     }
@@ -1586,7 +1586,7 @@ export default class gemini extends Exchange {
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             }
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {
@@ -1597,14 +1597,15 @@ export default class gemini extends Exchange {
         //
         const result = this.safeString(response, 'result');
         if (result === 'error') {
-            const reason = this.safeString(response, 'reason');
+            const reasonInner = this.safeString(response, 'reason');
             const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + message;
-            this.throwExactlyMatchedException(this.exceptions['exact'], reason, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], reasonInner, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
     async createDepositAddress(code, params = {}) {
         /**

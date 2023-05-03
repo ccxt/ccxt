@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
@@ -32,7 +33,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class bitget(Exchange):
+class bitget(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bitget, self).describe(), {
@@ -135,6 +136,7 @@ class bitget(Exchange):
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
+                    'p2p': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -278,6 +280,14 @@ class bitget(Exchange):
                             'trace/followerCloseByTrackingNo': 2,
                             'trace/followerCloseByAll': 2,
                             'trace/followerSetTpsl': 2,
+                        },
+                    },
+                    'p2p': {
+                        'get': {
+                            'merchant/merchantList': 1,
+                            'merchant/merchantInfo': 1,
+                            'merchant/advList': 1,
+                            'merchant/orderList': 1,
                         },
                     },
                 },
@@ -660,7 +670,7 @@ class bitget(Exchange):
                     '40016': PermissionDenied,  # The user must bind the phone or Google
                     '40017': ExchangeError,  # Parameter verification failed
                     '40018': PermissionDenied,  # Invalid IP
-                    '40019': InvalidOrder,  # {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
+                    '40019': BadRequest,  # {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
                     '40102': BadRequest,  # Contract configuration does not exist, please check the parameters
                     '40103': BadRequest,  # Request method cannot be empty
                     '40104': ExchangeError,  # Lever adjustment failure
@@ -2028,7 +2038,7 @@ class bitget(Exchange):
             'taker': self.safe_number(data, 'takerFeeRate'),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m'):
+    def parse_ohlcv(self, ohlcv, market=None):
         #
         # spot
         #
@@ -3537,12 +3547,12 @@ class bitget(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
-            symbol = self.safe_symbol(marketId, market)
+            symbolInner = self.safe_symbol(marketId, market)
             timestamp = self.safe_integer(entry, 'settleTime')
             rates.append({
                 'info': entry,
-                'symbol': symbol,
-                'fundingRate': self.safe_string(entry, 'fundingRate'),
+                'symbol': symbolInner,
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
@@ -4086,7 +4096,7 @@ class bitget(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         # spot
         #
@@ -4123,11 +4133,18 @@ class bitget(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message
+        return None
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
         endpoint = api[1]
-        pathPart = '/api/spot/v1' if (endpoint == 'spot') else '/api/mix/v1'
+        pathPart = ''
+        if endpoint == 'spot':
+            pathPart = '/api/spot/v1'
+        elif endpoint == 'mix':
+            pathPart = '/api/mix/v1'
+        else:
+            pathPart = '/api/p2p/v1'
         request = '/' + self.implode_params(path, params)
         payload = pathPart + request
         url = self.implode_hostname(self.urls['api'][endpoint]) + payload
@@ -4146,9 +4163,9 @@ class bitget(Exchange):
                 auth += body
             else:
                 if params:
-                    query = '?' + self.urlencode(self.keysort(params))
-                    url += query
-                    auth += query
+                    queryInner = '?' + self.urlencode(self.keysort(params))
+                    url += queryInner
+                    auth += queryInner
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             broker = self.safe_string(self.options, 'broker')
             headers = {

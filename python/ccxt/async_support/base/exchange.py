@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '3.0.64'
+__version__ = '3.0.90'
 
 # -----------------------------------------------------------------------------
 
@@ -574,7 +574,7 @@ class Exchange(BaseExchange):
             },
         }
 
-    def safe_ledger_entry(self, entry: object, currency: Optional[str] = None):
+    def safe_ledger_entry(self, entry: object, currency: Optional[object] = None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
         before = self.safe_string(entry, 'before')
@@ -952,38 +952,31 @@ class Exchange(BaseExchange):
                 results.append(order)
         results = self.sort_by(results, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
-        tail = since is None
-        return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
+        return self.filter_by_symbol_since_limit(results, symbol, since, limit)
 
     def calculate_fee(self, symbol: str, type: str, side: str, amount: float, price: float, takerOrMaker='taker', params={}):
         if type == 'market' and takerOrMaker == 'maker':
             raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
-        key = 'quote'
-        cost = None
-        amountString = self.number_to_string(amount)
-        priceString = self.number_to_string(price)
-        if feeSide == 'quote':
-            # the fee is always in quote currency
-            cost = Precise.string_mul(amountString, priceString)
-        elif feeSide == 'base':
-            # the fee is always in base currency
-            cost = amountString
-        elif feeSide == 'get':
+        useQuote = None
+        if feeSide == 'get':
             # the fee is always in the currency you get
-            cost = amountString
-            if side == 'sell':
-                cost = Precise.string_mul(cost, priceString)
-            else:
-                key = 'base'
+            useQuote = side == 'sell'
         elif feeSide == 'give':
             # the fee is always in the currency you give
-            cost = amountString
-            if side == 'buy':
-                cost = Precise.string_mul(cost, priceString)
-            else:
-                key = 'base'
+            useQuote = side == 'buy'
+        else:
+            # the fee is always in feeSide currency
+            useQuote = feeSide == 'quote'
+        cost = self.number_to_string(amount)
+        key = None
+        if useQuote:
+            priceString = self.number_to_string(price)
+            cost = Precise.string_mul(cost, priceString)
+            key = 'quote'
+        else:
+            key = 'base'
         # for derivatives, the fee is in 'settle' currency
         if not market['spot']:
             key = 'settle'
@@ -991,8 +984,7 @@ class Exchange(BaseExchange):
         if type == 'market':
             takerOrMaker = 'taker'
         rate = self.safe_string(market, takerOrMaker)
-        if cost is not None:
-            cost = Precise.string_mul(cost, rate)
+        cost = Precise.string_mul(cost, rate)
         return {
             'type': takerOrMaker,
             'currency': market[key],
@@ -1151,19 +1143,19 @@ class Exchange(BaseExchange):
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
         return self.extend(ticker, {
-            'bid': self.safe_number(ticker, 'bid'),
+            'bid': self.omit_zero(self.safe_number(ticker, 'bid')),
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.omit_zero(self.safe_number(ticker, 'ask')),
             'askVolume': self.safe_number(ticker, 'askVolume'),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'open': self.parse_number(open),
-            'close': self.parse_number(close),
-            'last': self.parse_number(last),
+            'high': self.omit_zero(self.safe_number(ticker, 'high')),
+            'low': self.omit_zero(self.safe_number(ticker, 'low')),
+            'open': self.omit_zero(self.parse_number(open)),
+            'close': self.omit_zero(self.parse_number(close)),
+            'last': self.omit_zero(self.parse_number(last)),
             'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
-            'average': self.parse_number(average),
-            'vwap': self.parse_number(vwap),
+            'average': self.omit_zero(self.parse_number(average)),
+            'vwap': self.omit_zero(self.parse_number(vwap)),
             'baseVolume': self.parse_number(baseVolume),
             'quoteVolume': self.parse_number(quoteVolume),
             'previousClose': self.safe_number(ticker, 'previousClose'),
@@ -1462,8 +1454,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ohlcv(ohlcvs[i], market))
         sorted = self.sort_by(results, 0)
-        tail = (since is None)
-        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
+        return self.filter_by_since_limit(sorted, since, limit, 0)
 
     def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
         # marketIdKey should only be None when response is a dictionary
@@ -1528,10 +1519,9 @@ class Exchange(BaseExchange):
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
-        tail = (since is None)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_transactions(self, transactions, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_transactions(self, transactions, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transactions = self.to_array(transactions)
         result = []
         for i in range(0, len(transactions)):
@@ -1539,10 +1529,9 @@ class Exchange(BaseExchange):
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def parse_transfers(self, transfers, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_transfers(self, transfers, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         transfers = self.to_array(transfers)
         result = []
         for i in range(0, len(transfers)):
@@ -1550,10 +1539,9 @@ class Exchange(BaseExchange):
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def parse_ledger(self, data, currency: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_ledger(self, data, currency: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         result = []
         arrayData = self.to_array(data)
         for i in range(0, len(arrayData)):
@@ -1565,8 +1553,7 @@ class Exchange(BaseExchange):
                 result.append(self.extend(itemOrItems, params))
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = (since is None)
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def nonce(self):
         return self.seconds()
@@ -1601,16 +1588,16 @@ class Exchange(BaseExchange):
                 results.append(objects[i])
         return self.index_by(results, key) if indexed else results
 
-    async def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}, context={}):
+    async def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
         if self.enableRateLimit:
-            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
+            cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}, context={}):
-        return await self.fetch2(path, api, method, params, headers, body, config, context)
+    async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
+        return await self.fetch2(path, api, method, params, headers, body, config)
 
     async def load_accounts(self, reload=False, params={}):
         if reload:
@@ -1938,7 +1925,7 @@ class Exchange(BaseExchange):
         # raise NotSupported(self.id + ' handleErrors() not implemented yet')
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         return self.safe_value(config, 'cost', 1)
 
     async def fetch_ticker(self, symbol: str, params={}):
@@ -2211,11 +2198,11 @@ class Exchange(BaseExchange):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
-    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
+    def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp')
 
-    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
+    def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp')
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #

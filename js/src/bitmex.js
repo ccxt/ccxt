@@ -2718,7 +2718,7 @@ export default class bitmex extends Exchange {
             'info': response,
         };
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const isAuthenticated = this.checkRequiredCredentials(false);
         const cost = this.safeValue(config, 'cost', 1);
         if (cost !== 1) { // trading endpoints
@@ -2733,7 +2733,7 @@ export default class bitmex extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code === 429) {
             throw new DDoSProtection(this.id + ' ' + body);
@@ -2749,6 +2749,7 @@ export default class bitmex extends Exchange {
             }
             throw new ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
     nonce() {
         return this.milliseconds();

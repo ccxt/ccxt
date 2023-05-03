@@ -105,7 +105,7 @@ export default class coinbasepro extends coinbaseproRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -131,7 +131,7 @@ export default class coinbasepro extends coinbaseproRest {
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -157,7 +157,7 @@ export default class coinbasepro extends coinbaseproRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -692,6 +692,7 @@ export default class coinbasepro extends coinbaseproRest {
             this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
+            orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];

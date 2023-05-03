@@ -374,6 +374,7 @@ class stex extends stex$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -436,7 +437,7 @@ class stex extends stex$1 {
             const minPrice = Precise["default"].stringMax(minBuyPrice, minSellPrice);
             const buyFee = Precise["default"].stringDiv(this.safeString(market, 'buy_fee_percent'), '100');
             const sellFee = Precise["default"].stringDiv(this.safeString(market, 'sell_fee_percent'), '100');
-            const fee = Precise["default"].stringMax(buyFee, sellFee);
+            const fee = this.parseNumber(Precise["default"].stringMax(buyFee, sellFee));
             result.push({
                 'id': id,
                 'numericId': numericId,
@@ -2575,7 +2576,7 @@ class stex extends stex$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
@@ -2590,6 +2591,7 @@ class stex extends stex$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
 }
 

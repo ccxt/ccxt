@@ -1401,7 +1401,7 @@ class bittrex extends bittrex$1 {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {
@@ -1486,7 +1486,7 @@ class bittrex extends bittrex$1 {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            const startDate = parseInt((since / 1000).toString()) * 1000;
+            const startDate = this.parseToInt(since / 1000) * 1000;
             request['startDate'] = this.iso8601(startDate);
         }
         if (limit !== undefined) {
@@ -2125,7 +2125,7 @@ class bittrex extends bittrex$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         //
         //     { success: false, message: "message" }
@@ -2134,16 +2134,16 @@ class bittrex extends bittrex$1 {
             const feedback = this.id + ' ' + body;
             let success = this.safeValue(response, 'success');
             if (success === undefined) {
-                const code = this.safeString(response, 'code');
-                if ((code === 'NOT_FOUND') && (url.indexOf('addresses') >= 0)) {
+                const codeInner = this.safeString(response, 'code');
+                if ((codeInner === 'NOT_FOUND') && (url.indexOf('addresses') >= 0)) {
                     throw new errors.InvalidAddress(feedback);
                 }
-                if (code !== undefined) {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
-                    this.throwBroadlyMatchedException(this.exceptions['broad'], code, feedback);
+                if (codeInner !== undefined) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], codeInner, feedback);
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], codeInner, feedback);
                 }
                 // throw new ExchangeError (this.id + ' malformed response ' + this.json (response));
-                return;
+                return undefined;
             }
             if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
@@ -2204,6 +2204,7 @@ class bittrex extends bittrex$1 {
                 throw new errors.ExchangeError(feedback);
             }
         }
+        return undefined;
     }
 }
 

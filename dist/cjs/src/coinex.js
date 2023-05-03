@@ -810,12 +810,12 @@ class coinex extends coinex$1 {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket(marketId, undefined, undefined, marketType);
-            const symbol = market['symbol'];
+            const marketInner = this.safeMarket(marketId, undefined, undefined, marketType);
+            const symbol = marketInner['symbol'];
             const ticker = this.parseTicker({
                 'date': timestamp,
                 'ticker': tickers[marketId],
-            }, market);
+            }, marketInner);
             ticker['symbol'] = symbol;
             result[symbol] = ticker;
         }
@@ -3657,10 +3657,10 @@ class coinex extends coinex$1 {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             if (marketId.indexOf('_') === -1) { // skip _signprice and _indexprice
-                const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+                const marketInner = this.safeMarket(marketId, undefined, undefined, 'swap');
                 const ticker = tickers[marketId];
                 ticker['timestamp'] = timestamp;
-                result.push(this.parseFundingRate(ticker, market));
+                result.push(this.parseFundingRate(ticker, marketInner));
             }
         }
         return this.filterByArray(result, 'symbol', symbols);
@@ -3776,12 +3776,12 @@ class coinex extends coinex$1 {
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString(entry, 'market');
-            const symbol = this.safeSymbol(marketId);
+            const symbolInner = this.safeSymbol(marketId, market, undefined, 'swap');
             const timestamp = this.safeTimestamp(entry, 'time');
             rates.push({
                 'info': entry,
-                'symbol': symbol,
-                'fundingRate': this.safeString(entry, 'funding_rate'),
+                'symbol': symbolInner,
+                'fundingRate': this.safeNumber(entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
             });
@@ -4701,7 +4701,7 @@ class coinex extends coinex$1 {
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         const code = this.safeString(response, 'code');
         const data = this.safeValue(response, 'data');
@@ -4725,6 +4725,7 @@ class coinex extends coinex$1 {
             const ErrorClass = this.safeValue(responseCodes, code, errors.ExchangeError);
             throw new ErrorClass(response['message']);
         }
+        return undefined;
     }
 }
 

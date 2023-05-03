@@ -106,7 +106,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -132,7 +132,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -158,7 +158,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
         }) ();
     }
 
@@ -694,6 +694,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'bids', array()));
             $orderbook['timestamp'] = null;
             $orderbook['datetime'] = null;
+            $orderbook['symbol'] = $symbol;
             $client->resolve ($orderbook, $messageHash);
         } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];

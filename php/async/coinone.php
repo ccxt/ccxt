@@ -898,7 +898,7 @@ class coinone extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return;
+            return null;
         }
         if (is_array($response) && array_key_exists('result', $response)) {
             $result = $response['result'];
@@ -914,5 +914,6 @@ class coinone extends Exchange {
         } else {
             throw new ExchangeError($this->id . ' ' . $body);
         }
+        return null;
     }
 }

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.bigone import ImplicitAPI
 from ccxt.base.types import OrderSide
 from typing import Optional
 from typing import List
@@ -19,7 +20,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
-class bigone(Exchange):
+class bigone(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(bigone, self).describe(), {
@@ -432,7 +433,7 @@ class bigone(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(data, 'timestamp')
+        timestamp = self.safe_integer(data, 'Timestamp')
         return self.parse_to_int(timestamp / 1000000)
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
@@ -730,8 +731,11 @@ class bigone(Exchange):
         self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        method = 'privateGet' + self.capitalize(type) + 'Accounts'
-        response = getattr(self, method)(params)
+        response = None
+        if type == 'funding' or type == 'fund':
+            response = self.privateGetFundAccounts(params)
+        else:
+            response = self.privateGetAccounts(params)
         #
         #     {
         #         "code":0,
@@ -1443,7 +1447,7 @@ class bigone(Exchange):
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         #
         #      {"code":10013,"message":"Resource not found"}
         #      {"code":40004,"message":"invalid jwt"}
@@ -1456,3 +1460,4 @@ class bigone(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
+        return None

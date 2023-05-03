@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
@@ -35,7 +36,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.precise import Precise
 
 
-class tokocrypto(Exchange):
+class tokocrypto(Exchange, ImplicitAPI):
 
     def describe(self):
         return self.deep_extend(super(tokocrypto, self).describe(), {
@@ -619,6 +620,7 @@ class tokocrypto(Exchange):
 
     async def fetch_time(self, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#check-server-time
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict params: extra parameters specific to the tokocrypto api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -631,6 +633,7 @@ class tokocrypto(Exchange):
 
     async def fetch_markets(self, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#get-all-supported-trading-symbol
         retrieves data on all markets for tokocrypto
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
@@ -690,8 +693,8 @@ class tokocrypto(Exchange):
             symbol = base + '/' + quote
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
-            status = self.safe_string_2(market, 'status', 'contractStatus')
-            active = (status == 'TRADING')
+            status = self.safe_string(market, 'spotTradingEnable')
+            active = (status == '1')
             permissions = self.safe_value(market, 'permissions', [])
             for j in range(0, len(permissions)):
                 if permissions[j] == 'TRD_GRP_003':
@@ -785,6 +788,7 @@ class tokocrypto(Exchange):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -964,6 +968,8 @@ class tokocrypto(Exchange):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#recent-trades-list
+        see https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
@@ -1115,6 +1121,7 @@ class tokocrypto(Exchange):
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the tokocrypto api endpoint
@@ -1128,6 +1135,7 @@ class tokocrypto(Exchange):
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the tokocrypto api endpoint
@@ -1146,6 +1154,7 @@ class tokocrypto(Exchange):
 
     async def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
         fetches the bid and ask price and volume for multiple markets
         :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict params: extra parameters specific to the tokocrypto api endpoint
@@ -1201,6 +1210,7 @@ class tokocrypto(Exchange):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1246,6 +1256,7 @@ class tokocrypto(Exchange):
 
     async def fetch_balance(self, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#account-information-signed
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict params: extra parameters specific to the tokocrypto api endpoint
         :param str|None params['type']: 'future', 'delivery', 'savings', 'funding', or 'spot'
@@ -1482,6 +1493,7 @@ class tokocrypto(Exchange):
 
     async def create_order(self, symbol: str, type, side: OrderSide, amount, price=None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1557,10 +1569,10 @@ class tokocrypto(Exchange):
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
             if quoteOrderQty:
-                quoteOrderQty = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+                quoteOrderQtyInner = self.safe_value_2(params, 'quoteOrderQty', 'cost')
                 precision = market['precision']['price']
-                if quoteOrderQty is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+                if quoteOrderQtyInner is not None:
+                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyInner, TRUNCATE, precision, self.precisionMode)
                     params = self.omit(params, ['quoteOrderQty', 'cost'])
                 elif price is not None:
                     request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
@@ -1628,6 +1640,7 @@ class tokocrypto(Exchange):
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the tokocrypto api endpoint
@@ -1674,6 +1687,7 @@ class tokocrypto(Exchange):
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
@@ -1739,6 +1753,7 @@ class tokocrypto(Exchange):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetch all unfilled currently open orders
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
@@ -1751,6 +1766,7 @@ class tokocrypto(Exchange):
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
@@ -1763,6 +1779,7 @@ class tokocrypto(Exchange):
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#cancel-order-signed
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1805,6 +1822,7 @@ class tokocrypto(Exchange):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
@@ -1859,6 +1877,7 @@ class tokocrypto(Exchange):
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#deposit-address-signed
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the tokocrypto api endpoint
@@ -1910,6 +1929,7 @@ class tokocrypto(Exchange):
 
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#deposit-history-signed
         fetch all deposits made to an account
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch deposits for
@@ -1964,6 +1984,7 @@ class tokocrypto(Exchange):
 
     async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#withdraw-signed
         fetch all withdrawals made from an account
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch withdrawals for
@@ -2141,6 +2162,7 @@ class tokocrypto(Exchange):
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
+        see https://www.tokocrypto.com/apidocs/#withdraw-signed
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2246,16 +2268,16 @@ class tokocrypto(Exchange):
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
-            return  # fallback to default error handler
+            return None  # fallback to default error handler
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_value(response, 'success', True)
         if not success:
-            message = self.safe_string(response, 'msg')
+            messageInner = self.safe_string(response, 'msg')
             parsedMessage = None
-            if message is not None:
+            if messageInner is not None:
                 try:
-                    parsedMessage = json.loads(message)
+                    parsedMessage = json.loads(messageInner)
                 except Exception as e:
                     # do nothing
                     parsedMessage = None
@@ -2289,8 +2311,9 @@ class tokocrypto(Exchange):
             raise ExchangeError(feedback)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):

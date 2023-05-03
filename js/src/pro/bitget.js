@@ -264,7 +264,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0);
     }
     handleOHLCV(client, message) {
         //
@@ -417,6 +417,7 @@ export default class bitget extends bitgetRest {
             storedOrderBook = this.safeValue(this.orderbooks, symbol);
             if (storedOrderBook === undefined) {
                 storedOrderBook = this.countedOrderBook({});
+                storedOrderBook['symbol'] = symbol;
             }
             const asks = this.safeValue(rawOrderBook, 'asks', []);
             const bids = this.safeValue(rawOrderBook, 'bids', []);
@@ -493,7 +494,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
     }
     handleTrades(client, message) {
         //
@@ -578,7 +579,7 @@ export default class bitget extends bitgetRest {
         let market = undefined;
         let marketId = undefined;
         let messageHash = 'order';
-        const subscriptionHash = 'order:trades';
+        let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];
@@ -594,6 +595,7 @@ export default class bitget extends bitgetRest {
         let instType = undefined;
         if (type === 'spot') {
             instType = 'spbl';
+            subscriptionHash = subscriptionHash + ':' + symbol;
         }
         else {
             if (!sandboxMode) {
@@ -613,7 +615,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
     handleOrder(client, message, subscription = undefined) {
         //
@@ -848,7 +850,7 @@ export default class bitget extends bitgetRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
     }
     handleMyTrades(client, message) {
         //

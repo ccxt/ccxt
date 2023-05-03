@@ -391,6 +391,7 @@ class hollaex extends hollaex$1 {
                         'max': this.safeValue(withdrawalLimits, 0),
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -496,7 +497,7 @@ class hollaex extends hollaex$1 {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.publicGetTickers(this.extend(params));
+        const response = await this.publicGetTickers(params);
         //
         //     {
         //         "bch-usdt": {
@@ -784,7 +785,7 @@ class hollaex extends hollaex$1 {
         //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
-    parseOHLCV(response, market = undefined, timeframe = '1h', since = undefined, limit = undefined) {
+    parseOHLCV(response, market = undefined) {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -1706,7 +1707,7 @@ class hollaex extends hollaex$1 {
         const url = this.urls['api']['rest'] + path;
         if (api === 'private') {
             this.checkRequiredCredentials();
-            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', parseInt((this.timeout / 1000).toString()));
+            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(this.timeout / 1000));
             const expires = this.sum(this.seconds(), defaultExpires);
             const expiresString = expires.toString();
             let auth = method + path + expiresString;
@@ -1728,7 +1729,7 @@ class hollaex extends hollaex$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if ((code >= 400) && (code <= 503)) {
             //
@@ -1746,6 +1747,7 @@ class hollaex extends hollaex$1 {
             const status = code.toString();
             this.throwExactlyMatchedException(this.exceptions['exact'], status, feedback);
         }
+        return undefined;
     }
 }
 

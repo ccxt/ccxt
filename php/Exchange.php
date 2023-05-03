@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '3.0.64';
+$version = '3.0.90';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '3.0.64';
+    const VERSION = '3.0.90';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -371,7 +371,6 @@ class Exchange {
         'btcmarkets',
         'btctradeua',
         'btcturk',
-        'buda',
         'bybit',
         'cex',
         'coinbase',
@@ -390,7 +389,6 @@ class Exchange {
         'deribit',
         'digifinex',
         'exmo',
-        'flowbtc',
         'fmfwio',
         'gate',
         'gateio',
@@ -404,7 +402,6 @@ class Exchange {
         'idex',
         'independentreserve',
         'indodax',
-        'itbit',
         'kraken',
         'krakenfutures',
         'kucoin',
@@ -430,7 +427,6 @@ class Exchange {
         'poloniex',
         'poloniexfutures',
         'probit',
-        'ripio',
         'stex',
         'tidex',
         'timex',
@@ -440,9 +436,9 @@ class Exchange {
         'wazirx',
         'whitebit',
         'woo',
+        'xt',
         'yobit',
         'zaif',
-        'zb',
         'zonda',
     );
 
@@ -1567,7 +1563,7 @@ class Exchange {
         return call_user_func($this->number, $n);
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp') {
         $result = array();
         $since_is_set = isset($since);
         if ($since_is_set) {
@@ -1580,15 +1576,12 @@ class Exchange {
             $result = $array;
         }
         if (isset($limit)) {
+            $ascending = $result[0][$key] < $result[count($array) - 1][$key];  // true if array is sorted in ascending order based on 'timestamp'
             if (is_array($result)) {
-                $result = $tail ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
+                $result = $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
             } else {
                 $length = count($result);
-                if ($tail) {
-                    $start = max($length - $limit, 0);
-                } else {
-                    $start = 0;
-                }
+                $start = $ascending ? max($length - $limit, 0) : 0;
                 $end = min($start + $limit, $length);
                 $result_copy = array();
                 for ($i = $start; $i < $end; $i++) {
@@ -1600,7 +1593,7 @@ class Exchange {
         return $result;
     }
 
-    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp') {
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
         $result = array();
@@ -1610,7 +1603,8 @@ class Exchange {
             }
         }
         if (isset($limit)) {
-            return $tail ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
+            $ascending = $result[0]['timestamp'] < $result[count($array) - 1]['timestamp'];  // true if array is sorted in ascending order based on 'timestamp'
+            return $ascending ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
         }
         return $result;
     }
@@ -2129,6 +2123,10 @@ class Exchange {
         return null;
     }
 
+    function parse_to_big_int($value) {
+        return intval($value);
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2298,7 +2296,7 @@ class Exchange {
         );
     }
 
-    public function safe_ledger_entry(array $entry, ?string $currency = null) {
+    public function safe_ledger_entry(array $entry, ?array $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         $direction = $this->safe_string($entry, 'direction');
         $before = $this->safe_string($entry, 'before');
@@ -2750,8 +2748,7 @@ class Exchange {
         }
         $results = $this->sort_by($results, 'timestamp');
         $symbol = ($market !== null) ? $market['symbol'] : null;
-        $tail = $since === null;
-        return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit, $tail);
+        return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
     }
 
     public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
@@ -2760,32 +2757,25 @@ class Exchange {
         }
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
-        $key = 'quote';
-        $cost = null;
-        $amountString = $this->number_to_string($amount);
-        $priceString = $this->number_to_string($price);
-        if ($feeSide === 'quote') {
-            // the fee is always in quote currency
-            $cost = Precise::string_mul($amountString, $priceString);
-        } elseif ($feeSide === 'base') {
-            // the fee is always in base currency
-            $cost = $amountString;
-        } elseif ($feeSide === 'get') {
+        $useQuote = null;
+        if ($feeSide === 'get') {
             // the fee is always in the currency you get
-            $cost = $amountString;
-            if ($side === 'sell') {
-                $cost = Precise::string_mul($cost, $priceString);
-            } else {
-                $key = 'base';
-            }
+            $useQuote = $side === 'sell';
         } elseif ($feeSide === 'give') {
             // the fee is always in the currency you give
-            $cost = $amountString;
-            if ($side === 'buy') {
-                $cost = Precise::string_mul($cost, $priceString);
-            } else {
-                $key = 'base';
-            }
+            $useQuote = $side === 'buy';
+        } else {
+            // the fee is always in $feeSide currency
+            $useQuote = $feeSide === 'quote';
+        }
+        $cost = $this->number_to_string($amount);
+        $key = null;
+        if ($useQuote) {
+            $priceString = $this->number_to_string($price);
+            $cost = Precise::string_mul($cost, $priceString);
+            $key = 'quote';
+        } else {
+            $key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
         if (!$market['spot']) {
@@ -2796,9 +2786,7 @@ class Exchange {
             $takerOrMaker = 'taker';
         }
         $rate = $this->safe_string($market, $takerOrMaker);
-        if ($cost !== null) {
-            $cost = Precise::string_mul($cost, $rate);
-        }
+        $cost = Precise::string_mul($cost, $rate);
         return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],
@@ -2987,19 +2975,19 @@ class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return array_merge($ticker, array(
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'bid' => $this->omit_zero($this->safe_number($ticker, 'bid')),
             'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->omit_zero($this->safe_number($ticker, 'ask')),
             'askVolume' => $this->safe_number($ticker, 'askVolume'),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'open' => $this->parse_number($open),
-            'close' => $this->parse_number($close),
-            'last' => $this->parse_number($last),
+            'high' => $this->omit_zero($this->safe_number($ticker, 'high')),
+            'low' => $this->omit_zero($this->safe_number($ticker, 'low')),
+            'open' => $this->omit_zero($this->parse_number($open)),
+            'close' => $this->omit_zero($this->parse_number($close)),
+            'last' => $this->omit_zero($this->parse_number($last)),
             'change' => $this->parse_number($change),
             'percentage' => $this->parse_number($percentage),
-            'average' => $this->parse_number($average),
-            'vwap' => $this->parse_number($vwap),
+            'average' => $this->omit_zero($this->parse_number($average)),
+            'vwap' => $this->omit_zero($this->parse_number($vwap)),
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
             'previousClose' => $this->safe_number($ticker, 'previousClose'),
@@ -3355,8 +3343,7 @@ class Exchange {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
         }
         $sorted = $this->sort_by($results, 0);
-        $tail = ($since === null);
-        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0);
     }
 
     public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
@@ -3436,11 +3423,10 @@ class Exchange {
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = ($market !== null) ? $market['symbol'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_transactions($transactions, ?string $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_transactions($transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $transactions = $this->to_array($transactions);
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
@@ -3449,11 +3435,10 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function parse_transfers($transfers, ?string $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_transfers($transfers, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $transfers = $this->to_array($transfers);
         $result = array();
         for ($i = 0; $i < count($transfers); $i++) {
@@ -3462,11 +3447,10 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function parse_ledger($data, ?string $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_ledger($data, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $result = array();
         $arrayData = $this->to_array($data);
         for ($i = 0; $i < count($arrayData); $i++) {
@@ -3481,8 +3465,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = ($since === null);
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
     public function nonce() {
@@ -3528,9 +3511,9 @@ class Exchange {
         return $indexed ? $this->index_by($results, $key) : $results;
     }
 
-    public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array (), $context = array ()) {
+    public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         if ($this->enableRateLimit) {
-            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle ($cost);
         }
         $this->lastRestRequestTimestamp = $this->milliseconds ();
@@ -3538,8 +3521,8 @@ class Exchange {
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-    public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array (), $context = array ()) {
-        return $this->fetch2 ($path, $api, $method, $params, $headers, $body, $config, $context);
+    public function request($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body, $config);
     }
 
     public function load_accounts($reload = false, $params = array ()) {
@@ -3950,7 +3933,7 @@ class Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         return $this->safe_value($config, 'cost', 1);
     }
 
@@ -4306,12 +4289,12 @@ class Exchange {
         return $currency['code'];
     }
 
-    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null, $tail = false) {
-        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
+    public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null) {
+        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp');
     }
 
-    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null, $tail = false) {
-        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
+    public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null) {
+        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp');
     }
 
     public function parse_last_prices($pricesData, ?array $symbols = null, $params = array ()) {

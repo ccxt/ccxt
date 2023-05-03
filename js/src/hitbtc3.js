@@ -866,9 +866,9 @@ export default class hitbtc3 extends Exchange {
         let trades = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.market(marketId);
+            const marketInner = this.market(marketId);
             const rawTrades = response[marketId];
-            const parsed = this.parseTrades(rawTrades, market);
+            const parsed = this.parseTrades(rawTrades, marketInner);
             trades = this.arrayConcat(trades, parsed);
         }
         return trades;
@@ -1205,8 +1205,8 @@ export default class hitbtc3 extends Exchange {
         await this.loadMarkets();
         const request = {};
         if (symbols !== undefined) {
-            const marketIds = this.marketIds(symbols);
-            request['symbols'] = marketIds.join(',');
+            const marketIdsInner = this.marketIds(symbols);
+            request['symbols'] = marketIdsInner.join(',');
         }
         if (limit !== undefined) {
             request['depth'] = limit;
@@ -2158,16 +2158,16 @@ export default class hitbtc3 extends Exchange {
         const rates = [];
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
-            const market = this.safeMarket(marketId);
+            const marketInner = this.safeMarket(marketId);
             const fundingRateData = response[marketId];
-            for (let i = 0; i < fundingRateData.length; i++) {
-                const entry = fundingRateData[i];
-                const symbol = this.safeSymbol(market['symbol']);
+            for (let j = 0; j < fundingRateData.length; j++) {
+                const entry = fundingRateData[j];
+                const symbolInner = this.safeSymbol(marketInner['symbol']);
                 const fundingRate = this.safeNumber(entry, 'funding_rate');
                 const datetime = this.safeString(entry, 'timestamp');
                 rates.push({
                     'info': entry,
-                    'symbol': symbol,
+                    'symbol': symbolInner,
                     'fundingRate': fundingRate,
                     'timestamp': this.parse8601(datetime),
                     'datetime': datetime,
@@ -2788,6 +2788,7 @@ export default class hitbtc3 extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback);
         }
+        return undefined;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));

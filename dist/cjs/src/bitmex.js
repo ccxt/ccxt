@@ -2715,7 +2715,7 @@ class bitmex extends bitmex$1 {
             'info': response,
         };
     }
-    calculateRateLimiterCost(api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
         const isAuthenticated = this.checkRequiredCredentials(false);
         const cost = this.safeValue(config, 'cost', 1);
         if (cost !== 1) { // trading endpoints
@@ -2730,7 +2730,7 @@ class bitmex extends bitmex$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         if (code === 429) {
             throw new errors.DDoSProtection(this.id + ' ' + body);
@@ -2746,6 +2746,7 @@ class bitmex extends bitmex$1 {
             }
             throw new errors.ExchangeError(feedback); // unknown message
         }
+        return undefined;
     }
     nonce() {
         return this.milliseconds();

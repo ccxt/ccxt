@@ -1016,6 +1016,8 @@ export default class bitrue extends Exchange {
     parseTrade (trade, market = undefined) {
         //
         // aggregate trades
+        //  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
+        //  - Trades are aggregated by timestamp, price, and side. But "m" is always True. Use method above if side of trades matter
         //
         //     {
         //         "a": 26129,         // Aggregate tradeId
@@ -1023,8 +1025,8 @@ export default class bitrue extends Exchange {
         //         "q": "4.70443515",  // Quantity
         //         "f": 27781,         // First tradeId
         //         "l": 27781,         // Last tradeId
-        //         "T": 1498793709153, // Timestamp
-        //         "m": true,          // Was the buyer the maker?
+        //         "T": 1498793709153, // Timestamp of *Api-call* not trade!
+        //         "m": true,          // Was the buyer the maker?  // Always True -> ignore it and leave side undefined
         //         "M": true           // Was the trade the best price match?
         //     }
         //
@@ -1034,7 +1036,7 @@ export default class bitrue extends Exchange {
         //         "id": 28457,
         //         "price": "4.00000100",
         //         "qty": "12.00000000",
-        //         "time": 1499865549590,
+        //         "time": 1499865549590,  // Actual timestamp of trade
         //         "isBuyerMaker": true,
         //         "isBestMatch": true
         //     }
@@ -1061,20 +1063,17 @@ export default class bitrue extends Exchange {
         const amountString = this.safeString2 (trade, 'q', 'qty');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
+        const orderId = this.safeString (trade, 'orderId');
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
-        const orderId = this.safeString (trade, 'orderId');
-        if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if ('isBuyerMaker' in trade) {
-            side = trade['isBuyerMaker'] ? 'sell' : 'buy';
-        } else if ('side' in trade) {
-            side = this.safeStringLower (trade, 'side');
-        } else {
-            if ('isBuyer' in trade) {
-                side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
-            }
+        const buyerMaker = this.safeValue (trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
+        const isBuyer = this.safeValue (trade, 'isBuyer');
+        if (buyerMaker !== undefined) {
+            side = buyerMaker ? 'sell' : 'buy';
+        }
+        if (isBuyer !== undefined) {
+            side = isBuyer ? 'buy' : 'sell'; // this is a true side
         }
         let fee = undefined;
         if ('commission' in trade) {
@@ -1084,11 +1083,9 @@ export default class bitrue extends Exchange {
             };
         }
         let takerOrMaker = undefined;
-        if ('isMaker' in trade) {
-            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
-        }
-        if ('maker' in trade) {
-            takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+        const isMaker = this.safeValue2 (trade, 'isMaker', 'maker');
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade ({
             'info': trade,
@@ -1946,7 +1943,8 @@ export default class bitrue extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [ version, access ] = api;
+        const version = this.safeString (api, 0);
+        const access = this.safeString (api, 1);
         let url = this.urls['api'][version] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (access === 'private') {
@@ -1994,17 +1992,17 @@ export default class bitrue extends Exchange {
             }
         }
         if (response === undefined) {
-            return; // fallback to default error handler
+            return undefined; // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeValue (response, 'success', true);
         if (!success) {
-            const message = this.safeString (response, 'msg');
+            const messageInner = this.safeString (response, 'msg');
             let parsedMessage = undefined;
-            if (message !== undefined) {
+            if (messageInner !== undefined) {
                 try {
-                    parsedMessage = JSON.parse (message);
+                    parsedMessage = JSON.parse (messageInner);
                 } catch (e) {
                     // do nothing
                     parsedMessage = undefined;
@@ -2025,7 +2023,7 @@ export default class bitrue extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if ((error === '200') || Precise.stringEquals (error, '0')) {
-                return;
+                return undefined;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
@@ -2040,9 +2038,10 @@ export default class bitrue extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        return undefined;
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {

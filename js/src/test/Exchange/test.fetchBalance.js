@@ -4,18 +4,10 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// ----------------------------------------------------------------------------
-import testBalance from './test.balance.js';
-// ----------------------------------------------------------------------------
-export default async (exchange) => {
+import testBalance from './base/test.balance.js';
+async function testFetchBalance(exchange, code, symbol) {
     const method = 'fetchBalance';
-    if (!(exchange.has[method])) {
-        console.log(exchange.id, method + '() is not supported');
-        return;
-    }
-    console.log('fetching balance...');
-    const response = await exchange[method]();
-    testBalance(exchange, response);
-    console.log('fetched balance items:', Object.keys(response).length);
-    return response;
-};
+    const response = await exchange.fetchBalance();
+    testBalance(exchange, method, response);
+}
+export default testFetchBalance;

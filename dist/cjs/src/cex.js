@@ -558,6 +558,7 @@ class cex extends cex$1 {
                 return [];
             }
         }
+        return undefined;
     }
     parseTicker(ticker, market = undefined) {
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
@@ -874,7 +875,7 @@ class cex extends cex$1 {
                 feeRate = this.safeNumber(order, 'tradingFeeTaker', feeRate);
             }
             if (feeRate) {
-                feeRate /= 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = feeRate / 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
             }
             if ((baseFee in order) || (baseTakerFee in order)) {
                 const baseFeeCost = this.safeNumber2(order, baseFee, baseTakerFee);
@@ -1409,7 +1410,7 @@ class cex extends cex$1 {
             const quoteId = this.safeString(order, 'symbol2');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
+            const symbolInner = base + '/' + quote;
             const side = this.safeString(order, 'type');
             const baseAmount = this.safeNumber(order, 'a:' + baseId + ':cds');
             const quoteAmount = this.safeNumber(order, 'a:' + quoteId + ':cds');
@@ -1452,7 +1453,7 @@ class cex extends cex$1 {
                 'datetime': this.iso8601(timestamp),
                 'lastUpdated': this.parse8601(lastTxTime),
                 'status': status,
-                'symbol': symbol,
+                'symbol': symbolInner,
                 'side': side,
                 'price': price,
                 'amount': orderAmount,
@@ -1577,7 +1578,7 @@ class cex extends cex$1 {
             return response; // public endpoints may return []-arrays
         }
         if (body === 'true') {
-            return;
+            return undefined;
         }
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' returned ' + this.json(response));
@@ -1585,7 +1586,7 @@ class cex extends cex$1 {
         if ('e' in response) {
             if ('ok' in response) {
                 if (response['ok'] === 'ok') {
-                    return;
+                    return undefined;
                 }
             }
         }
@@ -1596,6 +1597,7 @@ class cex extends cex$1 {
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback);
         }
+        return undefined;
     }
 }
 

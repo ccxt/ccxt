@@ -1,22 +1,15 @@
 
-// ----------------------------------------------------------------------------
+import assert from 'assert';
+import testBorrowRate from './base/test.borrowRate.js';
 
-import testBorrowRate from './test.borrowRate.js';
-
-// ----------------------------------------------------------------------------
-
-export default async (exchange) => {
+async function testFetchBorrowRates (exchange) {
     const method = 'fetchBorrowRates';
-    if (exchange.has[method]) {
-        const borrowRates = await exchange[method] ();
-        console.log ('fetched all', Object.keys (borrowRates).length, 'borrow rates');
-        const values = Object.values (borrowRates);
-        for (let i = 0; i < values.length; i++) {
-            const borrowRate = values[i];
-            testBorrowRate (exchange, borrowRate, method);
-        }
-        return borrowRates;
-    } else {
-        console.log (method + '() fetching all borrow rates at once is not supported');
+    const borrowRates = await exchange.fetchBorrowRates ();
+    assert (typeof borrowRates === 'object', exchange.id + ' ' + method + ' must return an object. ' + exchange.json (borrowRates));
+    const values = Object.values (borrowRates);
+    for (let i = 0; i < values.length; i++) {
+        testBorrowRate (exchange, method, values[i], undefined);
     }
-};
+}
+
+export default testFetchBorrowRates;

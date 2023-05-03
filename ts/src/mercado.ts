@@ -889,7 +889,7 @@ export default class mercado extends Exchange {
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return;
+            return undefined;
         }
         //
         // todo add a unified standard handleErrors with this.exceptions in describe()
@@ -900,5 +900,6 @@ export default class mercado extends Exchange {
         if (errorMessage !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
+        return undefined;
     }
 }
