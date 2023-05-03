@@ -2,9 +2,7 @@
     "ace": {
         "skipMethods": {
             "loadMarkets": {
-                "baseId": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
-                "quoteId": "same",
-                "settleId": "same"
+                "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests"
             },
             "fetchOrderBook": "needs reversion of amount/price",
             "fetchL2OrderBook": "same"
@@ -12,6 +10,17 @@
     },
     "alpaca": {
         "skipWs": true
+    },
+    "ascendex": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "broken currencies"
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            }
+        }
     },
     "bequant": {
         "skipWs": true
@@ -21,15 +30,20 @@
 		"skipPhpAsync":true,
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "i.e. binance does not have currency code BCC",
                 "expiry": "expiry not set for future markets",
                 "expiryDatetime": "expiry not set for future markets"
+            },
+            "fetchCurrencies": {
+                "precision": "not provided in public api"
             }
         }
     },
     "bit2c": {
         "skipMethods": {
             "loadMarkets": {
-                "precision": "precision key has an null value, but is expected to have a value"
+                "precision": "not provided",
+                "active": "not provided"
             }
         }
     },
@@ -71,7 +85,8 @@
     "bitbns": {
         "skipMethods": {
             "loadMarkets": {
-                "limits": "only one market has min>max limit"
+                "limits": "only one market has min>max limit",
+                "active": "not provided"
             },
             "fetchTickers": "unknown symbol might be returned"
         }
@@ -82,12 +97,22 @@
     "bitfinex": {
         "skipWs": true,
         "skipMethods": {
-            "loadMarkets": "linear and inverse values are same"
+            "loadMarkets": "linear and inverse values are same",
+            "fetchTickers": {
+                "symbol": "something broken with symbol"
+            }
         }
     },
     "bitfinex2": {
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "broken currencies"
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
             "fetchOrderBook": "multiple bids might have same value",
             "fetchL2OrderBook": "same"
         }
@@ -106,7 +131,9 @@
                 "limits": "limit max value is zero, lwer than min"
             },
             "fetchCurrencies": {
-                "precision": "precision is undefined"
+                "precision": "nor provided",
+                "withdraw": "not provided",
+                "deposit": "not provided"
             }
         }
     },
@@ -129,7 +156,7 @@
                 "expiry":"expiry is expected to be > 0 "
             },
             "fetchCurrencies": {
-                "precision":"precision is undefined"
+                "precision":"nor provided"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -152,23 +179,36 @@
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
-                "precision": "precision is undefined"
+                "precision": "nor provided"
+            },
+            "loadMarkets": {
+                "currencyIdAndCode": "broken currencies"
             }
         }
     },
     "bitpanda": {
         "skipMethods": {
             "fetchOrderBook": "some bid might be lower than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            }
         }
     },
     "bitrue": {
         "skipMethods": {
             "loadMarkets": {
+                "currencyIdAndCode": "broken currencies",
                 "limits": "max is below min"
             },
             "fetchCurrencies": {
-                "precision": "precision is undefined"
+                "precision": "nor provided",
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            },
+            "fetchTrades": {
+                "side": "not set"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -180,18 +220,31 @@
             }
         }
     },
+    "bitso": {
+        "skipWs": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "active": "not provided"
+            }
+        }
+    },
     "bitstamp": {
         "skipWs": true,
         "skipMethods": {
             "fetchOrderBook": "bid/ask might be 0",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            }
         }
     },
     "bitstamp1": {
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
-                "precision":"precision is undefined"
+                "precision":"nor provided",
+                "active": "not provided"
             },
             "fetchOrderBook": "bid/ask might be 0",
             "fetchL2OrderBook": "same"
@@ -200,7 +253,8 @@
     "bl3p": {
         "skipMethods": {
             "loadMarkets": {
-                "precision":"precision is undefined"
+                "precision":"nor provided",
+                "active": "not provided"
             },
             "fetchTrades": {
                 "side": "side is undefined"
@@ -211,20 +265,30 @@
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
-                "precision": "precision is undefined"
+                "precision": "nor provided"
+            },
+            "loadMarkets": {
+                "currencyIdAndCode": "broken currencies"
             }
         }
     },
     "blockchaincom": {
         "skipMethods": {
+            "loadMarkets": {
+                "taker":"nor provided",
+                "maker":"nor provided"
+            },
             "fetchOrderBook": "bid should be greater than next bid",
             "fetchL2OrderBook": "same"
         }
     },
     "bkex": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "broken currencies"
+            },
             "fetchCurrencies": {
-                "precision": "precision is undefined"
+                "precision": "nor provided"
             },
             "fetchOHLCV": "open might be greater than high"
         }
@@ -233,13 +297,18 @@
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": "bid might be set to 0",
-            "fetchTicker": "same"
+            "fetchTicker": "same",
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
+            }
         }
     },
     "btcbox": {
         "skipMethods": {
             "loadMarkets": {
-                "precision":"precision is undefined"
+                "precision":"is undefined",
+                "active":"is undefined"
             }
         }
     },
@@ -247,18 +316,32 @@
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
+                "active": "is undefined",
                 "limits": "sometimes 'max' value is zero, lower than 'min'"
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
             }
         }
     },
     "btcalpha": {
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "fetchTickers": {
+                "percentage": "broken"
+            },
+            "fetchTicker": {
+                "percentage": "broken"
+            }
         }
     },
     "btcmarkets": {
         "skipMethods": {
+            "loadMarkets":{
+                "active":"is undefined"
+            },
             "fetchOrderBook": "bid should be greater than next bid",
             "fetchL2OrderBook": "same"
         }
@@ -266,7 +349,8 @@
     "btctradeua": {
         "skipMethods": {
             "loadMarkets": {
-                "precision":"precision is undefined"
+                "precision":"is undefined",
+                "active":"is undefined"
             },
             "fetchOrderBook": "bid should be greater than next bid",
             "fetchL2OrderBook": "same"
@@ -284,7 +368,8 @@
     "coincheck": {
         "skipMethods": {
             "loadMarkets":{
-                "precision":"precision is undefined"
+                "precision":"nor provided",
+                "active":"is undefined"
             }
         }
     },
@@ -292,7 +377,7 @@
         "skip": "private endpoints",
         "skipMethods": {
             "fetchCurrencies": {
-                "precision": "precision is undefined"
+                "precision": "nor provided"
             },
             "fetchTrades": "datetime is not same as timestamp"
         }
@@ -300,13 +385,21 @@
     "coinbasepro": {
 		"skipPhpAsync":true,
         "skipMethods": {
-            "fetchStatus": "request timeout"
+            "fetchStatus": "request timeout",
+            "fetchCurrencies": {
+                "withdraw": "nor provided",
+                "deposit": "nor provided"
+            }
         }
     },
     "coinbaseprime": {
 		"skipPhpAsync":true,
         "skipMethods": {
-            "fetchStatus": "request timeout"
+            "fetchStatus": "request timeout",
+            "fetchCurrencies": {
+                "withdraw": "nor provided",
+                "deposit": "nor provided"
+            }
         }
     },
     "coinspot": {
@@ -331,6 +424,9 @@
     },
     "coinmate": {
         "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            },
             "fetchOrderBook": "ask should be less than next ask",
             "fetchL2OrderBook": "same"
         }
@@ -412,7 +508,7 @@
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
-                "precision":"precision is undefined"
+                "precision":"nor provided"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -469,21 +565,12 @@
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
-                "precision":"precision is undefined"
+                "precision":"nor provided"
             }
         }
     },
     "idex": {
         "skipWs": true
-    },
-    "itbit": {
-        "skipMethods": {
-            "loadMarkets": {
-                "precision": "precision is undefined"
-            },
-            "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
-        }
     },
     "independentreserve": {
         "skipWs": true,
@@ -587,7 +674,7 @@
     "paymium": {
         "skipMethods": {
             "loadMarkets": {
-                "precision": "precision is undefined"
+                "precision": "nor provided"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -645,7 +732,7 @@
                 "withdraw": "undefined",
                 "deposit": "undefined",
                 "networks": "networks key is missing",
-                "precision": "precision is undefined"
+                "precision": "nor provided"
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
@@ -696,7 +783,7 @@
         "skipMethods": {
             "loadMarkets": "contractSize must be undefined when contract is false",
             "fetchCurrencies": {
-                "precision":"precision is undefined"
+                "precision":"nor provided"
             }
         }
     },
