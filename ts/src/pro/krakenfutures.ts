@@ -504,7 +504,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const previousOrder = this.safeValue (previousOrders, orderId);
             if (previousOrder === undefined) {
                 const parsed = this.parseWsOrder (order);
-                orders.push (parsed);
+                orders.append (parsed);
                 client.resolve (orders, messageHash);
                 client.resolve (orders, messageHash + ':' + symbol);
             } else {
@@ -545,7 +545,7 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
-                orders.push (this.safeOrder (previousOrder));
+                orders.append (this.safeOrder (previousOrder));
                 client.resolve (orders, messageHash + ':' + symbol);
                 client.resolve (orders, messageHash);
             }
@@ -610,7 +610,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const parsed = this.parseWsOrder (order);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
-            this.orders.push (parsed);
+            this.orders.append (parsed);
         }
         if (this.orders.length > 0) {
             client.resolve (this.orders, 'orders');
