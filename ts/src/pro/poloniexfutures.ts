@@ -21,7 +21,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'watchTickers': false,
                 'watchTrades': true,
                 'watchBalance': true,
-                'watchStatus': false,
                 'watchOrders': true,
                 'watchMyTrades': false,
                 'watchPosition': undefined,
@@ -914,14 +913,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const currencyId = this.safeString (data, 'currency');
         const currency = this.currency (currencyId);
         const code = currency['code'];
-        const balance = this.safeValue (this.balance, code, {});
-        const newBalance = this.parseWsBalance (data);
-        if (balance['timestamp'] === newBalance['timestamp']) {
-            newBalance['info'] = this.merge (balance['info'], newBalance['info']);
-            this.balance[code] = this.merge (balance, newBalance);
-        } else {
-            this.balance[code] = newBalance;
-        }
+        this.balance[code] = this.parseWsBalance (data);
         client.resolve (this.balance[code], messageHash);
         return message;
     }
@@ -950,7 +942,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const code = this.safeCurrencyCode (currencyId);
         const newAccount = this.account ();
         newAccount['free'] = this.safeString (response, 'availableBalance');
-        newAccount['used'] = this.safeString (response, 'orderMargin');
         result[code] = newAccount;
         return this.safeBalance (result);
     }
