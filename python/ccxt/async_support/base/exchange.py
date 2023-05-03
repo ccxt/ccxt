@@ -1783,6 +1783,7 @@ class Exchange(BaseExchange):
             time = await self.fetchTime(params)
             self.status = self.extend(self.status, {
                 'updated': time,
+                'info': time,
             })
         if not ('info' in self.status):
             self.status['info'] = None
