@@ -114,50 +114,6 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return result;
     }
 
-    // async getPublicToken (params = {}) {
-    //     if (this.options['publicToken'] === undefined) {
-    //         const response = await this.publicPostBulletPublic ();
-    //         //
-    //         //    {
-    //         //        code: '200000',
-    //         //        data: {
-    //         //            instanceServers: [ [Object] ],
-    //         //            token: 'DcXijCbKcWFew_i0BS8y6UNmBtlHW3UAvR4Nx4VADIn15tt-jDqMbYWNZ2II5fSnrClCBBv6dTDc8PMFHz-H6tSnN_vkspYYmOImrn5NXLlsFbcpggjU6mMGfZAja_q_-wgHjBcT7RhvJVwiLf8PgR2VF0_UPbEwl-RWj6JCmic=.9NqWNqQVILOkGiD1RL1AoQ=='
-    //         //        }
-    //         //    }
-    //         //
-    //         const data = this.safeValue (response, 'data');
-    //         this.options['publicToken'] = this.safeString (data, 'token');
-    //     }
-    //     return this.options['publicToken'];
-    // }
-
-    // async getPrivateToken (params = {}) {
-    //     if (this.options['privateToken'] === undefined) {
-    //         const response = await this.privatePostBulletPrivate ();
-    //         //
-    //         //   {
-    //         //       code: '200000',
-    //         //       data: {
-    //         //           instanceServers: [
-    //         //                {
-    //         //                    "pingInterval": 50000,
-    //         //                    "endpoint": "wss://futures-apiws.poloniex.com/endpoint",
-    //         //                    "protocol": "websocket",
-    //         //                    "encrypt": true,
-    //         //                    "pingTimeout": 10000
-    //         //                }
-    //         //            ],
-    //         //            "token": "vYNlCtbz4XNJ1QncwWilJnBtmmfe4geLQDUA62kKJsDChc6I4bRDQc73JfIrlFaVYIAE0Gv2--MROnLAgjVsWkcDq_MuG7qV7EktfCEIphiqnlfpQn4Ybg==.IoORVxR2LmKV7_maOR9xOg=="
-    //         //       }
-    //         //   }
-    //         //
-    //         const data = this.safeValue (response, 'data');
-    //         this.options['privateToken'] = this.safeString (data, 'token');
-    //     }
-    //     return this.options['privateToken'];
-    // }
-
     requestId () {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -261,7 +217,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return message;
     }
 
-    handleNewStream (client: Client, message) {
+    handleNewStream (client: Client, message, subscription) {
         //
         //    {
         //        "id": "1545910840805",
@@ -301,7 +257,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const options = this.safeValue (this.options, 'watchTicker');
+        const options = this.safeValue (this.options, 'watchTrades');
         let name = this.safeString (options, 'method', '/contractMarket/execution'); // can also be /contractMarket/snapshot
         [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
         symbol = this.symbol (symbol);
@@ -414,14 +370,14 @@ export default class poloniexfutures extends poloniexfuturesRest {
             const trade = this.parseWsTrade (data);
             const symbol = trade['symbol'];
             const messageHash = '/contractMarket/execution:' + marketId;
-            let tradesArray = this.safeValue (this.trades, symbol);
-            if (tradesArray === undefined) {
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                tradesArray = new ArrayCache (tradesLimit);
-                this.trades[symbol] = tradesArray;
+                stored = new ArrayCache (tradesLimit);
+                this.trades[symbol] = stored;
             }
-            tradesArray.append (trade);
-            client.resolve (tradesArray, messageHash);
+            stored.append (trade);
+            client.resolve (stored, messageHash);
         }
         return message;
     }
@@ -1032,12 +988,17 @@ export default class poloniexfutures extends poloniexfuturesRest {
         }
     }
 
-    ping () {
+    ping (client: Client) {
         const id = this.requestId ().toString ();
         return {
             'id': id,
             'type': 'ping',
         };
+    }
+
+    handlePong (client: Client, message) {
+        client.lastPong = this.milliseconds ();
+        return message;
     }
 
     handleErrorMessage (client: Client, message) {
@@ -1058,7 +1019,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'welcome': this.handleSystemStatus,
             'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,
-            'pong': client.onPong (),
+            'pong': this.handlePong,
             'error': this.handleErrorMessage,
         };
         const method = this.safeValue (methods, type);
