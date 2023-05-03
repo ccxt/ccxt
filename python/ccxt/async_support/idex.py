@@ -1418,7 +1418,7 @@ class idex(Exchange, ImplicitAPI):
         params = self.extend({
             'method': 'privateGetDeposits',
         }, params)
-        return await self.fetch_transactions_helper(code, since, limit, params)
+        return self.fetch_transactions_helper(code, since, limit, params)
 
     async def fetch_time(self, params={}):
         """
@@ -1462,7 +1462,7 @@ class idex(Exchange, ImplicitAPI):
         params = self.extend({
             'method': 'privateGetWithdrawals',
         }, params)
-        return await self.fetch_transactions_helper(code, since, limit, params)
+        return self.fetch_transactions_helper(code, since, limit, params)
 
     async def fetch_transactions_helper(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         await self.load_markets()
