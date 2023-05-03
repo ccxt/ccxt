@@ -1518,7 +1518,7 @@ export default class idex extends Exchange {
         params = this.extend ({
             'method': 'privateGetDeposits',
         }, params);
-        return this.fetchTransactionsHelper (code, since, limit, params);
+        return await this.fetchTransactionsHelper (code, since, limit, params);
     }
 
     async fetchTime (params = {}) {
@@ -1571,7 +1571,7 @@ export default class idex extends Exchange {
         params = this.extend ({
             'method': 'privateGetWithdrawals',
         }, params);
-        return this.fetchTransactionsHelper (code, since, limit, params);
+        return await this.fetchTransactionsHelper (code, since, limit, params);
     }
 
     async fetchTransactionsHelper (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
