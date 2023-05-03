@@ -1879,6 +1879,7 @@ class Exchange extends \ccxt\Exchange {
                 $time = Async\await($this->fetchTime ($params));
                 $this->status = array_merge($this->status, array(
                     'updated' => $time,
+                    'info' => $time,
                 ));
             }
             if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
