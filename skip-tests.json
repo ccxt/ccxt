@@ -146,8 +146,7 @@
         "skipMethods": {
             "loadMarkets": "some market types are out of expected market-types",
             "fetchOHLCV": "open might be greater than high"
-        },
-        "skip": "update:spot markets doesnt work atm, need fix spot:true"
+        }
     },
     "bitopro": {
         "skipWs": true,
