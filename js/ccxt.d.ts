@@ -152,6 +152,7 @@ import huobiproPro from './src/pro/huobipro.js';
 import idexPro from './src/pro/idex.js';
 import independentreservePro from './src/pro/independentreserve.js';
 import krakenPro from './src/pro/kraken.js';
+import krakenfuturesPro from './src/pro/krakenfutures.js';
 import kucoinPro from './src/pro/kucoin.js';
 import kucoinfuturesPro from './src/pro/kucoinfutures.js';
 import lunoPro from './src/pro/luno.js';
@@ -317,6 +318,7 @@ declare const pro: {
     idex: typeof idexPro;
     independentreserve: typeof independentreservePro;
     kraken: typeof krakenPro;
+    krakenfutures: typeof krakenfuturesPro;
     kucoin: typeof kucoinPro;
     kucoinfutures: typeof kucoinfuturesPro;
     luno: typeof lunoPro;
@@ -378,6 +380,7 @@ declare const ccxt: {
         idex: typeof idexPro;
         independentreserve: typeof independentreservePro;
         kraken: typeof krakenPro;
+        krakenfutures: typeof krakenfuturesPro;
         kucoin: typeof kucoinPro;
         kucoinfutures: typeof kucoinfuturesPro;
         luno: typeof lunoPro;

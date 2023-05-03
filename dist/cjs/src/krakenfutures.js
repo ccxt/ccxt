@@ -18,6 +18,7 @@ class krakenfutures extends krakenfutures$1 {
             'version': 'v3',
             'userAgent': undefined,
             'rateLimit': 600,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,

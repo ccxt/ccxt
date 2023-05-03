@@ -37,6 +37,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'version': 'v3',
             'userAgent': None,
             'rateLimit': 600,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': False,
